@@ -28,11 +28,14 @@ Telos 基于现代化全栈架构，旨在构建一个流程编排智能体，�
 telos/
 ├── apps/
 │   ├── web/                # 前端 Web 应用 (Next.js 15 + Shadcn UI)
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── services/
+│   │   ├── src/
+│   │   │   ├── app/        # App Router 目录结构
+│   │   │   ├── lib/        # 业务逻辑库
+│   │   │   ├── services/   # API 服务 (tRPC 或 REST)
+│   │   │   └── assets/     # 静态资源
+│   │   ├── public/         # 公共资源
+│   │   ├── components.json # Shadcn UI 配置
+│   │   ├── next.config.ts  # Next.js 配置
 │   │   └── ...
 │   └── api-gateway/        # API 网关 (Go)
 │       ├── cmd/
@@ -66,16 +69,20 @@ telos/
 telos/
 ├── apps/ # 应用层
 │ ├── web/ # 前端 Web 应用 (Next.js 15 + Shadcn UI)
-│ │ ├── app/ # App Router 目录结构
-│ │ │ ├── globals.css
-│ │ │ ├── layout.tsx
-│ │ │ ├── page.tsx
-│ │ │ └── [...routes]/
-│ │ ├── components/ # 组件库 (原子、分子、组织模式)
-│ │ ├── hooks/ # 自定义 Hooks
-│ │ ├── lib/ # 业务逻辑库
-│ │ ├── services/ # API 服务 (tRPC 或 REST)
-│ │ └── next.config.js # Next.js 配置
+│ │ ├── src/ # 源代码目录
+│ │ │ ├── app/ # App Router 目录结构
+│ │ │ │ ├── globals.css
+│ │ │ │ ├── layout.tsx
+│ │ │ │ ├── page.tsx
+│ │ │ │ └── [...routes]/
+│ │ │ ├── components/ # 组件库 (原子、分子、组织模式)
+│ │ │ ├── hooks/ # 自定义 Hooks
+│ │ │ ├── lib/ # 业务逻辑库
+│ │ │ ├── services/ # API 服务 (tRPC 或 REST)
+│ │ │ └── assets/ # 静态资源
+│ │ ├── public/ # 公共资源
+│ │ ├── components.json # Shadcn UI 配置
+│ │ └── next.config.ts # Next.js 配置
 │ │
 │ └── api-gateway/ # API 网关 (Go)
 │ ├── cmd/ # 入口点
@@ -262,5 +269,28 @@ docker-compose up -d
 - **作者/维护者：** （待补充）
 - **邮箱：** （待补充）
 - **Issues：** 欢迎通过 GitHub Issues 反馈问题与建议
+
+---
+
+## 十二、开源许可证
+
+本项目采用 **MIT 许可证** - 查看 [LICENSE](../LICENSE) 文件了解详情。
+
+### 许可证概述
+
+MIT 许可证是一个宽松的许可证，允许您：
+
+- ✅ 将软件用于任何目的
+- ✅ 修改和分发软件
+- ✅ 用于商业项目
+- ✅ 集成到专有软件中
+
+唯一的要求是包含原始的版权和许可证声明。
+
+详细的许可证信息和使用指南，请参阅 [LICENSE_zh.md](LICENSE_zh.md)。
+
+---
+
+**Telos 项目贡献者** - 版权所有 (c) 2024
 
 ---

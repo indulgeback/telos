@@ -28,11 +28,14 @@ Telos is built on a modern full-stack architecture, aiming to create an intellig
 telos/
 ├── apps/
 │   ├── web/                # Frontend Web App (Next.js 15 + Shadcn UI)
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── lib/
-│   │   ├── services/
+│   │   ├── src/
+│   │   │   ├── app/        # App Router Directory Structure
+│   │   │   ├── lib/        # Business Logic Library
+│   │   │   ├── services/   # API Services (tRPC or REST)
+│   │   │   └── assets/     # Static Assets
+│   │   ├── public/         # Public Assets
+│   │   ├── components.json # Shadcn UI Config
+│   │   ├── next.config.ts  # Next.js Config
 │   │   └── ...
 │   └── api-gateway/        # API Gateway (Go)
 │       ├── cmd/
@@ -66,16 +69,20 @@ telos/
 telos/
 ├── apps/ # Application Layer
 │ ├── web/ # Frontend Web App (Next.js 15 + Shadcn UI)
-│ │ ├── app/ # App Router Directory Structure
-│ │ │ ├── globals.css
-│ │ │ ├── layout.tsx
-│ │ │ ├── page.tsx
-│ │ │ └── [...routes]/
-│ │ ├── components/ # Component Library (Atomic, Molecular, Organism)
-│ │ ├── hooks/ # Custom Hooks
-│ │ ├── lib/ # Business Logic Library
-│ │ ├── services/ # API Services (tRPC or REST)
-│ │ └── next.config.js # Next.js Config
+│ │ ├── src/ # Source Code Directory
+│ │ │ ├── app/ # App Router Directory Structure
+│ │ │ │ ├── globals.css
+│ │ │ │ ├── layout.tsx
+│ │ │ │ ├── page.tsx
+│ │ │ │ └── [...routes]/
+│ │ │ ├── components/ # Component Library (Atomic, Molecular, Organism)
+│ │ │ ├── hooks/ # Custom Hooks
+│ │ │ ├── lib/ # Business Logic Library
+│ │ │ ├── services/ # API Services (tRPC or REST)
+│ │ │ └── assets/ # Static Assets
+│ │ ├── public/ # Public Assets
+│ │ ├── components.json # Shadcn UI Config
+│ │ └── next.config.ts # Next.js Config
 │ │
 │ └── api-gateway/ # API Gateway (Go)
 │ ├── cmd/ # Entry Point
@@ -264,3 +271,24 @@ docker-compose up -d
 - **Issues:** Please use GitHub Issues for feedback and suggestions
 
 ---
+
+## 12. License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### License Summary
+
+The MIT License is a permissive license that allows you to:
+
+- ✅ Use the software for any purpose
+- ✅ Modify and distribute the software
+- ✅ Use it commercially
+- ✅ Integrate it into proprietary software
+
+The only requirement is that you include the original copyright and license notice.
+
+For detailed license information and usage guidelines, see [docs/LICENSE_zh.md](docs/LICENSE_zh.md).
+
+---
+
+**Telos Project Contributors** - Copyright (c) 2024
