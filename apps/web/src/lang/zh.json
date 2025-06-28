@@ -1,0 +1,59 @@
+{
+  "HomePage": {
+    "title": "Telos: 智能流程编排平台",
+    "subtitle": "现代化、可扩展的智能工作流编排平台",
+    "description": "支持自动化任务调度与管理，采用前后端分离、微服务架构，适合企业级自动化场景",
+    "features": {
+      "title": "核心特性",
+      "frontend": "前端基于 Next.js 15 + Shadcn UI，体验流畅",
+      "backend": "后端 Go 微服务，性能优越，易于扩展",
+      "communication": "支持 tRPC/gRPC，类型安全，服务间通信高效",
+      "monorepo": "Monorepo 管理，统一依赖，便于协作",
+      "deployment": "完善的容器化与 CI/CD 支持"
+    },
+    "architecture": {
+      "title": "技术架构",
+      "frontend": "前端技术栈",
+      "backend": "后端技术栈",
+      "infrastructure": "基础设施"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "前端技术栈",
+        "nextjs": "Next.js 15 - 利用 App Router 实现服务器组件与路由优化",
+        "shadcn": "Shadcn UI - 基于 Tailwind CSS 的组件库，快速构建响应式界面",
+        "typescript": "TypeScript - 强类型语言提升代码稳定性与可维护性",
+        "trpc": "tRPC - 实现前端与后端的类型安全 API 调用",
+        "zustand": "Zustand - 轻量级状态管理库，处理复杂交互逻辑"
+      },
+      "backend": {
+        "title": "后端技术栈",
+        "go": "Go 语言 - 高性能、原生支持并发，适合微服务架构",
+        "gin": "Gin/Echo - 轻量级 HTTP 框架，快速搭建 API 接口",
+        "grpc": "gRPC - 基于 Protobuf 的高性能 RPC 框架，用于服务间通信",
+        "postgresql": "PostgreSQL - 关系型数据库，存储结构化数据",
+        "redis": "Redis - 缓存数据库，加速数据读取与任务队列处理"
+      },
+      "infrastructure": {
+        "title": "基础设施",
+        "docker": "Docker - 容器化部署，确保环境一致性",
+        "kubernetes": "Kubernetes - 集群编排，实现自动化部署与扩缩容",
+        "helm": "Helm - K8s 包管理器，简化应用部署流程",
+        "monitoring": "Prometheus + Grafana - 监控与可视化系统",
+        "tracing": "Jaeger - 分布式追踪，定位服务调用链问题"
+      }
+    },
+    "quickStart": {
+      "title": "快速开始",
+      "frontend": "启动前端",
+      "backend": "启动后端",
+      "allServices": "一键启动所有服务",
+      "commands": "常用命令"
+    },
+    "cta": {
+      "getStarted": "开始使用",
+      "learnMore": "了解更多",
+      "viewDocs": "查看文档"
+    }
+  }
+}

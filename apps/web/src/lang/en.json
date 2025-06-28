@@ -1,6 +1,59 @@
 {
-    "HomePage": {
-        "title": "Hello world!",
-        "about": "Go to the about page"
+  "HomePage": {
+    "title": "Telos: Intelligent Workflow Orchestration Platform",
+    "subtitle": "Modern, scalable intelligent workflow orchestration platform",
+    "description": "Supports automated task scheduling and management, adopts frontend-backend separation and microservices architecture, suitable for enterprise-level automation scenarios",
+    "features": {
+      "title": "Core Features",
+      "frontend": "Frontend based on Next.js 15 + Shadcn UI for a smooth experience",
+      "backend": "Backend Go microservices for high performance and easy scalability",
+      "communication": "Supports tRPC/gRPC for type-safe and efficient inter-service communication",
+      "monorepo": "Monorepo management for unified dependencies and easy collaboration",
+      "deployment": "Complete containerization and CI/CD support"
+    },
+    "architecture": {
+      "title": "Technology Architecture",
+      "frontend": "Frontend Tech Stack",
+      "backend": "Backend Tech Stack",
+      "infrastructure": "Infrastructure"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Frontend Tech Stack",
+        "nextjs": "Next.js 15 - Uses App Router for server components and optimized routing",
+        "shadcn": "Shadcn UI - Component library based on Tailwind CSS for rapid responsive UI development",
+        "typescript": "TypeScript - Strongly typed language for code stability and maintainability",
+        "trpc": "tRPC - Type-safe API calls between frontend and backend",
+        "zustand": "Zustand - Lightweight state management for complex interactions"
+      },
+      "backend": {
+        "title": "Backend Tech Stack",
+        "go": "Go - High performance, native concurrency, ideal for microservices",
+        "gin": "Gin/Echo - Lightweight HTTP frameworks for rapid API development",
+        "grpc": "gRPC - High-performance RPC framework based on Protobuf for inter-service communication",
+        "postgresql": "PostgreSQL - Relational database for structured data",
+        "redis": "Redis - Cache database for fast data access and task queueing"
+      },
+      "infrastructure": {
+        "title": "Infrastructure",
+        "docker": "Docker - Containerized deployment for environment consistency",
+        "kubernetes": "Kubernetes - Cluster orchestration for automated deployment and scaling",
+        "helm": "Helm - K8s package manager for simplified deployment",
+        "monitoring": "Prometheus + Grafana - Monitoring and visualization",
+        "tracing": "Jaeger - Distributed tracing for service call chain analysis"
+      }
+    },
+    "quickStart": {
+      "title": "Quick Start",
+      "frontend": "Start Frontend",
+      "backend": "Start Backend",
+      "allServices": "Start All Services",
+      "commands": "Common Commands"
+    },
+    "cta": {
+      "getStarted": "Get Started",
+      "learnMore": "Learn More",
+      "viewDocs": "View Documentation"
     }
+  }
 }
