@@ -1,4 +1,10 @@
 {
+  "Common": {
+    "theme": "主题",
+    "language": "语言",
+    "toggleTheme": "切换主题",
+    "toggleLanguage": "切换语言"
+  },
   "HomePage": {
     "title": "Telos: 智能流程编排平台",
     "subtitle": "现代化、可扩展的智能工作流编排平台",
@@ -12,10 +18,7 @@
       "deployment": "完善的容器化与 CI/CD 支持"
     },
     "architecture": {
-      "title": "技术架构",
-      "frontend": "前端技术栈",
-      "backend": "后端技术栈",
-      "infrastructure": "基础设施"
+      "title": "技术架构"
     },
     "techStack": {
       "frontend": {
@@ -47,7 +50,7 @@
       "title": "快速开始",
       "frontend": "启动前端",
       "backend": "启动后端",
-      "allServices": "一键启动所有服务",
+      "database": "启动数据库",
       "commands": "常用命令"
     },
     "cta": {
@@ -55,5 +58,11 @@
       "learnMore": "了解更多",
       "viewDocs": "查看文档"
     }
+  },
+  "Header": {
+    "home": "首页",
+    "features": "功能特性",
+    "techStack": "技术栈",
+    "quickStart": "快速开始"
   }
 }

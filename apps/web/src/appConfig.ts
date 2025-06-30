@@ -1,5 +1,5 @@
 const appConfig = {
-  appName: 'Vidfly',
+  appName: 'Telos',
   baseDomain: process.env.NEXT_PUBLIC_DOMAIN!,
   locales: ['en', 'zh'],
   defaultLocale: 'en',

@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl'
-import { Button, Badge } from '@/components'
+import { Button, Badge, Header } from '@/components'
 import {
   Code2,
   Server,
@@ -82,8 +82,10 @@ export default function Home() {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800'>
+      <Header />
+
       {/* Hero Section */}
-      <section className='relative overflow-hidden'>
+      <section className='relative overflow-hidden' id='hero'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16'>
           <div className='text-center'>
             <Badge variant='secondary' className='mb-4'>
@@ -114,7 +116,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className='py-20 bg-white dark:bg-slate-900'>
+      <section className='py-20 bg-white dark:bg-slate-900' id='features'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='text-center mb-16'>
             <h2 className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'>
@@ -145,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* Tech Stack Section */}
-      <section className='py-20 bg-slate-50 dark:bg-slate-800'>
+      <section className='py-20 bg-slate-50 dark:bg-slate-800' id='tech-stack'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='text-center mb-16'>
             <h2 className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'>
@@ -180,7 +182,7 @@ export default function Home() {
       </section>
 
       {/* Quick Start Section */}
-      <section className='py-20 bg-white dark:bg-slate-900'>
+      <section className='py-20 bg-white dark:bg-slate-900' id='quick-start'>
         <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
           <h2 className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-8'>
             {t('quickStart.title')}
@@ -201,19 +203,20 @@ export default function Home() {
                 {t('quickStart.backend')}
               </h3>
               <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded'>
-                go run cmd/main.go
+                go run main.go
               </code>
             </div>
             <div className='p-6 rounded-xl border border-slate-200 dark:border-slate-700'>
-              <Cloud className='h-8 w-8 mx-auto mb-4 text-purple-600 dark:text-purple-400' />
+              <Database className='h-8 w-8 mx-auto mb-4 text-orange-600 dark:text-orange-400' />
               <h3 className='font-semibold text-slate-900 dark:text-white mb-2'>
-                {t('quickStart.allServices')}
+                {t('quickStart.database')}
               </h3>
               <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded'>
                 docker-compose up
               </code>
             </div>
           </div>
+
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' variant='outline'>
               <BookOpen className='mr-2 h-4 w-4' />

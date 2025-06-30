@@ -1,4 +1,10 @@
 {
+  "Common": {
+    "theme": "Theme",
+    "language": "Language",
+    "toggleTheme": "Toggle Theme",
+    "toggleLanguage": "Toggle Language"
+  },
   "HomePage": {
     "title": "Telos: Intelligent Workflow Orchestration Platform",
     "subtitle": "Modern, scalable intelligent workflow orchestration platform",
@@ -12,10 +18,7 @@
       "deployment": "Complete containerization and CI/CD support"
     },
     "architecture": {
-      "title": "Technology Architecture",
-      "frontend": "Frontend Tech Stack",
-      "backend": "Backend Tech Stack",
-      "infrastructure": "Infrastructure"
+      "title": "Technology Architecture"
     },
     "techStack": {
       "frontend": {
@@ -47,7 +50,7 @@
       "title": "Quick Start",
       "frontend": "Start Frontend",
       "backend": "Start Backend",
-      "allServices": "Start All Services",
+      "database": "Start Database",
       "commands": "Common Commands"
     },
     "cta": {
@@ -55,5 +58,11 @@
       "learnMore": "Learn More",
       "viewDocs": "View Documentation"
     }
+  },
+  "Header": {
+    "home": "Home",
+    "features": "Features",
+    "techStack": "Tech Stack",
+    "quickStart": "Quick Start"
   }
 }
