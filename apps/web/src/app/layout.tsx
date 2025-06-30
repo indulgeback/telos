@@ -44,7 +44,7 @@ export default async function RootLayout({ children }: Iprops) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <NextTopLoader showSpinner={false} />
+        <NextTopLoader color={appConfig.subjectColor} showSpinner={false} />
         <ThemeProvider
           attribute='class'
           defaultTheme='system'

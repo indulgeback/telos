@@ -4,7 +4,7 @@ const appConfig = {
   locales: ['en', 'zh'],
   defaultLocale: 'en',
   colorScheme: 'light',
-  subjectColor: '#7e15f4',
+  subjectColor: '#6c35de',
 }
 
 export default appConfig
