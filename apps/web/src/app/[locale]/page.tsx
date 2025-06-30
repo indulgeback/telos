@@ -1,6 +1,5 @@
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Button, Badge } from '@/components'
 import {
   Code2,
   Server,

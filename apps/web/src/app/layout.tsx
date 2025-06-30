@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import '@/styles/globals.css'
+import NextTopLoader from 'nextjs-toploader'
+import { headers } from 'next/headers'
+import appConfig from '@/appConfig'
+import { ThemeProvider } from '@/components'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -17,17 +21,38 @@ export const metadata: Metadata = {
   description:
     'A modern, scalable intelligent workflow orchestration platform that supports automated task scheduling and management.',
 }
-export default function RootLayout({
-  children,
-}: {
+
+interface Iprops {
   children: React.ReactNode
-}) {
+}
+
+export default async function RootLayout({ children }: Iprops) {
+  const headersList = await headers()
+  const path = headersList.get('x-invoke-path') || '/'
+
+  let lang = path.split('/')[1]
+
+  if (!lang || !appConfig.locales.includes(lang)) {
+    lang = appConfig.defaultLocale
+  }
+
   return (
-    <html lang='en'>
+    <html lang={lang} suppressHydrationWarning>
+      <head>
+        <link rel='icon' type='image/png' href='/favicon.png' />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <NextTopLoader showSpinner={false} />
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )
