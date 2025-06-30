@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl'
 
-export default function TechStackSection() {
+export function TechStackSection() {
   const t = useTranslations('HomePage')
   const techStacks = [
     {

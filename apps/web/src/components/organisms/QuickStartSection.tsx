@@ -2,7 +2,7 @@ import { useTranslations } from 'next-intl'
 import { Play, Server, Database, BookOpen, ArrowRight } from 'lucide-react'
 import { Button } from '@/components'
 
-export default function QuickStartSection() {
+export function QuickStartSection() {
   const t = useTranslations('HomePage')
   return (
     <section className='py-20 bg-white dark:bg-slate-900' id='quick-start'>

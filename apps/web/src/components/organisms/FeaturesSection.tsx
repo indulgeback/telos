@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl'
 import { Code2, Server, Database, Cloud, Zap, Globe } from 'lucide-react'
 
-export default function FeaturesSection() {
+export function FeaturesSection() {
   const t = useTranslations('HomePage')
   const features = [
     {

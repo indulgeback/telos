@@ -2,10 +2,19 @@ import { Badge, Button } from '@/components'
 import { Zap, ArrowRight, Github } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
-export default function HeroSection() {
+export function HeroSection() {
   const t = useTranslations('HomePage')
   return (
     <section className='relative overflow-hidden' id='hero'>
+      {/* 更明显的渐变+多层光斑背景层（HEX色值） */}
+      <div className='absolute inset-0 -z-10 pointer-events-none'>
+        {/* 主色大光斑 */}
+        <div className='absolute left-1/2 top-[-10vw] w-[120vw] h-[80vw] max-w-5xl -translate-x-1/2 bg-gradient-to-br from-[#4ade80cc] to-transparent rounded-full blur-[120px] opacity-90' />
+        {/* 亮绿色小光斑 */}
+        <div className='absolute left-[20vw] top-[30vw] w-[40vw] h-[30vw] bg-[#bbf7d0b3] rounded-full blur-[80px] opacity-80' />
+        {/* 右下角次级光斑 */}
+        <div className='absolute right-[-8vw] bottom-[-8vw] w-[40vw] h-[30vw] bg-[#22c55e99] rounded-full blur-[100px] opacity-80' />
+      </div>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16'>
         <div className='text-center'>
           <Badge variant='secondary' className='mb-4'>

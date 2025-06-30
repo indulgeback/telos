@@ -25,7 +25,7 @@ export function LocaleToggle() {
   const getLocaleName = (code: string) => {
     const localeNames: Record<string, string> = {
       en: 'English',
-      zh: '简体中文',
+      'zh-CN': '简体中文',
     }
     return localeNames[code] || code
   }

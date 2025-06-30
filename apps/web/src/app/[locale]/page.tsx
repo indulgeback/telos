@@ -1,9 +1,11 @@
-import HeroSection from '@/components/organisms/HeroSection'
-import FeaturesSection from '@/components/organisms/FeaturesSection'
-import TechStackSection from '@/components/organisms/TechStackSection'
-import QuickStartSection from '@/components/organisms/QuickStartSection'
-import FooterSection from '@/components/organisms/FooterSection'
-import { Header } from '@/components'
+import {
+  Header,
+  HeroSection,
+  FeaturesSection,
+  TechStackSection,
+  QuickStartSection,
+  FooterSection,
+} from '@/components'
 
 export default function Home() {
   return (

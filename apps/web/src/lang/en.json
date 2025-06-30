@@ -1,6 +1,10 @@
 {
   "Common": {
-    "theme": "Theme",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
     "language": "Language",
     "toggleTheme": "Toggle Theme",
     "toggleLanguage": "Toggle Language"

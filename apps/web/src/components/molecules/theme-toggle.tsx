@@ -1,13 +1,19 @@
 'use client'
 
 import { useTheme } from 'next-themes'
-import { Button } from '@/components/atoms/button'
-import { Moon, Sun } from 'lucide-react'
+import { Button } from '@/components'
+import { Moon, Sun, Laptop } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/atoms/dropdown-menu'
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, systemTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const t = useTranslations('Common')
 
@@ -23,16 +29,34 @@ export function ThemeToggle() {
     )
   }
 
+  const current = theme === 'system' ? systemTheme : theme
+
   return (
-    <Button
-      variant='outline'
-      size='icon'
-      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-      className='relative'
-    >
-      <Sun className='h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0' />
-      <Moon className='absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100' />
-      <span className='sr-only'>{t('toggleTheme')}</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant='outline' size='icon' className='relative'>
+          {current === 'light' && <Sun className='h-4 w-4' />}
+          {current === 'dark' && <Moon className='h-4 w-4' />}
+          {current !== 'light' && current !== 'dark' && (
+            <Laptop className='h-4 w-4' />
+          )}
+          <span className='sr-only'>{t('toggleTheme')}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align='end'>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
+          <Laptop className='mr-2 h-4 w-4' />
+          {t('theme.system')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('light')}>
+          <Sun className='mr-2 h-4 w-4' />
+          {t('theme.light')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
+          <Moon className='mr-2 h-4 w-4' />
+          {t('theme.dark')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
