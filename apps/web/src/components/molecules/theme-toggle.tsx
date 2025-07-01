@@ -1,16 +1,16 @@
 'use client'
 
 import { useTheme } from 'next-themes'
-import { Button } from '@/components'
 import { Moon, Sun, Laptop } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/atoms/dropdown-menu'
+} from '@/components/atoms'
 
 export function ThemeToggle() {
   const { theme, setTheme, systemTheme } = useTheme()

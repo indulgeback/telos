@@ -5,7 +5,7 @@ import {
   TechStackSection,
   QuickStartSection,
   FooterSection,
-} from '@/components'
+} from '@/components/organisms'
 
 export default function Home() {
   return (

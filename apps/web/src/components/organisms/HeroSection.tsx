@@ -1,4 +1,4 @@
-import { Badge, Button } from '@/components'
+import { Badge, Button } from '@/components/atoms'
 import { Zap, ArrowRight, Github } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
@@ -7,7 +7,7 @@ export function HeroSection() {
   return (
     <section className='relative overflow-hidden' id='hero'>
       {/* 更明显的渐变+多层光斑背景层（HEX色值） */}
-      <div className='absolute inset-0 -z-10 pointer-events-none'>
+      <div className='absolute inset-0 z-1 pointer-events-none'>
         {/* 主色大光斑 */}
         <div className='absolute left-1/2 top-[-10vw] w-[120vw] h-[80vw] max-w-5xl -translate-x-1/2 bg-gradient-to-br from-[#4ade80cc] to-transparent rounded-full blur-[120px] opacity-90' />
         {/* 亮绿色小光斑 */}

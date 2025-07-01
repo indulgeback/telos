@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl'
 import { Play, Server, Database, BookOpen, ArrowRight } from 'lucide-react'
-import { Button } from '@/components'
+import { Button } from '@/components/atoms'
 
 export function QuickStartSection() {
   const t = useTranslations('HomePage')

@@ -2,14 +2,14 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter, usePathname } from '@/i18n/navigation'
-import { Button } from '@/components/atoms/button'
 import { Globe } from 'lucide-react'
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/atoms/dropdown-menu'
+} from '@/components/atoms'
 import appConfig from '@/appConfig'
 
 export function LocaleToggle() {
@@ -25,7 +25,7 @@ export function LocaleToggle() {
   const getLocaleName = (code: string) => {
     const localeNames: Record<string, string> = {
       en: 'English',
-      'zh-CN': '简体中文',
+      zh: '简体中文',
     }
     return localeNames[code] || code
   }

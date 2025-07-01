@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl'
-import { Code2, Server, Database, Cloud, Zap, Globe } from 'lucide-react'
+import { Code2, Server, Cloud, Zap, Globe } from 'lucide-react'
 
 export function FeaturesSection() {
   const t = useTranslations('HomePage')

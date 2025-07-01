@@ -4,7 +4,7 @@ import '@/styles/globals.css'
 import NextTopLoader from 'nextjs-toploader'
 import { headers } from 'next/headers'
 import appConfig from '@/appConfig'
-import { ThemeProvider } from '@/components'
+import { ThemeProvider } from '@/components/providers'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

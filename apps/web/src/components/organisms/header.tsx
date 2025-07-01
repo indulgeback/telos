@@ -1,6 +1,7 @@
 'use client'
 
-import { ThemeToggle, LocaleToggle, Button } from '@/components'
+import { ThemeToggle, LocaleToggle } from '@/components/molecules'
+import { Button } from '@/components/atoms'
 import { Github } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
