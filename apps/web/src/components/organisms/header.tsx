@@ -6,6 +6,7 @@ import { Github } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import { CustomLink } from '@/components/molecules'
 
 export function Header() {
   const t = useTranslations('Header')
@@ -15,7 +16,7 @@ export function Header() {
       <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex h-16 items-center justify-between'>
           {/* Logo */}
-          <Link href='/' className='flex items-center space-x-2'>
+          <CustomLink href='/' className='flex items-center space-x-2'>
             <Image
               src='/favicon.png'
               alt='Telos'
@@ -26,7 +27,7 @@ export function Header() {
             <span className='font-bold text-xl text-slate-900 dark:text-white'>
               Telos
             </span>
-          </Link>
+          </CustomLink>
 
           {/* Navigation */}
           <nav className='hidden md:flex items-center space-x-6'>
@@ -52,10 +53,15 @@ export function Header() {
 
           {/* Actions */}
           <div className='flex items-center space-x-2'>
-            <Button variant='outline' size='sm'>
-              <Github className='h-4 w-4 mr-2' />
-              GitHub
-            </Button>
+            <CustomLink
+              href='https://github.com/indulgeback/telos'
+              target='_blank'
+            >
+              <Button variant='outline' size='sm'>
+                <Github className='h-4 w-4 mr-2' />
+                GitHub
+              </Button>
+            </CustomLink>
             <ThemeToggle />
             <LocaleToggle />
           </div>
