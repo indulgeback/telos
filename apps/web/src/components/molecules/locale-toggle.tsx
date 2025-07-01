@@ -40,11 +40,7 @@ export function LocaleToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
         {appConfig.locales.map(loc => (
-          <DropdownMenuItem
-            key={loc}
-            onClick={() => handleLocaleChange(loc)}
-            className={locale === loc ? 'bg-accent' : ''}
-          >
+          <DropdownMenuItem key={loc} onClick={() => handleLocaleChange(loc)}>
             {getLocaleName(loc)}
           </DropdownMenuItem>
         ))}

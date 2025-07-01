@@ -3,8 +3,7 @@ const appConfig = {
   baseDomain: process.env.NEXT_PUBLIC_DOMAIN!,
   locales: ['en', 'zh-CN'],
   defaultLocale: 'en',
-  colorScheme: 'light',
-  subjectColor: '#6e8896',
+  subjectColor: '#5a7fae',
 }
 
 export default appConfig
