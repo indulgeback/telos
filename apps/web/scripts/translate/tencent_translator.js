@@ -1,5 +1,6 @@
 const TmtClient = require('tencentcloud-sdk-nodejs').tmt.v20180321.Client;
-const { executeTranslation, executeIncrementalTranslation } = require('./utils');
+const { executeIncrementalTranslation } = require('./utils');
+require('dotenv').config();
 
 const secretId = process.env.TENCENT_SECRET_ID;
 const secretKey = process.env.TENCENT_SECRET_KEY;
