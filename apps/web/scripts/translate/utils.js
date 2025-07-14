@@ -2,10 +2,13 @@ const fs = require('fs');
 const colors = require('colors');
 
 // 文件路径配置
-const sourceFile = 'src/lang/en.json';
-const targetFile = 'src/lang/zh.json';
-const Source = 'en';
-const Target = 'zh';
+const sourceFile = 'src/lang/zh.json';
+const targetFile = 'src/lang/en.json';
+const Source = 'zh';
+const Target = 'en';
+
+// 锁文件路径
+const lockFile = 'src/lang/zh.lock.json';
 
 /**
  * 将嵌套的 JSON 对象扁平化
@@ -152,6 +155,51 @@ function findMissingKeys(sourceFlat, targetFlat) {
 }
 
 /**
+ * 读取锁文件（返回打平的对象），不存在则返回null
+ */
+function readLockFile() {
+  if (!fs.existsSync(lockFile)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(lockFile, 'utf-8'));
+  } catch (error) {
+    console.error(colors.red('错误: 无法读取锁文件'), lockFile);
+    console.error('错误详情:', error.message);
+    return null;
+  }
+}
+
+/**
+ * 写入锁文件（内容为打平的zh.json）
+ * @param {Object} flatSource - 打平后的zh.json
+ */
+function writeLockFile(flatSource) {
+  try {
+    fs.writeFileSync(lockFile, JSON.stringify(flatSource, null, 2), 'utf-8');
+    console.log(`${colors.green('✓')} 已写入锁文件 ${lockFile}`);
+  } catch (error) {
+    console.error(colors.red('错误: 无法写入锁文件'), lockFile);
+    console.error('错误详情:', error.message);
+  }
+}
+
+/**
+ * 找出sourceFlat中与lockFlat不同的key（内容变更或新增）
+ * @param {Object} sourceFlat
+ * @param {Object|null} lockFlat
+ * @returns {Object} 只包含变更或新增的key
+ */
+function findChangedOrNewKeys(sourceFlat, lockFlat) {
+  if (!lockFlat) return { ...sourceFlat }; // 没有锁文件则全量翻译
+  const changed = {};
+  for (const key in sourceFlat) {
+    if (!(key in lockFlat) || sourceFlat[key] !== lockFlat[key]) {
+      changed[key] = sourceFlat[key];
+    }
+  }
+  return changed;
+}
+
+/**
  * 只翻译 target 缺失的字段
  * @param {Function} translateFunction
  * @param {string} translatorName
@@ -161,41 +209,52 @@ async function executeIncrementalTranslation(translateFunction, translatorName, 
   try {
     console.log(`开始使用 ${translatorName} 进行增量翻译...`);
 
+    // 确保目标文件存在
+    ensureTargetFileExists();
+
     const source = readSourceFile();
     const target = JSON.parse(fs.readFileSync(targetFile, 'utf-8'));
     const sourceFlat = flatten(source);
     const targetFlat = flatten(target);
 
+    // 读取锁文件并做diff
+    const lockFlat = readLockFile();
+    const changedFlat = findChangedOrNewKeys(sourceFlat, lockFlat);
     const missingFlat = findMissingKeys(sourceFlat, targetFlat);
+    // 需要翻译的key = diff出来的变更/新增key + 目标缺失key
+    const needTranslateFlat = { ...changedFlat, ...missingFlat };
 
-    if (Object.keys(missingFlat).length === 0) {
+    if (Object.keys(needTranslateFlat).length === 0) {
       console.log('没有需要增量翻译的字段');
       return;
     }
 
     const translated = {};
-    for (const key of Object.keys(missingFlat)) {
+    for (const key of Object.keys(needTranslateFlat)) {
       let res = null;
       let success = false;
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          console.log(`正在翻译: ${key} (第${attempt}次尝试)`);
-          res = await translateText(translateFunction, missingFlat[key], Source, Target);
+          if (attempt === 1) {
+            console.log(colors.cyan(`→ 正在翻译 [${colors.bold(key)}]：${colors.gray(needTranslateFlat[key])}`));
+          } else {
+            console.log(colors.yellow(`重试第${attempt}次：${colors.bold(key)} - ${colors.gray(needTranslateFlat[key])}`));
+          }
+          res = await translateText(translateFunction, needTranslateFlat[key], Source, Target);
           translated[key] = res;
-          console.log(`${colors.green('✓')} ${missingFlat[key]} => ${res}`);
+          console.log(colors.green(`✓ 翻译完成：${colors.bold(needTranslateFlat[key])} → ${colors.bold(res)}`));
           success = true;
           break;
         } catch (e) {
-          console.error(`${colors.red('✗')} 翻译失败: ${key}: ${missingFlat[key]} (第${attempt}次)`);
-          console.log('失败原因:', e.message);
           if (attempt < 3) {
+            console.error(colors.red(`✗ 翻译失败：${colors.bold(key)} - ${colors.gray(needTranslateFlat[key])}`));
+            console.log(colors.red('失败原因:'), colors.gray(e.message));
             await new Promise(resolve => setTimeout(resolve, 1000)); // 失败后延迟1秒重试
+          } else {
+            console.error(colors.red(`✗ ${key} 翻译三次均失败，保留原文`));
+            translated[key] = needTranslateFlat[key];
           }
         }
-      }
-      if (!success) {
-        translated[key] = missingFlat[key]; // 三次都失败，保留原文
-        console.error(`${colors.red('✗')} ${key} 翻译三次均失败，保留原文`);
       }
       if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -207,9 +266,22 @@ async function executeIncrementalTranslation(translateFunction, translatorName, 
     const result = unflatten(mergedFlat);
     writeTargetFile(result);
 
+    // 翻译完成后，更新锁文件
+    writeLockFile(sourceFlat);
+
   } catch (error) {
     console.error('增量翻译过程中发生错误:', error.message);
     process.exit(1);
+  }
+}
+
+/**
+ * 如果目标文件不存在，则根据源文件结构创建目标文件（所有value设为''）
+ */
+function ensureTargetFileExists() {
+  if (!fs.existsSync(targetFile)) {
+    fs.writeFileSync(targetFile, '{}', 'utf-8');
+    console.log(colors.yellow(`已自动创建空的 ${targetFile}`));
   }
 }
 
@@ -225,5 +297,9 @@ module.exports = {
   Source,
   Target,
   findMissingKeys,
-  executeIncrementalTranslation
+  executeIncrementalTranslation,
+  // 新增导出
+  readLockFile,
+  writeLockFile,
+  findChangedOrNewKeys
 }; 

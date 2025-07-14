@@ -11,12 +11,14 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "comp:add": "pnpm dlx shadcn-ui@latest add",
-    "translate:tencent": "node scripts/translate/tencent_translator.js"
+    "translate:tencent": "node scripts/translate/tencent_translator.js",
+    "translate:bing": "node scripts/translate/bing_translator.js"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-slot": "^1.2.3",
     "@xyflow/react": "^12.8.1",
+    "bing-translate-api": "^4.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.0.1",

@@ -5,6 +5,7 @@ require('dotenv').config();
 const secretId = process.env.TENCENT_SECRET_ID;
 const secretKey = process.env.TENCENT_SECRET_KEY;
 
+
 const clientConfig = {
   credential: {
     secretId,

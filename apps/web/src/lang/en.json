@@ -1,72 +1,72 @@
 {
   "Common": {
     "theme": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System"
+      "light": "bright",
+      "dark": "dark",
+      "system": "following system"
     },
-    "language": "Language",
-    "toggleTheme": "Toggle Theme",
-    "toggleLanguage": "Toggle Language"
+    "language": "language",
+    "toggleTheme": "Switch themes",
+    "toggleLanguage": "switch languages"
   },
   "HomePage": {
-    "title": "Telos: Intelligent Workflow Orchestration Platform",
-    "subtitle": "Modern, scalable intelligent workflow orchestration platform",
-    "description": "Supports automated task scheduling and management, adopts frontend-backend separation and microservices architecture, suitable for enterprise-level automation scenarios",
+    "title": "Telos: Intelligent Process Orchestration Platform",
+    "subtitle": "Modern and scalable intelligent workflow orchestration platform",
+    "description": "Supports automated task scheduling and management, adopts front-end separation and micro-service architecture, suitable for enterprise-level automation scenarios",
     "features": {
-      "title": "Core Features",
-      "frontend": "Frontend based on Next.js 15 + Shadcn UI for a smooth experience",
-      "backend": "Backend Go microservices for high performance and easy scalability",
-      "communication": "Supports tRPC/gRPC for type-safe and efficient inter-service communication",
-      "monorepo": "Monorepo management for unified dependencies and easy collaboration",
+      "title": "core features",
+      "frontend": "The front-end is based on Next.js15 + Shadcn UI for a smooth experience",
+      "backend": "Back-end Go microservices, excellent performance and easy to expand",
+      "communication": "Support tRPC/gRPC, type safe, efficient communication between services",
+      "monorepo": "Monorepo management, unified dependence, easy collaboration",
       "deployment": "Complete containerization and CI/CD support"
     },
     "architecture": {
-      "title": "Technology Architecture"
+      "title": "technical architecture"
     },
     "techStack": {
       "frontend": {
-        "title": "Frontend Tech Stack",
-        "nextjs": "Next.js 15 - Uses App Router for server components and optimized routing",
-        "shadcn": "Shadcn UI - Component library based on Tailwind CSS for rapid responsive UI development",
-        "typescript": "TypeScript - Strongly typed language for code stability and maintainability",
-        "trpc": "tRPC - Type-safe API calls between frontend and backend",
-        "zustand": "Zustand - Lightweight state management for complex interactions"
+        "title": "Front-end technology stack",
+        "nextjs": "Next.js15-Utilize App Router for server components and routing optimization",
+        "shadcn": "Shadcn UI -A component library based on Tailwind CSS to quickly build responsive interfaces",
+        "typescript": "TypeScript -Strongly typed language improves code stability and maintainability",
+        "trpc": "tRPC -Implement type-safe API calls between front and back ends",
+        "zustand": "Zustand -Lightweight state management library that handles complex interaction logic"
       },
       "backend": {
-        "title": "Backend Tech Stack",
-        "go": "Go - High performance, native concurrency, ideal for microservices",
-        "gin": "Gin/Echo - Lightweight HTTP frameworks for rapid API development",
-        "grpc": "gRPC - High-performance RPC framework based on Protobuf for inter-service communication",
-        "postgresql": "PostgreSQL - Relational database for structured data",
-        "redis": "Redis - Cache database for fast data access and task queueing"
+        "title": "Back-end technology stack",
+        "go": "Go-high-performance, natively supports concurrency, suitable for microservices architecture",
+        "gin": "Gin/Echo -Lightweight HTTP framework for quickly building API interfaces",
+        "grpc": "gRPC -A high-performance RPC framework based on Protobuf for inter-service communication",
+        "postgresql": "PostgreSQL -relational database that stores structured data",
+        "redis": "Redis -Cache database to speed up data reading and task queuing processing"
       },
       "infrastructure": {
-        "title": "Infrastructure",
-        "docker": "Docker - Containerized deployment for environment consistency",
-        "kubernetes": "Kubernetes - Cluster orchestration for automated deployment and scaling",
-        "helm": "Helm - K8s package manager for simplified deployment",
-        "monitoring": "Prometheus + Grafana - Monitoring and visualization",
-        "tracing": "Jaeger - Distributed tracing for service call chain analysis"
+        "title": "infrastructure",
+        "docker": "Docker -containerized deployment to ensure environmental consistency",
+        "kubernetes": "Kubernetes -Cluster orchestration for automated deployment and capacity expansion",
+        "helm": "Helm - K8s package manager simplifies the application deployment process",
+        "monitoring": "Prometheus + Grafana -Monitoring and Visualization System",
+        "tracing": "Jaeger -Distributed tracking to locate service call chain problems"
       }
     },
     "quickStart": {
-      "title": "Quick Start",
-      "frontend": "Start Frontend",
-      "backend": "Start Backend",
-      "database": "Start Database",
-      "commands": "Common Commands"
+      "title": "quick start",
+      "frontend": "Start the front end",
+      "backend": "Launch backend",
+      "database": "start the database",
+      "commands": "frequently used commands"
     },
     "cta": {
-      "getStarted": "Get Started",
-      "learnMore": "Learn More",
-      "viewDocs": "View Documentation"
+      "getStarted": "start using",
+      "learnMore": "learn more",
+      "viewDocs": "view the document"
     }
   },
   "Header": {
-    "home": "Home",
-    "features": "Features",
-    "techStack": "Tech Stack",
-    "quickStart": "Quick Start"
+    "home": "home",
+    "features": "functional properties",
+    "techStack": "technology stack",
+    "quickStart": "quick start"
   }
 }
