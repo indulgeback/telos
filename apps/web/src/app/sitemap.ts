@@ -35,7 +35,7 @@ async function getUrlByDir(dir: string, lastname: string) {
 getUrlByDir(path.join(process.cwd(), 'src/app/[locale]'), '')
 
 const sitemap: () => MetadataRoute.Sitemap = () => {
-  const isProd = process.env.NEXT_PUBLIC_NODE_ENV === 'pro'
+  const isProd = process.env.NEXT_PUBLIC_NODE_ENV === 'prod'
   if (isProd) {
     const mapArr: MetadataRoute.Sitemap = urls.map(url => {
       return {
