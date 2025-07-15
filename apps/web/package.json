@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack -p 8800",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 8801",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
