@@ -2,6 +2,9 @@
 
 [中文版 (Chinese Version)](./docs/README_zh.md)
 
+**Author: LeviLiu**  
+**Email: <liuwenyu1937@outlook.com>**
+
 ## Project Introduction
 
 This project aims to build a modern, scalable intelligent workflow orchestration platform that supports automated task scheduling and management. It adopts a frontend-backend separation and microservices architecture, suitable for enterprise-level automation scenarios.
@@ -253,6 +256,30 @@ docker-compose up -d
 
 ---
 
+## Commit Message Convention
+
+This project uses [Commitlint](https://commitlint.js.org/) and [Husky](https://typicode.github.io/husky/) to enforce commit message conventions. Please use the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification:
+
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档变更
+- style: 代码格式（不影响功能，例如空格、分号等）
+- refactor: 代码重构（既不是修复 bug 也不是添加功能）
+- perf: 性能优化
+- test: 添加或修改测试
+- chore: 构建过程或辅助工具的变动
+
+**Example:**
+
+```textplain
+feat: add user login API
+fix: correct typo in README
+```
+
+Commit messages not following the convention will be rejected.
+
+---
+
 ## 10. FAQ
 
 - **Q:** How to add a new microservice?
@@ -266,8 +293,8 @@ docker-compose up -d
 
 ## 11. Contact
 
-- **Author/Maintainer:** (To be added)
-- **Email:** （To be added）
+- **Author/Maintainer:** LeviLiu
+- **Email:** <liuwenyu1937@outlook.com>
 - **Issues:** Please use GitHub Issues for feedback and suggestions
 
 ---

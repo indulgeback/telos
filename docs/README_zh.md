@@ -253,6 +253,30 @@ docker-compose up -d
 
 ---
 
+## 提交规范
+
+本项目使用 [Commitlint](https://commitlint.js.org/) 和 [Husky](https://typicode.github.io/husky/) 对提交信息进行校验，强制遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/v1.0.0/) 规范：
+
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档变更
+- style: 代码格式（不影响功能，例如空格、分号等）
+- refactor: 代码重构（既不是修复 bug 也不是添加功能）
+- perf: 性能优化
+- test: 添加或修改测试
+- chore: 构建过程或辅助工具的变动
+
+**示例：**
+
+```textplain
+feat: 新增用户登录接口
+fix: 修正 README 拼写错误
+```
+
+不符合规范的提交信息将被拒绝。
+
+---
+
 ## 十、常见问题（FAQ）
 
 - **Q:** 如何新增一个微服务？
@@ -266,8 +290,8 @@ docker-compose up -d
 
 ## 十一、联系方式
 
-- **作者/维护者：** （待补充）
-- **邮箱：** （待补充）
+- **作者/维护者：** LeviLiu
+- **邮箱：** <liuwenyu1937@outlook.com>
 - **Issues：** 欢迎通过 GitHub Issues 反馈问题与建议
 
 ---
