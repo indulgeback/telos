@@ -10,7 +10,7 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "comp:add": "pnpm dlx shadcn-ui@latest add",
+    "comp:add": "pnpm dlx shadcn@latest add",
     "translate:tencent": "node scripts/translate/tencent_translator.js",
     "translate:bing": "node scripts/translate/bing_translator.js"
   },
@@ -34,6 +34,7 @@
     "nextjs-toploader": "^3.8.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.6"
   },
