@@ -1,7 +1,27 @@
+'use client'
+
 import { useTranslations } from 'next-intl'
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 
 export function TechStackSection() {
   const t = useTranslations('HomePage')
+  const titleRef = useRef(null)
+  const stackRefs = useRef<Array<HTMLDivElement | null>>([])
+  useGSAP(() => {
+    const tl = gsap.timeline()
+    tl.fromTo(
+      titleRef.current,
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
+    ).fromTo(
+      stackRefs.current,
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.7, stagger: 0.18, ease: 'power3.out' },
+      '-=0.4'
+    )
+  }, [])
   const techStacks = [
     {
       category: t('techStack.frontend.title'),
@@ -41,13 +61,22 @@ export function TechStackSection() {
     <section className='py-20 bg-slate-50 dark:bg-slate-800' id='tech-stack'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-16'>
-          <h2 className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'>
+          <h2
+            ref={titleRef}
+            className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'
+          >
             {t('architecture.title')}
           </h2>
         </div>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
           {techStacks.map((stack, index) => (
-            <div key={index} className='space-y-6'>
+            <div
+              ref={el => {
+                stackRefs.current[index] = el
+              }}
+              key={index}
+              className='space-y-6'
+            >
               <h3 className='text-xl font-semibold text-slate-900 dark:text-white text-center'>
                 {stack.category}
               </h3>

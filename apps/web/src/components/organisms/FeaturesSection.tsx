@@ -1,8 +1,28 @@
+'use client'
+
+import { useRef } from 'react'
+import gsap from 'gsap'
 import { useTranslations } from 'next-intl'
 import { Code2, Server, Cloud, Zap, Globe } from 'lucide-react'
+import { useGSAP } from '@gsap/react'
 
 export function FeaturesSection() {
   const t = useTranslations('HomePage')
+  const titleRef = useRef(null)
+  const cardsRef = useRef<Array<HTMLDivElement | null>>([])
+  useGSAP(() => {
+    const tl = gsap.timeline()
+    tl.fromTo(
+      titleRef.current,
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
+    ).fromTo(
+      cardsRef.current,
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: 'power3.out' },
+      '-=0.4'
+    )
+  }, [])
   const features = [
     {
       icon: <Code2 className='h-6 w-6' />,
@@ -34,7 +54,10 @@ export function FeaturesSection() {
     <section className='py-20 bg-white dark:bg-slate-900' id='features'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-16'>
-          <h2 className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'>
+          <h2
+            ref={titleRef}
+            className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'
+          >
             {t('features.title')}
           </h2>
         </div>
@@ -42,6 +65,9 @@ export function FeaturesSection() {
           {features.map((feature, index) => (
             <div
               key={index}
+              ref={el => {
+                cardsRef.current[index] = el
+              }}
               className='p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-all duration-300'
             >
               <div className='flex items-center mb-4'>

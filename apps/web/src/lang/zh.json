@@ -61,6 +61,9 @@
       "getStarted": "开始使用",
       "learnMore": "了解更多",
       "viewDocs": "查看文档"
+    },
+    "gsap": {
+      "animation": "GSAP 炫酷入场动画！"
     }
   },
   "Header": {

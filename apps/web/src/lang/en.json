@@ -61,6 +61,9 @@
       "getStarted": "start using",
       "learnMore": "learn more",
       "viewDocs": "view the document"
+    },
+    "gsap": {
+      "animation": "Cool entrance animation powered by GSAP!"
     }
   },
   "Header": {
