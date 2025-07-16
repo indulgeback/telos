@@ -1,5 +1,5 @@
 const { translate } = require('bing-translate-api')
-const { executeIncrementalTranslation } = require('./utils');
+const { executeIncrementalTranslation } = require('./utils')
 
 /**
  * 使用 Bing 机器翻译进行翻译
@@ -9,9 +9,9 @@ const { executeIncrementalTranslation } = require('./utils');
  * @returns {Promise<string>} 翻译结果
  */
 async function translateText(text, _source, target) {
-  const res = await translate(text, null, target);
-  return res.translation;
+  const res = await translate(text, null, target)
+  return res.translation
 }
 
 // 执行翻译
-executeIncrementalTranslation(translateText, 'Bing 机器翻译', 0);    
+executeIncrementalTranslation(translateText, 'Bing 机器翻译', 0)

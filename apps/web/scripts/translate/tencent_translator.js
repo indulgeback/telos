@@ -1,10 +1,9 @@
-const TmtClient = require('tencentcloud-sdk-nodejs').tmt.v20180321.Client;
-const { executeIncrementalTranslation } = require('./utils');
-require('dotenv').config();
+const TmtClient = require('tencentcloud-sdk-nodejs').tmt.v20180321.Client
+const { executeIncrementalTranslation } = require('./utils')
+require('dotenv').config()
 
-const secretId = process.env.TENCENT_SECRET_ID;
-const secretKey = process.env.TENCENT_SECRET_KEY;
-
+const secretId = process.env.TENCENT_SECRET_ID
+const secretKey = process.env.TENCENT_SECRET_KEY
 
 const clientConfig = {
   credential: {
@@ -17,9 +16,9 @@ const clientConfig = {
       endpoint: 'tmt.tencentcloudapi.com',
     },
   },
-};
+}
 
-const client = new TmtClient(clientConfig);
+const client = new TmtClient(clientConfig)
 
 /**
  * 使用腾讯云机器翻译进行翻译
@@ -34,10 +33,10 @@ async function translateText(text, source, target) {
     Source: source,
     Target: target,
     ProjectId: 0,
-  };
-  const res = await client.TextTranslate(params);
-  return res.TargetText;
+  }
+  const res = await client.TextTranslate(params)
+  return res.TargetText
 }
 
 // 执行翻译
-executeIncrementalTranslation(translateText, '腾讯云机器翻译', 0);    
+executeIncrementalTranslation(translateText, '腾讯云机器翻译', 0)
