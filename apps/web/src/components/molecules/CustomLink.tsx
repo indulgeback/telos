@@ -7,7 +7,7 @@ interface CustomLinkProps {
   className?: string
 }
 
-export function CustomLink({
+function CustomLink({
   href,
   children,
   target = '_self',
@@ -19,3 +19,5 @@ export function CustomLink({
     </Link>
   )
 }
+
+export { CustomLink }

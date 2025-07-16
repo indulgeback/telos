@@ -12,8 +12,7 @@ import {
 } from '@/components/atoms'
 import appConfig from '@/appConfig'
 
-export function LocaleToggle() {
-  const locale = useLocale()
+function LocaleToggle() {
   const router = useRouter()
   const pathname = usePathname()
   const t = useTranslations('Common')
@@ -48,3 +47,5 @@ export function LocaleToggle() {
     </DropdownMenu>
   )
 }
+
+export { LocaleToggle }

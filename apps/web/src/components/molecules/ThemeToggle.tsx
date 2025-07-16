@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/atoms'
 
-export function ThemeToggle() {
+function ThemeToggle() {
   const { theme, setTheme, systemTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const t = useTranslations('Common')
@@ -60,3 +60,5 @@ export function ThemeToggle() {
     </DropdownMenu>
   )
 }
+
+export { ThemeToggle }
