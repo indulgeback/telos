@@ -39,6 +39,7 @@
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-bottom: 1px solid #c0ced9;
 }
 
 .mdx-prose table td {
