@@ -1,0 +1,29 @@
+.mdx-prose h1,
+.mdx-prose h2,
+.mdx-prose h3,
+.mdx-prose h4,
+.mdx-prose h5,
+.mdx-prose h6,
+.mdx-prose p,
+.mdx-prose ul,
+.mdx-prose ol,
+.mdx-prose li,
+.mdx-prose a,
+.mdx-prose blockquote,
+.mdx-prose pre,
+.mdx-prose code,
+.mdx-prose img {
+  all: revert;
+  box-sizing: border-box;
+}
+
+.mdx-prose table,
+.mdx-prose th,
+.mdx-prose td,
+.mdx-prose tr {
+  all: revert;
+  box-sizing: border-box;
+}
+
+/* 默认使用 Tomorrow 主题 */
+@import 'prismjs/themes/prism-tomorrow.css';
