@@ -89,7 +89,7 @@ go run cmd/main.go
 
 ## 目录结构
 
-```
+```textplain
 apps/registry/
 ├── cmd/
 │   └── main.go              # 主程序入口

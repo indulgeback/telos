@@ -130,6 +130,7 @@ telos/
 - **Go 语言**：高性能、原生支持并发，适合微服务架构
 - **Gin/Echo**：轻量级 HTTP 框架，快速搭建 API 接口
 - **gRPC**：基于 Protobuf 的高性能 RPC 框架，用于服务间通信
+- **Consul**：服务注册与健康检查（见 apps/registry）
 - **PostgreSQL**：关系型数据库，存储结构化数据
 - **Redis**：缓存数据库，加速数据读取与任务队列处理
 
@@ -161,6 +162,21 @@ go mod tidy
 go run cmd/main.go
 ```
 
+### 5.2 注册中心启动（基于 Consul 的服务发现）
+
+```bash
+cd apps/registry
+make run
+# 或 docker-compose up -d
+```
+
+### 5.3 API 网关启动
+
+```bash
+cd apps/api-gateway
+GATEWAY_PORT=8080 AUTH_SERVICE_URL=http://localhost:8081 go run cmd/main.go
+```
+
 ### 5.3 一键启动所有服务（需 Docker Compose 支持）
 
 ```bash
@@ -185,7 +201,8 @@ docker-compose up -d
 
 ### 6.2 后端模块
 
-- **API 网关（apps/api-gateway）**：统一处理前端请求，转发至对应微服务，实现鉴权与限流
+- **API 网关（apps/api-gateway）**：统一处理前端请求，转发至对应微服务，实现鉴权、限流、CORS、服务发现（Consul）
+- **注册中心（apps/registry）**：服务注册、注销、发现、健康检查，RESTful API（Consul 集成）
 - **微服务（services/\*）**：
   - 认证服务：管理用户登录、注册与 JWT 鉴权
   - 用户服务：处理用户信息管理与权限控制

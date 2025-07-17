@@ -133,6 +133,7 @@ telos/
 - **Go**: High performance, native concurrency, ideal for microservices
 - **Gin/Echo**: Lightweight HTTP frameworks for rapid API development
 - **gRPC**: High-performance RPC framework based on Protobuf for inter-service communication
+- **Consul**: Service registry and health check (see apps/registry)
 - **PostgreSQL**: Relational database for structured data
 - **Redis**: Cache database for fast data access and task queueing
 
@@ -156,15 +157,22 @@ pnpm install
 pnpm dev
 ```
 
-### 5.2 Start Backend (Example: Auth Service)
+### 5.2 Start Registry (Consul-based Service Discovery)
 
 ```bash
-cd services/auth-service
-go mod tidy
-go run cmd/main.go
+cd apps/registry
+make run
+# or docker-compose up -d
 ```
 
-### 5.3 Start All Services (Requires Docker Compose)
+### 5.3 Start API Gateway
+
+```bash
+cd apps/api-gateway
+GATEWAY_PORT=8080 AUTH_SERVICE_URL=http://localhost:8081 go run cmd/main.go
+```
+
+### 5.4 Start All Services (Requires Docker Compose)
 
 ```bash
 docker-compose up -d
@@ -188,7 +196,8 @@ docker-compose up -d
 
 ### 6.2 Backend Modules
 
-- **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication and rate limiting
+- **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication, rate limiting, CORS, and service discovery (via Consul)
+- **Registry (apps/registry)**: Service registration, deregistration, discovery, health check, RESTful API (Consul integration)
 - **Microservices (services/\*):**
   - Auth Service: Manages user login, registration, and JWT authentication
   - User Service: Handles user info management and permissions
