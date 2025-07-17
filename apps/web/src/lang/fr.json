@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "Lumière",
+      "dark": "Sombre",
+      "system": "Système par défaut"
+    },
+    "language": "Langue",
+    "toggleTheme": "Changer de thème",
+    "toggleLanguage": "Changer de langue"
+  },
+  "HomePage": {
+    "title": "Telos : Plateforme intelligente d’orchestration des processus d’agent",
+    "subtitle": "Une plateforme moderne et évolutive pour une orchestration intelligente des flux de travail",
+    "description": "Permet la planification et la gestion automatisées des tâches. Dispose d’une séparation front-backend et d’une architecture de microservices, idéale pour les scénarios d’automatisation d’entreprise.",
+    "features": {
+      "title": "Caractéristiques principales",
+      "frontend": "Frontend alimenté par Next.js 15 et Shadcn UI pour une expérience utilisateur transparente.",
+      "backend": "Backend construit avec des microservices Go pour des performances et une évolutivité élevées.",
+      "communication": "Prend en charge tRPC/gRPC pour une communication interservices efficace et sécurisée.",
+      "monorepo": "Gestion Monorepo pour des dépendances unifiées et une collaboration rationalisée.",
+      "deployment": "Conteneurisation complète et prise en charge CI/CD."
+    },
+    "architecture": {
+      "title": "Architecture technique"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Pile technologique frontale",
+        "nextjs": "Next.js 15 – Utilise App Router pour les composants du serveur et le routage optimisé.",
+        "shadcn": "Shadcn UI – Une bibliothèque de composants basée sur Tailwind CSS pour un développement d’interface utilisateur rapide et réactif.",
+        "typescript": "TypeScript – Langage fortement typé pour une stabilité et une maintenabilité du code améliorées.",
+        "trpc": "tRPC – Permet d’effectuer des appels d’API de type sécurisé entre le frontend et le backend.",
+        "zustand": "Zustand – Gestion d’état légère pour une logique d’interaction complexe."
+      },
+      "backend": {
+        "title": "Pile technologique backend",
+        "go": "Go – Hautes performances, nativement simultanées, idéales pour les microservices.",
+        "gin": "Gin/Echo – Des frameworks HTTP légers pour un développement rapide d’API.",
+        "grpc": "gRPC – Cadre RPC haute performance basé sur Protobuf pour la communication inter-services.",
+        "postgresql": "PostgreSQL – Base de données relationnelle pour le stockage de données structurées.",
+        "redis": "Redis – Cache en mémoire pour un accès rapide aux données et la mise en file d’attente des tâches."
+      },
+      "infrastructure": {
+        "title": "Infrastructure",
+        "docker": "Docker – Déploiement conteneurisé pour des environnements cohérents.",
+        "kubernetes": "Kubernetes – Orchestration de cluster pour un déploiement et une mise à l’échelle automatisés.",
+        "helm": "Helm – Gestionnaire de packages Kubernetes pour un déploiement simplifié des applications.",
+        "monitoring": "Prometheus & Grafana – Système de surveillance et de visualisation.",
+        "tracing": "Jaeger – Traçage distribué pour l’analyse de la chaîne d’appels de service."
+      }
+    },
+    "quickStart": {
+      "title": "Démarrage rapide",
+      "frontend": "Démarrer l’interface",
+      "backend": "Démarrer le backend",
+      "database": "Démarrer la base de données",
+      "commands": "Commandes courantes"
+    },
+    "cta": {
+      "getStarted": "Démarrer",
+      "learnMore": "Pour en savoir plus",
+      "viewDocs": "Voir la documentation"
+    },
+    "gsap": {
+      "animation": "Superbe animation d’entrée propulsée par GMAP !"
+    }
+  },
+  "Header": {
+    "home": "Domicile",
+    "features": "Fonctionnalités",
+    "techStack": "Pile technologique",
+    "quickStart": "Démarrage rapide"
+  }
+}

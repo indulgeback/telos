@@ -1,5 +1,16 @@
 # 翻译器脚本使用说明
 
+## 新特性
+
+- 支持**增量翻译**，只翻译新增/变更/缺失字段，极大提升效率
+- 支持**基准语言+多目标语言批量翻译**，一次生成多个语言包
+- 只有基准语言有锁文件，目标语言包由脚本自动维护
+- 只允许人工修改基准语言包，其他语言包全部自动生成
+- 自动生成并维护**锁文件**，精准追踪翻译进度
+- 支持**腾讯云**与**Bing**两种翻译源
+- 保持 JSON 嵌套结构，翻译失败自动保留原文
+- 目标文件不存在时自动创建，免去手动操作
+
 这个目录包含了用于将英文语言文件翻译成中文的脚本。
 
 ## 文件结构
@@ -24,6 +35,21 @@
 ```bash
 cd apps/web
 node scripts/translate/tencent_translator.js
+```
+
+### 2. Bing翻译器 (bing_translator.js)
+
+使用Bing翻译服务进行翻译。
+
+**配置要求：**
+
+- 已安装 `bing-translator` 依赖
+
+**使用方法：**
+
+```bash
+cd apps/web
+node scripts/translate/bing_translator.js
 ```
 
 ## 环境变量配置
@@ -60,3 +86,16 @@ pnpm install
 - **密钥错误：** 验证 SecretId 和 SecretKey 是否正确
 - **地域问题：** 确保使用正确的服务地域
 - **网络问题：** 检查网络连接和防火墙设置
+
+## 配置多语言翻译
+
+在 `tencent_translator.js` 或 `bing_translator.js` 顶部配置：
+
+```js
+const baseLang = 'en' // 基准语言
+const targetLangs = ['zh', 'ja', 'fr'] // 目标语言数组
+```
+
+- 只需维护 `src/lang/en.json`（基准语言包），其他语言包（如 zh.json、ja.json、fr.json）由脚本自动生成。
+- 锁文件（如 en.lock.json）只针对基准语言。
+- 每次运行脚本会自动对比基准语言和锁文件，找出需要翻译的字段，并同步到所有目标语言包。

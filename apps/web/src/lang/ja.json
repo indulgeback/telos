@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "光",
+      "dark": "暗い",
+      "system": "システムデフォルト"
+    },
+    "language": "言語",
+    "toggleTheme": "テーマを切り替える",
+    "toggleLanguage": "言語を切り替え"
+  },
+  "HomePage": {
+    "title": "テロス: インテリジェントエージェントプロセスオーケストレーションプラットフォーム",
+    "subtitle": "インテリジェントなワークフローオーケストレーションのための現代的でスケーラブルなプラットフォーム",
+    "description": "自動タスクスケジューリングと管理を可能にします。フロントエンドとバックエンドの分離、マイクロサービスアーキテクチャを特徴とし、企業の自動化シナリオに理想的です。",
+    "features": {
+      "title": "コア機能",
+      "frontend": "シームレスなユーザーエクスペリエンスのために、Next.js 15とShadcn UIによって強化されたフロントエンド。",
+      "backend": "高性能とスケーラビリティのために構築されたGoマイクロサービスによるバックエンド。",
+      "communication": "タイプセーフで効率的なサービス間通信のために、tRPC/gRPCをサポートしています。",
+      "monorepo": "統一された依存関係と円滑なコラボレーションのためのモノレポ管理.",
+      "deployment": "完全なコンテナ化とCI/CDサポート。"
+    },
+    "architecture": {
+      "title": "技術アーキテクチャ"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "フロントエンド技術スタック",
+        "nextjs": "Next.js 15 - サーバーコンポーネントと最適化されたルーティングのためにApp Routerを利用しています。",
+        "shadcn": "Shadcn UI – 高速でレスポンシブなUI開発のためのTailwind CSSベースのコンポーネントライブラリです。",
+        "typescript": "TypeScript - コードの安定性と保守性を向上させるための強い型付け言語です。",
+        "trpc": "tRPC – フロントエンドとバックエンド間の型安全なAPI呼び出しを可能にします。",
+        "zustand": "Zustand – 複雑なインタラクションロジックのための軽量状態管理。"
+      },
+      "backend": {
+        "title": "バックエンド技術スタック",
+        "go": "Go – 高性能でネイティブに同時実行可能、マイクロサービスに最適。",
+        "gin": "Gin/Echo – 高速なAPI開発のための軽量HTTPフレームワーク。",
+        "grpc": "gRPC - サービス間通信のためのProtobufに基づく高性能RPCフレームワークです。",
+        "postgresql": "PostgreSQL – 構造化データストレージのためのリレーショナルデータベース。",
+        "redis": "Redis – 高速データアクセスおよびタスクキュー用のインメモリキャッシュ。"
+      },
+      "infrastructure": {
+        "title": "インフラストラクチャ",
+        "docker": "Docker - 一貫した環境のためのコンテナ化されたデプロイメント。",
+        "kubernetes": "Kubernetes - 自動デプロイとスケーリングのためのクラスターオーケストレーション。",
+        "helm": "Helm - 簡素化されたアプリケーションデプロイメントのためのKubernetesパッケージマネージャーです。",
+        "monitoring": "プロメテウスとグラファナ - モニタリングと可視化システム。",
+        "tracing": "Jaeger - サービスコールチェーン分析のための分散トレーシング。"
+      }
+    },
+    "quickStart": {
+      "title": "クイックスタート",
+      "frontend": "フロントエンドを始める",
+      "backend": "バックエンドを開始する",
+      "database": "データベースを開始する",
+      "commands": "一般的なコマンド"
+    },
+    "cta": {
+      "getStarted": "始める",
+      "learnMore": "もっと学ぶ",
+      "viewDocs": "ドキュメントを見る"
+    },
+    "gsap": {
+      "animation": "GSAPによる驚くべきエンタランスアニメーション！"
+    }
+  },
+  "Header": {
+    "home": "家",
+    "features": "機能",
+    "techStack": "技術スタック",
+    "quickStart": "クイックスタート"
+  }
+}

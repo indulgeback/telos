@@ -1,74 +1,74 @@
 {
   "Common": {
     "theme": {
-      "light": "亮色",
-      "dark": "暗色",
-      "system": "跟随系统"
+      "light": "光",
+      "dark": "黑暗",
+      "system": "系统默认值"
     },
     "language": "语言",
-    "toggleTheme": "切换主题",
+    "toggleTheme": "Switch 主题",
     "toggleLanguage": "切换语言"
   },
   "HomePage": {
-    "title": "Telos: 智能流程编排平台",
-    "subtitle": "现代化、可扩展的智能工作流编排平台",
-    "description": "支持自动化任务调度与管理，采用前后端分离、微服务架构，适合企业级自动化场景",
+    "title": "Telos：智能代理流程编排平台",
+    "subtitle": "用于智能工作流编排的现代化、可扩展平台",
+    "description": "支持自动化任务调度和管理。具有前端-后端分离和微服务架构，非常适合企业自动化场景。",
     "features": {
-      "title": "核心特性",
-      "frontend": "前端基于 Next.js 15 + Shadcn UI，体验流畅",
-      "backend": "后端 Go 微服务，性能优越，易于扩展",
-      "communication": "支持 tRPC/gRPC，类型安全，服务间通信高效",
-      "monorepo": "Monorepo 管理，统一依赖，便于协作",
-      "deployment": "完善的容器化与 CI/CD 支持"
+      "title": "核心功能",
+      "frontend": "前端由 Next.js 15 和 Shadcn UI 提供支持，可提供无缝的用户体验。",
+      "backend": "使用 Go 微服务构建的后端，以实现高性能和可扩展性。",
+      "communication": "支持 tRPC/gRPC，可实现类型安全、高效的服务间通信。",
+      "monorepo": "Monorepo 管理，用于统一依赖项和简化的协作。",
+      "deployment": "完全容器化和 CI/CD 支持。"
     },
     "architecture": {
       "title": "技术架构"
     },
     "techStack": {
       "frontend": {
-        "title": "前端技术栈",
-        "nextjs": "Next.js 15 - 利用 App Router 实现服务器组件与路由优化",
-        "shadcn": "Shadcn UI - 基于 Tailwind CSS 的组件库，快速构建响应式界面",
-        "typescript": "TypeScript - 强类型语言提升代码稳定性与可维护性",
-        "trpc": "tRPC - 实现前端与后端的类型安全 API 调用",
-        "zustand": "Zustand - 轻量级状态管理库，处理复杂交互逻辑"
+        "title": "前端技术堆栈",
+        "nextjs": "Next.js 15 – 将 App Router 用于服务器组件和优化路由。",
+        "shadcn": "Shadcn UI – 基于 Tailwind CSS 的组件库，用于快速、响应式 UI 开发。",
+        "typescript": "TypeScript – 用于增强代码稳定性和可维护性的强类型语言。",
+        "trpc": "tRPC – 在前端和后端之间启用类型安全的 API 调用。",
+        "zustand": "Zustand – 用于复杂交互逻辑的轻量级状态管理。"
       },
       "backend": {
-        "title": "后端技术栈",
-        "go": "Go 语言 - 高性能、原生支持并发，适合微服务架构",
-        "gin": "Gin/Echo - 轻量级 HTTP 框架，快速搭建 API 接口",
-        "grpc": "gRPC - 基于 Protobuf 的高性能 RPC 框架，用于服务间通信",
-        "postgresql": "PostgreSQL - 关系型数据库，存储结构化数据",
-        "redis": "Redis - 缓存数据库，加速数据读取与任务队列处理"
+        "title": "后端技术堆栈",
+        "go": "Go – 高性能、原生并发，非常适合微服务。",
+        "gin": "Gin/Echo – 用于快速 API 开发的轻量级 HTTP 框架。",
+        "grpc": "gRPC – 基于 Protobuf 的高性能 RPC 框架，用于服务间通信。",
+        "postgresql": "PostgreSQL – 用于结构化数据存储的关系数据库。",
+        "redis": "Redis – 用于快速数据访问和任务排队的内存缓存。"
       },
       "infrastructure": {
         "title": "基础设施",
-        "docker": "Docker - 容器化部署，确保环境一致性",
-        "kubernetes": "Kubernetes - 集群编排，实现自动化部署与扩缩容",
-        "helm": "Helm - K8s 包管理器，简化应用部署流程",
-        "monitoring": "Prometheus + Grafana - 监控与可视化系统",
-        "tracing": "Jaeger - 分布式追踪，定位服务调用链问题"
+        "docker": "Docker – 用于一致环境的容器化部署。",
+        "kubernetes": "Kubernetes – 用于自动部署和扩展的集群编排。",
+        "helm": "Helm – 用于简化应用程序部署的 Kubernetes 软件包管理器。",
+        "monitoring": "Prometheus & Grafana – 监控和可视化系统。",
+        "tracing": "Jaeger – 用于服务调用链分析的分布式跟踪。"
       }
     },
     "quickStart": {
       "title": "快速开始",
-      "frontend": "启动前端",
+      "frontend": "启动 Frontend",
       "backend": "启动后端",
       "database": "启动数据库",
       "commands": "常用命令"
     },
     "cta": {
       "getStarted": "开始使用",
-      "learnMore": "了解更多",
+      "learnMore": "了解更多信息",
       "viewDocs": "查看文档"
     },
     "gsap": {
-      "animation": "GSAP 炫酷入场动画！"
+      "animation": "由 GSAP 提供支持的令人惊叹的入口动画！"
     }
   },
   "Header": {
-    "home": "首页",
-    "features": "功能特性",
+    "home": "家",
+    "features": "特征",
     "techStack": "技术栈",
     "quickStart": "快速开始"
   }
