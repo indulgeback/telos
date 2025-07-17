@@ -10,6 +10,10 @@
 - 支持**腾讯云**与**Bing**两种翻译源
 - 保持 JSON 嵌套结构，翻译失败自动保留原文
 - 目标文件不存在时自动创建，免去手动操作
+- **采用类封装，配置更灵活，调用更简洁**
+- **首次运行时自动创建锁文件，不会直接翻译目标语言包**
+- **所有翻译失败的key会被记录到 src/lang/error.json，便于后续修复**
+- **支持自定义语言包文件夹路径（langDir）**
 
 这个目录包含了用于将英文语言文件翻译成中文的脚本。
 
@@ -96,6 +100,42 @@ const baseLang = 'en' // 基准语言
 const targetLangs = ['zh', 'ja', 'fr'] // 目标语言数组
 ```
 
+## 配置与用法
+
+以 Bing 翻译为例：
+
+```js
+const { translate } = require('bing-translate-api')
+const TranslatorUtils = require('./utils')
+
+async function translateText(text, _source, target) {
+  const res = await translate(text, null, target)
+  return res.translation
+}
+
+const baseLang = 'en'
+const targetLangs = ['zh', 'ja', 'fr']
+const langMap = {
+  zh: 'zh-Hans',
+}
+const langDir = 'src/lang' // 语言包文件夹路径
+
+const utils = new TranslatorUtils({
+  translateFunction: translateText,
+  translatorName: 'Bing 机器翻译',
+  baseLang,
+  targetLangs,
+  delay: 0,
+  langMap,
+  langDir,
+})
+
+utils.batchTranslateMultiLang()
+```
+
 - 只需维护 `src/lang/en.json`（基准语言包），其他语言包（如 zh.json、ja.json、fr.json）由脚本自动生成。
 - 锁文件（如 en.lock.json）只针对基准语言。
 - 每次运行脚本会自动对比基准语言和锁文件，找出需要翻译的字段，并同步到所有目标语言包。
+- **首次运行时不会翻译目标语言包，只会生成锁文件。**
+- **所有翻译失败的内容会被记录到 `src/lang/error.json`，便于后续人工处理。**
+- **可通过 langDir 配置语言包文件夹路径，适配不同项目结构。**

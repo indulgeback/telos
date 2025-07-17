@@ -1,0 +1,16 @@
+{
+  "name": "next-auto-translator",
+  "version": "1.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "colors": "^1.4.0"
+  },
+  "homepage": "https://github.com/indulgeback/telos/tree/main/packages/next-auto-translator"
+}
