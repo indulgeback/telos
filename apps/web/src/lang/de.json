@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "Licht-Modus",
+      "dark": "Dunkler Modus",
+      "system": "Folgen Sie dem System"
+    },
+    "language": "Sprache der Benutzeroberfläche",
+    "toggleTheme": "Umschalten des Anzeigemodus",
+    "toggleLanguage": "Umschalten der Sprache der Benutzeroberfläche"
+  },
+  "HomePage": {
+    "title": "Telos: Intelligente Plattform für die Orchestrierung von Agentenprozessen",
+    "subtitle": "Eine moderne, hochskalierbare Plattform für intelligente Workflow-Orchestrierung",
+    "description": "Es unterstützt die automatische Aufgabenplanung und -verwaltung, verwendet die Front-End- und Back-End-Trennung sowie die Microservice-Architektur und ist für Automatisierungsszenarien auf Unternehmensebene konzipiert.",
+    "features": {
+      "title": "Kernfunktionen",
+      "frontend": "Das Frontend basiert auf Next.js 15 und Shadcn UI, um eine reibungslose und konsistente Benutzererfahrung zu bieten.",
+      "backend": "Das Backend verwendet die Go-Microservices-Architektur, um eine hohe Leistung und Skalierbarkeit zu gewährleisten.",
+      "communication": "tRPC/gRPC wird für eine typsichere und effiziente Service-to-Service-Kommunikation unterstützt.",
+      "monorepo": "Einheitliches Monorepo-Management für einfache Abhängigkeitszentralisierung und Teamzusammenarbeit.",
+      "deployment": "Der gesamte Prozess ist containerisiert und verfügt über eine integrierte CI/CD-Unterstützung, um eine kontinuierliche Bereitstellung zu gewährleisten."
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Front-End-Technologie-Stack",
+        "nextjs": "15. Next.js – Implementieren Sie serverseitige Komponenten und effizientes Routing mit App Router.",
+        "shadcn": "Shadcn UI – Eine Bibliothek mit hochwertigen Komponenten auf Basis von Tailwind CSS für die agile Entwicklung.",
+        "typescript": "TypeScript – Eine stark typisierte Sprache, die die Robustheit und Wartbarkeit des Codes verbessert.",
+        "trpc": "tRPC – Sicherheits-API-Kommunikationsschema vom Frontend- und Backend-Typ.",
+        "zustand": "Zustand – Leichtgewichtiges Zustandsmanagement für komplexe Interaktionslogik."
+      },
+      "backend": {
+        "title": "Backend-Technologie-Stack",
+        "go": "Go – Nativ hohe Parallelität, hervorragende Leistung, geeignet für Microservice-Architekturen.",
+        "gin": "Gin/Echo – Effizientes und leichtgewichtiges HTTP-Framework für eine schnelle API-Entwicklung.",
+        "grpc": "gRPC – Ein hochperformantes RPC-Framework auf Basis von Protobuf zur Optimierung der Service-Kommunikation.",
+        "postgresql": "PostgreSQL – Eine relationale Datenbank der Enterprise-Klasse, die Datenkonsistenz und -sicherheit gewährleistet.",
+        "redis": "Redis – Cache und Aufgabenwarteschlange zur Verbesserung der Effizienz des Datenzugriffs."
+      },
+      "infrastructure": {
+        "docker": "Docker – Eine containerisierte Bereitstellungslösung für die Konsistenz der Umgebung.",
+        "kubernetes": "Kubernetes – Automatisierte Cluster-Orchestrierung und elastische Skalierung.",
+        "helm": "Helm – Ein standardisiertes Bereitstellungs- und Verwaltungstool für Kubernetes-Anwendungen.",
+        "monitoring": "Prometheus & Grafana – Komplette Überwachung und Visualisierung.",
+        "tracing": "Jaeger – Verteilte Ablaufverfolgung für die Analyse der Service-Performance.",
+        "title": "Infrastruktur"
+      }
+    },
+    "quickStart": {
+      "title": "Schneller Einstieg",
+      "frontend": "Starten des Frontend-Diensts",
+      "backend": "Starten des Backend-Diensts",
+      "database": "Starten des Datenbankdiensts",
+      "commands": "Allgemeine Bedienungsbefehle"
+    },
+    "cta": {
+      "getStarted": "Probieren Sie es jetzt aus",
+      "learnMore": "Weitere Informationen",
+      "viewDocs": "Sehen Sie sich die Dokumentation an"
+    },
+    "gsap": {
+      "animation": "Coole Einlassanimationen powered by GSAP!"
+    },
+    "architecture": {
+      "title": "Technische Architektur"
+    }
+  },
+  "Header": {
+    "features": "Kernfunktionen",
+    "quickStart": "Schneller Einstieg",
+    "techStack": "Tech-Stack",
+    "home": "Heim"
+  }
+}

@@ -1,75 +1,75 @@
 {
   "Common": {
     "theme": {
-      "light": "Lumière",
-      "dark": "Sombre",
-      "system": "Système par défaut"
+      "light": "Mode d’éclairage",
+      "dark": "Mode sombre",
+      "system": "Suivre le système"
     },
-    "language": "Langue",
-    "toggleTheme": "Changer de thème",
-    "toggleLanguage": "Changer de langue"
+    "language": "Langue de l’interface",
+    "toggleTheme": "Basculer le mode d’affichage",
+    "toggleLanguage": "Changer la langue de l’interface"
   },
   "HomePage": {
     "title": "Telos : Plateforme intelligente d’orchestration des processus d’agent",
-    "subtitle": "Une plateforme moderne et évolutive pour une orchestration intelligente des flux de travail",
-    "description": "Permet la planification et la gestion automatisées des tâches. Dispose d’une séparation front-backend et d’une architecture de microservices, idéale pour les scénarios d’automatisation d’entreprise.",
+    "subtitle": "Une plateforme moderne et hautement évolutive pour une orchestration intelligente des flux de travail",
+    "description": "Il prend en charge la planification et la gestion automatiques des tâches, adopte la séparation front-end et back-end et l’architecture de microservices, et est conçu pour les scénarios d’automatisation au niveau de l’entreprise.",
     "features": {
       "title": "Caractéristiques principales",
-      "frontend": "Frontend alimenté par Next.js 15 et Shadcn UI pour une expérience utilisateur transparente.",
-      "backend": "Backend construit avec des microservices Go pour des performances et une évolutivité élevées.",
-      "communication": "Prend en charge tRPC/gRPC pour une communication interservices efficace et sécurisée.",
-      "monorepo": "Gestion Monorepo pour des dépendances unifiées et une collaboration rationalisée.",
-      "deployment": "Conteneurisation complète et prise en charge CI/CD."
-    },
-    "architecture": {
-      "title": "Architecture technique"
+      "frontend": "Le front-end est basé sur Next.js 15 et l’interface utilisateur Shadcn pour offrir une expérience utilisateur fluide et cohérente.",
+      "backend": "Le backend utilise l’architecture de microservices Go pour garantir des performances et une évolutivité élevées.",
+      "communication": "Prend en charge tRPC/gRPC pour une communication de service à service efficace et sécurisée.",
+      "monorepo": "Gestion unifiée de Monorepo pour faciliter la centralisation des dépendances et la collaboration en équipe.",
+      "deployment": "L’ensemble du processus est conteneurisé et dispose d’une prise en charge CI/CD intégrée pour assurer une livraison continue."
     },
     "techStack": {
       "frontend": {
         "title": "Pile technologique frontale",
-        "nextjs": "Next.js 15 – Utilise App Router pour les composants du serveur et le routage optimisé.",
-        "shadcn": "Shadcn UI – Une bibliothèque de composants basée sur Tailwind CSS pour un développement d’interface utilisateur rapide et réactif.",
-        "typescript": "TypeScript – Langage fortement typé pour une stabilité et une maintenabilité du code améliorées.",
-        "trpc": "tRPC – Permet d’effectuer des appels d’API de type sécurisé entre le frontend et le backend.",
+        "nextjs": "Next.js 15 – Mettre en œuvre des composants côté serveur et un routage efficace avec App Router.",
+        "shadcn": "Shadcn UI – Une bibliothèque de composants de haute qualité basés sur Tailwind CSS pour un développement agile.",
+        "typescript": "TypeScript – Un langage fortement typé qui améliore la robustesse et la maintenabilité du code.",
+        "trpc": "tRPC – Schéma de communication API de sécurité de type frontend et backend.",
         "zustand": "Zustand – Gestion d’état légère pour une logique d’interaction complexe."
       },
       "backend": {
-        "title": "Pile technologique backend",
-        "go": "Go – Hautes performances, nativement simultanées, idéales pour les microservices.",
-        "gin": "Gin/Echo – Des frameworks HTTP légers pour un développement rapide d’API.",
-        "grpc": "gRPC – Cadre RPC haute performance basé sur Protobuf pour la communication inter-services.",
-        "postgresql": "PostgreSQL – Base de données relationnelle pour le stockage de données structurées.",
-        "redis": "Redis – Cache en mémoire pour un accès rapide aux données et la mise en file d’attente des tâches."
+        "title": "Pile technologique back-end",
+        "go": "Go – Simultanéité nativement élevée, excellentes performances, adapté aux architectures de microservices.",
+        "gin": "Gin/Echo – Cadre HTTP efficace et léger pour le développement rapide d’API.",
+        "grpc": "gRPC – Un framework RPC haute performance basé sur Protobuf pour optimiser la communication de service.",
+        "postgresql": "PostgreSQL – Une base de données relationnelle de niveau entreprise qui garantit la cohérence et la sécurité des données.",
+        "redis": "Redis – Cache et files d’attente de tâches pour améliorer l’efficacité de l’accès aux données."
       },
       "infrastructure": {
-        "title": "Infrastructure",
-        "docker": "Docker – Déploiement conteneurisé pour des environnements cohérents.",
-        "kubernetes": "Kubernetes – Orchestration de cluster pour un déploiement et une mise à l’échelle automatisés.",
-        "helm": "Helm – Gestionnaire de packages Kubernetes pour un déploiement simplifié des applications.",
-        "monitoring": "Prometheus & Grafana – Système de surveillance et de visualisation.",
-        "tracing": "Jaeger – Traçage distribué pour l’analyse de la chaîne d’appels de service."
+        "docker": "Docker – Une solution de déploiement conteneurisée pour la cohérence de l’environnement.",
+        "kubernetes": "Kubernetes – Orchestration automatisée des clusters et mise à l’échelle élastique.",
+        "helm": "Helm – Un outil de déploiement et de gestion standardisé pour les applications Kubernetes.",
+        "monitoring": "Prometheus & Grafana – Surveillance et visualisation complètes.",
+        "tracing": "Jaeger – Traçage distribué pour l’analyse des performances des services.",
+        "title": "infrastructure"
       }
     },
     "quickStart": {
-      "title": "Démarrage rapide",
-      "frontend": "Démarrer l’interface",
-      "backend": "Démarrer le backend",
-      "database": "Démarrer la base de données",
-      "commands": "Commandes courantes"
+      "title": "Démarrez rapidement",
+      "frontend": "Démarrer le service front-end",
+      "backend": "Démarrer le service backend",
+      "database": "Démarrer le service de base de données",
+      "commands": "Commandes d’opération courantes"
     },
     "cta": {
-      "getStarted": "Démarrer",
+      "getStarted": "Essayez-le maintenant",
       "learnMore": "Pour en savoir plus",
-      "viewDocs": "Voir la documentation"
+      "viewDocs": "Consulter la documentation"
     },
     "gsap": {
-      "animation": "Superbe animation d’entrée propulsée par GMAP !"
+      "animation": "Des animations d’admission sympas alimentées par GSAP !"
+    },
+    "architecture": {
+      "title": "Architecture technique"
     }
   },
   "Header": {
     "home": "Domicile",
-    "features": "Fonctionnalités",
-    "techStack": "Pile technologique",
-    "quickStart": "Démarrage rapide"
+    "features": "Caractéristiques principales",
+    "quickStart": "Démarrez rapidement",
+    "techStack": "Pile technologique"
   }
 }

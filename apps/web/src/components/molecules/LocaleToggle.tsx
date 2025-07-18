@@ -25,6 +25,22 @@ function LocaleToggle() {
     const localeNames: Record<string, string> = {
       en: 'English',
       zh: '简体中文',
+      es: 'Español',
+      de: 'Deutsch',
+      fr: 'Français',
+      pt: 'Português',
+      it: 'Italiano',
+      ja: '日本語',
+      th: 'ไทย',
+      pl: 'Polski',
+      ko: '한국어',
+      ru: 'Русский',
+      da: 'Dansk',
+      nb: 'Norsk',
+      nl: 'Nederlands',
+      id: 'Bahasa Indonesia',
+      tw: '繁體中文',
+      tr: 'Türkçe',
     }
     return localeNames[code] || code
   }

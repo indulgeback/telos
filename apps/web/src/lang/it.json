@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "Modalità luce",
+      "dark": "Modalità oscura",
+      "system": "Segui il sistema"
+    },
+    "language": "Lingua dell'interfaccia",
+    "toggleTheme": "Alterna la modalità di visualizzazione",
+    "toggleLanguage": "Cambia la lingua dell'interfaccia"
+  },
+  "HomePage": {
+    "title": "Telos: Piattaforma intelligente di orchestrazione dei processi degli agenti",
+    "subtitle": "Una piattaforma moderna e altamente scalabile per l'orchestrazione intelligente del flusso di lavoro",
+    "description": "Supporta la pianificazione e la gestione automatizzate delle attività, adotta la separazione front-end e back-end e l'architettura dei microservizi ed è progettato per scenari di automazione a livello aziendale.",
+    "features": {
+      "title": "Caratteristiche principali",
+      "frontend": "Il front-end si basa su Next.js 15 e sull'interfaccia utente Shadcn per fornire un'esperienza utente fluida e coerente.",
+      "backend": "Il back-end utilizza l'architettura dei microservizi Go per garantire prestazioni e scalabilità elevate.",
+      "communication": "Supporta tRPC/gRPC per una comunicazione da servizio a servizio efficiente e indipendente dai tipi.",
+      "monorepo": "Gestione unificata di Monorepo per la collaborazione centralizzata tra dipendenze e team.",
+      "deployment": "L'intero processo è containerizzato e dispone di supporto CI/CD integrato per garantire la consegna continua."
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Stack tecnologico front-end",
+        "nextjs": "Next.js 15 – Implementare componenti lato server e un routing efficiente con App Router.",
+        "shadcn": "Shadcn UI – Una libreria di componenti di alta qualità basata su Tailwind CSS per lo sviluppo agile.",
+        "typescript": "TypeScript: un linguaggio fortemente tipizzato che migliora l'affidabilità e la manutenibilità del codice.",
+        "trpc": "tRPC – Schema di comunicazione API di sicurezza di tipo front-end e back-end.",
+        "zustand": "Zustand: gestione dello stato leggera per logiche di interazione complesse."
+      },
+      "backend": {
+        "title": "Stack tecnologico di back-end",
+        "go": "Go – Concorrenza nativamente elevata, prestazioni eccellenti, adatto per architetture di microservizi.",
+        "gin": "Gin/Echo – Framework HTTP efficiente e leggero per lo sviluppo rapido di API.",
+        "grpc": "gRPC: framework RPC ad alte prestazioni basato su Protobuf che ottimizza la comunicazione del servizio.",
+        "postgresql": "PostgreSQL – Un database relazionale di livello aziendale che garantisce la coerenza e la sicurezza dei dati.",
+        "redis": "Redis: cache e code di attività per migliorare l'efficienza dell'accesso ai dati."
+      },
+      "infrastructure": {
+        "docker": "Docker: una soluzione di distribuzione containerizzata per la coerenza dell'ambiente.",
+        "kubernetes": "Kubernetes: orchestrazione automatizzata dei cluster e scalabilità elastica.",
+        "helm": "Helm: uno strumento di distribuzione e gestione standardizzato per le applicazioni Kubernetes.",
+        "monitoring": "Prometheus & Grafana – Monitoraggio e visualizzazione completi.",
+        "tracing": "Jaeger – Tracciamento distribuito per l'analisi delle prestazioni del servizio.",
+        "title": "infrastruttura"
+      }
+    },
+    "quickStart": {
+      "title": "Inizia rapidamente",
+      "frontend": "Avvia il servizio front-end",
+      "backend": "Avviare il servizio back-end",
+      "database": "Avviare il servizio di database",
+      "commands": "Comandi operativi comuni"
+    },
+    "cta": {
+      "getStarted": "Provalo ora",
+      "learnMore": "Ulteriori informazioni",
+      "viewDocs": "Consulta la documentazione"
+    },
+    "gsap": {
+      "animation": "Fantastiche animazioni di ammissione alimentate da GSAP!"
+    },
+    "architecture": {
+      "title": "Architettura tecnica"
+    }
+  },
+  "Header": {
+    "home": "Casa",
+    "features": "Caratteristiche principali",
+    "quickStart": "Inizia rapidamente",
+    "techStack": "Stack tecnologico"
+  }
+}

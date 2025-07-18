@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "淺色模式",
+      "dark": "深色模式",
+      "system": "跟隨系統"
+    },
+    "language": "介面語言",
+    "toggleTheme": "切換顯示模式",
+    "toggleLanguage": "切換介面語言"
+  },
+  "HomePage": {
+    "title": "Telos：智慧 Agent 流程編排平臺",
+    "subtitle": "面向智慧工作流編排的現代化高可擴展平臺",
+    "description": "支援自動化任務調度與管理，採用前後端分離與微服務架構，專為企業級自動化場景設計。",
+    "features": {
+      "title": "核心特性",
+      "frontend": "前端基於 Next.js 15 與 Shadcn UI，提供流暢且一致的用戶體驗。",
+      "backend": "後端採用 Go 微服務架構，確保高性能與卓越可擴充性。",
+      "communication": "支援 tRPC/gRPC，實現類型安全且高效的服務間通信。",
+      "monorepo": "統一的Monorepo管理，便於依賴集中與團隊協作。",
+      "deployment": "全流程容器化，內建 CI/CD 支援，保障持續交付。"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "前端技術棧",
+        "nextjs": "Next.js 15 – 利用 App Router 實現服務端元件與高效路由。",
+        "shadcn": "Shadcn UI – 基於 Tailwind CSS 的高品質元件庫，助力敏捷開發。",
+        "typescript": "TypeScript – 強類型語言，提升代碼健壯性與可維護性。",
+        "trpc": "tRPC – 前後端類型安全 API 通信方案。",
+        "zustand": "Zustand – 輕量級狀態管理，適用於複雜交互邏輯。"
+      },
+      "backend": {
+        "title": "後端技術棧",
+        "go": "Go – 原生高併發，性能卓越，適合微服務架構。",
+        "gin": "Gin/Echo – 高效輕量的 HTTP 框架，助力快速 API 開發。",
+        "grpc": "gRPC – 基於 Protobuf 的高性能 RPC 框架，優化服務通信。",
+        "postgresql": "PostgreSQL – 企業級關係型資料庫，保障數據一致性與安全性。",
+        "redis": "Redis – 高速緩存與任務佇列，提升數據訪問效率。"
+      },
+      "infrastructure": {
+        "docker": "Docker – 實現環境一致性的容器化部署方案。",
+        "kubernetes": "Kubernetes – 自動化集群編排與彈性擴展。",
+        "helm": "Helm – Kubernetes 應用的標準化部署與管理工具。",
+        "monitoring": "Prometheus & Grafana – 完善的監控與可視化體系。",
+        "tracing": "Jaeger – 分散式鏈路追蹤，助力服務性能分析。",
+        "title": "基礎設施"
+      }
+    },
+    "quickStart": {
+      "title": "快速上手",
+      "frontend": "啟動前端服務",
+      "backend": "啟動後端服務",
+      "database": "啟動資料庫服務",
+      "commands": "常用操作命令"
+    },
+    "cta": {
+      "getStarted": "立即體驗",
+      "learnMore": "了解詳情",
+      "viewDocs": "查看文件"
+    },
+    "gsap": {
+      "animation": "炫酷的入場動畫由 GSAP 驅動！"
+    },
+    "architecture": {
+      "title": "技術架構"
+    }
+  },
+  "Header": {
+    "home": "首頁",
+    "features": "核心特性",
+    "quickStart": "快速上手",
+    "techStack": "技術棧"
+  }
+}

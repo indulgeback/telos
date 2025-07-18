@@ -1,75 +1,75 @@
 {
   "Common": {
     "theme": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System Default"
+      "light": "Light mode",
+      "dark": "Dark mode",
+      "system": "Follow the system"
     },
-    "language": "Language",
-    "toggleTheme": "Switch Theme",
-    "toggleLanguage": "Switch Language"
+    "language": "Interface language",
+    "toggleTheme": "Toggle the display mode",
+    "toggleLanguage": "Switch the interface language"
   },
   "HomePage": {
     "title": "Telos: Intelligent Agent Process Orchestration Platform",
-    "subtitle": "A modern, scalable platform for intelligent workflow orchestration",
-    "description": "Enables automated task scheduling and management. Features frontend-backend separation and a microservices architecture, ideal for enterprise automation scenarios.",
+    "subtitle": "A modern, highly scalable platform for intelligent workflow orchestration",
+    "description": "It supports automatic task scheduling and management, adopts front-end and back-end separation and microservice architecture, and is designed for enterprise-level automation scenarios.",
     "features": {
-      "title": "Core Features",
-      "frontend": "Frontend powered by Next.js 15 and Shadcn UI for a seamless user experience.",
-      "backend": "Backend built with Go microservices for high performance and scalability.",
-      "communication": "Supports tRPC/gRPC for type-safe, efficient inter-service communication.",
-      "monorepo": "Monorepo management for unified dependencies and streamlined collaboration.",
-      "deployment": "Full containerization and CI/CD support."
-    },
-    "architecture": {
-      "title": "Technical Architecture"
+      "title": "Core features",
+      "frontend": "The front-end is based on Next.js 15 and Shadcn UI to provide a smooth and consistent user experience.",
+      "backend": "The backend uses the Go microservices architecture to ensure high performance and scalability.",
+      "communication": "Supports tRPC/gRPC for type-safe and efficient service-to-service communication.",
+      "monorepo": "Unified Monorepo management for easy dependency centralization and team collaboration.",
+      "deployment": "The whole process is containerized and has built-in CI/CD support to ensure continuous delivery."
     },
     "techStack": {
       "frontend": {
-        "title": "Frontend Technology Stack",
-        "nextjs": "Next.js 15 – Utilizes App Router for server components and optimized routing.",
-        "shadcn": "Shadcn UI – A Tailwind CSS-based component library for rapid, responsive UI development.",
-        "typescript": "TypeScript – Strongly typed language for enhanced code stability and maintainability.",
-        "trpc": "tRPC – Enables type-safe API calls between frontend and backend.",
-        "zustand": "Zustand – Lightweight state management for complex interaction logic."
+        "title": "Front-end technology stack",
+        "shadcn": "Shadcn UI – A library of high-quality components based on Tailwind CSS for agile development.",
+        "typescript": "TypeScript – A strongly typed language that improves code robustness and maintainability.",
+        "trpc": "tRPC – Frontend and backend type security API communication scheme.",
+        "zustand": "Zustand – Lightweight state management for complex interaction logic.",
+        "nextjs": "Next.js 15 – Implement server-side components and efficient routing with App Router."
       },
       "backend": {
-        "title": "Backend Technology Stack",
-        "go": "Go – High-performance, natively concurrent, ideal for microservices.",
-        "gin": "Gin/Echo – Lightweight HTTP frameworks for rapid API development.",
-        "grpc": "gRPC – High-performance RPC framework based on Protobuf for inter-service communication.",
-        "postgresql": "PostgreSQL – Relational database for structured data storage.",
-        "redis": "Redis – In-memory cache for fast data access and task queueing."
+        "title": "Back-end technology stack",
+        "go": "Go – Natively high concurrency, excellent performance, suitable for microservice architectures.",
+        "gin": "Gin/Echo – Efficient and lightweight HTTP framework for rapid API development.",
+        "grpc": "gRPC – A high-performance RPC framework based on Protobuf that optimizes service communication.",
+        "postgresql": "PostgreSQL – An enterprise-grade relational database that ensures data consistency and security.",
+        "redis": "Redis – Cache and task queues to improve data access efficiency."
       },
       "infrastructure": {
-        "title": "Infrastructure",
-        "docker": "Docker – Containerized deployment for consistent environments.",
-        "kubernetes": "Kubernetes – Cluster orchestration for automated deployment and scaling.",
-        "helm": "Helm – Kubernetes package manager for simplified application deployment.",
-        "monitoring": "Prometheus & Grafana – Monitoring and visualization system.",
-        "tracing": "Jaeger – Distributed tracing for service call chain analysis."
+        "docker": "Docker – A containerized deployment solution for environment consistency.",
+        "kubernetes": "Kubernetes – Automated cluster orchestration and elastic scaling.",
+        "helm": "Helm – A standardized deployment and management tool for Kubernetes applications.",
+        "monitoring": "Prometheus & Grafana – Complete monitoring and visualization.",
+        "tracing": "Jaeger – Distributed Tracing for Service Performance Analysis.",
+        "title": "infrastructure"
       }
     },
     "quickStart": {
-      "title": "Quick Start",
-      "frontend": "Start Frontend",
-      "backend": "Start Backend",
-      "database": "Start Database",
-      "commands": "Common Commands"
+      "title": "Get started quickly",
+      "frontend": "Start the front-end service",
+      "backend": "Start the backend service",
+      "database": "Start the database service",
+      "commands": "Common operation commands"
     },
     "cta": {
-      "getStarted": "Get Started",
-      "learnMore": "Learn More",
-      "viewDocs": "View Documentation"
+      "getStarted": "Try it now",
+      "learnMore": "Learn more",
+      "viewDocs": "Check out the documentation"
     },
     "gsap": {
-      "animation": "Stunning entrance animation powered by GSAP!"
+      "animation": "Cool admission animations powered by GSAP!"
+    },
+    "architecture": {
+      "title": "Technical architecture"
     }
   },
   "Header": {
     "home": "Home",
-    "features": "Features",
-    "techStack": "Tech Stack",
-    "quickStart": "Quick Start"
+    "features": "Core features",
+    "quickStart": "Get started quickly",
+    "techStack": "Tech stack"
   }
 }

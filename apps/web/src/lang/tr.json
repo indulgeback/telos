@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "Işık modu",
+      "dark": "Karanlık mod",
+      "system": "Sistemi takip edin"
+    },
+    "language": "Arayüz Dili",
+    "toggleTheme": "Ekran modunu değiştirin",
+    "toggleLanguage": "Arayüz dilini değiştir"
+  },
+  "HomePage": {
+    "title": "Telos: Akıllı Ajan Süreç Orkestrasyon Platformu",
+    "subtitle": "Akıllı iş akışı orkestrasyonu için modern, yüksek düzeyde ölçeklenebilir bir platform",
+    "description": "Otomatik görev zamanlama ve yönetimini destekler, ön uç ve arka uç ayrımını ve mikro hizmet mimarisini benimser ve kurumsal düzeyde otomasyon senaryoları için tasarlanmıştır.",
+    "features": {
+      "title": "Temel özellikler",
+      "frontend": "Ön uç, Next.js 15 ve Shadcn UI'yi temel alır ve sorunsuz ve tutarlı bir kullanıcı deneyimi sağlar.",
+      "backend": "Arka uç, yüksek performans ve ölçeklenebilirlik sağlamak için Go mikro hizmetler mimarisini kullanır.",
+      "communication": "tRPC/gRPC, tür açısından güvenli ve verimli hizmetten hizmete iletişim için desteklenir.",
+      "monorepo": "Kolay bağımlılık merkezileştirme ve ekip işbirliği için birleşik Monorepo yönetimi.",
+      "deployment": "Tüm süreç kapsayıcılıdır ve sürekli teslimatı sağlamak için yerleşik CI/CD desteğine sahiptir."
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Ön uç teknoloji yığını",
+        "nextjs": "Next.js 15 – App Router ile sunucu tarafı bileşenleri ve verimli yönlendirmeyi uygulayın.",
+        "shadcn": "Shadcn UI – Çevik geliştirme için Tailwind CSS'ye dayalı yüksek kaliteli bileşenlerden oluşan bir kitaplık.",
+        "typescript": "TypeScript – Kod sağlamlığını ve sürdürülebilirliğini artıran, yüksek düzeyde yazılmış bir dil.",
+        "trpc": "tRPC – Ön uç ve arka uç türü güvenlik API'si iletişim şeması.",
+        "zustand": "Zustand – Karmaşık etkileşim mantığı için hafif durum yönetimi."
+      },
+      "backend": {
+        "title": "Arka uç teknoloji yığını",
+        "go": "Go – Yerel olarak yüksek eşzamanlılık, mükemmel performans, mikro hizmet mimarileri için uygun.",
+        "gin": "Gin/Echo – Hızlı API geliştirme için verimli ve hafif HTTP çerçevesi.",
+        "grpc": "gRPC – Hizmet iletişimini optimize etmek için Protobuf tabanlı yüksek performanslı bir RPC çerçevesi.",
+        "postgresql": "PostgreSQL – Veri tutarlılığı ve güvenliği sağlayan kurumsal düzeyde bir ilişkisel veritabanı.",
+        "redis": "Redis – Veri erişim verimliliğini artırmak için önbellek ve görev kuyrukları."
+      },
+      "infrastructure": {
+        "docker": "Docker – Ortam tutarlılığı için kapsayıcılı bir dağıtım şeması.",
+        "kubernetes": "Kubernetes – Otomatik küme orkestrasyonu ve elastik ölçeklendirme.",
+        "helm": "Helm – Kubernetes uygulamaları için standartlaştırılmış bir dağıtım ve yönetim aracı.",
+        "monitoring": "Prometheus & Grafana – Komple izleme ve görselleştirme sistemi.",
+        "tracing": "Jaeger – Hizmet performans analizi için dağıtılmış bağlantı izleme.",
+        "title": "Altyapı"
+      }
+    },
+    "quickStart": {
+      "title": "Hızlı bir başlangıç yapın",
+      "frontend": "Ön uç hizmetini başlatın",
+      "backend": "Arka uç hizmetini başlatma",
+      "database": "Veritabanı hizmetini başlatma",
+      "commands": "Ortak işlem komutları"
+    },
+    "cta": {
+      "getStarted": "Şimdi Deneyin",
+      "learnMore": "Daha fazla bilgi edinin",
+      "viewDocs": "Belgelere göz atın"
+    },
+    "gsap": {
+      "animation": "GSAP tarafından desteklenen harika giriş animasyonları!"
+    },
+    "architecture": {
+      "title": "Teknik mimari"
+    }
+  },
+  "Header": {
+    "home": "Ev",
+    "features": "Temel özellikler",
+    "quickStart": "Hızlı bir başlangıç yapın",
+    "techStack": "Teknoloji yığını"
+  }
+}

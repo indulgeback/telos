@@ -1,0 +1,75 @@
+{
+  "Common": {
+    "theme": {
+      "light": "Lys modus",
+      "dark": "Mørk modus",
+      "system": "Følg systemet"
+    },
+    "language": "Språk for grensesnitt",
+    "toggleTheme": "Veksle visningsmodus",
+    "toggleLanguage": "Bytt grensesnittspråk"
+  },
+  "HomePage": {
+    "title": "Telos: Intelligent prosessorkestreringsplattform for agenter",
+    "subtitle": "En moderne, svært skalerbar plattform for intelligent arbeidsflytorkestrering",
+    "description": "Den støtter automatisk oppgaveplanlegging og -administrasjon, tar i bruk front-end- og back-end-separasjon og mikrotjenestearkitektur, og er designet for automatiseringsscenarier på bedriftsnivå.",
+    "features": {
+      "title": "Sentrale funksjoner",
+      "frontend": "Front-end er basert på Next.js 15 og Shadcn UI for å gi en jevn og konsistent brukeropplevelse.",
+      "backend": "Serverdelen bruker Go-mikrotjenestearkitekturen for å sikre høy ytelse og skalerbarhet.",
+      "communication": "Støtter tRPC/gRPC for typesikker og effektiv tjeneste-til-tjeneste-kommunikasjon.",
+      "monorepo": "Enhetlig Monorepo-administrasjon for enkel avhengighetssentralisering og teamsamarbeid.",
+      "deployment": "Hele prosessen er containerisert og har innebygd CI/CD-støtte for å sikre kontinuerlig levering."
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Front-end teknologistabel",
+        "nextjs": "Next.js 15 – Implementer komponenter på serversiden og effektiv ruting med App Router.",
+        "shadcn": "Shadcn UI – Et bibliotek med komponenter av høy kvalitet basert på Tailwind CSS for smidig utvikling.",
+        "typescript": "TypeScript – Et sterkt skrevet språk som forbedrer kodens robusthet og vedlikehold.",
+        "trpc": "tRPC – API-kommunikasjonsskjema for frontend- og backend-type.",
+        "zustand": "Zustand – Lett tilstandsadministrasjon for kompleks samhandlingslogikk."
+      },
+      "backend": {
+        "title": "Back-end-teknologistabel",
+        "go": "Go – Naturlig høy samtidighet, utmerket ytelse, egnet for mikrotjenestearkitekturer.",
+        "gin": "Gin/Echo – Effektivt og lett HTTP-rammeverk for rask API-utvikling.",
+        "grpc": "gRPC – Et RPC-rammeverk med høy ytelse basert på Protobuf for å optimalisere tjenestekommunikasjonen.",
+        "postgresql": "PostgreSQL – En relasjonsdatabase i bedriftsklasse som sikrer datakonsistens og sikkerhet.",
+        "redis": "Redis – Cache og oppgavekøer for å forbedre datatilgangseffektiviteten."
+      },
+      "infrastructure": {
+        "docker": "Docker – En containerbasert distribusjonsløsning for miljøkonsekvens.",
+        "kubernetes": "Kubernetes – Automatisert klyngeorkestrering og elastisk skalering.",
+        "helm": "Helm – Et standardisert distribusjons- og administrasjonsverktøy for Kubernetes-applikasjoner.",
+        "monitoring": "Prometheus & Grafana – Komplett overvåking og visualisering.",
+        "tracing": "Jaeger – Distribuert koblingssporing for analyse av tjenesteytelse.",
+        "title": "infrastruktur"
+      }
+    },
+    "quickStart": {
+      "title": "Kom raskt i gang",
+      "frontend": "Start frontend-tjenesten",
+      "backend": "Start serverdeltjenesten",
+      "database": "Start databasetjenesten",
+      "commands": "Vanlige operasjonskommandoer"
+    },
+    "cta": {
+      "getStarted": "Prøv det nå",
+      "learnMore": "Få mer informasjon",
+      "viewDocs": "Sjekk ut dokumentasjonen"
+    },
+    "gsap": {
+      "animation": "Kul inngangsanimasjon drevet av GSAP!"
+    },
+    "architecture": {
+      "title": "Teknisk arkitektur"
+    }
+  },
+  "Header": {
+    "home": "Hjem",
+    "features": "Sentrale funksjoner",
+    "quickStart": "Kom raskt i gang",
+    "techStack": "Teknisk stabel"
+  }
+}
