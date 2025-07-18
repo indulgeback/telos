@@ -7,8 +7,7 @@ import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
+import { animate } from 'animejs'
 
 export function Header() {
   const t = useTranslations('Header')
@@ -22,26 +21,34 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
 
   // 页面加载动画
-  useGSAP(() => {
+  useEffect(() => {
     if (!logoRef.current || !navRef.current || !actionsRef.current) return
-    const tl = gsap.timeline()
-    tl.fromTo(
-      logoRef.current,
-      { x: -40, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.7, ease: 'power3.out' }
-    )
-      .fromTo(
-        navRef.current,
-        { y: -20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' },
-        '-=0.4'
-      )
-      .fromTo(
-        actionsRef.current,
-        { x: 40, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.7, ease: 'power3.out' },
-        '-=0.4'
-      )
+
+    // Logo动画
+    animate(logoRef.current, {
+      translateX: [-40, 0],
+      opacity: [0, 1],
+      duration: 700,
+      easing: 'easeOutCubic',
+    })
+
+    // 导航动画
+    animate(navRef.current, {
+      translateY: [-20, 0],
+      opacity: [0, 1],
+      duration: 700,
+      delay: 300,
+      easing: 'easeOutCubic',
+    })
+
+    // 操作按钮动画
+    animate(actionsRef.current, {
+      translateX: [40, 0],
+      opacity: [0, 1],
+      duration: 700,
+      delay: 300,
+      easing: 'easeOutCubic',
+    })
   }, [])
 
   // 滚动监听

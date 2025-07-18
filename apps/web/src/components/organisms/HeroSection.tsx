@@ -1,11 +1,10 @@
 'use client'
-import { useRef } from 'react'
-import gsap from 'gsap'
+import { useRef, useEffect } from 'react'
+import { animate } from 'animejs'
 import { Badge, Button } from '@/components/atoms'
 import { Zap, ArrowRight, Github } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { CustomLink } from '@/components/molecules'
-import { useGSAP } from '@gsap/react'
 
 export function HeroSection() {
   const t = useTranslations('HomePage')
@@ -14,31 +13,46 @@ export function HeroSection() {
   const descRef = useRef(null)
   const btnsRef = useRef(null)
 
-  useGSAP(() => {
-    const tl = gsap.timeline()
-    tl.fromTo(
-      titleRef.current,
-      { y: 60, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
-    )
-      .fromTo(
-        subtitleRef.current,
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
-        '-=0.6'
-      )
-      .fromTo(
-        descRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' },
-        '-=0.5'
-      )
-      .fromTo(
-        btnsRef.current,
-        { scale: 0.95, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' },
-        '-=0.4'
-      )
+  useEffect(() => {
+    // 标题动画
+    if (titleRef.current) {
+      animate(titleRef.current, {
+        translateY: [60, 0],
+        opacity: [0, 1],
+        duration: 1000,
+        easing: 'easeOutCubic',
+      })
+    }
+    // 副标题动画
+    if (subtitleRef.current) {
+      animate(subtitleRef.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 800,
+        delay: 400,
+        easing: 'easeOutCubic',
+      })
+    }
+    // 描述动画
+    if (descRef.current) {
+      animate(descRef.current, {
+        translateY: [30, 0],
+        opacity: [0, 1],
+        duration: 700,
+        delay: 500,
+        easing: 'easeOutCubic',
+      })
+    }
+    // 按钮动画
+    if (btnsRef.current) {
+      animate(btnsRef.current, {
+        scale: [0.95, 1],
+        opacity: [0, 1],
+        duration: 600,
+        delay: 600,
+        easing: 'easeOutBack',
+      })
+    }
   }, [])
 
   return (

@@ -1,27 +1,37 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useRef } from 'react'
-import gsap from 'gsap'
-import { useGSAP } from '@gsap/react'
+import { useRef, useEffect } from 'react'
+import { animate, stagger } from 'animejs'
 
 export function TechStackSection() {
   const t = useTranslations('HomePage')
   const titleRef = useRef(null)
   const stackRefs = useRef<Array<HTMLDivElement | null>>([])
-  useGSAP(() => {
-    const tl = gsap.timeline()
-    tl.fromTo(
-      titleRef.current,
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
-    ).fromTo(
-      stackRefs.current,
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.7, stagger: 0.18, ease: 'power3.out' },
-      '-=0.4'
-    )
+
+  useEffect(() => {
+    // 标题动画
+    if (titleRef.current) {
+      animate(titleRef.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'easeOutCubic',
+      })
+    }
+
+    // 技术栈卡片动画
+    if (stackRefs.current && stackRefs.current.length > 0) {
+      animate(stackRefs.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 700,
+        delay: stagger(180),
+        easing: 'easeOutCubic',
+      })
+    }
   }, [])
+
   const techStacks = [
     {
       category: t('techStack.frontend.title'),

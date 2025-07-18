@@ -1,37 +1,49 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import gsap from 'gsap'
+import { animate, stagger } from 'animejs'
 import { useTranslations } from 'next-intl'
 import { Play, Server, Database, BookOpen, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/atoms'
-import { useGSAP } from '@gsap/react'
 
 export function QuickStartSection() {
   const t = useTranslations('HomePage')
   const titleRef = useRef(null)
   const cardRefs = useRef<Array<HTMLDivElement | null>>([])
   const btnsRef = useRef(null)
-  useGSAP(() => {
-    const tl = gsap.timeline()
-    tl.fromTo(
-      titleRef.current,
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
-    )
-      .fromTo(
-        cardRefs.current,
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: 'power3.out' },
-        '-=0.4'
-      )
-      .fromTo(
-        btnsRef.current,
-        { scale: 0.95, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' },
-        '-=0.3'
-      )
+
+  useEffect(() => {
+    // 标题动画
+    if (titleRef.current) {
+      animate(titleRef.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'easeOutCubic',
+      })
+    }
+    // 卡片动画
+    if (cardRefs.current && cardRefs.current.length > 0) {
+      animate(cardRefs.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 700,
+        delay: stagger(150),
+        easing: 'easeOutCubic',
+      })
+    }
+    // 按钮动画
+    if (btnsRef.current) {
+      animate(btnsRef.current, {
+        scale: [0.95, 1],
+        opacity: [0, 1],
+        duration: 600,
+        delay: 600,
+        easing: 'easeOutBack',
+      })
+    }
   }, [])
+
   return (
     <section className='py-20 bg-white dark:bg-slate-900' id='quick-start'>
       <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>

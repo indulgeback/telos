@@ -1,19 +1,22 @@
 'use client'
 
-import { useRef } from 'react'
-import gsap from 'gsap'
-import { useGSAP } from '@gsap/react'
+import { useRef, useEffect } from 'react'
+import { animate } from 'animejs'
 
 export function FooterSection() {
   const footerRef = useRef(null)
-  useGSAP(() => {
-    if (!footerRef.current) return
-    gsap.fromTo(
-      footerRef.current,
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
-    )
+
+  useEffect(() => {
+    if (footerRef.current) {
+      animate(footerRef.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 1000,
+        easing: 'easeOutCubic',
+      })
+    }
   }, [])
+
   return (
     <footer ref={footerRef} className='py-12 bg-slate-900 dark:bg-black'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>

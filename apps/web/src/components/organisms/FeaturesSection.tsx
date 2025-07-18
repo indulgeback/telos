@@ -1,28 +1,37 @@
 'use client'
 
-import { useRef } from 'react'
-import gsap from 'gsap'
+import { useRef, useEffect } from 'react'
+import { animate, stagger } from 'animejs'
 import { useTranslations } from 'next-intl'
 import { Code2, Server, Cloud, Zap, Globe } from 'lucide-react'
-import { useGSAP } from '@gsap/react'
 
 export function FeaturesSection() {
   const t = useTranslations('HomePage')
   const titleRef = useRef(null)
   const cardsRef = useRef<Array<HTMLDivElement | null>>([])
-  useGSAP(() => {
-    const tl = gsap.timeline()
-    tl.fromTo(
-      titleRef.current,
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }
-    ).fromTo(
-      cardsRef.current,
-      { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.7, stagger: 0.15, ease: 'power3.out' },
-      '-=0.4'
-    )
+
+  useEffect(() => {
+    // 标题动画
+    if (titleRef.current) {
+      animate(titleRef.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 800,
+        easing: 'easeOutCubic',
+      })
+    }
+    // 卡片动画
+    if (cardsRef.current && cardsRef.current.length > 0) {
+      animate(cardsRef.current, {
+        translateY: [40, 0],
+        opacity: [0, 1],
+        duration: 700,
+        delay: stagger(150),
+        easing: 'easeOutCubic',
+      })
+    }
   }, [])
+
   const features = [
     {
       icon: <Code2 className='h-6 w-6' />,
