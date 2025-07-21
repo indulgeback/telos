@@ -2,6 +2,8 @@
 
 基于 Consul 实现的微服务注册中心，提供服务的注册、注销、发现和健康检查功能。
 
+> 本服务基于 Echo 框架实现，专注于高性能服务注册与发现。
+
 ## 功能特性
 
 - 🔍 **服务发现**: 基于 Consul 的分布式服务发现
@@ -21,6 +23,16 @@
 | `REGISTRY_PORT`  | 注册中心服务端口 | `8820`           |
 | `LOG_LEVEL`      | 日志级别         | `info`           |
 
+## 目录结构
+
+```textplain
+apps/registry/
+├── cmd/           # 主程序入口
+├── internal/      # 配置、服务发现、处理器
+├── go.mod
+└── README.md
+```
+
 ## API 接口
 
 ### 1. 注册服务
@@ -28,7 +40,6 @@
 ```http
 POST /register
 Content-Type: application/json
-
 {
   "id": "auth-service-1",
   "name": "auth-service",
@@ -77,31 +88,16 @@ GET /stats
 ```bash
 # 安装依赖
 go mod tidy
-
 # 启动服务
 go run cmd/main.go
-
-# 或者设置环境变量启动
+# 或设置环境变量启动
 CONSUL_ADDRESS=localhost:8500 \
 REGISTRY_PORT=8820 \
 go run cmd/main.go
-```
-
-## 目录结构
-
-```textplain
-apps/registry/
-├── cmd/
-│   └── main.go              # 主程序入口
-├── internal/
-│   ├── config/
-│   │   └── config.go        # 配置管理
-│   ├── service/
-│   │   └── discovery.go     # Consul 服务发现实现
-│   └── handler/
-│       └── handler.go       # HTTP 处理器
-├── go.mod
-└── README.md
+# 推荐使用 Makefile
+make run
+# 或从项目根目录统一入口：
+pnpm run registry:run
 ```
 
 ## 使用示例
@@ -142,7 +138,6 @@ discovery, err := service.NewConsulServiceDiscovery(cfg)
 if err != nil {
     log.Fatalf("Consul 初始化失败: %v", err)
 }
-
 // 使用 discovery 进行服务发现
 instance, err := discovery.Discover("auth-service")
 if err != nil {

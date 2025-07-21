@@ -55,6 +55,8 @@ npm install
 ```bash
 # 使用 pnpm
 pnpm dev
+# 或统一入口
+pnpm run web:dev
 
 # 或使用 npm
 npm run dev

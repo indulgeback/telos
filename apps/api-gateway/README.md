@@ -2,6 +2,8 @@
 
 API Gateway 是微服务架构中的统一入口，负责请求路由、认证、限流等功能。
 
+> 本服务基于 Echo 框架实现，专注于高性能 API 网关。
+
 ## 功能特性
 
 - 基于 [Echo](https://echo.labstack.com/) 框架实现高性能 HTTP 服务
@@ -28,12 +30,21 @@ API Gateway 是微服务架构中的统一入口，负责请求路由、认证�
 | RATE_LIMIT_REQUESTS | 限流请求数         | 10                               |
 | RATE_LIMIT_WINDOW   | 限流时间窗口（秒） | 60                               |
 
+## 目录结构
+
+```textplain
+apps/api-gateway/
+├── cmd/           # 启动入口
+├── internal/      # 配置、中间件、代理、服务发现
+├── go.mod
+└── README.md
+```
+
 ## 启动方式
 
 ```bash
 # 安装依赖
 go mod tidy
-
 # 启动服务（需先设置环境变量）
 GATEWAY_PORT=880\
 AUTH_SERVICE_URL=http://localhost:5501
@@ -41,18 +52,10 @@ CORS_ORIGINS=http://localhost:300 \
 RATE_LIMIT_REQUESTS=100 \
 RATE_LIMIT_WINDOW=60 \
 go run cmd/main.go
-```
-
-## 目录结构
-
-```textplain
-internal/
-  config/      # 配置加载
-  middleware/  # 鉴权、日志、CORS、限流中间件
-  proxy/       # 反向代理管理器
-  service/     # 服务发现与负载均衡
-cmd/
-  main.go      # 启动入口
+# 推荐使用 Makefile
+make run
+# 或从项目根目录统一入口：
+pnpm run api-gateway:run
 ```
 
 ## 主要接口说明

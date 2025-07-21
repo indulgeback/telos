@@ -5,9 +5,9 @@
 **Author: LeviLiu**  
 **Email: <liuwenyu1937@outlook.com>**
 
-## Project Introduction
+## 1. Project Introduction
 
-This project aims to build a modern, scalable intelligent workflow orchestration platform that supports automated task scheduling and management. It adopts a frontend-backend separation and microservices architecture, suitable for enterprise-level automation scenarios.
+This project aims to build a modern, scalable workflow orchestration agent platform that supports automated task scheduling and management. It adopts a frontend-backend separation and microservices architecture, suitable for enterprise-level automation scenarios.
 
 **Project Highlights:**
 
@@ -19,108 +19,30 @@ This project aims to build a modern, scalable intelligent workflow orchestration
 
 ---
 
-## 1. Project Overview
-
-Telos is built on a modern full-stack architecture, aiming to create an intelligent workflow orchestrator for automated task scheduling and management. The frontend uses Next.js 15 App Router with Shadcn UI for a high-efficiency interactive experience; the backend is developed with Go microservices to ensure high performance and scalability. The project uses a Monorepo for unified code management, supporting rapid iteration and deployment.
-
----
-
 ## 2. Directory Structure
 
 ```plaintext
 telos/
 ├── apps/
 │   ├── web/                # Frontend Web App (Next.js 15 + Shadcn UI)
-│   │   ├── src/
-│   │   │   ├── app/        # App Router Directory Structure
-│   │   │   ├── lib/        # Business Logic Library
-│   │   │   ├── services/   # API Services (tRPC or REST)
-│   │   │   └── assets/     # Static Assets
-│   │   ├── public/         # Public Assets
-│   │   ├── components.json # Shadcn UI Config
-│   │   ├── next.config.ts  # Next.js Config
-│   │   └── ...
-│   └── api-gateway/        # API Gateway (Go)
-│       ├── cmd/
-│       ├── internal/
-│       └── pkg/
-├── services/               # Microservices Layer (Go)
+│   ├── api-gateway/        # API Gateway (Go Echo)
+│   └── registry/           # Service Registry (Go Echo)
+├── services/               # Microservices Layer (Go Gin)
 │   ├── auth-service/
 │   ├── user-service/
 │   ├── product-service/
 │   └── order-service/
 ├── packages/               # Shared Packages
-│   ├── common/
-│   ├── proto/
-│   ├── config/
-│   └── utils/
 ├── infrastructure/         # Infrastructure
-│   ├── docker/
-│   ├── k8s/
-│   └── scripts/
 ├── tools/                  # Development Tools
-│   ├── lint/
-│   └── test/
 └── package.json            # Monorepo Root Config
 ```
 
 ---
 
-## 3. Overall Architecture
+## 3. Technology Stack
 
-```plaintext
-telos/
-├── apps/ # Application Layer
-│ ├── web/ # Frontend Web App (Next.js 15 + Shadcn UI)
-│ │ ├── src/ # Source Code Directory
-│ │ │ ├── app/ # App Router Directory Structure
-│ │ │ │ ├── globals.css
-│ │ │ │ ├── layout.tsx
-│ │ │ │ ├── page.tsx
-│ │ │ │ └── [...routes]/
-│ │ │ ├── components/ # Component Library (Atomic, Molecular, Organism)
-│ │ │ ├── hooks/ # Custom Hooks
-│ │ │ ├── lib/ # Business Logic Library
-│ │ │ ├── services/ # API Services (tRPC or REST)
-│ │ │ └── assets/ # Static Assets
-│ │ ├── public/ # Public Assets
-│ │ ├── components.json # Shadcn UI Config
-│ │ └── next.config.ts # Next.js Config
-│ │
-│ └── api-gateway/ # API Gateway (Go)
-│ ├── cmd/ # Entry Point
-│ ├── internal/ # Internal Modules
-│ └── pkg/ # Utility Packages
-│
-├── services/ # Microservices Layer (Go)
-│ ├── auth-service/ # Authentication Service
-│ ├── user-service/ # User Service
-│ ├── product-service/ # Product Service
-│ └── order-service/ # Order Service
-│
-├── packages/ # Shared Packages
-│ ├── common/ # Common Utilities
-│ ├── proto/ # Protobuf Definitions (gRPC)
-│ ├── config/ # Configuration Management
-│ └── utils/ # Utility Functions
-│
-├── infrastructure/ # Infrastructure
-│ ├── docker/ # Docker Config
-│ ├── k8s/ # Kubernetes Config
-│ └── scripts/ # Deployment Scripts
-│
-├── tools/ # Development Tools
-│ ├── lint/ # Linting
-│ └── test/ # Testing Tools
-│
-└── package.json # Monorepo Root Config
-```
-
----
-
-## 4. Technology Stack
-
-### 4.1 Frontend
+### 3.1 Frontend
 
 - **Next.js 15**: Uses App Router for server components and optimized routing
 - **Shadcn UI**: Component library based on Tailwind CSS for rapid responsive UI development
@@ -128,16 +50,17 @@ telos/
 - **tRPC**: Type-safe API calls between frontend and backend
 - **Zustand**: Lightweight state management for complex interactions
 
-### 4.2 Backend
+### 3.2 Backend
 
 - **Go**: High performance, native concurrency, ideal for microservices
-- **Gin/Echo**: Lightweight HTTP frameworks for rapid API development
+- **Echo**: Used for API Gateway and Registry (lightweight, high-performance HTTP services)
+- **Gin**: Used for business microservices (rapid API development and middleware ecosystem)
 - **gRPC**: High-performance RPC framework based on Protobuf for inter-service communication
 - **Consul**: Service registry and health check (see apps/registry)
 - **PostgreSQL**: Relational database for structured data
 - **Redis**: Cache database for fast data access and task queueing
 
-### 4.3 Infrastructure
+### 3.3 Infrastructure
 
 - **Docker**: Containerized deployment for environment consistency
 - **Kubernetes**: Cluster orchestration for automated deployment and scaling
@@ -147,54 +70,76 @@ telos/
 
 ---
 
-## 5. Quick Start
+## 4. Quick Start
 
-### 5.1 Start Frontend
+### 4.1 Start Frontend
 
 ```bash
 cd apps/web
 pnpm install
 pnpm dev
+# Or unified entry
+pnpm run web:dev
 ```
 
-### 5.2 Start Registry (Consul-based Service Discovery)
+### 4.2 Start Auth Service (as an example)
+
+```bash
+cd services/auth-service
+go mod tidy
+go run cmd/main.go
+# Recommended: use Makefile
+make run
+# Or unified entry
+pnpm run auth-service:run
+```
+
+### 4.3 Start Registry (Consul-based Service Discovery)
 
 ```bash
 cd apps/registry
 make run
 # or docker-compose up -d
+# Or unified entry
+pnpm run registry:run
 ```
 
-### 5.3 Start API Gateway
+### 4.4 Start API Gateway
 
 ```bash
 cd apps/api-gateway
 GATEWAY_PORT=8080 AUTH_SERVICE_URL=http://localhost:8081 go run cmd/main.go
+# Recommended: use Makefile
+make run
+# Or unified entry
+pnpm run api-gateway:run
 ```
 
-### 5.4 Start All Services (Requires Docker Compose)
+### 4.5 Start All Services (Requires Docker Compose)
 
 ```bash
 docker-compose up -d
 ```
 
-### 5.4 Common Commands
+### 4.6 Common Commands
 
 - Frontend build: `pnpm build`
 - Backend test: `go test ./...`
 - Code formatting: `pnpm lint` or `golangci-lint run`
+- All Go services support Makefile commands (build, run, test, clean) in their own directories.
+- All main services can be started from the root via `pnpm run <service>:run`.
 
 ---
 
-## 6. Module Design
+## 5. Module Design
 
-### 6.1 Frontend Modules (apps/web)
+### 5.1 Frontend Modules (apps/web)
 
 - App Router: Organize code by page routes, support dynamic routing and SSR
 - Component Library: Follows atomic design (atomic, molecular, organism)
 - API Services: Use tRPC or REST to call backend, integrate React Query for data caching
 
-### 6.2 Backend Modules
+### 5.2 Backend Modules
 
 - **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication, rate limiting, CORS, and service discovery (via Consul)
 - **Registry (apps/registry)**: Service registration, deregistration, discovery, health check, RESTful API (Consul integration)
@@ -204,7 +149,7 @@ docker-compose up -d
   - Product Service: Manages workflow templates and task node configuration
   - Order Service: Orchestrates task execution and monitors workflow progress
 
-### 6.3 Shared Modules (packages)
+### 5.3 Shared Modules (packages)
 
 - common: Common utilities (logging, encryption, time handling)
 - proto: gRPC service interface and message definitions
@@ -212,9 +157,9 @@ docker-compose up -d
 
 ---
 
-## 7. Development & Deployment Process
+## 6. Development & Deployment Process
 
-### 7.1 Development Environment
+### 6.1 Development Environment
 
 - Frontend:
 
@@ -234,7 +179,7 @@ docker-compose up -d
 
 - Debugging tools: Use Docker Compose to quickly start dependencies (e.g., DB, Redis)
 
-### 7.2 Production Deployment
+### 6.2 Production Deployment
 
 - Containerization: Write Dockerfile for each service to build images
 - Kubernetes: Use Helm Chart to define resources and deploy to K8s cluster
@@ -242,21 +187,21 @@ docker-compose up -d
 
 ---
 
-## 8. Configuration Management
+## 7. Configuration Management
 
-### 8.1 Environment Variables
+### 7.1 Environment Variables
 
 - Backend: Place .env file in each microservice root for service-specific configs (DB, port, etc.)
 - Frontend: Use process.env in next.config.js for env variables (e.g., API URL)
 
-### 8.2 Config Loading
+### 7.2 Config Loading
 
 - Go microservices: Use viper for multi-level config loading (.env, env vars, config files)
 - Next.js: Use next.config.js and .env.local for sensitive info
 
 ---
 
-## 9. Contribution Guide
+## 8. Contribution Guide
 
 1. Fork this repo and create a new branch (e.g., feature/xxx, fix/xxx)
 2. Keep code style consistent: ESLint/Prettier for frontend, golangci-lint for backend
@@ -265,18 +210,18 @@ docker-compose up -d
 
 ---
 
-## Commit Message Convention
+## 9. Commit Message Convention
 
 This project uses [Commitlint](https://commitlint.js.org/) and [Husky](https://typicode.github.io/husky/) to enforce commit message conventions. Please use the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification:
 
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档变更
-- style: 代码格式（不影响功能，例如空格、分号等）
-- refactor: 代码重构（既不是修复 bug 也不是添加功能）
-- perf: 性能优化
-- test: 添加或修改测试
-- chore: 构建过程或辅助工具的变动
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation change
+- style: Code style (formatting, etc.)
+- refactor: Code refactoring (not bug fix or feature)
+- perf: Performance improvement
+- test: Add or modify tests
+- chore: Build process or auxiliary tool changes
 
 **Example:**
 

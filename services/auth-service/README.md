@@ -2,6 +2,8 @@
 
 认证服务，提供用户注册、登录和 JWT 认证功能。
 
+> 本服务基于 Gin 框架实现，专注于高效的用户认证与鉴权。
+
 ## 环境配置
 
 1. 复制环境变量模板文件：
@@ -29,6 +31,16 @@ cp env.example .env
 
 - `JWT_SECRET`: JWT 密钥（请使用长且安全的密钥）
 
+## 目录结构
+
+```textplain
+services/auth-service/
+├── cmd/           # 启动入口
+├── internal/      # 业务逻辑、模型、控制器等
+├── go.mod
+└── README.md
+```
+
 ## 运行服务
 
 1. 确保 PostgreSQL 数据库已启动并配置正确
@@ -36,6 +48,10 @@ cp env.example .env
 
 ```bash
 go run cmd/main.go
+# 推荐使用 Makefile
+make run
+# 或从项目根目录统一入口：
+pnpm run auth-service:run
 ```
 
 ## API 端点
