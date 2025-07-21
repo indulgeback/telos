@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "技術架構"
+    },
+    "flowSection": {
+      "trigger": "表單提交觸發",
+      "triggerDesc": "在 『創建使用者』 表單提交時",
+      "agent": "AI 代理",
+      "agentDesc": "工具智慧體",
+      "isManager": "是否為管理者？",
+      "isManagerTrue": "是",
+      "isManagerFalse": "否",
+      "addToChannel": "加入頻道",
+      "addToChannelDesc": "邀請使用者加入頻道",
+      "updateProfile": "更新資料",
+      "updateProfileDesc": "更新使用者資訊",
+      "anthropic": "Anthropic 聊天模型",
+      "anthropicDesc": "模型",
+      "postgres": "Postgres 聊天記憶",
+      "postgresDesc": "記憶",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "獲取所有使用者",
+      "jira": "Jira 軟體",
+      "jiraDesc": "創建使用者"
     }
   },
   "Header": {

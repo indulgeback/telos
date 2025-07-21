@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Teknisk arkitektur"
+    },
+    "flowSection": {
+      "trigger": "Utløsere for skjemainnsending",
+      "triggerDesc": "Når skjemaet «Opprett bruker» sendes inn",
+      "agent": "AI-agent",
+      "agentDesc": "Verktøy agenter",
+      "isManager": "Er du leder?",
+      "isManagerTrue": "være",
+      "isManagerFalse": "ikke",
+      "addToChannel": "Bli med i kanalen",
+      "addToChannelDesc": "Inviter folk til å bli med i kanalen",
+      "updateProfile": "Oppdater informasjonen",
+      "updateProfileDesc": "Oppdater brukerinformasjon",
+      "anthropic": "Antropisk chat-modell",
+      "anthropicDesc": "modell",
+      "postgres": "Postgres chat-minne",
+      "postgresDesc": "hukommelse",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Få alle brukere",
+      "jira": "Jira-programvare",
+      "jiraDesc": "Opprett en bruker"
     }
   },
   "Header": {

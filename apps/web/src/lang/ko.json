@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "기술 아키텍처"
+    },
+    "flowSection": {
+      "trigger": "양식 제출 트리거",
+      "triggerDesc": "'사용자 만들기' 양식이 제출된 경우",
+      "agent": "AI 에이전트",
+      "agentDesc": "도구 에이전트",
+      "isManager": "관리자인가요?",
+      "isManagerTrue": "있다",
+      "isManagerFalse": "안",
+      "addToChannel": "채널 가입",
+      "addToChannelDesc": "채널에 가입하도록 사용자 초대",
+      "updateProfile": "업데이트 정보",
+      "updateProfileDesc": "사용자 정보 업데이트",
+      "anthropic": "인류적 채팅 모델",
+      "anthropicDesc": "모델",
+      "postgres": "Postgres 채팅 메모리",
+      "postgresDesc": "기억",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "모든 사용자 가져오기",
+      "jira": "지라 소프트웨어",
+      "jiraDesc": "사용자 만들기"
     }
   },
   "Header": {

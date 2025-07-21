@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Architektura techniczna"
+    },
+    "flowSection": {
+      "trigger": "Wyzwalacze przesyłania formularzy",
+      "triggerDesc": "Po przesłaniu formularza \"Utwórz użytkownika\"",
+      "agent": "Agent SI",
+      "agentDesc": "Agenci narzędziowi",
+      "isManager": "Czy jest to menedżer?",
+      "isManagerTrue": "być",
+      "isManagerFalse": "nie",
+      "addToChannel": "Dołącz do kanału",
+      "addToChannelDesc": "Zapraszanie użytkowników do dołączenia do kanału",
+      "updateProfile": "Informacje o aktualizacji",
+      "updateProfileDesc": "Aktualizowanie informacji o użytkowniku",
+      "anthropic": "Antropiczny model czatu",
+      "anthropicDesc": "model",
+      "postgres": "Pamięć czatu Postgres",
+      "postgresDesc": "pamięć",
+      "entra": "Identyfikator usługi Microsoft Entra",
+      "entraDesc": "Pobieranie wszystkich użytkowników",
+      "jira": "Oprogramowanie Jira",
+      "jiraDesc": "Tworzenie użytkownika"
     }
   },
   "Header": {

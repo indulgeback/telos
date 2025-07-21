@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Technische architectuur"
+    },
+    "flowSection": {
+      "trigger": "Triggers voor het indienen van formulieren",
+      "triggerDesc": "Wanneer het formulier 'Gebruiker aanmaken' wordt verzonden",
+      "agent": "AI-agent",
+      "agentDesc": "Gereedschap agenten",
+      "isManager": "Is het een manager?",
+      "isManagerTrue": "zijn",
+      "isManagerFalse": "niet",
+      "addToChannel": "Word lid van een kanaal",
+      "addToChannelDesc": "Mensen uitnodigen om lid te worden van het kanaal",
+      "updateProfile": "Werk de informatie bij",
+      "updateProfileDesc": "Gebruikersgegevens bijwerken",
+      "anthropic": "Antropisch chatmodel",
+      "anthropicDesc": "model",
+      "postgres": "Chatgeheugen Postgres",
+      "postgresDesc": "geheugen",
+      "entra": "Microsoft Entra-id",
+      "entraDesc": "Krijg alle gebruikers",
+      "jira": "Jira software",
+      "jiraDesc": "Maak een gebruiker aan"
     }
   },
   "Header": {

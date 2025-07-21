@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Teknik mimari"
+    },
+    "flowSection": {
+      "trigger": "Form gönderme tetikleyicileri",
+      "triggerDesc": "'Kullanıcı Oluştur' formunun gönderilmesi sırasında",
+      "agent": "Yapay Zeka Aracısı",
+      "agentDesc": "Takım aracıları",
+      "isManager": "Yönetici misiniz?",
+      "isManagerTrue": "olmak",
+      "isManagerFalse": "değil",
+      "addToChannel": "Kanala katılın",
+      "addToChannelDesc": "Kullanıcıları kanala katılmaya davet etme",
+      "updateProfile": "Güncelleştirme bilgileri",
+      "updateProfileDesc": "Kullanıcı bilgilerini güncelleştirme",
+      "anthropic": "Antropik sohbet modeli",
+      "anthropicDesc": "model",
+      "postgres": "Postgres sohbet belleği",
+      "postgresDesc": "bellek",
+      "entra": "Microsoft Entra Kimliği",
+      "entraDesc": "Tüm kullanıcıları al",
+      "jira": "Jira yazılımı",
+      "jiraDesc": "Kullanıcı oluşturma"
     }
   },
   "Header": {

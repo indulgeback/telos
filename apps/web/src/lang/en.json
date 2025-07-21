@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Technical architecture"
+    },
+    "flowSection": {
+      "trigger": "Form submission triggers",
+      "triggerDesc": "At the time of the 'Create User' form submission",
+      "agent": "AI Agent",
+      "agentDesc": "Tool agents",
+      "isManager": "Is it a manager?",
+      "isManagerTrue": "Yes",
+      "isManagerFalse": "No",
+      "addToChannel": "Join the channel",
+      "addToChannelDesc": "Invite users to join the channel",
+      "updateProfile": "Update information",
+      "updateProfileDesc": "Update user information",
+      "anthropic": "Anthropic chat model",
+      "anthropicDesc": "model",
+      "postgres": "Postgres chat memory",
+      "postgresDesc": "memory",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Get all users",
+      "jira": "Jira software",
+      "jiraDesc": "Create a user"
     }
   },
   "Header": {

@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Teknisk arkitektur"
+    },
+    "flowSection": {
+      "trigger": "Udløsere for indsendelse af formularer",
+      "triggerDesc": "Når formularen \"Opret bruger\" indsendes",
+      "agent": "AI-agent",
+      "agentDesc": "Værktøjsagenter",
+      "isManager": "Er du leder?",
+      "isManagerTrue": "være",
+      "isManagerFalse": "ikke",
+      "addToChannel": "Tilmeld dig en kanal",
+      "addToChannelDesc": "Inviter brugere til at deltage i kanalen",
+      "updateProfile": "Opdater oplysninger",
+      "updateProfileDesc": "Opdater brugeroplysninger",
+      "anthropic": "Antropisk chatmodel",
+      "anthropicDesc": "model",
+      "postgres": "Postgres chat hukommelse",
+      "postgresDesc": "hukommelse",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Få alle brugere",
+      "jira": "Jira-software",
+      "jiraDesc": "Opret en bruger"
     }
   },
   "Header": {

@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Техническая архитектура"
+    },
+    "flowSection": {
+      "trigger": "Триггеры отправки форм",
+      "triggerDesc": "На момент отправки формы «Создать пользователя»",
+      "agent": "Агент с искусственным интеллектом",
+      "agentDesc": "Агенты инструментов",
+      "isManager": "Это менеджер?",
+      "isManagerTrue": "быть",
+      "isManagerFalse": "не",
+      "addToChannel": "Присоединиться к каналу",
+      "addToChannelDesc": "Приглашайте пользователей присоединиться к каналу",
+      "updateProfile": "Обновление информации",
+      "updateProfileDesc": "Обновление информации о пользователе",
+      "anthropic": "Антропная модель чата",
+      "anthropicDesc": "модель",
+      "postgres": "Память чата Postgres",
+      "postgresDesc": "память",
+      "entra": "Идентификатор Microsoft Entra",
+      "entraDesc": "Получить всех пользователей",
+      "jira": "Программное обеспечение Jira",
+      "jiraDesc": "Создание пользователя"
     }
   },
   "Header": {

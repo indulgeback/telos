@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Arsitektur teknis"
+    },
+    "flowSection": {
+      "trigger": "Pemicu pengiriman formulir",
+      "triggerDesc": "Saat formulir 'Buat pengguna' dikirimkan",
+      "agent": "Agen AI",
+      "agentDesc": "Agen alat",
+      "isManager": "Apakah Anda seorang manajer?",
+      "isManagerTrue": "ada",
+      "isManagerFalse": "tidak",
+      "addToChannel": "Bergabung dengan saluran",
+      "addToChannelDesc": "Mengundang pengguna untuk bergabung dengan channel",
+      "updateProfile": "Perbarui informasi",
+      "updateProfileDesc": "Perbarui informasi pengguna",
+      "anthropic": "Model obrolan antropik",
+      "anthropicDesc": "pola",
+      "postgres": "Memori obrolan Postgres",
+      "postgresDesc": "ingatan",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Dapatkan semua pengguna",
+      "jira": "Perangkat lunak Jira",
+      "jiraDesc": "Membuat pengguna"
     }
   },
   "Header": {

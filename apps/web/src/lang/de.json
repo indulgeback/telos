@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Technische Architektur"
+    },
+    "flowSection": {
+      "trigger": "Auslöser für die Formularübermittlung",
+      "triggerDesc": "Zum Zeitpunkt der Übermittlung des Formulars \"Benutzer erstellen\"",
+      "agent": "KI-Agent",
+      "agentDesc": "Werkzeug-Agenten",
+      "isManager": "Ist es ein Manager?",
+      "isManagerTrue": "sein",
+      "isManagerFalse": "nicht",
+      "addToChannel": "Einem Channel beitreten",
+      "addToChannelDesc": "Benutzer einladen, dem Kanal beizutreten",
+      "updateProfile": "Aktualisieren der Informationen",
+      "updateProfileDesc": "Aktualisieren von Benutzerinformationen",
+      "anthropic": "Anthropisches Chat-Modell",
+      "anthropicDesc": "Modell",
+      "postgres": "Postgres-Chat-Speicher",
+      "postgresDesc": "Gedächtnis",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Abrufen aller Benutzer",
+      "jira": "Jira-Software",
+      "jiraDesc": "Erstellen eines Benutzers"
     }
   },
   "Header": {

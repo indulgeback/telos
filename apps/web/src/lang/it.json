@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Architettura tecnica"
+    },
+    "flowSection": {
+      "trigger": "Trigger per l'invio dei moduli",
+      "triggerDesc": "Quando viene inviato il modulo \"Crea utente\"",
+      "agent": "Agente AI",
+      "agentDesc": "Agenti utensile",
+      "isManager": "Sei un manager?",
+      "isManagerTrue": "essere",
+      "isManagerFalse": "non",
+      "addToChannel": "Unisciti al canale",
+      "addToChannelDesc": "Invitare le persone a iscriversi al canale",
+      "updateProfile": "Aggiorna le informazioni",
+      "updateProfileDesc": "Aggiornare le informazioni utente",
+      "anthropic": "Modello di chat antropica",
+      "anthropicDesc": "modello",
+      "postgres": "Postgres memoria chat",
+      "postgresDesc": "memoria",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Ottieni tutti gli utenti",
+      "jira": "Software Jira",
+      "jiraDesc": "Creare un utente"
     }
   },
   "Header": {

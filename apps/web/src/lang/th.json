@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "สถาปัตยกรรมทางเทคนิค"
+    },
+    "flowSection": {
+      "trigger": "ทริกเกอร์การส่งแบบฟอร์ม",
+      "triggerDesc": "เมื่อส่งแบบฟอร์ม \"สร้างผู้ใช้\"",
+      "agent": "ตัวแทน AI",
+      "agentDesc": "ตัวแทนเครื่องมือ",
+      "isManager": "เป็นผู้จัดการหรือไม่?",
+      "isManagerTrue": "คือ",
+      "isManagerFalse": "ไม่",
+      "addToChannel": "เข้าร่วมช่อง",
+      "addToChannelDesc": "เชิญผู้ใช้ให้เข้าร่วมช่อง",
+      "updateProfile": "อัพเดทข้อมูล",
+      "updateProfileDesc": "อัปเดตข้อมูลผู้ใช้",
+      "anthropic": "โมเดลแชทมานุษยวิทยา",
+      "anthropicDesc": "แบบ",
+      "postgres": "หน่วยความจําแชท Postgres",
+      "postgresDesc": "ความจำ",
+      "entra": "รหัส Microsoft Entra",
+      "entraDesc": "รับผู้ใช้ทั้งหมด",
+      "jira": "ซอฟต์แวร์ Jira",
+      "jiraDesc": "สร้างผู้ใช้"
     }
   },
   "Header": {

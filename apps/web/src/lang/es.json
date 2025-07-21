@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "Arquitectura técnica"
+    },
+    "flowSection": {
+      "trigger": "Activadores de envío de formularios",
+      "triggerDesc": "Cuando se envía el formulario \"Crear usuario\"",
+      "agent": "Agente de IA",
+      "agentDesc": "Agentes de herramientas",
+      "isManager": "¿Eres gerente?",
+      "isManagerTrue": "ser",
+      "isManagerFalse": "no",
+      "addToChannel": "Unirse a un canal",
+      "addToChannelDesc": "Invitar a personas a unirse al canal",
+      "updateProfile": "Actualizar la información",
+      "updateProfileDesc": "Actualizar la información del usuario",
+      "anthropic": "Modelo de chat antrópico",
+      "anthropicDesc": "modelo",
+      "postgres": "Memoria de chat de Postgres",
+      "postgresDesc": "memoria",
+      "entra": "Microsoft Entra ID",
+      "entraDesc": "Obtener todos los usuarios",
+      "jira": "Software de Jira",
+      "jiraDesc": "Crear un usuario"
     }
   },
   "Header": {

@@ -82,9 +82,9 @@ export function Header() {
       ref={headerRef}
       className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
         scrolled
-          ? 'border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 shadow-md'
+          ? 'border-slate-300 dark:border-slate-700 bg-white/10 dark:bg-slate-900/10 shadow-md'
           : 'border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80'
-      } backdrop-blur-sm`}
+      } backdrop-blur-xs`}
     >
       <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex h-16 items-center justify-between'>

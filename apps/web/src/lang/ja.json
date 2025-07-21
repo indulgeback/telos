@@ -64,6 +64,27 @@
     },
     "architecture": {
       "title": "技術アーキテクチャ"
+    },
+    "flowSection": {
+      "trigger": "フォームの送信がトリガーされる",
+      "triggerDesc": "'ユーザー作成' フォームが送信された時",
+      "agent": "AIエージェント",
+      "agentDesc": "ツールインテリジェンス",
+      "isManager": "管理者ですか？",
+      "isManagerTrue": "です",
+      "isManagerFalse": "いいえ",
+      "addToChannel": "チャンネルに参加する",
+      "addToChannelDesc": "ユーザーをチャンネルに招待する",
+      "updateProfile": "資料を更新する",
+      "updateProfileDesc": "ユーザー情報を更新する",
+      "anthropic": "Anthropic チャットモデル",
+      "anthropicDesc": "模型",
+      "postgres": "Postgres チャット記憶",
+      "postgresDesc": "記憶",
+      "entra": "マイクロソフト エントラ ID",
+      "entraDesc": "全てのユーザーを取得する",
+      "jira": "Jiraソフトウェア",
+      "jiraDesc": "ユーザーを作成する"
     }
   },
   "Header": {
