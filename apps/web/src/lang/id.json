@@ -13,58 +13,6 @@
     "title": "Telos: Platform Orkestrasi Proses Agen Cerdas",
     "subtitle": "Platform modern yang sangat dapat diskalakan untuk orkestrasi alur kerja cerdas",
     "description": "Ini mendukung penjadwalan dan manajemen tugas otomatis, mengadopsi pemisahan front-end dan back-end dan arsitektur layanan mikro, dan dirancang untuk skenario otomatisasi tingkat perusahaan.",
-    "features": {
-      "title": "Fitur inti",
-      "frontend": "Front-end didasarkan pada Next.js 15 dan Shadcn UI untuk memberikan pengalaman pengguna yang lancar dan konsisten.",
-      "backend": "Backend menggunakan arsitektur layanan mikro Go untuk memastikan performa dan skalabilitas tinggi.",
-      "communication": "Mendukung tRPC/gRPC untuk komunikasi layanan-ke-layanan yang aman dan efisien.",
-      "monorepo": "Manajemen Monorepo terpadu untuk sentralisasi dependensi dan kolaborasi tim yang mudah.",
-      "deployment": "Seluruh proses dalam kontainer dan memiliki dukungan CI/CD bawaan untuk memastikan pengiriman berkelanjutan."
-    },
-    "techStack": {
-      "frontend": {
-        "title": "Tumpukan teknologi front-end",
-        "nextjs": "Next.js 15 – Manfaatkan App Router untuk komponen sisi server dan perutean yang efisien.",
-        "shadcn": "Shadcn UI – Perpustakaan komponen berkualitas tinggi berdasarkan Tailwind CSS untuk pengembangan yang gesit.",
-        "typescript": "TypeScript – Bahasa yang sangat diketik yang meningkatkan ketahanan dan pemeliharaan kode.",
-        "trpc": "tRPC – Skema komunikasi API keamanan tipe frontend dan backend.",
-        "zustand": "Zustand – Manajemen status ringan untuk logika interaksi yang kompleks."
-      },
-      "backend": {
-        "title": "Tumpukan teknologi back-end",
-        "go": "Go – Konkurensi tinggi asli, kinerja luar biasa, cocok untuk arsitektur layanan mikro.",
-        "gin": "Gin/Echo – Kerangka kerja HTTP yang efisien dan ringan untuk pengembangan API yang cepat.",
-        "grpc": "gRPC – Kerangka kerja RPC berkinerja tinggi berdasarkan Protobuf yang mengoptimalkan komunikasi layanan.",
-        "postgresql": "PostgreSQL – Basis data relasional tingkat perusahaan yang memastikan konsistensi dan keamanan data.",
-        "redis": "Redis – Cache dan antrean tugas untuk meningkatkan efisiensi akses data."
-      },
-      "infrastructure": {
-        "docker": "Docker – Solusi penyebaran dalam kontainer untuk konsistensi lingkungan.",
-        "kubernetes": "Kubernetes – Orkestrasi kluster otomatis dan penskalaan elastis.",
-        "helm": "Helm – Alat penerapan dan manajemen standar untuk aplikasi Kubernetes.",
-        "monitoring": "Prometheus & Grafana – Pemantauan dan visualisasi lengkap.",
-        "tracing": "Jaeger – Pelacakan tautan terdistribusi untuk analisis kinerja layanan.",
-        "title": "prasarana"
-      }
-    },
-    "quickStart": {
-      "title": "Mulai dengan cepat",
-      "frontend": "Mulai layanan front-end",
-      "backend": "Mulai layanan backend",
-      "database": "Mulai layanan database",
-      "commands": "Perintah operasi umum"
-    },
-    "cta": {
-      "getStarted": "Coba sekarang",
-      "learnMore": "Pelajari lebih lanjut",
-      "viewDocs": "Lihat dokumentasinya"
-    },
-    "gsap": {
-      "animation": "Animasi penerimaan keren yang didukung oleh GSAP!"
-    },
-    "architecture": {
-      "title": "Arsitektur teknis"
-    },
     "flowSection": {
       "trigger": "Pemicu pengiriman formulir",
       "triggerDesc": "Saat formulir 'Buat pengguna' dikirimkan",
@@ -85,12 +33,64 @@
       "entraDesc": "Dapatkan semua pengguna",
       "jira": "Perangkat lunak Jira",
       "jiraDesc": "Membuat pengguna"
+    },
+    "features": {
+      "title": "Fitur inti",
+      "frontend": "Front-end didasarkan pada Next.js 15 dan Shadcn UI untuk memberikan pengalaman pengguna yang lancar dan konsisten.",
+      "backend": "Backend menggunakan arsitektur layanan mikro Go untuk memastikan performa dan skalabilitas tinggi.",
+      "communication": "Mendukung tRPC/gRPC untuk komunikasi layanan-ke-layanan yang aman dan efisien.",
+      "monorepo": "Manajemen Monorepo terpadu untuk sentralisasi dependensi dan kolaborasi tim yang mudah.",
+      "deployment": "Seluruh proses dalam kontainer dan memiliki dukungan CI/CD bawaan untuk memastikan pengiriman berkelanjutan."
+    },
+    "architecture": {
+      "title": "Arsitektur teknis"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Tumpukan teknologi front-end",
+        "nextjs": "Next.js 15 – Manfaatkan App Router untuk komponen sisi server dan perutean yang efisien.",
+        "shadcn": "Shadcn UI – Perpustakaan komponen berkualitas tinggi berdasarkan Tailwind CSS untuk pengembangan yang gesit.",
+        "typescript": "TypeScript – Bahasa yang sangat diketik yang meningkatkan ketahanan dan pemeliharaan kode.",
+        "trpc": "tRPC – Skema komunikasi API keamanan tipe frontend dan backend.",
+        "zustand": "Zustand – Manajemen status ringan untuk logika interaksi yang kompleks."
+      },
+      "backend": {
+        "title": "Tumpukan teknologi back-end",
+        "go": "Go – Konkurensi tinggi asli, kinerja luar biasa, cocok untuk arsitektur layanan mikro.",
+        "gin": "Gin/Echo – Kerangka kerja HTTP yang efisien dan ringan untuk pengembangan API yang cepat.",
+        "grpc": "gRPC – Kerangka kerja RPC berkinerja tinggi berdasarkan Protobuf yang mengoptimalkan komunikasi layanan.",
+        "postgresql": "PostgreSQL – Basis data relasional tingkat perusahaan yang memastikan konsistensi dan keamanan data.",
+        "redis": "Redis – Cache dan antrean tugas untuk meningkatkan efisiensi akses data."
+      },
+      "infrastructure": {
+        "title": "prasarana",
+        "docker": "Docker – Solusi penyebaran dalam kontainer untuk konsistensi lingkungan.",
+        "kubernetes": "Kubernetes – Orkestrasi kluster otomatis dan penskalaan elastis.",
+        "helm": "Helm – Alat penerapan dan manajemen standar untuk aplikasi Kubernetes.",
+        "monitoring": "Prometheus & Grafana – Pemantauan dan visualisasi lengkap.",
+        "tracing": "Jaeger – Pelacakan tautan terdistribusi untuk analisis kinerja layanan."
+      }
+    },
+    "quickStart": {
+      "title": "Mulai dengan cepat",
+      "frontend": "Mulai layanan front-end",
+      "backend": "Mulai layanan backend",
+      "database": "Mulai layanan database",
+      "commands": "Perintah operasi umum"
+    },
+    "cta": {
+      "getStarted": "Coba sekarang",
+      "learnMore": "Pelajari lebih lanjut",
+      "viewDocs": "Lihat dokumentasinya"
+    },
+    "gsap": {
+      "animation": "Animasi penerimaan keren yang didukung oleh GSAP!"
     }
   },
   "Header": {
     "home": "Rumah",
     "features": "Fitur inti",
-    "quickStart": "Mulai dengan cepat",
-    "techStack": "Tumpukan teknologi"
+    "techStack": "Tumpukan teknologi",
+    "quickStart": "Mulai dengan cepat"
   }
 }

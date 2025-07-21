@@ -71,6 +71,16 @@ class AutoTranslator {
     return changed
   }
 
+  #filterKeysByLock(sourceFlat, lockFlat) {
+    const filtered = {}
+    for (const key in lockFlat) {
+      if (key in sourceFlat) {
+        filtered[key] = sourceFlat[key]
+      }
+    }
+    return filtered
+  }
+
   #readLockFile(lockFile) {
     if (!fs.existsSync(lockFile)) return null
     try {
@@ -129,7 +139,11 @@ class AutoTranslator {
       const missingFlat = this.#findMissingKeys(baseFlat, targetFlat)
       const needTranslateFlat = { ...diffKeys, ...missingFlat }
       if (Object.keys(needTranslateFlat).length === 0) {
-        console.log(colors.green(`[${lang}] 没有需要翻译/补齐的字段`))
+        // 只做 key 对齐
+        const filteredFlat = this.#filterKeysByLock(targetFlat, lockFlat)
+        const result = this.#unflatten(filteredFlat)
+        fs.writeFileSync(targetFile, JSON.stringify(result, null, 2), 'utf-8')
+        console.log(colors.green(`[${lang}] 没有需要翻译/补齐的字段，但已同步 key 至 lock.json`))
         continue
       }
       const translated = {}
@@ -146,7 +160,9 @@ class AutoTranslator {
         }
       }
       const mergedFlat = { ...targetFlat, ...translated }
-      const result = this.#unflatten(mergedFlat)
+      // 保证 key 与 lock.json 一致，去除多余 key
+      const filteredFlat = this.#filterKeysByLock(mergedFlat, lockFlat)
+      const result = this.#unflatten(filteredFlat)
       fs.writeFileSync(targetFile, JSON.stringify(result, null, 2), 'utf-8')
       console.log(colors.green(`[${lang}] 已写入 ${targetFile}`))
     }

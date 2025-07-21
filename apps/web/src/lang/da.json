@@ -13,58 +13,6 @@
     "title": "Telos: Intelligent platform til organisering af agentprocesser",
     "subtitle": "En moderne, meget skalerbar platform til intelligent orkestrering af arbejdsgange",
     "description": "Det understøtter automatisk opgaveplanlægning og -styring, anvender front-end- og back-end-adskillelse og mikroservicearkitektur og er designet til automatiseringsscenarier på virksomhedsniveau.",
-    "features": {
-      "title": "Kernefunktioner",
-      "frontend": "Front-end er baseret på Next.js 15 og Shadcn UI for at give en jævn og ensartet brugeroplevelse.",
-      "backend": "Backend bruger Go microservices-arkitekturen til at sikre høj ydeevne og skalerbarhed.",
-      "communication": "Understøtter tRPC/gRPC for typesikker og effektiv service-til-service-kommunikation.",
-      "monorepo": "Samlet Monorepo-administration for nem afhængighedscentralisering og teamsamarbejde.",
-      "deployment": "Hele processen er containeriseret og har indbygget CI/CD-understøttelse for at sikre kontinuerlig levering."
-    },
-    "techStack": {
-      "frontend": {
-        "title": "Front-end-teknologistak",
-        "nextjs": "Next.js 15 – Udnyt App Router til komponenter på serversiden og effektiv routing.",
-        "shadcn": "Shadcn UI – Et komponentbibliotek af høj kvalitet baseret på Tailwind CSS til agil udvikling.",
-        "typescript": "TypeScript – Et meget skrevet sprog, der forbedrer kodens robusthed og vedligeholdelse.",
-        "trpc": "tRPC – API-kommunikationsskema for frontend- og backend-type.",
-        "zustand": "Zustand – Letvægtstilstandsstyring til kompleks interaktionslogik."
-      },
-      "backend": {
-        "title": "Back-end-teknologistak",
-        "go": "Go – Indbygget høj samtidighed, fremragende ydeevne, velegnet til mikroservicearkitekturer.",
-        "gin": "Gin/Echo – Effektiv og let HTTP-ramme til hurtig API-udvikling.",
-        "grpc": "gRPC – En højtydende RPC-ramme baseret på Protobuf for at optimere servicekommunikation.",
-        "postgresql": "PostgreSQL – En relationsdatabase i virksomhedskvalitet, der sikrer datakonsistens og sikkerhed.",
-        "redis": "Redis – Cache og opgavekøer for at forbedre dataadgangseffektiviteten."
-      },
-      "infrastructure": {
-        "docker": "Docker – En containeriseret installationsløsning til miljøkonsistens.",
-        "kubernetes": "Kubernetes – Automatiseret klyngeorkestrering og elastisk skalering.",
-        "helm": "Helm – Et standardiseret implementerings- og administrationsværktøj til Kubernetes-applikationer.",
-        "monitoring": "Prometheus & Grafana – Komplet overvågning og visualisering.",
-        "tracing": "Jaeger – Distribueret sporing til analyse af serviceydelse.",
-        "title": "infrastruktur"
-      }
-    },
-    "quickStart": {
-      "title": "Kom hurtigt i gang",
-      "frontend": "Start frontend-tjenesten",
-      "backend": "Start backend-tjenesten",
-      "database": "Start databasetjenesten",
-      "commands": "Almindelige betjeningskommandoer"
-    },
-    "cta": {
-      "getStarted": "Prøv det nu",
-      "learnMore": "Lær mere",
-      "viewDocs": "Se dokumentationen"
-    },
-    "gsap": {
-      "animation": "Seje adgangsanimationer drevet af GSAP!"
-    },
-    "architecture": {
-      "title": "Teknisk arkitektur"
-    },
     "flowSection": {
       "trigger": "Udløsere for indsendelse af formularer",
       "triggerDesc": "Når formularen \"Opret bruger\" indsendes",
@@ -85,12 +33,64 @@
       "entraDesc": "Få alle brugere",
       "jira": "Jira-software",
       "jiraDesc": "Opret en bruger"
+    },
+    "features": {
+      "title": "Kernefunktioner",
+      "frontend": "Front-end er baseret på Next.js 15 og Shadcn UI for at give en jævn og ensartet brugeroplevelse.",
+      "backend": "Backend bruger Go microservices-arkitekturen til at sikre høj ydeevne og skalerbarhed.",
+      "communication": "Understøtter tRPC/gRPC for typesikker og effektiv service-til-service-kommunikation.",
+      "monorepo": "Samlet Monorepo-administration for nem afhængighedscentralisering og teamsamarbejde.",
+      "deployment": "Hele processen er containeriseret og har indbygget CI/CD-understøttelse for at sikre kontinuerlig levering."
+    },
+    "architecture": {
+      "title": "Teknisk arkitektur"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Front-end-teknologistak",
+        "nextjs": "Next.js 15 – Udnyt App Router til komponenter på serversiden og effektiv routing.",
+        "shadcn": "Shadcn UI – Et komponentbibliotek af høj kvalitet baseret på Tailwind CSS til agil udvikling.",
+        "typescript": "TypeScript – Et meget skrevet sprog, der forbedrer kodens robusthed og vedligeholdelse.",
+        "trpc": "tRPC – API-kommunikationsskema for frontend- og backend-type.",
+        "zustand": "Zustand – Letvægtstilstandsstyring til kompleks interaktionslogik."
+      },
+      "backend": {
+        "title": "Back-end-teknologistak",
+        "go": "Go – Indbygget høj samtidighed, fremragende ydeevne, velegnet til mikroservicearkitekturer.",
+        "gin": "Gin/Echo – Effektiv og let HTTP-ramme til hurtig API-udvikling.",
+        "grpc": "gRPC – En højtydende RPC-ramme baseret på Protobuf for at optimere servicekommunikation.",
+        "postgresql": "PostgreSQL – En relationsdatabase i virksomhedskvalitet, der sikrer datakonsistens og sikkerhed.",
+        "redis": "Redis – Cache og opgavekøer for at forbedre dataadgangseffektiviteten."
+      },
+      "infrastructure": {
+        "title": "infrastruktur",
+        "docker": "Docker – En containeriseret installationsløsning til miljøkonsistens.",
+        "kubernetes": "Kubernetes – Automatiseret klyngeorkestrering og elastisk skalering.",
+        "helm": "Helm – Et standardiseret implementerings- og administrationsværktøj til Kubernetes-applikationer.",
+        "monitoring": "Prometheus & Grafana – Komplet overvågning og visualisering.",
+        "tracing": "Jaeger – Distribueret sporing til analyse af serviceydelse."
+      }
+    },
+    "quickStart": {
+      "title": "Kom hurtigt i gang",
+      "frontend": "Start frontend-tjenesten",
+      "backend": "Start backend-tjenesten",
+      "database": "Start databasetjenesten",
+      "commands": "Almindelige betjeningskommandoer"
+    },
+    "cta": {
+      "getStarted": "Prøv det nu",
+      "learnMore": "Lær mere",
+      "viewDocs": "Se dokumentationen"
+    },
+    "gsap": {
+      "animation": "Seje adgangsanimationer drevet af GSAP!"
     }
   },
   "Header": {
     "home": "Hjem",
     "features": "Kernefunktioner",
-    "quickStart": "Kom hurtigt i gang",
-    "techStack": "Teknisk stak"
+    "techStack": "Teknisk stak",
+    "quickStart": "Kom hurtigt i gang"
   }
 }

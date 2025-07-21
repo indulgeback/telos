@@ -13,58 +13,6 @@
     "title": "Telos：インテリジェントエージェントプロセスオーケストレーションプラットフォーム",
     "subtitle": "スマートワークフロー編成志向の現代的で高可用性のプラットフォーム",
     "description": "自動化タスクのスケジューリングと管理をサポートし、フロントエンドとバックエンドの分離およびマイクロサービスアーキテクチャを採用し、企業レベルの自動化シナリオ専用に設計されています。",
-    "features": {
-      "title": "コア特性",
-      "frontend": "フロントエンドは Next.js 15 と Shadcn UI に基づいており、スムーズで一貫したユーザー体験を提供します。",
-      "backend": "バックエンドはGoマイクロサービスアーキテクチャを採用しており、高パフォーマンスと優れたスケーラビリティを確保しています。",
-      "communication": "tRPC/gRPCをサポートし、型安全で効率的なサービス間通信を実現します。",
-      "monorepo": "一元的Monorepo管理により、依存関係の集中とチーム協力が容易になります。",
-      "deployment": "全プロセスがコンテナ化されており、CI/CDのサポートが内蔵されていて、継続的なデリバリーを保障します。"
-    },
-    "techStack": {
-      "frontend": {
-        "title": "フロントエンド技術スタック",
-        "nextjs": "Next.js 15 - App Routerを利用してサーバーコンポーネントと効率的なルーティングを実現。",
-        "shadcn": "Shadcn UI - Tailwind CSSに基づく高品質なコンポーネントライブラリで、アジャイル開発を助けます。",
-        "typescript": "TypeScript – 強い型付け言語で、コードの堅牢性と保守性を向上させます。",
-        "trpc": "tRPC – フロントエンドとバックエンドの型安全なAPI通信ソリューション。",
-        "zustand": "Zustand - 軽量な状態管理、複雑なインタラクションロジックに適しています。"
-      },
-      "backend": {
-        "title": "バックエンド技術スタック",
-        "go": "Go - 原生の高い同時実行性と優れたパフォーマンスを持ち、マイクロサービスアーキテクチャに適しています。",
-        "gin": "Gin/Echo - 効率的で軽量なHTTPフレームワークで、迅速なAPI開発を支援します。",
-        "grpc": "gRPC - Protobufに基づく高性能RPCフレームワークで、サービス通信を最適化します。",
-        "postgresql": "PostgreSQL – エンタープライズグレードのリレーショナルデータベースで、データの一貫性と安全性を保証します。",
-        "redis": "Redis - 高速キャッシュとタスクキュー、データアクセス効率を向上させる。"
-      },
-      "infrastructure": {
-        "docker": "Docker – 環境の一貫性を実現するコンテナ化デプロイメントソリューション。",
-        "kubernetes": "Kubernetes – クラスタの自動化オーケストレーションと弾力的な拡張。",
-        "helm": "Helm - Kubernetesアプリケーションの標準化されたデプロイと管理ツール。",
-        "monitoring": "Prometheus & Grafana - 完璧な監視と可視化システム。",
-        "tracing": "Jaeger – 分散型トレーシング、サービスパフォーマンス分析を支援します。",
-        "title": "インフラストラクチャ"
-      }
-    },
-    "quickStart": {
-      "title": "迅速に習得する",
-      "frontend": "フロントエンドサービスを起動する",
-      "backend": "バックエンドサービスを起動する",
-      "database": "データベースサービスを起動する",
-      "commands": "常用操作命令"
-    },
-    "cta": {
-      "getStarted": "今すぐ体験する",
-      "learnMore": "詳細を理解する",
-      "viewDocs": "ドキュメントを確認する"
-    },
-    "gsap": {
-      "animation": "クールな入場アニメーションは GSAP が駆動しています！"
-    },
-    "architecture": {
-      "title": "技術アーキテクチャ"
-    },
     "flowSection": {
       "trigger": "フォームの送信がトリガーされる",
       "triggerDesc": "'ユーザー作成' フォームが送信された時",
@@ -85,12 +33,64 @@
       "entraDesc": "全てのユーザーを取得する",
       "jira": "Jiraソフトウェア",
       "jiraDesc": "ユーザーを作成する"
+    },
+    "features": {
+      "title": "コア特性",
+      "frontend": "フロントエンドは Next.js 15 と Shadcn UI に基づいており、スムーズで一貫したユーザー体験を提供します。",
+      "backend": "バックエンドはGoマイクロサービスアーキテクチャを採用しており、高パフォーマンスと優れたスケーラビリティを確保しています。",
+      "communication": "tRPC/gRPCをサポートし、型安全で効率的なサービス間通信を実現します。",
+      "monorepo": "一元的Monorepo管理により、依存関係の集中とチーム協力が容易になります。",
+      "deployment": "全プロセスがコンテナ化されており、CI/CDのサポートが内蔵されていて、継続的なデリバリーを保障します。"
+    },
+    "architecture": {
+      "title": "技術アーキテクチャ"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "フロントエンド技術スタック",
+        "nextjs": "Next.js 15 - App Routerを利用してサーバーコンポーネントと効率的なルーティングを実現。",
+        "shadcn": "Shadcn UI - Tailwind CSSに基づく高品質なコンポーネントライブラリで、アジャイル開発を助けます。",
+        "typescript": "TypeScript – 強い型付け言語で、コードの堅牢性と保守性を向上させます。",
+        "trpc": "tRPC – フロントエンドとバックエンドの型安全なAPI通信ソリューション。",
+        "zustand": "Zustand - 軽量な状態管理、複雑なインタラクションロジックに適しています。"
+      },
+      "backend": {
+        "title": "バックエンド技術スタック",
+        "go": "Go - 原生の高い同時実行性と優れたパフォーマンスを持ち、マイクロサービスアーキテクチャに適しています。",
+        "gin": "Gin/Echo - 効率的で軽量なHTTPフレームワークで、迅速なAPI開発を支援します。",
+        "grpc": "gRPC - Protobufに基づく高性能RPCフレームワークで、サービス通信を最適化します。",
+        "postgresql": "PostgreSQL – エンタープライズグレードのリレーショナルデータベースで、データの一貫性と安全性を保証します。",
+        "redis": "Redis - 高速キャッシュとタスクキュー、データアクセス効率を向上させる。"
+      },
+      "infrastructure": {
+        "title": "インフラストラクチャ",
+        "docker": "Docker – 環境の一貫性を実現するコンテナ化デプロイメントソリューション。",
+        "kubernetes": "Kubernetes – クラスタの自動化オーケストレーションと弾力的な拡張。",
+        "helm": "Helm - Kubernetesアプリケーションの標準化されたデプロイと管理ツール。",
+        "monitoring": "Prometheus & Grafana - 完璧な監視と可視化システム。",
+        "tracing": "Jaeger – 分散型トレーシング、サービスパフォーマンス分析を支援します。"
+      }
+    },
+    "quickStart": {
+      "title": "迅速に習得する",
+      "frontend": "フロントエンドサービスを起動する",
+      "backend": "バックエンドサービスを起動する",
+      "database": "データベースサービスを起動する",
+      "commands": "常用操作命令"
+    },
+    "cta": {
+      "getStarted": "今すぐ体験する",
+      "learnMore": "詳細を理解する",
+      "viewDocs": "ドキュメントを確認する"
+    },
+    "gsap": {
+      "animation": "クールな入場アニメーションは GSAP が駆動しています！"
     }
   },
   "Header": {
     "home": "ホームページ",
     "features": "コア特性",
-    "quickStart": "迅速に習得する",
-    "techStack": "技術スタック"
+    "techStack": "技術スタック",
+    "quickStart": "迅速に習得する"
   }
 }

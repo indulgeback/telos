@@ -13,58 +13,6 @@
     "title": "Telos: Intelligent platform voor het orkestreren van agentprocessen",
     "subtitle": "Een modern, zeer schaalbaar platform voor intelligente workflow-orkestratie",
     "description": "Het ondersteunt automatische taakplanning en -beheer, maakt gebruik van front-end- en back-endscheiding en microservice-architectuur en is ontworpen voor automatiseringsscenario's op bedrijfsniveau.",
-    "features": {
-      "title": "Kernfuncties",
-      "frontend": "De front-end is gebaseerd op Next.js 15 en Shadcn UI om een soepele en consistente gebruikerservaring te bieden.",
-      "backend": "De back-end maakt gebruik van de Go-microservices-architectuur om hoge prestaties en schaalbaarheid te garanderen.",
-      "communication": "Ondersteunt tRPC/gRPC voor typeveilige en efficiënte service-to-service communicatie.",
-      "monorepo": "Uniform Monorepo-beheer voor eenvoudige centralisatie van afhankelijkheden en teamsamenwerking.",
-      "deployment": "Het hele proces is gecontaineriseerd en heeft ingebouwde CI/CD-ondersteuning om continue levering te garanderen."
-    },
-    "techStack": {
-      "frontend": {
-        "title": "Front-end technologiestack",
-        "nextjs": "Next.js 15 – Implementeer server-side componenten en efficiënte routering met App Router.",
-        "shadcn": "Shadcn UI – Een bibliotheek met hoogwaardige componenten op basis van Tailwind CSS voor agile ontwikkeling.",
-        "typescript": "TypeScript – Een zeer getypeerde taal die de robuustheid en onderhoudbaarheid van de code verbetert.",
-        "trpc": "tRPC – Frontend en backend type security API communicatieschema.",
-        "zustand": "Zustand – Lichtgewicht statusbeheer voor complexe interactielogica."
-      },
-      "backend": {
-        "title": "Back-end technologiestack",
-        "go": "Go – Native hoge gelijktijdigheid, uitstekende prestaties, geschikt voor microservice-architecturen.",
-        "gin": "Gin/Echo – Efficiënt en lichtgewicht HTTP-framework voor snelle API-ontwikkeling.",
-        "grpc": "gRPC – Een high-performance RPC-framework op basis van Protobuf om servicecommunicatie te optimaliseren.",
-        "postgresql": "PostgreSQL – Een relationele database op bedrijfsniveau die zorgt voor consistentie en beveiliging van gegevens.",
-        "redis": "Redis – Cache- en taakwachtrijen om de efficiëntie van gegevenstoegang te verbeteren."
-      },
-      "infrastructure": {
-        "docker": "Docker – Een implementatieoplossing in containers voor omgevingsconsistentie.",
-        "kubernetes": "Kubernetes – Geautomatiseerde clusterorkestratie en elastische schaling.",
-        "helm": "Helm – Een gestandaardiseerde implementatie- en beheertool voor Kubernetes-applicaties.",
-        "monitoring": "Prometheus & Grafana – Volledige monitoring en visualisatie.",
-        "tracing": "Jaeger – Gedistribueerde tracering voor analyse van serviceprestaties.",
-        "title": "infrastructuur"
-      }
-    },
-    "quickStart": {
-      "title": "Snel aan de slag",
-      "frontend": "Start de front-end service",
-      "backend": "Start de backend-service",
-      "database": "Start de databaseservice",
-      "commands": "Veelvoorkomende bedieningsopdrachten"
-    },
-    "cta": {
-      "getStarted": "Probeer het nu",
-      "learnMore": "Meer informatie",
-      "viewDocs": "Bekijk de documentatie"
-    },
-    "gsap": {
-      "animation": "Coole toegangsanimaties mogelijk gemaakt door GSAP!"
-    },
-    "architecture": {
-      "title": "Technische architectuur"
-    },
     "flowSection": {
       "trigger": "Triggers voor het indienen van formulieren",
       "triggerDesc": "Wanneer het formulier 'Gebruiker aanmaken' wordt verzonden",
@@ -85,12 +33,64 @@
       "entraDesc": "Krijg alle gebruikers",
       "jira": "Jira software",
       "jiraDesc": "Maak een gebruiker aan"
+    },
+    "features": {
+      "title": "Kernfuncties",
+      "frontend": "De front-end is gebaseerd op Next.js 15 en Shadcn UI om een soepele en consistente gebruikerservaring te bieden.",
+      "backend": "De back-end maakt gebruik van de Go-microservices-architectuur om hoge prestaties en schaalbaarheid te garanderen.",
+      "communication": "Ondersteunt tRPC/gRPC voor typeveilige en efficiënte service-to-service communicatie.",
+      "monorepo": "Uniform Monorepo-beheer voor eenvoudige centralisatie van afhankelijkheden en teamsamenwerking.",
+      "deployment": "Het hele proces is gecontaineriseerd en heeft ingebouwde CI/CD-ondersteuning om continue levering te garanderen."
+    },
+    "architecture": {
+      "title": "Technische architectuur"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Front-end technologiestack",
+        "nextjs": "Next.js 15 – Implementeer server-side componenten en efficiënte routering met App Router.",
+        "shadcn": "Shadcn UI – Een bibliotheek met hoogwaardige componenten op basis van Tailwind CSS voor agile ontwikkeling.",
+        "typescript": "TypeScript – Een zeer getypeerde taal die de robuustheid en onderhoudbaarheid van de code verbetert.",
+        "trpc": "tRPC – Frontend en backend type security API communicatieschema.",
+        "zustand": "Zustand – Lichtgewicht statusbeheer voor complexe interactielogica."
+      },
+      "backend": {
+        "title": "Back-end technologiestack",
+        "go": "Go – Native hoge gelijktijdigheid, uitstekende prestaties, geschikt voor microservice-architecturen.",
+        "gin": "Gin/Echo – Efficiënt en lichtgewicht HTTP-framework voor snelle API-ontwikkeling.",
+        "grpc": "gRPC – Een high-performance RPC-framework op basis van Protobuf om servicecommunicatie te optimaliseren.",
+        "postgresql": "PostgreSQL – Een relationele database op bedrijfsniveau die zorgt voor consistentie en beveiliging van gegevens.",
+        "redis": "Redis – Cache- en taakwachtrijen om de efficiëntie van gegevenstoegang te verbeteren."
+      },
+      "infrastructure": {
+        "title": "infrastructuur",
+        "docker": "Docker – Een implementatieoplossing in containers voor omgevingsconsistentie.",
+        "kubernetes": "Kubernetes – Geautomatiseerde clusterorkestratie en elastische schaling.",
+        "helm": "Helm – Een gestandaardiseerde implementatie- en beheertool voor Kubernetes-applicaties.",
+        "monitoring": "Prometheus & Grafana – Volledige monitoring en visualisatie.",
+        "tracing": "Jaeger – Gedistribueerde tracering voor analyse van serviceprestaties."
+      }
+    },
+    "quickStart": {
+      "title": "Snel aan de slag",
+      "frontend": "Start de front-end service",
+      "backend": "Start de backend-service",
+      "database": "Start de databaseservice",
+      "commands": "Veelvoorkomende bedieningsopdrachten"
+    },
+    "cta": {
+      "getStarted": "Probeer het nu",
+      "learnMore": "Meer informatie",
+      "viewDocs": "Bekijk de documentatie"
+    },
+    "gsap": {
+      "animation": "Coole toegangsanimaties mogelijk gemaakt door GSAP!"
     }
   },
   "Header": {
     "home": "Thuis",
     "features": "Kernfuncties",
-    "quickStart": "Snel aan de slag",
-    "techStack": "Technische stapel"
+    "techStack": "Technische stapel",
+    "quickStart": "Snel aan de slag"
   }
 }

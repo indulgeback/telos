@@ -13,58 +13,6 @@
     "title": "Telos: Plataforma de Orquestração de Processos de Agente Inteligente",
     "subtitle": "Uma plataforma moderna e altamente escalável para orquestração inteligente de fluxo de trabalho",
     "description": "Ele oferece suporte ao agendamento e gerenciamento automáticos de tarefas, adota a separação de front-end e back-end e a arquitetura de microsserviços e foi projetado para cenários de automação de nível empresarial.",
-    "features": {
-      "title": "Características principais",
-      "frontend": "O front-end é baseado na interface do usuário do Next.js 15 e Shadcn para fornecer uma experiência de usuário suave e consistente.",
-      "backend": "O back-end usa a arquitetura de microsserviços Go para garantir alto desempenho e escalabilidade.",
-      "communication": "Suporta tRPC/gRPC para comunicação de serviço a serviço eficiente e segura para tipo.",
-      "monorepo": "Gerenciamento unificado do Monorepo para fácil centralização de dependências e colaboração em equipe.",
-      "deployment": "Todo o processo é conteinerizado e possui suporte integrado a CI/CD para garantir a entrega contínua."
-    },
-    "techStack": {
-      "frontend": {
-        "title": "Pilha de tecnologia de front-end",
-        "nextjs": "Next.js 15 – Implemente componentes do lado do servidor e roteamento eficiente com o App Router.",
-        "shadcn": "Shadcn UI – Uma biblioteca de componentes de alta qualidade baseada em Tailwind CSS para desenvolvimento ágil.",
-        "typescript": "TypeScript – Uma linguagem fortemente tipada que melhora a robustez e a capacidade de manutenção do código.",
-        "trpc": "tRPC – Esquema de comunicação API de segurança do tipo front-end e backend.",
-        "zustand": "Zustand – Gerenciamento de estado leve para lógica de interação complexa."
-      },
-      "backend": {
-        "title": "Pilha de tecnologia de back-end",
-        "go": "Go – Simultaneidade nativamente alta, excelente desempenho, adequado para arquiteturas de microsserviços.",
-        "gin": "Gin / Echo - Estrutura HTTP eficiente e leve para desenvolvimento rápido de API.",
-        "grpc": "gRPC – Uma estrutura RPC de alto desempenho baseada em Protobuf que otimiza a comunicação do serviço.",
-        "postgresql": "PostgreSQL – Um banco de dados relacional de nível empresarial que garante consistência e segurança de dados.",
-        "redis": "Redis – Cache e filas de tarefas para melhorar a eficiência do acesso aos dados."
-      },
-      "infrastructure": {
-        "docker": "Docker – Uma solução de implantação em contêiner para consistência do ambiente.",
-        "kubernetes": "Kubernetes – Orquestração automatizada de cluster e dimensionamento elástico.",
-        "helm": "Helm – Uma ferramenta padronizada de implantação e gerenciamento para aplicativos Kubernetes.",
-        "monitoring": "Prometheus & Grafana – Monitoramento e visualização completos.",
-        "tracing": "Jaeger – Rastreamento distribuído para análise de desempenho de serviço.",
-        "title": "infra-estrutura"
-      }
-    },
-    "quickStart": {
-      "title": "Comece rapidamente",
-      "frontend": "Iniciar o serviço de front-end",
-      "backend": "Iniciar o serviço de back-end",
-      "database": "Iniciar o serviço de banco de dados",
-      "commands": "Comandos de operação comuns"
-    },
-    "cta": {
-      "getStarted": "Experimente agora",
-      "learnMore": "Saiba Mais",
-      "viewDocs": "Confira a documentação"
-    },
-    "gsap": {
-      "animation": "Animações de admissão legais alimentadas por GSAP!"
-    },
-    "architecture": {
-      "title": "Arquitetura técnica"
-    },
     "flowSection": {
       "trigger": "Gatilhos de envio de formulário",
       "triggerDesc": "Quando o formulário 'Criar usuário' é enviado",
@@ -85,12 +33,64 @@
       "entraDesc": "Obter todos os usuários",
       "jira": "Software Jira",
       "jiraDesc": "Criar um usuário"
+    },
+    "features": {
+      "title": "Características principais",
+      "frontend": "O front-end é baseado na interface do usuário do Next.js 15 e Shadcn para fornecer uma experiência de usuário suave e consistente.",
+      "backend": "O back-end usa a arquitetura de microsserviços Go para garantir alto desempenho e escalabilidade.",
+      "communication": "Suporta tRPC/gRPC para comunicação de serviço a serviço eficiente e segura para tipo.",
+      "monorepo": "Gerenciamento unificado do Monorepo para fácil centralização de dependências e colaboração em equipe.",
+      "deployment": "Todo o processo é conteinerizado e possui suporte integrado a CI/CD para garantir a entrega contínua."
+    },
+    "architecture": {
+      "title": "Arquitetura técnica"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Pilha de tecnologia de front-end",
+        "nextjs": "Next.js 15 – Implemente componentes do lado do servidor e roteamento eficiente com o App Router.",
+        "shadcn": "Shadcn UI – Uma biblioteca de componentes de alta qualidade baseada em Tailwind CSS para desenvolvimento ágil.",
+        "typescript": "TypeScript – Uma linguagem fortemente tipada que melhora a robustez e a capacidade de manutenção do código.",
+        "trpc": "tRPC – Esquema de comunicação API de segurança do tipo front-end e backend.",
+        "zustand": "Zustand – Gerenciamento de estado leve para lógica de interação complexa."
+      },
+      "backend": {
+        "title": "Pilha de tecnologia de back-end",
+        "go": "Go – Simultaneidade nativamente alta, excelente desempenho, adequado para arquiteturas de microsserviços.",
+        "gin": "Gin / Echo - Estrutura HTTP eficiente e leve para desenvolvimento rápido de API.",
+        "grpc": "gRPC – Uma estrutura RPC de alto desempenho baseada em Protobuf que otimiza a comunicação do serviço.",
+        "postgresql": "PostgreSQL – Um banco de dados relacional de nível empresarial que garante consistência e segurança de dados.",
+        "redis": "Redis – Cache e filas de tarefas para melhorar a eficiência do acesso aos dados."
+      },
+      "infrastructure": {
+        "title": "infra-estrutura",
+        "docker": "Docker – Uma solução de implantação em contêiner para consistência do ambiente.",
+        "kubernetes": "Kubernetes – Orquestração automatizada de cluster e dimensionamento elástico.",
+        "helm": "Helm – Uma ferramenta padronizada de implantação e gerenciamento para aplicativos Kubernetes.",
+        "monitoring": "Prometheus & Grafana – Monitoramento e visualização completos.",
+        "tracing": "Jaeger – Rastreamento distribuído para análise de desempenho de serviço."
+      }
+    },
+    "quickStart": {
+      "title": "Comece rapidamente",
+      "frontend": "Iniciar o serviço de front-end",
+      "backend": "Iniciar o serviço de back-end",
+      "database": "Iniciar o serviço de banco de dados",
+      "commands": "Comandos de operação comuns"
+    },
+    "cta": {
+      "getStarted": "Experimente agora",
+      "learnMore": "Saiba Mais",
+      "viewDocs": "Confira a documentação"
+    },
+    "gsap": {
+      "animation": "Animações de admissão legais alimentadas por GSAP!"
     }
   },
   "Header": {
     "home": "Casa",
     "features": "Características principais",
-    "quickStart": "Comece rapidamente",
-    "techStack": "Pilha de tecnologia"
+    "techStack": "Pilha de tecnologia",
+    "quickStart": "Comece rapidamente"
   }
 }

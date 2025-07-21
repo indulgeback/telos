@@ -13,58 +13,6 @@
     "title": "Telos: Inteligentna platforma orkiestracji procesów agentowych",
     "subtitle": "Nowoczesna, wysoce skalowalna platforma do inteligentnej orkiestracji przepływu pracy",
     "description": "Obsługuje automatyczne planowanie zadań i zarządzanie nimi, przyjmuje separację front-end i back-end oraz architekturę mikrousług i jest przeznaczony do scenariuszy automatyzacji na poziomie przedsiębiorstwa.",
-    "features": {
-      "title": "Podstawowe cechy",
-      "frontend": "Front-end jest oparty na interfejsie użytkownika Next.js 15 i Shadcn, aby zapewnić płynne i spójne wrażenia użytkownika.",
-      "backend": "Backend wykorzystuje architekturę mikrousług Go, aby zapewnić wysoką wydajność i skalowalność.",
-      "communication": "Obsługuje tRPC/gRPC w celu zapewnienia bezpiecznej i wydajnej komunikacji między usługami.",
-      "monorepo": "Ujednolicone zarządzanie Monorepo dla łatwej centralizacji zależności i współpracy zespołowej.",
-      "deployment": "Cały proces jest konteneryzowany i ma wbudowaną obsługę CI/CD, aby zapewnić ciągłe dostarczanie."
-    },
-    "techStack": {
-      "frontend": {
-        "title": "Stos technologii front-end",
-        "nextjs": "Next.js 15 – Wykorzystaj App Router do komponentów po stronie serwera i wydajnego routingu.",
-        "shadcn": "Shadcn UI – Wysokiej jakości biblioteka komponentów oparta na Tailwind CSS do zwinnego programowania.",
-        "typescript": "TypeScript — silnie typizowany język, który zwiększa niezawodność kodu i łatwość konserwacji.",
-        "trpc": "tRPC – schemat komunikacji API zabezpieczeń typu frontend i backend.",
-        "zustand": "Zustand – Lekkie zarządzanie stanami dla złożonej logiki interakcji."
-      },
-      "backend": {
-        "title": "Stos technologii back-end",
-        "go": "Go – Natywnie wysoka współbieżność, doskonała wydajność, odpowiednia dla architektur mikrousług.",
-        "gin": "Gin/Echo – Wydajna i lekka platforma HTTP do szybkiego tworzenia interfejsów API.",
-        "grpc": "gRPC — wysokowydajna struktura RPC oparta na protobuf w celu optymalizacji komunikacji usługi.",
-        "postgresql": "PostgreSQL – relacyjna baza danych klasy korporacyjnej, która zapewnia spójność i bezpieczeństwo danych.",
-        "redis": "Redis — pamięć podręczna i kolejki zadań w celu poprawy wydajności dostępu do danych."
-      },
-      "infrastructure": {
-        "docker": "Docker — konteneryzowane rozwiązanie wdrożeniowe zapewniające spójność środowiska.",
-        "kubernetes": "Kubernetes — zautomatyzowana orkiestracja klastrów i elastyczne skalowanie.",
-        "helm": "Helm — ustandaryzowane narzędzie do wdrażania i zarządzania aplikacjami Kubernetes.",
-        "monitoring": "Prometheus & Grafana – Pełne monitorowanie i wizualizacja.",
-        "tracing": "Jaeger – Śledzenie rozproszone do analizy wydajności usług.",
-        "title": "infrastruktura"
-      }
-    },
-    "quickStart": {
-      "title": "Szybkie rozpoczynanie pracy",
-      "frontend": "Uruchamianie usługi front-end",
-      "backend": "Uruchamianie usługi zaplecza",
-      "database": "Uruchamianie usługi bazy danych",
-      "commands": "Typowe polecenia operacyjne"
-    },
-    "cta": {
-      "getStarted": "Wypróbuj teraz",
-      "learnMore": "Dowiedz się więcej",
-      "viewDocs": "Zapoznaj się z dokumentacją"
-    },
-    "gsap": {
-      "animation": "Fajne animacje wstępu obsługiwane przez GSAP!"
-    },
-    "architecture": {
-      "title": "Architektura techniczna"
-    },
     "flowSection": {
       "trigger": "Wyzwalacze przesyłania formularzy",
       "triggerDesc": "Po przesłaniu formularza \"Utwórz użytkownika\"",
@@ -85,12 +33,64 @@
       "entraDesc": "Pobieranie wszystkich użytkowników",
       "jira": "Oprogramowanie Jira",
       "jiraDesc": "Tworzenie użytkownika"
+    },
+    "features": {
+      "title": "Podstawowe cechy",
+      "frontend": "Front-end jest oparty na interfejsie użytkownika Next.js 15 i Shadcn, aby zapewnić płynne i spójne wrażenia użytkownika.",
+      "backend": "Backend wykorzystuje architekturę mikrousług Go, aby zapewnić wysoką wydajność i skalowalność.",
+      "communication": "Obsługuje tRPC/gRPC w celu zapewnienia bezpiecznej i wydajnej komunikacji między usługami.",
+      "monorepo": "Ujednolicone zarządzanie Monorepo dla łatwej centralizacji zależności i współpracy zespołowej.",
+      "deployment": "Cały proces jest konteneryzowany i ma wbudowaną obsługę CI/CD, aby zapewnić ciągłe dostarczanie."
+    },
+    "architecture": {
+      "title": "Architektura techniczna"
+    },
+    "techStack": {
+      "frontend": {
+        "title": "Stos technologii front-end",
+        "nextjs": "Next.js 15 – Wykorzystaj App Router do komponentów po stronie serwera i wydajnego routingu.",
+        "shadcn": "Shadcn UI – Wysokiej jakości biblioteka komponentów oparta na Tailwind CSS do zwinnego programowania.",
+        "typescript": "TypeScript — silnie typizowany język, który zwiększa niezawodność kodu i łatwość konserwacji.",
+        "trpc": "tRPC – schemat komunikacji API zabezpieczeń typu frontend i backend.",
+        "zustand": "Zustand – Lekkie zarządzanie stanami dla złożonej logiki interakcji."
+      },
+      "backend": {
+        "title": "Stos technologii back-end",
+        "go": "Go – Natywnie wysoka współbieżność, doskonała wydajność, odpowiednia dla architektur mikrousług.",
+        "gin": "Gin/Echo – Wydajna i lekka platforma HTTP do szybkiego tworzenia interfejsów API.",
+        "grpc": "gRPC — wysokowydajna struktura RPC oparta na protobuf w celu optymalizacji komunikacji usługi.",
+        "postgresql": "PostgreSQL – relacyjna baza danych klasy korporacyjnej, która zapewnia spójność i bezpieczeństwo danych.",
+        "redis": "Redis — pamięć podręczna i kolejki zadań w celu poprawy wydajności dostępu do danych."
+      },
+      "infrastructure": {
+        "title": "infrastruktura",
+        "docker": "Docker — konteneryzowane rozwiązanie wdrożeniowe zapewniające spójność środowiska.",
+        "kubernetes": "Kubernetes — zautomatyzowana orkiestracja klastrów i elastyczne skalowanie.",
+        "helm": "Helm — ustandaryzowane narzędzie do wdrażania i zarządzania aplikacjami Kubernetes.",
+        "monitoring": "Prometheus & Grafana – Pełne monitorowanie i wizualizacja.",
+        "tracing": "Jaeger – Śledzenie rozproszone do analizy wydajności usług."
+      }
+    },
+    "quickStart": {
+      "title": "Szybkie rozpoczynanie pracy",
+      "frontend": "Uruchamianie usługi front-end",
+      "backend": "Uruchamianie usługi zaplecza",
+      "database": "Uruchamianie usługi bazy danych",
+      "commands": "Typowe polecenia operacyjne"
+    },
+    "cta": {
+      "getStarted": "Wypróbuj teraz",
+      "learnMore": "Dowiedz się więcej",
+      "viewDocs": "Zapoznaj się z dokumentacją"
+    },
+    "gsap": {
+      "animation": "Fajne animacje wstępu obsługiwane przez GSAP!"
     }
   },
   "Header": {
     "home": "Dom",
     "features": "Podstawowe cechy",
-    "quickStart": "Szybkie rozpoczynanie pracy",
-    "techStack": "Stos technologiczny"
+    "techStack": "Stos technologiczny",
+    "quickStart": "Szybkie rozpoczynanie pracy"
   }
 }
