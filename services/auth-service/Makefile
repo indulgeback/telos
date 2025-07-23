@@ -49,7 +49,7 @@ docker-stop:
 
 dev:
 	@echo "🔥 开发模式启动..."
-	air
+	$(HOME)/go/bin/air
 
 help:
 	@echo "📋 可用命令:"
