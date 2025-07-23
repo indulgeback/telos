@@ -3,7 +3,8 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"registry/internal/service"
+
+	"github.com/indulgeback/telos/apps/registry/internal/service"
 
 	"github.com/labstack/echo/v4"
 )

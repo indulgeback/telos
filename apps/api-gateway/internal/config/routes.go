@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"api-gateway/internal/proxy"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
 )
 
 // LoadRoutesFromFile 从文件加载路由配置

@@ -1,4 +1,4 @@
-module registry
+module github.com/indulgeback/telos/apps/registry
 
 go 1.24.4
 

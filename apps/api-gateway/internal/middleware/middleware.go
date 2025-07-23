@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"api-gateway/internal/config"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
 )
 
 // contextKey 自定义 context key 类型，避免字符串冲突

@@ -1,8 +1,11 @@
-module api-gateway
+module github.com/indulgeback/telos/apps/api-gateway
 
 go 1.24.4
 
-require github.com/labstack/echo/v4 v4.13.4
+require (
+	github.com/labstack/echo/v4 v4.13.4
+	github.com/spf13/viper v1.20.1
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
@@ -16,7 +19,6 @@ require (
 	github.com/spf13/afero v1.12.0 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	github.com/spf13/viper v1.20.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect

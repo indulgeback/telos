@@ -8,10 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"api-gateway/internal/config"
-	apimiddleware "api-gateway/internal/middleware"
-	"api-gateway/internal/proxy"
-	"api-gateway/internal/service"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
+	apimiddleware "github.com/indulgeback/telos/apps/api-gateway/internal/middleware"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
 )
 
 func main() {

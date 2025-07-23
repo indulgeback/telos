@@ -2,9 +2,10 @@ package main
 
 import (
 	"log"
-	"registry/internal/config"
-	"registry/internal/handler"
-	"registry/internal/service"
+
+	"github.com/indulgeback/telos/apps/registry/internal/config"
+	"github.com/indulgeback/telos/apps/registry/internal/handler"
+	"github.com/indulgeback/telos/apps/registry/internal/service"
 
 	"github.com/labstack/echo/v4"
 )
