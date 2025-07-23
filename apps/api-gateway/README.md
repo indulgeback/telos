@@ -10,7 +10,7 @@ API Gateway 是微服务架构中的统一入口，负责请求路由、认证�
 - 支持 JWT 鉴权（通过调用 auth-service 微服务）
 - 反向代理，将 /api/\* 请求转发到后端服务
 - 健康检查接口 `/ping`
-- 支持服务发现与负载均衡（内存实现，便于扩展）
+- 支持服务发现与负载均衡（通过注册中心 registry 实现）
 - CORS 跨域支持
 - 请求日志记录
 - 基于令牌桶的限流机制
@@ -80,8 +80,7 @@ routes := []proxy.RouteConfig{
 ```go
 // 注册服务发现与负载均衡
 lb := service.NewRoundRobinLoadBalancer()
-sd := service.NewMemoryServiceDiscovery(lb)
-sd.Register("auth-service", http://localhost:5501)
+sd := service.NewRegistryServiceDiscovery("http://localhost:8080", lb) // 替换为实际 registry 地址
 addr, err := sd.Discover("auth-service")
 
 // 使用代理管理器
@@ -98,7 +97,7 @@ proxyManager.LoadRoutes(routes)
 
 ## 扩展建议
 
-- 可接入 etcd/consul 实现分布式服务发现
+- 可接入 etcd/consul/自研 registry 实现分布式服务发现
 - 支持多服务路由、熔断、重试等高级功能
 - 集成 Prometheus 监控指标
 - 支持配置热更新

@@ -1,0 +1,20 @@
+# air 配置文件 for api-gateway
+root = "."
+
+[build]
+  cmd = "go build -o ./tmp/main ./cmd/main.go"
+  bin = "./tmp/main"
+  include_ext = [".go"]
+  exclude_dir = ["tmp", "vendor"]
+  exclude_file = []
+  follow_symlink = true
+  delay = 1000 # ms
+
+[log]
+  time = true
+
+[color]
+  main = "yellow"
+  watcher = "cyan"
+  build = "green"
+  runner = "magenta" 

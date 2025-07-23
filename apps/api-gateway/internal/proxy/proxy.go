@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"api-gateway/internal/service"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
 )
 
 // RouteConfig 路由配置
@@ -100,7 +100,7 @@ func (pm *ProxyManager) findRoute(path string) *RouteConfig {
 // getProxy 获取或创建代理
 func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.ReverseProxy, error) {
 	key := fmt.Sprintf("%s:%s", target, route.ServiceName)
-	
+
 	if proxy, exists := pm.proxies[key]; exists {
 		return proxy, nil
 	}
@@ -111,7 +111,7 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
-	
+
 	// 设置超时
 	if route.Timeout > 0 {
 		proxy.Transport = &http.Transport{
@@ -157,13 +157,13 @@ func ProxyHandler(authServiceURL string) http.HandlerFunc {
 func writeErrorResponse(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	
+
 	errorResp := map[string]interface{}{
 		"error":   http.StatusText(code),
 		"message": message,
 		"code":    code,
 	}
-	
+
 	json.NewEncoder(w).Encode(errorResp)
 }
 

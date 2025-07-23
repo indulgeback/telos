@@ -1,55 +1,65 @@
 package config
 
 import (
-	"os"
-	"strconv"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 // Config 结构体用于存储配置信息
 type Config struct {
-	Port              string
-	AuthServiceURL    string
-	CORSOrigins       []string
-	LogLevel          string
-	RateLimitRequests int
-	RateLimitWindow   int
+	Port               string
+	RegistryServiceURL string
+	AuthServiceURL     string
+	CORSOrigins        []string
+	LogLevel           string
+	RateLimitRequests  int
+	RateLimitWindow    int
 }
 
 // LoadConfig 加载配置
 func LoadConfig() *Config {
+	viper.SetConfigFile(".env")
+	viper.SetConfigType("env")
+	_ = viper.ReadInConfig() // 忽略找不到文件的错误
+	viper.AutomaticEnv()
+
 	cfg := &Config{
-		Port:              getEnvOrDefault("GATEWAY_PORT", "8080"),
-		AuthServiceURL:    getEnvOrDefault("AUTH_SERVICE_URL", "http://localhost:5501"),
-		LogLevel:          getEnvOrDefault("LOG_LEVEL", "info"),
-		RateLimitRequests: getEnvAsIntOrDefault("RATE_LIMIT_REQUESTS", 100),
-		RateLimitWindow:   getEnvAsIntOrDefault("RATE_LIMIT_WINDOW", 60),
+		Port:               viper.GetString("GATEWAY_PORT"),
+		RegistryServiceURL: viper.GetString("REGISTRY_SERVICE_URL"),
+		AuthServiceURL:     viper.GetString("AUTH_SERVICE_URL"),
+		LogLevel:           viper.GetString("LOG_LEVEL"),
+		RateLimitRequests:  viper.GetInt("RATE_LIMIT_REQUESTS"),
+		RateLimitWindow:    viper.GetInt("RATE_LIMIT_WINDOW"),
 	}
 
-	// 解析 CORS 配置
-	corsOrigins := getEnvOrDefault("CORS_ORIGINS", "http://localhost:3000")
+	if cfg.Port == "" {
+		cfg.Port = "8080"
+	}
+	if cfg.RegistryServiceURL == "" {
+		cfg.RegistryServiceURL = "http://localhost:8080"
+	}
+	if cfg.AuthServiceURL == "" {
+		cfg.AuthServiceURL = "http://localhost:5501"
+	}
+	if cfg.LogLevel == "" {
+		cfg.LogLevel = "info"
+	}
+	if cfg.RateLimitRequests == 0 {
+		cfg.RateLimitRequests = 100
+	}
+	if cfg.RateLimitWindow == 0 {
+		cfg.RateLimitWindow = 60
+	}
+
+	corsOrigins := viper.GetString("CORS_ORIGINS")
+	if corsOrigins == "" {
+		corsOrigins = "http://localhost:3000"
+	}
 	cfg.CORSOrigins = strings.Split(corsOrigins, ",")
 	for i, origin := range cfg.CORSOrigins {
 		cfg.CORSOrigins[i] = strings.TrimSpace(origin)
 	}
 
 	return cfg
-}
-
-// getEnvOrDefault 获取环境变量或返回默认值
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-// getEnvAsIntOrDefault 获取环境变量并转换为整数，失败则返回默认值
-func getEnvAsIntOrDefault(key string, defaultValue int) int {
-	if value := os.Getenv(key); value != "" {
-		if intValue, err := strconv.Atoi(value); err == nil {
-			return intValue
-		}
-	}
-	return defaultValue
 }

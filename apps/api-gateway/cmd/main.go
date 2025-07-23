@@ -8,10 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"api-gateway/internal/config"
-	apimiddleware "api-gateway/internal/middleware"
-	"api-gateway/internal/proxy"
-	"api-gateway/internal/service"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
+	apimiddleware "github.com/indulgeback/telos/apps/api-gateway/internal/middleware"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
+	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
 )
 
 func main() {
@@ -20,10 +20,7 @@ func main() {
 
 	// 初始化服务发现和负载均衡
 	lb := service.NewRoundRobinLoadBalancer()
-	discovery := service.NewMemoryServiceDiscovery(lb)
-
-	// 注册服务实例（实际环境中可能从配置或服务注册中心获取）
-	discovery.Register("auth-service", cfg.AuthServiceURL)
+	discovery := service.NewRegistryServiceDiscovery("http://localhost:8080", lb)
 
 	// 初始化代理管理器
 	proxyManager := proxy.NewProxyManager(discovery)
@@ -48,7 +45,7 @@ func main() {
 	e.Use(middleware.RequestID())
 	e.Use(echo.WrapMiddleware(apimiddleware.LoggingMiddleware))
 	e.Use(echo.WrapMiddleware(apimiddleware.CORSMiddleware(cfg.CORSOrigins)))
-	
+
 	// 添加限流中间件
 	rateLimitWindow := time.Duration(cfg.RateLimitWindow) * time.Second
 	e.Use(echo.WrapMiddleware(apimiddleware.RateLimitMiddleware(cfg.RateLimitRequests, rateLimitWindow)))
@@ -61,7 +58,7 @@ func main() {
 	// 添加API路由组，需要鉴权
 	apiGroup := e.Group("/api")
 	apiGroup.Use(echo.WrapMiddleware(apimiddleware.AuthMiddleware(cfg)))
-	
+
 	// 所有API请求由代理管理器处理
 	apiGroup.Any("/*", echo.WrapHandler(proxyManager))
 

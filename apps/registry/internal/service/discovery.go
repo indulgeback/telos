@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"registry/internal/config"
+	"github.com/indulgeback/telos/apps/registry/internal/config"
 
 	consulapi "github.com/hashicorp/consul/api"
 )
