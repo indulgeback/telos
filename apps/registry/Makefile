@@ -17,11 +17,6 @@ run:
 	@echo "🚀 启动应用..."
 	go run $(MAIN_FILE)
 
-# 运行测试
-test:
-	@echo "🧪 运行测试..."
-	go test ./...
-
 # 清理构建文件
 clean:
 	@echo "🧹 清理构建文件..."
@@ -59,11 +54,6 @@ docker-stop:
 	@echo "🐳 停止 Docker 容器..."
 	docker-compose down
 
-# 运行测试脚本
-test-api:
-	@echo "🧪 运行 API 测试..."
-	./test/test.sh
-
 # 开发模式（热重载）
 dev:
 	@echo "🔥 开发模式启动..."
@@ -74,7 +64,6 @@ help:
 	@echo "📋 可用命令:"
 	@echo "  build      - 构建应用"
 	@echo "  run        - 运行应用"
-	@echo "  test       - 运行测试"
 	@echo "  clean      - 清理构建文件"
 	@echo "  deps       - 安装依赖"
 	@echo "  fmt        - 格式化代码"
@@ -82,6 +71,5 @@ help:
 	@echo "  docker-build - 构建 Docker 镜像"
 	@echo "  docker-run   - 运行 Docker 容器"
 	@echo "  docker-stop  - 停止 Docker 容器"
-	@echo "  test-api   - 运行 API 测试"
 	@echo "  dev        - 开发模式启动"
 	@echo "  help       - 显示帮助信息" 
