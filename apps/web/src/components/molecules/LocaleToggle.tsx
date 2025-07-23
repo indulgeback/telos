@@ -48,9 +48,13 @@ function LocaleToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='icon'>
+        <Button
+          variant='outline'
+          size='icon'
+          className='relative w-full md:w-9'
+        >
           <Globe className='h-4 w-4' />
-          <span className='sr-only'>{t('toggleLanguage')}</span>
+          <span className='md:hidden block'>{t('toggleLanguage')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>

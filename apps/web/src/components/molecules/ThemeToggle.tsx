@@ -34,13 +34,17 @@ function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='icon' className='relative'>
+        <Button
+          variant='outline'
+          size='icon'
+          className='relative w-full md:w-9'
+        >
           {current === 'light' && <Sun className='h-4 w-4' />}
           {current === 'dark' && <Moon className='h-4 w-4' />}
           {current !== 'light' && current !== 'dark' && (
             <Laptop className='h-4 w-4' />
           )}
-          <span className='sr-only'>{t('toggleTheme')}</span>
+          <span className='md:hidden block'>{t('toggleTheme')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
