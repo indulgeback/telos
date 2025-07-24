@@ -42,7 +42,7 @@ const translator = new AutoTranslator({
   delay: 0,
   langMap,
   langDir,
-  incremental: false,
+  incremental: true,
   strictKeySync: true,
 })
 
