@@ -22,3 +22,8 @@ func getWorkflowByID(c *gin.Context) {
 	id := c.Param("id")
 	c.JSON(http.StatusOK, gin.H{"workflow": id})
 }
+
+// HealthCheck 健康检查接口
+func HealthCheck(c *gin.Context) {
+	c.JSON(200, gin.H{"status": "ok"})
+}

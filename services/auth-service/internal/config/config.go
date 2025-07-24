@@ -16,6 +16,7 @@ type Config struct {
 	DBName      string `mapstructure:"DB_NAME"`
 	JWTSecret   string `mapstructure:"JWT_SECRET"`
 	ServiceName string `mapstructure:"SERVICE_NAME"`
+	RegistryURL string `mapstructure:"REGISTRY_URL"` // 注册中心地址
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -38,6 +39,7 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.BindEnv("DB_NAME")
 	viper.BindEnv("JWT_SECRET")
 	viper.BindEnv("SERVICE_NAME")
+	viper.BindEnv("REGISTRY_URL")
 
 	// 尝试读取配置文件
 	if err = viper.ReadInConfig(); err != nil {
@@ -68,6 +70,10 @@ func LoadConfig(path string) (config Config, err error) {
 		config.ServiceName = "auth-service"
 	}
 
+	if config.RegistryURL == "" {
+		config.RegistryURL = os.Getenv("REGISTRY_URL")
+	}
+
 	// 验证必要的配置
 	if err = validateConfig(config); err != nil {
 		return config, fmt.Errorf("配置验证失败: %v", err)
@@ -90,6 +96,7 @@ func loadFromEnv(config *Config) {
 	config.DBName = os.Getenv("DB_NAME")
 	config.JWTSecret = os.Getenv("JWT_SECRET")
 	config.ServiceName = os.Getenv("SERVICE_NAME")
+	config.RegistryURL = os.Getenv("REGISTRY_URL")
 
 	if dbPort := os.Getenv("DB_PORT"); dbPort != "" {
 		if p, err := fmt.Sscanf(dbPort, "%d", &config.DBPort); err == nil && p == 1 {

@@ -21,8 +21,8 @@ func main() {
 	e := echo.New()
 	e.POST("/register", h.RegisterService)
 	e.DELETE("/unregister/:id", h.UnregisterService)
-	e.GET("/services", h.ListServices)
-	e.GET("/discover/:name", h.DiscoverService)
+	e.GET("/services", h.ListServiceNames)
+	e.GET("/service/:name", h.ListServiceInstances)
 	e.GET("/health", h.HealthCheck)
 	e.GET("/stats", h.GetServiceStats)
 

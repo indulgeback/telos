@@ -65,3 +65,8 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		"expires": time.Now().Add(24 * time.Hour).Unix(),
 	})
 }
+
+// HealthCheck 健康检查接口
+func HealthCheck(c *gin.Context) {
+	c.JSON(200, gin.H{"status": "ok"})
+}

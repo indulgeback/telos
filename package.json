@@ -5,9 +5,11 @@
   "scripts": {
     "prepare": "husky install",
     "web:dev": "pnpm --filter ./apps/web dev",
-    "registry:dev": "make -C apps/registry dev",
     "api-gateway:dev": "make -C apps/api-gateway dev",
-    "auth-service:dev": "make -C services/auth-service dev"
+    "registry:dev": "make -C apps/registry dev",
+    "auth-service:dev": "make -C services/auth-service dev",
+    "user-service:dev": "make -C services/user-service dev",
+    "workflow-service:dev": "make -C services/workflow-service dev"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

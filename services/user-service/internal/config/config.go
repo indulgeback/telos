@@ -5,13 +5,14 @@ import (
 )
 
 type Config struct {
-	Port        string
-	ServiceName string
-	DBHost      string
-	DBPort      string
-	DBUser      string
-	DBPassword  string
-	DBName      string
+	Port        int    `mapstructure:"PORT"`
+	ServiceName string `mapstructure:"SERVICE_NAME"`
+	DBHost      string `mapstructure:"DB_HOST"`
+	DBPort      int    `mapstructure:"DB_PORT"`
+	DBUser      string `mapstructure:"DB_USER"`
+	DBPassword  string `mapstructure:"DB_PASSWORD"`
+	DBName      string `mapstructure:"DB_NAME"`
+	RegistryURL string `mapstructure:"REGISTRY_URL"` // 注册中心地址
 }
 
 func LoadConfig() *Config {
@@ -21,23 +22,18 @@ func LoadConfig() *Config {
 	viper.AutomaticEnv()
 
 	cfg := &Config{
-		Port:        viper.GetString("PORT"),
+		Port:        viper.GetInt("PORT"),
 		ServiceName: viper.GetString("SERVICE_NAME"),
 		DBHost:      viper.GetString("DB_HOST"),
-		DBPort:      viper.GetString("DB_PORT"),
+		DBPort:      viper.GetInt("DB_PORT"),
 		DBUser:      viper.GetString("DB_USER"),
 		DBPassword:  viper.GetString("DB_PASSWORD"),
 		DBName:      viper.GetString("DB_NAME"),
+		RegistryURL: viper.GetString("REGISTRY_URL"),
 	}
 
-	if cfg.Port == "" {
-		cfg.Port = "8081"
-	}
 	if cfg.ServiceName == "" {
 		cfg.ServiceName = "user-service"
-	}
-	if cfg.DBPort == "" {
-		cfg.DBPort = "5432"
 	}
 
 	return cfg

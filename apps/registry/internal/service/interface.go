@@ -7,4 +7,5 @@ type ServiceDiscoveryInterface interface {
 	ListInstances(serviceName string) ([]*ServiceInfo, error)
 	Discover(serviceName string) (*ServiceInfo, error)
 	WatchService(serviceName string, callback func([]*ServiceInfo))
+	ListServiceNames() ([]string, error)
 }

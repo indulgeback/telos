@@ -76,28 +76,6 @@ func (h *RegistryHandler) UnregisterService(c echo.Context) error {
 	})
 }
 
-// ListServices 获取服务列表
-func (h *RegistryHandler) ListServices(c echo.Context) error {
-	serviceName := c.QueryParam("name")
-	if serviceName == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "服务名称不能为空",
-		})
-	}
-
-	instances, err := h.discovery.ListInstances(serviceName)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": fmt.Sprintf("获取服务列表失败: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"services": instances,
-		"count":    len(instances),
-	})
-}
-
 // DiscoverService 发现服务
 func (h *RegistryHandler) DiscoverService(c echo.Context) error {
 	serviceName := c.Param("name")
@@ -128,9 +106,82 @@ func (h *RegistryHandler) HealthCheck(c echo.Context) error {
 
 // GetServiceStats 获取服务统计信息
 func (h *RegistryHandler) GetServiceStats(c echo.Context) error {
-	// 这里可以添加更多统计信息，如服务数量、健康状态等
+	// 获取所有服务名
+	names, err := h.discovery.ListServiceNames()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "获取服务名失败: " + err.Error(),
+		})
+	}
+
+	serviceCount := len(names)
+	instanceCount := 0
+	healthStats := map[string]int{
+		"passing":  0,
+		"warning":  0,
+		"critical": 0,
+		"unknown":  0,
+	}
+
+	for _, name := range names {
+		instances, err := h.discovery.ListInstances(name)
+		if err != nil {
+			continue // 某个服务获取失败，跳过
+		}
+		instanceCount += len(instances)
+		for _, inst := range instances {
+			switch inst.Status {
+			case "passing":
+				healthStats["passing"]++
+			case "warning":
+				healthStats["warning"]++
+			case "critical":
+				healthStats["critical"]++
+			default:
+				healthStats["unknown"]++
+			}
+		}
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status":  "running",
-		"version": "1.0.0",
+		"status":         "running",
+		"version":        "1.0.0",
+		"service_count":  serviceCount,
+		"instance_count": instanceCount,
+		"health_stats":   healthStats,
+		"services":       names,
+	})
+}
+
+// ListServiceNames 获取所有服务名
+func (h *RegistryHandler) ListServiceNames(c echo.Context) error {
+	names, err := h.discovery.ListServiceNames()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"services": names,
+	})
+}
+
+// ListServiceInstances 获取指定服务的所有实例
+func (h *RegistryHandler) ListServiceInstances(c echo.Context) error {
+	serviceName := c.Param("name")
+	if serviceName == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "服务名称不能为空",
+		})
+	}
+	instances, err := h.discovery.ListInstances(serviceName)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"services": instances,
+		"count":    len(instances),
 	})
 }

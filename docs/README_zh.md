@@ -27,8 +27,8 @@ telos/
 ├── services/               # 微服务层 (Go Gin)
 │   ├── auth-service/
 │   ├── user-service/
-│   ├── product-service/
-│   └── order-service/
+│   ├── workflow-service/
+│   └── task-service/
 ├── packages/               # 共享包
 ├── infrastructure/         # 基础设施
 ├── tools/                  # 开发工具
@@ -124,7 +124,7 @@ docker-compose up -d
 - 后端测试：`go test ./...`
 - 格式化代码：`pnpm lint` 或 `golangci-lint run`
 - 所有 Go 服务支持各自目录下 Makefile 的 build/run/test/clean 等命令
-- 主服务可通过根目录 pnpm run <service>:run 启动
+- 主服务可通过根目录 pnpm run service:dev 启动
 
 ---
 

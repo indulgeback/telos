@@ -33,7 +33,18 @@ func main() {
 			StripPrefix: true,
 			Timeout:     10,
 		},
-		// 可以添加更多路由配置
+		{
+			Path:        "/api/user",
+			ServiceName: "user-service",
+			StripPrefix: true,
+			Timeout:     10,
+		},
+		{
+			Path:        "/api/workflow",
+			ServiceName: "workflow-service",
+			StripPrefix: true,
+			Timeout:     10,
+		},
 	}
 	proxyManager.LoadRoutes(routes)
 

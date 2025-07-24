@@ -173,3 +173,16 @@ func (c *ConsulServiceDiscovery) WatchService(serviceName string, callback func(
 		}
 	}()
 }
+
+// ListServiceNames 获取所有服务名
+func (c *ConsulServiceDiscovery) ListServiceNames() ([]string, error) {
+	services, _, err := c.client.Catalog().Services(nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取服务名失败: %v", err)
+	}
+	var names []string
+	for name := range services {
+		names = append(names, name)
+	}
+	return names, nil
+}

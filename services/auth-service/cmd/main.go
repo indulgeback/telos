@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,12 +20,39 @@ import (
 	"gorm.io/gorm"
 )
 
+func registerToRegistry(serviceName, address string, port int, registryURL string) {
+	if registryURL == "" {
+		log.Println("[WARN] 未配置注册中心地址，跳过注册")
+		return
+	}
+	serviceInfo := map[string]interface{}{
+		"name":    serviceName,
+		"address": address,
+		"port":    port,
+		"tags":    []string{"api", serviceName},
+		"meta":    map[string]string{"version": "1.0.0"},
+	}
+	body, _ := json.Marshal(serviceInfo)
+	resp, err := http.Post(registryURL+"/register", "application/json", bytes.NewReader(body))
+	if err != nil {
+		log.Printf("[ERROR] 服务注册失败: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		log.Printf("[ERROR] 服务注册响应码: %d", resp.StatusCode)
+	} else {
+		log.Printf("[INFO] 服务注册成功: %s", serviceName)
+	}
+}
+
 func main() {
 	// 加载配置
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+	registerToRegistry(cfg.ServiceName, "192.168.7.108", cfg.Port, cfg.RegistryURL)
 
 	// 连接数据库
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -55,6 +84,7 @@ func main() {
 			auth.POST("/login", authController.Login)
 		}
 	}
+	r.GET("/health", controller.HealthCheck)
 
 	// 启动服务器
 	log.Printf("Starting server on port %d", cfg.Port)
