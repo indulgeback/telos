@@ -9,8 +9,22 @@ class AutoTranslator {
   #delay
   #langMap
   #langDir
+  #incremental
+  #strictKeySync
 
-  constructor({ translateFunction, translatorName, baseLang, targetLangs, delay = 0, langMap = undefined, langDir = 'src/lang' }) {
+  /**
+   * @param {Object} options 配置项
+   * @param {function(string, string, string): Promise<string>} options.translateFunction 翻译函数，接收 (text, sourceLang, targetLang)
+   * @param {string} options.translatorName 翻译器名称（用于日志输出）
+   * @param {string} options.baseLang 基础语言（如 'en'）
+   * @param {string[]} options.targetLangs 目标语言数组（如 ['zh', 'ja']）
+   * @param {number} [options.delay=0] 每次翻译后的延迟（毫秒）
+   * @param {Object} [options.langMap] 语言映射表（如 { zh: 'zh-CN' }），可选
+   * @param {string} [options.langDir='src/lang'] 语言文件目录，默认 'src/lang'
+   * @param {boolean} [options.incremental=true] 是否只翻译新增/变更的 key，默认 true
+   * @param {boolean} [options.strictKeySync=true] 是否保证 key 与 lock.json 一致，去除多余 key，默认 true
+   */
+  constructor({ translateFunction, translatorName, baseLang, targetLangs, delay = 0, langMap = undefined, langDir = 'src/lang', incremental = true, strictKeySync = true }) {
     this.#translateFunction = translateFunction
     this.#translatorName = translatorName
     this.#baseLang = baseLang
@@ -18,6 +32,8 @@ class AutoTranslator {
     this.#delay = delay
     this.#langMap = langMap
     this.#langDir = langDir.replace(/\/$/, '') // 去除末尾/
+    this.#incremental = incremental
+    this.#strictKeySync = strictKeySync
   }
 
   // 私有方法
@@ -112,7 +128,12 @@ class AutoTranslator {
   }
 
   // 公开方法
+  /**
+   * 多语言批量翻译
+   */
   async batchTranslateMultiLang() {
+    const incremental = this.#incremental
+    const strictKeySync = this.#strictKeySync
     console.log(colors.cyan(`开始使用${this.#translatorName}进行多语言批量翻译...`))
     const baseFile = `${this.#langDir}/${this.#baseLang}.json`
     const lockFile = `${this.#langDir}/${this.#baseLang}.lock.json`
@@ -126,7 +147,8 @@ class AutoTranslator {
       console.log(colors.green(`首次运行，已创建锁文件 ${lockFile}，未进行增量翻译。`))
       return
     }
-    const diffKeys = this.#findChangedOrNewKeys(baseFlat, lockFlat)
+    // diffKeys 只在 incremental=true 时生效，否则为空对象
+    const diffKeys = incremental ? this.#findChangedOrNewKeys(baseFlat, lockFlat) : {}
     for (const lang of this.#targetLangs) {
       if (lang === this.#baseLang) continue
       const apiLang = this.#langMap ? (this.#langMap[lang] || lang) : lang
@@ -137,10 +159,16 @@ class AutoTranslator {
       }
       const targetFlat = this.#flatten(targetData)
       const missingFlat = this.#findMissingKeys(baseFlat, targetFlat)
-      const needTranslateFlat = { ...diffKeys, ...missingFlat }
+      // 需要翻译的 key，增量模式下包含 diffKeys，否则只补齐缺失 key
+      const needTranslateFlat = incremental ? { ...diffKeys, ...missingFlat } : missingFlat
       if (Object.keys(needTranslateFlat).length === 0) {
         // 只做 key 对齐
-        const filteredFlat = this.#filterKeysByLock(targetFlat, lockFlat)
+        let filteredFlat
+        if (strictKeySync) {
+          filteredFlat = this.#filterKeysByLock(targetFlat, lockFlat)
+        } else {
+          filteredFlat = { ...targetFlat }
+        }
         const result = this.#unflatten(filteredFlat)
         fs.writeFileSync(targetFile, JSON.stringify(result, null, 2), 'utf-8')
         console.log(colors.green(`[${lang}] 没有需要翻译/补齐的字段，但已同步 key 至 lock.json`))
@@ -161,7 +189,12 @@ class AutoTranslator {
       }
       const mergedFlat = { ...targetFlat, ...translated }
       // 保证 key 与 lock.json 一致，去除多余 key
-      const filteredFlat = this.#filterKeysByLock(mergedFlat, lockFlat)
+      let filteredFlat
+      if (strictKeySync) {
+        filteredFlat = this.#filterKeysByLock(mergedFlat, lockFlat)
+      } else {
+        filteredFlat = { ...mergedFlat }
+      }
       const result = this.#unflatten(filteredFlat)
       fs.writeFileSync(targetFile, JSON.stringify(result, null, 2), 'utf-8')
       console.log(colors.green(`[${lang}] 已写入 ${targetFile}`))

@@ -30,10 +30,26 @@ const utils = new AutoTranslator({
   delay: 0,
   langMap: { zh: "zh-Hans" },
   langDir: "src/lang",
+  incremental: true, // 是否只翻译新增/变更的 key，默认 true
+  strictKeySync: true, // 是否保证 key 与 lock.json 一致，去除多余 key，默认 true
 })
 
 utils.batchTranslateMultiLang()
 ```
+
+## Options
+
+| 参数              | 类型     | 默认值     | 说明                                          |
+| ----------------- | -------- | ---------- | --------------------------------------------- |
+| translateFunction | function | 必填       | 翻译函数，接收 (text, sourceLang, targetLang) |
+| translatorName    | string   | 必填       | 翻译器名称（用于日志输出）                    |
+| baseLang          | string   | 必填       | 基础语言（如 'en'）                           |
+| targetLangs       | string[] | 必填       | 目标语言数组（如 ['zh', 'ja']）               |
+| delay             | number   | 0          | 每次翻译后的延迟（毫秒）                      |
+| langMap           | object   | undefined  | 语言映射表（如 { zh: 'zh-CN' }），可选        |
+| langDir           | string   | 'src/lang' | 语言文件目录                                  |
+| incremental       | boolean  | true       | 是否只翻译新增/变更的 key                     |
+| strictKeySync     | boolean  | true       | 是否保证 key 与 lock.json 一致，去除多余 key  |
 
 ## License
 
