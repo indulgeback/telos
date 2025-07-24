@@ -41,7 +41,9 @@ const translator = new AutoTranslator({
   targetLangs,
   delay: 0,
   langMap,
-  langDir
+  langDir,
+  incremental: false,
+  strictKeySync: true,
 })
 
 translator.batchTranslateMultiLang()

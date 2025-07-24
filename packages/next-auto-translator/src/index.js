@@ -159,8 +159,8 @@ class AutoTranslator {
       }
       const targetFlat = this.#flatten(targetData)
       const missingFlat = this.#findMissingKeys(baseFlat, targetFlat)
-      // 需要翻译的 key，增量模式下包含 diffKeys，否则只补齐缺失 key
-      const needTranslateFlat = incremental ? { ...diffKeys, ...missingFlat } : missingFlat
+      // 需要翻译的 key，增量模式下包含 diffKeys，否则全量翻译
+      const needTranslateFlat = incremental ? { ...diffKeys, ...missingFlat } : baseFlat
       if (Object.keys(needTranslateFlat).length === 0) {
         // 只做 key 对齐
         let filteredFlat
@@ -191,7 +191,16 @@ class AutoTranslator {
       // 保证 key 与 lock.json 一致，去除多余 key
       let filteredFlat
       if (strictKeySync) {
-        filteredFlat = this.#filterKeysByLock(mergedFlat, lockFlat)
+        if (incremental) {
+          // 增量翻译时，允许 lockFlat 和 diffKeys 里的 key 都被写入
+          const allowedKeys = { ...lockFlat, ...diffKeys }
+          filteredFlat = {}
+          for (const key in allowedKeys) {
+            if (key in mergedFlat) filteredFlat[key] = mergedFlat[key]
+          }
+        } else {
+          filteredFlat = this.#filterKeysByLock(mergedFlat, lockFlat)
+        }
       } else {
         filteredFlat = { ...mergedFlat }
       }

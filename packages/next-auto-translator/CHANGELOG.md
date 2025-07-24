@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3
+
+- 修复增量翻译时 strictKeySync 过滤掉新增 key 的问题，确保新增/变更 key 能正确写入目标语言文件。
+
 ## 1.1.2
 
 - 新增 incremental 参数：可控制是否只翻译新增/变更的 key。
