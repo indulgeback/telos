@@ -7,15 +7,17 @@
 
 ## 1. Project Introduction
 
-This project aims to build a modern, scalable workflow orchestration agent platform that supports automated task scheduling and management. It adopts a frontend-backend separation and microservices architecture, suitable for enterprise-level automation scenarios.
+Telos is an intelligent workflow orchestration agent platform designed for enterprise-level automation scenarios. The system implements automated task scheduling, management, and execution through a modern microservices architecture.
 
 **Project Highlights:**
 
-- Frontend based on Next.js 15 + Shadcn UI for a smooth experience
-- Backend Go microservices for high performance and easy scalability
-- Supports tRPC/gRPC for type-safe and efficient inter-service communication
-- Monorepo management for unified dependencies and easy collaboration
-- Complete containerization and CI/CD support
+- **Next.js 15** frontend with App Router and React 19 concurrent features
+- **Go microservices** backend with high performance and easy scalability  
+- **Service discovery** with built-in registry and health checks
+- **Multi-language support** with internationalization for 18 languages
+- **Visual workflow builder** based on React Flow components
+- **Monorepo management** for unified dependencies and streamlined development
+- **Unified logging** with custom tlog package for structured logging across all services
 
 ---
 
@@ -23,111 +25,126 @@ This project aims to build a modern, scalable workflow orchestration agent platf
 
 ```plaintext
 telos/
-├── apps/
-│   ├── web/                # Frontend Web App (Next.js 15 + Shadcn UI)
-│   ├── api-gateway/        # API Gateway (Go Echo)
-│   └── registry/           # Service Registry (Go Echo)
-├── services/               # Microservices Layer (Go Gin)
-│   ├── auth-service/
-│   ├── user-service/
-│   ├── product-service/
-│   └── order-service/
-├── packages/               # Shared Packages
-├── infrastructure/         # Infrastructure
-├── tools/                  # Development Tools
-└── package.json            # Monorepo Root Config
+├── apps/                   # Application Layer
+│   ├── web/               # Next.js Frontend Application
+│   ├── api-gateway/       # API Gateway (Go Echo)
+│   └── registry/          # Service Registry (Go Echo)
+├── services/              # Microservices Layer
+│   ├── auth-service/      # Authentication Service (Go Gin)
+│   ├── user-service/      # User Management Service (Go Gin)
+│   └── workflow-service/  # Workflow Orchestration Service (Go Gin)
+├── packages/              # Shared Packages (Future)
+├── docs/                  # Documentation
+├── pkg/                   # Shared Go Packages
+├── node_modules/          # Root Dependencies
+└── package.json           # Monorepo Configuration
 ```
 
 ---
 
 ## 3. Technology Stack
 
-### 3.1 Frontend
+### 3.1 Frontend Stack
 
-- **Next.js 15**: Uses App Router for server components and optimized routing
-- **Shadcn UI**: Component library based on Tailwind CSS for rapid responsive UI development
-- **TypeScript**: Strongly typed language for code stability and maintainability
-- **tRPC**: Type-safe API calls between frontend and backend
-- **Zustand**: Lightweight state management for complex interactions
+- **Next.js 15**: App Router with server components and SSR
+- **React 19**: Latest React with concurrent features
+- **TypeScript**: Full application strict type checking
+- **Tailwind CSS 4**: Utility-first CSS framework
+- **Shadcn UI**: Component library built on Radix UI primitives
+- **Next-intl**: Internationalization supporting 18 languages
+- **React Flow**: Visual workflow builder components
+- **Zustand**: Lightweight state management
+- **React Hook Form + Zod**: Form handling and validation
 
-### 3.2 Backend
+### 3.2 Backend Stack
 
-- **Go**: High performance, native concurrency, ideal for microservices
-- **Echo**: Used for API Gateway and Registry (lightweight, high-performance HTTP services)
-- **Gin**: Used for business microservices (rapid API development and middleware ecosystem)
-- **gRPC**: High-performance RPC framework based on Protobuf for inter-service communication
-- **Consul**: Service registry and health check (see apps/registry)
-- **PostgreSQL**: Relational database for structured data
-- **Redis**: Cache database for fast data access and task queueing
+- **Go 1.24.4**: High-performance backend services
+- **Gin**: Web framework for microservice business logic
+- **Echo**: Lightweight framework for API Gateway and Registry
+- **GORM**: Database ORM operations
+- **Viper**: Configuration management with .env support
+- **JWT**: Authentication and authorization
+- **PostgreSQL**: Primary database
+- **Redis**: Caching and session storage
 
-### 3.3 Infrastructure
+### 3.3 Infrastructure & Tools
 
-- **Docker**: Containerized deployment for environment consistency
-- **Kubernetes**: Cluster orchestration for automated deployment and scaling
-- **Helm**: K8s package manager for simplified deployment
-- **Prometheus + Grafana**: Monitoring and visualization
-- **Jaeger**: Distributed tracing for service call chain analysis
+- **Docker**: Containerization for all services
+- **Air**: Hot reload for Go development
+- **Husky**: Git hooks for code quality
+- **Commitlint**: Conventional commit standards
+- **ESLint + Prettier**: Code formatting and linting
+- **golangci-lint**: Go code quality checks
 
 ---
 
 ## 4. Quick Start
 
-### 4.1 Start Frontend
+### 4.1 Frontend Development
 
 ```bash
-cd apps/web
-pnpm install
-pnpm dev
-# Or unified entry
-pnpm run web:dev
+# Development
+pnpm web:dev                    # Start dev server on port 8800
+pnpm --filter ./apps/web dev    # Alternative dev command
+
+# Build & Deploy
+pnpm --filter ./apps/web build  # Production build
+pnpm --filter ./apps/web start  # Start production server
+
+# Code Quality
+pnpm --filter ./apps/web lint      # ESLint checks
+pnpm --filter ./apps/web lint:fix  # Auto-fix lint issues
+pnpm --filter ./apps/web format    # Prettier formatting
 ```
 
-### 4.2 Start Auth Service (as an example)
+### 4.2 Backend Services
+
+Each Go service supports these Makefile commands:
 
 ```bash
-cd services/auth-service
-go mod tidy
-go run cmd/main.go
-# Recommended: use Makefile
-make run
-# Or unified entry
-pnpm run auth-service:run
+# Development
+make dev        # Hot reload with Air
+make run        # Standard go run
+make build      # Build binary to bin/
+
+# Code Quality
+make fmt        # Format code with go fmt
+make lint       # Run golangci-lint
+make test       # Run all tests
+
+# Dependencies
+make deps       # go mod tidy + download
+
+# Docker
+make docker-build  # Build Docker image
+make docker-run    # Run with docker-compose
+make docker-stop   # Stop containers
+
+# Cleanup
+make clean      # Remove build artifacts
 ```
 
-### 4.3 Start Registry (Consul-based Service Discovery)
+### 4.3 Monorepo Commands (from root)
 
 ```bash
-cd apps/registry
-make run
-# or docker-compose up -d
-# Or unified entry
-pnpm run registry:run
+# Specific service development
+pnpm auth-service:dev      # Start auth service with hot reload
+pnpm user-service:dev      # Start user service with hot reload
+pnpm workflow-service:dev  # Start workflow service with hot reload
+pnpm api-gateway:dev       # Start API gateway with hot reload
+pnpm registry:dev          # Start service registry with hot reload
+
+# Git hooks
+pnpm prepare              # Install Husky hooks
 ```
 
-### 4.4 Start API Gateway
+### 4.4 Development Workflow
 
-```bash
-cd apps/api-gateway
-GATEWAY_PORT=8080 AUTH_SERVICE_URL=http://localhost:8081 go run cmd/main.go
-# Recommended: use Makefile
-make run
-# Or unified entry
-pnpm run api-gateway:run
-```
-
-### 4.5 Start All Services (Requires Docker Compose)
-
-```bash
-docker-compose up -d
-```
-
-### 4.6 Common Commands
-
-- Frontend build: `pnpm build`
-- Backend test: `go test ./...`
-- Code formatting: `pnpm lint` or `golangci-lint run`
-- All Go services support Makefile commands (build, run, test, clean) in their own directories.
-- All main services can be started from the root via `pnpm run <service>:run`.
+1. **Environment Setup**: Each service has `.env` files for configuration
+2. **Hot Reload**: Use `make dev` for Go services, `pnpm web:dev` for frontend
+3. **Code Quality**: Pre-commit hooks enforce linting and conventional commits
+4. **Testing**: Run `make test` in service directories
+5. **Docker**: Use `docker-compose up -d` for full-stack development
 
 ---
 
@@ -141,19 +158,22 @@ docker-compose up -d
 
 ### 5.2 Backend Modules
 
-- **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication, rate limiting, CORS, and service discovery (via Consul)
-- **Registry (apps/registry)**: Service registration, deregistration, discovery, health check, RESTful API (Consul integration)
+- **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication, rate limiting, CORS, and service discovery
+- **Registry (apps/registry)**: Service registration, deregistration, discovery, health check with RESTful API
 - **Microservices (services/\*):**
-  - Auth Service: Manages user login, registration, and JWT authentication
-  - User Service: Handles user info management and permissions
-  - Product Service: Manages workflow templates and task node configuration
-  - Order Service: Orchestrates task execution and monitors workflow progress
+  - **Auth Service**: User authentication, registration, and JWT token management
+  - **User Service**: User profile management and permissions
+  - **Workflow Service**: Workflow orchestration, task execution, and progress monitoring
 
-### 5.3 Shared Modules (packages)
+### 5.3 Shared Modules (pkg)
 
-- common: Common utilities (logging, encryption, time handling)
-- proto: gRPC service interface and message definitions
-- config: Centralized config management, supports env vars and .env files
+- **tlog**: Unified structured logging package with support for:
+  - Multiple output formats (JSON, text, colored console)
+  - Log levels and filtering
+  - Gin middleware integration
+  - Request ID tracking
+  - Production and development presets
+  - File rotation and remote logging capabilities
 
 ---
 
@@ -191,13 +211,27 @@ docker-compose up -d
 
 ### 7.1 Environment Variables
 
-- Backend: Place .env file in each microservice root for service-specific configs (DB, port, etc.)
-- Frontend: Use process.env in next.config.js for env variables (e.g., API URL)
+- **Backend**: Each microservice has a `.env` file in its root directory for service-specific configurations:
+  - `PORT`: Service port number
+  - `SERVICE_NAME`: Service identifier for logging and registration
+  - `REGISTRY_URL`: Service registry endpoint (e.g., `http://localhost:8891`)
+  - `DB_*`: Database connection parameters
+  - `JWT_SECRET`: Authentication secret key
+  - `LOG_*`: Logging configuration (level, format, output)
+
+- **Frontend**: Use `process.env` in `next.config.js` for environment variables
 
 ### 7.2 Config Loading
 
-- Go microservices: Use viper for multi-level config loading (.env, env vars, config files)
-- Next.js: Use next.config.js and .env.local for sensitive info
+- **Go microservices**: Use Viper for multi-level config loading (.env, env vars, config files)
+- **Next.js**: Use `next.config.js` and `.env.local` for sensitive information
+
+### 7.3 Service Registration
+
+All microservices automatically register with the service registry on startup:
+- **Registry endpoint**: `/api/register` (not `/register`)
+- **Service info**: Includes name, address, port, tags, and metadata
+- **Health checks**: Built-in health check endpoints at `/health`
 
 ---
 
@@ -234,7 +268,34 @@ Commit messages not following the convention will be rejected.
 
 ---
 
-## 10. FAQ
+## 10. Troubleshooting
+
+### 10.1 Service Registration Issues
+
+If microservices fail to register with the registry, check:
+
+1. **Registry Status**: Ensure the registry is running on port `8891`
+2. **Registration Path**: Services should POST to `/api/register`, not `/register`
+3. **Network Connectivity**: Verify `REGISTRY_URL` configuration is correct
+4. **Log Output**: Check service startup logs for registration status
+
+### 10.2 Database Connection Issues
+
+1. **Database Service**: Ensure PostgreSQL is running on the specified port
+2. **Connection Parameters**: Verify `DB_*` configurations in `.env` files
+3. **Permissions**: Ensure database user has sufficient privileges
+
+### 10.3 Port Conflicts
+
+Default ports for each service:
+- Frontend (web): `8800`
+- Api-Gateway: `8890`
+- Registry: `8891`
+- Auth Service: `8892`
+- User Service: `8893`
+- Workflow Service: `8894`
+
+## 11. FAQ
 
 - **Q:** How to add a new microservice?
   **A:** Refer to the services/auth-service structure, copy and modify the service name and configs.
@@ -242,10 +303,12 @@ Commit messages not following the convention will be rejected.
   **A:** Use tRPC or REST, manage all APIs in apps/web/services.
 - **Q:** How to debug DB/Redis locally?
   **A:** Use Docker Compose to start dependencies, see infrastructure/docker for configs.
+- **Q:** Service registration fails, what to do?
+  **A:** Check if registry is running, confirm registration path is `/api/register`, and review service logs for detailed error information.
 
 ---
 
-## 11. Contact
+## 12. Contact
 
 - **Author/Maintainer:** LeviLiu
 - **Email:** <liuwenyu1937@outlook.com>
@@ -253,7 +316,7 @@ Commit messages not following the convention will be rejected.
 
 ---
 
-## 12. License
+## 13. License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 

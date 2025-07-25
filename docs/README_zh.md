@@ -1,18 +1,20 @@
-# 流程编排智能体 Telos
+# Telos：智能工作流编排代理平台
 
 [English Version](../README.md)
 
 ## 1. 项目简介
 
-本项目致力于打造一个现代化、可扩展的流程编排智能体平台，支持自动化任务调度与管理。采用前后端分离、微服务架构，适合企业级自动化场景。
+Telos 是一个智能工作流编排代理平台，专为企业级自动化场景设计。该系统通过现代微服务架构实现自动化任务调度、管理和执行。
 
 **项目亮点：**
 
-- 前端基于 Next.js 15 + Shadcn UI，体验流畅
-- 后端 Go 微服务，性能优越，易于扩展
-- 支持 tRPC/gRPC，类型安全，服务间通信高效
-- Monorepo 管理，统一依赖，便于协作
-- 完善的容器化与 CI/CD 支持
+- **Next.js 15** 前端，采用 App Router 和 React 19 并发特性
+- **Go 微服务** 后端，高性能且易于扩展
+- **服务发现** 内置注册中心和健康检查
+- **多语言支持** 国际化前端支持 18 种语言
+- **可视化工作流构建器** 基于 React Flow 组件
+- **单体仓库管理** 统一依赖，简化开发流程
+- **统一日志系统** 自定义 tlog 包，为所有服务提供结构化日志
 
 ---
 
@@ -20,19 +22,19 @@
 
 ```plaintext
 telos/
-├── apps/
-│   ├── web/                # 前端 Web 应用 (Next.js 15 + Shadcn UI)
-│   ├── api-gateway/        # API 网关 (Go Echo)
-│   └── registry/           # 注册中心 (Go Echo)
-├── services/               # 微服务层 (Go Gin)
-│   ├── auth-service/
-│   ├── user-service/
-│   ├── workflow-service/
-│   └── task-service/
-├── packages/               # 共享包
-├── infrastructure/         # 基础设施
-├── tools/                  # 开发工具
-└── package.json            # Monorepo 根配置
+├── apps/                   # 应用层
+│   ├── web/               # Next.js 前端应用
+│   ├── api-gateway/       # API 网关 (Go Echo)
+│   └── registry/          # 服务注册中心 (Go Echo)
+├── services/              # 微服务层
+│   ├── auth-service/      # 认证服务 (Go Gin)
+│   ├── user-service/      # 用户管理服务 (Go Gin)
+│   └── workflow-service/  # 工作流编排服务 (Go Gin)
+├── packages/              # 共享包 (未来)
+├── docs/                  # 文档
+├── pkg/                   # 共享 Go 包
+├── node_modules/          # 根依赖
+└── package.json           # 单体仓库配置
 ```
 
 ---
@@ -41,90 +43,105 @@ telos/
 
 ### 3.1 前端技术栈
 
-- **Next.js 15**：利用 App Router 实现服务器组件与路由优化
-- **Shadcn UI**：基于 Tailwind CSS 的组件库，快速构建响应式界面
-- **TypeScript**：强类型语言提升代码稳定性与可维护性
-- **tRPC**：实现前端与后端的类型安全 API 调用
-- **Zustand**：轻量级状态管理库，处理复杂交互逻辑
+- **Next.js 15**：使用 App Router 的服务端组件和 SSR
+- **React 19**：最新的 React 并发特性
+- **TypeScript**：全应用严格类型检查
+- **Tailwind CSS 4**：实用优先的 CSS 框架
+- **Shadcn UI**：基于 Radix UI 原语构建的组件库
+- **Next-intl**：支持 18 种语言的国际化
+- **React Flow**：可视化工作流构建器组件
+- **Zustand**：轻量级状态管理
+- **React Hook Form + Zod**：表单处理与验证
 
 ### 3.2 后端技术栈
 
-- **Go 语言**：高性能、原生支持并发，适合微服务架构
-- **Echo**：注册中心（registry）和 API 网关（api-gateway）采用 Echo 框架实现，专注高性能、极简依赖
-- **Gin**：业务微服务如 auth-service 采用 Gin 框架，开发效率高，生态丰富
-- **gRPC**：基于 Protobuf 的高性能 RPC 框架，用于服务间通信
-- **Consul**：服务注册与健康检查（见 apps/registry）
-- **PostgreSQL**：关系型数据库，存储结构化数据
-- **Redis**：缓存数据库，加速数据读取与任务队列处理
+- **Go 1.24.4**：高性能后端服务
+- **Gin**：微服务业务逻辑的 Web 框架
+- **Echo**：API 网关和注册中心的轻量级框架
+- **GORM**：数据库 ORM 操作
+- **Viper**：支持 .env 的配置管理
+- **JWT**：身份验证和授权
+- **PostgreSQL**：主数据库
+- **Redis**：缓存和会话存储
 
-### 3.3 基础设施
+### 3.3 基础设施与工具
 
-- **Docker**：容器化部署，确保环境一致性
-- **Kubernetes**：集群编排，实现自动化部署与扩缩容
-- **Helm**：K8s 包管理器，简化应用部署流程
-- **Prometheus + Grafana**：监控与可视化系统
-- **Jaeger**：分布式追踪，定位服务调用链问题
+- **Docker**：所有服务的容器化
+- **Air**：Go 开发热重载
+- **Husky**：代码质量的 Git 钩子
+- **Commitlint**：约定式提交规范
+- **ESLint + Prettier**：代码格式化和检查
+- **golangci-lint**：Go 代码质量检查
 
 ---
 
 ## 4. 快速开始
 
-### 4.1 前端启动
+### 4.1 前端开发
 
 ```bash
-cd apps/web
-pnpm install
-pnpm dev
-# 或统一入口
-pnpm run web:dev
+# 开发
+pnpm web:dev                    # 在 8800 端口启动开发服务器
+pnpm --filter ./apps/web dev    # 替代开发命令
+
+# 构建与部署
+pnpm --filter ./apps/web build  # 生产构建
+pnpm --filter ./apps/web start  # 启动生产服务器
+
+# 代码质量
+pnpm --filter ./apps/web lint      # ESLint 检查
+pnpm --filter ./apps/web lint:fix  # 自动修复检查问题
+pnpm --filter ./apps/web format    # Prettier 格式化
 ```
 
-### 4.2 后端启动（以认证服务为例）
+### 4.2 后端服务
+
+每个 Go 服务都支持这些 Makefile 命令：
 
 ```bash
-cd services/auth-service
-go mod tidy
-go run cmd/main.go
-# 推荐使用 Makefile
-make run
-# 或统一入口
-pnpm run auth-service:run
+# 开发
+make dev        # 使用 Air 热重载
+make run        # 标准 go run
+make build      # 构建二进制文件到 bin/
+
+# 代码质量
+make fmt        # 使用 go fmt 格式化代码
+make lint       # 运行 golangci-lint
+make test       # 运行所有测试
+
+# 依赖管理
+make deps       # go mod tidy + download
+
+# Docker
+make docker-build  # 构建 Docker 镜像
+make docker-run    # 使用 docker-compose 运行
+make docker-stop   # 停止容器
+
+# 清理
+make clean      # 删除构建产物
 ```
 
-### 4.3 注册中心启动（基于 Consul 的服务发现）
+### 4.3 单体仓库命令（从根目录）
 
 ```bash
-cd apps/registry
-make run
-# 或 docker-compose up -d
-# 或统一入口
-pnpm run registry:run
+# 特定服务开发
+pnpm auth-service:dev      # 启动认证服务热重载
+pnpm user-service:dev      # 启动用户服务热重载
+pnpm workflow-service:dev  # 启动工作流服务热重载
+pnpm api-gateway:dev       # 启动 API 网关热重载
+pnpm registry:dev          # 启动服务注册中心热重载
+
+# Git 钩子
+pnpm prepare              # 安装 Husky 钩子
 ```
 
-### 4.4 API 网关启动
+### 4.4 开发工作流
 
-```bash
-cd apps/api-gateway
-GATEWAY_PORT=8080 AUTH_SERVICE_URL=http://localhost:8081 go run cmd/main.go
-# 推荐使用 Makefile
-make run
-# 或统一入口
-pnpm run api-gateway:run
-```
-
-### 4.5 一键启动所有服务（需 Docker Compose 支持）
-
-```bash
-docker-compose up -d
-```
-
-### 4.6 常用命令
-
-- 前端构建：`pnpm build`
-- 后端测试：`go test ./...`
-- 格式化代码：`pnpm lint` 或 `golangci-lint run`
-- 所有 Go 服务支持各自目录下 Makefile 的 build/run/test/clean 等命令
-- 主服务可通过根目录 pnpm run service:dev 启动
+1. **环境设置**：每个服务都有 `.env` 文件进行配置
+2. **热重载**：Go 服务使用 `make dev`，前端使用 `pnpm web:dev`
+3. **代码质量**：预提交钩子强制执行检查和约定式提交
+4. **测试**：在服务目录中运行 `make test`
+5. **Docker**：使用 `docker-compose up -d` 进行全栈开发
 
 ---
 
@@ -138,19 +155,22 @@ docker-compose up -d
 
 ### 5.2 后端模块
 
-- **API 网关（apps/api-gateway）**：统一处理前端请求，转发至对应微服务，实现鉴权、限流、CORS、服务发现（Consul）
-- **注册中心（apps/registry）**：服务注册、注销、发现、健康检查，RESTful API（Consul 集成）
+- **API 网关（apps/api-gateway）**：统一处理前端请求，转发至对应微服务，实现鉴权、限流、CORS、服务发现
+- **注册中心（apps/registry）**：服务注册、注销、发现、健康检查，提供 RESTful API
 - **微服务（services/\*）**：
-  - 认证服务：管理用户登录、注册与 JWT 鉴权
-  - 用户服务：处理用户信息管理与权限控制
-  - 产品服务：管理流程模板、任务节点配置
-  - 订单服务：编排任务执行，监控流程进度
+  - **认证服务**：用户认证、注册和 JWT 令牌管理
+  - **用户服务**：用户档案管理和权限控制
+  - **工作流服务**：工作流编排、任务执行和进度监控
 
-### 5.3 共享模块（packages）
+### 5.3 共享模块（pkg）
 
-- common：通用工具函数（如日志、加密、时间处理）
-- proto：定义 gRPC 服务接口与消息结构
-- config：统一管理项目配置，支持环境变量与 .env 文件加载
+- **tlog**：统一的结构化日志包，支持：
+  - 多种输出格式（JSON、文本、彩色控制台）
+  - 日志级别和过滤
+  - Gin 中间件集成
+  - 请求 ID 追踪
+  - 生产和开发环境预设
+  - 文件轮转和远程日志功能
 
 ---
 
@@ -188,13 +208,27 @@ docker-compose up -d
 
 ### 7.1 环境变量
 
-- 后端：每个微服务根目录下放置 .env 文件，定义服务专属配置（如数据库连接、端口号）
-- 前端：在 next.config.js 中通过 process.env 引用环境变量（如 API 地址）
+- **后端**：每个微服务根目录下的 `.env` 文件定义服务专属配置：
+  - `PORT`：服务端口号
+  - `SERVICE_NAME`：服务标识符，用于日志和注册
+  - `REGISTRY_URL`：服务注册中心端点（如 `http://localhost:8891`）
+  - `DB_*`：数据库连接参数
+  - `JWT_SECRET`：身份验证密钥
+  - `LOG_*`：日志配置（级别、格式、输出）
+
+- **前端**：在 `next.config.js` 中通过 `process.env` 引用环境变量
 
 ### 7.2 配置加载
 
-- Go 微服务：使用 viper 库，支持 .env、环境变量、配置文件多级加载
-- Next.js：通过 next.config.js 与 .env.local 管理敏感信息
+- **Go 微服务**：使用 Viper 库，支持 .env、环境变量、配置文件多级加载
+- **Next.js**：通过 `next.config.js` 与 `.env.local` 管理敏感信息
+
+### 7.3 服务注册
+
+所有微服务在启动时自动向服务注册中心注册：
+- **注册端点**：`/api/register`（不是 `/register`）
+- **服务信息**：包含名称、地址、端口、标签和元数据
+- **健康检查**：内置健康检查端点 `/health`
 
 ---
 
@@ -231,7 +265,34 @@ fix: 修正 README 拼写错误
 
 ---
 
-## 10. 常见问题（FAQ）
+## 10. 故障排除
+
+### 10.1 服务注册问题
+
+如果微服务无法注册到注册中心，检查以下几点：
+
+1. **注册中心是否启动**：确保注册中心在 `8891` 端口运行
+2. **注册路径是否正确**：微服务应该向 `/api/register` 发送请求，而不是 `/register`
+3. **网络连接**：检查 `REGISTRY_URL` 配置是否正确
+4. **日志输出**：查看服务启动日志中的注册状态信息
+
+### 10.2 数据库连接问题
+
+1. **检查数据库服务**：确保 PostgreSQL 在指定端口运行
+2. **验证连接参数**：检查 `.env` 文件中的 `DB_*` 配置
+3. **权限问题**：确保数据库用户有足够的权限
+
+### 10.3 端口冲突
+
+各服务的默认端口：
+- 前端 (web): `8800`
+- API 网关 (api-gateway): `8890`
+- 注册中心 (registry): `8891`
+- 认证服务 (auth-service): `8892`
+- 用户服务 (user-service): `8893`
+- 工作流服务 (workflow-service): `8894`
+
+## 11. 常见问题（FAQ）
 
 - **Q:** 如何新增一个微服务？
   **A:** 参考 services/auth-service 目录结构，复制并修改 service 名称及相关配置。
@@ -239,10 +300,12 @@ fix: 修正 README 拼写错误
   **A:** 推荐使用 tRPC 或 REST，统一在 apps/web/services 目录下管理。
 - **Q:** 如何本地调试数据库/Redis？
   **A:** 推荐使用 Docker Compose 启动依赖服务，配置见 infrastructure/docker。
+- **Q:** 服务注册失败怎么办？
+  **A:** 检查注册中心是否启动，确认注册路径为 `/api/register`，查看服务日志获取详细错误信息。
 
 ---
 
-## 11. 联系方式
+## 12. 联系方式
 
 - **作者/维护者：** LeviLiu
 - **邮箱：** <liuwenyu1937@outlook.com>
@@ -250,7 +313,7 @@ fix: 修正 README 拼写错误
 
 ---
 
-## 12. 开源许可证
+## 13. 开源许可证
 
 本项目采用 **MIT 许可证** - 查看 [LICENSE](../LICENSE) 文件了解详情。
 
