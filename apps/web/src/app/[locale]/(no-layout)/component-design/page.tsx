@@ -64,11 +64,16 @@ const ComponentDesignPage = () => {
           <GitBranch />
         </Button>
       </div>
-      <div className='hidden gap-4'>
+      <div className='flex flex-col gap-4'>
         <Input className='w-[350px]' />
         <Input className='w-[350px]' placeholder='Placeholder' />
         <Input className='w-[350px]' disabled />
         <Input className='w-[350px]' type='password' />
+      </div>
+      <div className='flex flex-col gap-4'>
+        <Textarea className='w-[350px]' />
+        <Textarea className='w-[350px]' placeholder='Placeholder' />
+        <Textarea className='w-[350px]' disabled />
       </div>
     </div>
   )
