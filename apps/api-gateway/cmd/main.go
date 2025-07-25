@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"github.com/fatih/color"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
 	apimiddleware "github.com/indulgeback/telos/apps/api-gateway/internal/middleware"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
@@ -20,7 +21,7 @@ func main() {
 
 	// 初始化服务发现和负载均衡
 	lb := service.NewRoundRobinLoadBalancer()
-	discovery := service.NewRegistryServiceDiscovery("http://localhost:8080", lb)
+	discovery := service.NewRegistryServiceDiscovery(cfg.RegistryServiceURL, lb)
 
 	// 初始化代理管理器
 	proxyManager := proxy.NewProxyManager(discovery)
@@ -68,7 +69,7 @@ func main() {
 
 	// 添加API路由组，需要鉴权
 	apiGroup := e.Group("/api")
-	apiGroup.Use(echo.WrapMiddleware(apimiddleware.AuthMiddleware(cfg)))
+	// apiGroup.Use(echo.WrapMiddleware(apimiddleware.AuthMiddleware(cfg)))
 
 	// 所有API请求由代理管理器处理
 	apiGroup.Any("/*", echo.WrapHandler(proxyManager))
@@ -79,7 +80,8 @@ func main() {
 		port = "8080"
 	}
 	addr := ":" + port
-	log.Printf("API Gateway 启动于 %s...", addr)
+	// log.Printf("API Gateway 启动于 %s...", addr)
+	color.New(color.FgGreen).Printf("API Gateway 启动于 %s...\n", addr)
 	if err := e.Start(addr); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("启动失败: %v", err)
 	}

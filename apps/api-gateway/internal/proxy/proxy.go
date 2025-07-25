@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
 )
 
@@ -46,6 +47,7 @@ func (pm *ProxyManager) LoadRoutes(routes []RouteConfig) {
 func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 查找匹配的路由
 	route := pm.findRoute(r.URL.Path)
+	color.New(color.FgGreen).Printf("[匹配到路由] %v\n", route)
 	if route == nil {
 		writeErrorResponse(w, "未找到匹配的服务路由", http.StatusNotFound)
 		return
@@ -103,6 +105,11 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 
 	if proxy, exists := pm.proxies[key]; exists {
 		return proxy, nil
+	}
+
+	// 检查 target 是否包含协议，若无则补全为 http://
+	if !strings.HasPrefix(target, "http://") && !strings.HasPrefix(target, "https://") {
+		target = "http://" + target
 	}
 
 	targetURL, err := url.Parse(target)

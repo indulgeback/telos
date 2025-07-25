@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
 )
 
@@ -110,12 +110,11 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		// 记录请求日志
-		fmt.Printf("[%s] %s %s %d %v\n",
-			time.Now().Format(time.RFC3339),
-			r.Method,
-			r.URL.Path,
-			wrapped.statusCode,
-			duration)
+		// log.Printf("\033[32m%s \033[0m \033[33m%s\033[0m \033[34m%d\033[0m \033[35m%v\033[0m", r.Method, r.URL.Path, wrapped.statusCode, duration)
+		color.New(color.FgGreen).Printf("%s ", r.Method)
+		color.New(color.FgYellow).Printf("%s ", r.URL.Path)
+		color.New(color.FgBlue).Printf("%d ", wrapped.statusCode)
+		color.New(color.FgMagenta).Printf("%v\n", duration)
 	})
 }
 

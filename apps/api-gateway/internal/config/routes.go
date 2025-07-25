@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
 )
 
@@ -29,7 +29,7 @@ func LoadRoutesFromFile(filePath string) ([]proxy.RouteConfig, error) {
 		return nil, fmt.Errorf("解析路由配置失败: %v", err)
 	}
 
-	log.Printf("从文件 %s 加载了 %d 个路由配置", filePath, len(routes))
+	color.New(color.FgGreen).Printf("从文件 %s 加载了 %d 个路由配置\n", filePath, len(routes))
 	return routes, nil
 }
 
@@ -46,7 +46,7 @@ func SaveRoutesToFile(routes []proxy.RouteConfig, filePath string) error {
 		return fmt.Errorf("写入路由配置文件失败: %v", err)
 	}
 
-	log.Printf("已将 %d 个路由配置保存到文件 %s", len(routes), filePath)
+	color.New(color.FgGreen).Printf("已将 %d 个路由配置保存到文件 %s\n", len(routes), filePath)
 	return nil
 }
 

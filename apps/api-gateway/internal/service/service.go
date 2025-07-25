@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
+
+	"github.com/fatih/color"
 )
 
 // ServiceDiscovery 服务发现接口
@@ -13,8 +16,9 @@ import (
 // Register/Unregister 生产环境可留空
 
 type ServiceDiscovery interface {
-	Register(serviceName, address string)
-	Unregister(serviceName, address string)
+	startAutoRefresh()
+	refreshAllServices()
+	FetchInstances(serviceName string) []string
 	ListInstances(serviceName string) []string
 	Discover(serviceName string) (string, error)
 }
@@ -25,25 +29,54 @@ type ServiceDiscovery interface {
 type RegistryServiceDiscovery struct {
 	RegistryAddr string // registry服务地址，如 http://localhost:8080
 	LB           LoadBalancer
+
+	cache        map[string][]string // 服务名 -> 实例列表
+	cacheLock    sync.RWMutex
+	refreshIntvl time.Duration
+	stopCh       chan struct{}
 }
 
 func NewRegistryServiceDiscovery(registryAddr string, lb LoadBalancer) *RegistryServiceDiscovery {
-	return &RegistryServiceDiscovery{
+	rsd := &RegistryServiceDiscovery{
 		RegistryAddr: registryAddr,
 		LB:           lb,
+		cache:        make(map[string][]string),
+		refreshIntvl: 30 * time.Second, // 默认30秒刷新一次
+		stopCh:       make(chan struct{}),
+	}
+	rsd.refreshAllServices()
+	go rsd.startAutoRefresh()
+	return rsd
+}
+
+func (r *RegistryServiceDiscovery) startAutoRefresh() {
+	ticker := time.NewTicker(r.refreshIntvl)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			r.refreshAllServices()
+		case <-r.stopCh:
+			return
+		}
 	}
 }
 
-func (r *RegistryServiceDiscovery) Register(serviceName, address string) {
-	// 生产环境 gateway 不负责注册服务
+func (r *RegistryServiceDiscovery) refreshAllServices() {
+	// 这里可以维护一个服务名列表，或每次刷新时动态获取
+	// 简单实现：假设有一组常用服务名
+	serviceNames := []string{"user-service", "auth-service", "workflow-service"}
+	for _, name := range serviceNames {
+		instances := r.FetchInstances(name)
+		r.cacheLock.Lock()
+		r.cache[name] = instances
+		r.cacheLock.Unlock()
+		color.New(color.FgGreen).Printf("[服务发现] %s 实例: %v\n", name, instances)
+	}
 }
 
-func (r *RegistryServiceDiscovery) Unregister(serviceName, address string) {
-	// 生产环境 gateway 不负责注销服务
-}
-
-func (r *RegistryServiceDiscovery) ListInstances(serviceName string) []string {
-	url := fmt.Sprintf("%s/api/services?name=%s", r.RegistryAddr, serviceName)
+func (r *RegistryServiceDiscovery) FetchInstances(serviceName string) []string {
+	url := fmt.Sprintf("%s/api/service?name=%s", r.RegistryAddr, serviceName)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil
@@ -51,11 +84,13 @@ func (r *RegistryServiceDiscovery) ListInstances(serviceName string) []string {
 	defer resp.Body.Close()
 	var result struct {
 		Services []struct {
-			ID      string `json:"id"`
-			Name    string `json:"name"`
-			Address string `json:"address"`
-			Port    int    `json:"port"`
-			Status  string `json:"status"`
+			ID      string            `json:"id"`
+			Name    string            `json:"name"`
+			Address string            `json:"address"`
+			Port    int               `json:"port"`
+			Tags    []string          `json:"tags"`
+			Meta    map[string]string `json:"meta"`
+			Status  string            `json:"status"`
 		} `json:"services"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -63,11 +98,26 @@ func (r *RegistryServiceDiscovery) ListInstances(serviceName string) []string {
 	}
 	var addrs []string
 	for _, s := range result.Services {
-		if s.Status == "passing" || s.Status == "" { // 兼容健康实例
+		if s.Status == "passing" || s.Status == "" {
 			addrs = append(addrs, fmt.Sprintf("%s:%d", s.Address, s.Port))
 		}
 	}
 	return addrs
+}
+
+func (r *RegistryServiceDiscovery) ListInstances(serviceName string) []string {
+	r.cacheLock.RLock()
+	instances, ok := r.cache[serviceName]
+	r.cacheLock.RUnlock()
+	if ok && len(instances) > 0 {
+		return instances
+	}
+	// 缓存没有则立即拉取一次
+	instances = r.FetchInstances(serviceName)
+	r.cacheLock.Lock()
+	r.cache[serviceName] = instances
+	r.cacheLock.Unlock()
+	return instances
 }
 
 func (r *RegistryServiceDiscovery) Discover(serviceName string) (string, error) {

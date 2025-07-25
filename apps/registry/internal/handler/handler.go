@@ -168,7 +168,7 @@ func (h *RegistryHandler) ListServiceNames(c echo.Context) error {
 
 // ListServiceInstances 获取指定服务的所有实例
 func (h *RegistryHandler) ListServiceInstances(c echo.Context) error {
-	serviceName := c.Param("name")
+	serviceName := c.QueryParam("name")
 	if serviceName == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "服务名称不能为空",
