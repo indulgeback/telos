@@ -9,21 +9,22 @@ import (
 )
 
 func main() {
-	// 配置彩色日志
+	println("=== TLog 基本功能演示 ===")
+
+	// 使用默认配置（彩色输出）
 	config := &tlog.Config{
 		Level:       "debug",
 		Format:      "color",
 		Output:      "stdout",
-		ServiceName: "示例服务",
+		ServiceName: "基础示例",
 		EnableColor: true,
 		AddSource:   true,
 	}
 
-	// 初始化日志器
 	tlog.Init(config)
 
-	// 基本日志测试
-	tlog.Debug("这是调试消息")
+	// 基本日志记录
+	tlog.Debug("这是调试信息")
 	tlog.Info("这是信息消息")
 	tlog.Warn("这是警告消息")
 	tlog.Error("这是错误消息")
@@ -49,7 +50,6 @@ func main() {
 	// HTTP请求日志
 	tlog.LogRequest("GET", "/api/users", "Mozilla/5.0", "192.168.1.100", 200, time.Millisecond*150)
 	tlog.LogRequest("POST", "/api/login", "Chrome/91.0", "10.0.0.1", 401, time.Millisecond*50)
-	tlog.LogRequest("GET", "/api/slow", "Safari/14.0", "172.16.0.1", 200, time.Millisecond*1200)
 
 	// 数据库操作日志
 	tlog.LogDBOperation("SELECT", "users", time.Millisecond*25, nil)
@@ -69,37 +69,4 @@ func main() {
 	// 格式化日志
 	tlog.Infof("处理了 %d 个请求，耗时 %v", 100, time.Second*2)
 	tlog.Errorf("连接到 %s 失败: %v", "数据库服务器", err)
-
-	// 不同状态码的演示
-	statusCodes := []int{200, 201, 400, 401, 404, 500, 503}
-	for _, code := range statusCodes {
-		tlog.Info("HTTP响应", "status_code", code, "message", getStatusMessage(code))
-	}
-
-	// 不同响应时间的演示
-	durations := []float64{50, 200, 600, 1200, 2500}
-	for _, duration := range durations {
-		tlog.Info("API调用", "duration_ms", duration, "endpoint", "/api/data")
-	}
-}
-
-func getStatusMessage(code int) string {
-	switch code {
-	case 200:
-		return "成功"
-	case 201:
-		return "已创建"
-	case 400:
-		return "请求错误"
-	case 401:
-		return "未授权"
-	case 404:
-		return "未找到"
-	case 500:
-		return "服务器错误"
-	case 503:
-		return "服务不可用"
-	default:
-		return "未知状态"
-	}
 }

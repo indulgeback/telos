@@ -4,6 +4,7 @@ go 1.24.4
 
 require (
 	github.com/hashicorp/consul/api v1.32.1
+	github.com/indulgeback/telos/pkg/tlog v0.0.0-00010101000000-000000000000
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/spf13/viper v1.20.1
 )
@@ -44,3 +45,5 @@ require (
 	golang.org/x/text v0.25.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/indulgeback/telos/pkg/tlog => ../../pkg/tlog

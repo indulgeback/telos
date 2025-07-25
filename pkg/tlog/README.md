@@ -6,10 +6,12 @@
 
 - **结构化日志**: 支持 JSON、文本和彩色格式
 - **彩色输出**: 智能颜色编码，不同级别和字段使用不同颜色
+- **企业级存储**: 文件轮转、压缩归档、远程传输
+- **高性能**: 缓冲写入、异步发送、批量处理
 - **上下文感知**: 支持追踪ID和请求ID
 - **服务集成**: 为 Gin 和 Echo 框架提供内置中间件
-- **多种输出**: 支持 stdout、stderr 和文件输出
-- **性能优化**: 基于 Go 标准库的 slog 包构建
+- **多种输出**: 支持 stdout、stderr、文件、轮转文件、远程服务
+- **云原生**: 支持 Elasticsearch、Loki 等日志聚合系统
 - **微服务就绪**: 服务名标记和分布式追踪支持
 - **源码定位**: 可选的源码文件和行号显示
 
@@ -67,11 +69,18 @@ func main() {
 ```go
 config := &tlog.Config{
     Level:       "debug",
-    Format:      "color",    // json, text, color
-    Output:      "stdout",
+    Format:      "color",      // json, text, color
+    Output:      "rotating",   // stdout, stderr, file, rotating, remote
+    FilePath:    "/var/log/app.log",
     ServiceName: "认证服务",
-    EnableColor: true,       // 启用颜色
-    AddSource:   false,      // 不显示源码位置
+    EnableColor: true,         // 启用颜色
+    AddSource:   false,        // 不显示源码位置
+    Storage: &tlog.StorageConfig{
+        MaxSize:    100,       // 100MB轮转
+        MaxAge:     7 * 24 * time.Hour, // 保留7天
+        MaxBackups: 10,        // 最多10个备份
+        Compress:   true,      // 压缩历史文件
+    },
 }
 
 logger := tlog.New(config)
@@ -318,3 +327,171 @@ tlog.WithContext(ctx).Info("处理请求开始")
 // 彩色格式 - 适合开发环境
 2025-07-25 17:39:52 INFO [用户服务] 用户登录 用户ID=12345
 ```
+#
+# 企业级存储功能
+
+### 文件轮转
+
+```go
+// 生产环境配置 - 自动轮转和压缩
+config := tlog.ProductionConfig("用户服务", "/var/log")
+tlog.Init(config)
+
+// 手动配置轮转
+config := &tlog.Config{
+    Output:   "rotating",
+    FilePath: "/var/log/app.log",
+    Storage: &tlog.StorageConfig{
+        MaxSize:    50,                 // 50MB轮转
+        MaxAge:     30 * 24 * time.Hour, // 保留30天
+        MaxBackups: 20,                 // 最多20个备份
+        Compress:   true,               // 启用gzip压缩
+        BufferSize: 8192,               // 8KB缓冲区
+        FlushTime:  5 * time.Second,    // 5秒强制刷新
+    },
+}
+```
+
+### 远程日志传输
+
+```go
+// Elasticsearch集成
+config := tlog.ElasticsearchLogConfig("用户服务", "http://es:9200", "app-logs")
+tlog.Init(config)
+
+// Loki集成
+labels := map[string]string{"env": "prod", "team": "backend"}
+config := tlog.LokiLogConfig("用户服务", "http://loki:3100", labels)
+tlog.Init(config)
+
+// 自定义远程端点
+config := &tlog.Config{
+    Output: "remote",
+    Remote: &tlog.RemoteConfig{
+        Endpoint:    "https://logs.company.com/api/v1/logs",
+        Method:      "POST",
+        BatchSize:   100,               // 批量发送100条
+        BatchTime:   5 * time.Second,   // 5秒发送一次
+        Timeout:     10 * time.Second,  // 10秒超时
+        RetryCount:  3,                 // 重试3次
+        EnableAsync: true,              // 异步发送
+        Headers: map[string]string{
+            "Authorization": "Bearer your-token",
+            "Content-Type":  "application/json",
+        },
+    },
+}
+```
+
+### 多目标输出
+
+```go
+// 同时输出到控制台、文件和远程服务
+import "github.com/indulgeback/telos/pkg/tlog"
+
+func main() {
+    // 创建多写入器
+    multiWriter, err := tlog.NewTripleWriter(
+        "/var/log/app.log",
+        tlog.DefaultStorageConfig(),
+        &tlog.RemoteConfig{
+            Endpoint: "http://logserver:8080/logs",
+        },
+    )
+    if err != nil {
+        panic(err)
+    }
+
+    // 使用多写入器
+    config := &tlog.Config{
+        Level:       "info",
+        Format:      "json",
+        ServiceName: "多目标服务",
+    }
+    
+    // 手动设置写入器
+    logger := tlog.New(config)
+    // 这里需要扩展API来支持自定义writer
+}
+```
+
+### 预设配置
+
+```go
+// 开发环境 - 彩色控制台输出
+config := tlog.DevelopmentConfig("我的服务")
+
+// 生产环境 - 轮转文件 + 压缩
+config := tlog.ProductionConfig("我的服务", "/var/log")
+
+// 高性能环境 - 大缓冲区
+config := tlog.HighPerformanceConfig("我的服务", "/var/log")
+
+// 测试环境 - 简单文本输出
+config := tlog.TestingConfig("我的服务")
+
+// 调试环境 - 详细信息
+config := tlog.DebugConfig("我的服务")
+
+// 最小配置 - 只记录错误
+config := tlog.MinimalConfig("我的服务")
+```
+
+## 性能特性
+
+### 缓冲写入
+- **智能缓冲**: 自动批量写入，减少I/O操作
+- **定时刷新**: 定期强制刷新，确保数据不丢失
+- **大小触发**: 缓冲区满时立即写入
+
+### 异步处理
+- **非阻塞**: 日志写入不阻塞业务逻辑
+- **批量发送**: 远程日志批量传输，提升效率
+- **错误重试**: 自动重试机制，确保日志可靠性
+
+### 资源管理
+- **自动轮转**: 防止单个日志文件过大
+- **压缩归档**: 自动压缩历史文件，节省空间
+- **定期清理**: 自动删除过期文件
+
+## 监控和运维
+
+### 日志轮转监控
+```go
+// 获取轮转统计信息
+writer, _ := tlog.NewRotatingFileWriter("/var/log/app.log", nil)
+// 可以添加统计接口来监控轮转状态
+```
+
+### 远程传输监控
+```go
+// 监控远程传输状态
+remoteWriter := tlog.NewRemoteWriter(config)
+// 可以添加健康检查接口
+```
+
+### 性能指标
+- 日志写入速度 (logs/second)
+- 缓冲区使用率
+- 远程传输成功率
+- 文件轮转频率
+
+## 最佳实践
+
+### 生产环境部署
+1. **使用轮转文件**: 避免单个文件过大
+2. **启用压缩**: 节省存储空间
+3. **设置合理的保留期**: 平衡存储成本和审计需求
+4. **配置远程备份**: 确保日志的高可用性
+
+### 性能优化
+1. **调整缓冲区大小**: 根据日志量调整
+2. **使用异步模式**: 避免阻塞主业务
+3. **批量发送**: 减少网络开销
+4. **监控资源使用**: 定期检查磁盘和网络使用情况
+
+### 安全考虑
+1. **敏感信息过滤**: 避免记录密码等敏感数据
+2. **传输加密**: 远程传输使用HTTPS
+3. **访问控制**: 限制日志文件访问权限
+4. **审计日志**: 记录日志系统本身的操作

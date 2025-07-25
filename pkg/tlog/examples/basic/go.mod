@@ -1,8 +1,8 @@
-module github.com/indulgeback/telos/pkg/tlog/example
+module basic-example
 
 go 1.24.4
 
-replace github.com/indulgeback/telos/pkg/tlog => ../
+replace github.com/indulgeback/telos/pkg/tlog => ../../
 
 require github.com/indulgeback/telos/pkg/tlog v0.0.0-00010101000000-000000000000
 

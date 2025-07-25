@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fatih/color"
+	"github.com/indulgeback/telos/pkg/tlog"
 )
 
 // ServiceDiscovery 服务发现接口
@@ -71,7 +71,7 @@ func (r *RegistryServiceDiscovery) refreshAllServices() {
 		r.cacheLock.Lock()
 		r.cache[name] = instances
 		r.cacheLock.Unlock()
-		color.New(color.FgGreen).Printf("[服务发现] %s 实例: %v\n", name, instances)
+		tlog.Info("服务发现刷新", "service", name, "instances", instances, "count", len(instances))
 	}
 }
 

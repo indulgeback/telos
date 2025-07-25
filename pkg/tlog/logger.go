@@ -22,11 +22,15 @@ type Logger struct {
 type Config struct {
 	Level       string `json:"level" mapstructure:"level"`
 	Format      string `json:"format" mapstructure:"format"` // json, text, color
-	Output      string `json:"output" mapstructure:"output"` // stdout, stderr, file
+	Output      string `json:"output" mapstructure:"output"` // stdout, stderr, file, rotating, remote
 	FilePath    string `json:"file_path" mapstructure:"file_path"`
 	ServiceName string `json:"service_name" mapstructure:"service_name"`
 	EnableColor bool   `json:"enable_color" mapstructure:"enable_color"` // 是否启用颜色
 	AddSource   bool   `json:"add_source" mapstructure:"add_source"`     // 是否添加源码位置
+
+	// 存储配置
+	Storage *StorageConfig `json:"storage,omitempty" mapstructure:"storage"` // 文件轮转配置
+	Remote  *RemoteConfig  `json:"remote,omitempty" mapstructure:"remote"`   // 远程日志配置
 }
 
 // DefaultConfig 返回默认日志配置
@@ -79,6 +83,24 @@ func New(config *Config) *Logger {
 				writer = os.Stdout
 			}
 		} else {
+			writer = os.Stdout
+		}
+	case "rotating":
+		if config.FilePath != "" {
+			if rotatingWriter, err := NewRotatingFileWriter(config.FilePath, config.Storage); err == nil {
+				writer = rotatingWriter
+			} else {
+				fmt.Printf("创建轮转文件写入器失败: %v，回退到标准输出\n", err)
+				writer = os.Stdout
+			}
+		} else {
+			writer = os.Stdout
+		}
+	case "remote":
+		if config.Remote != nil && config.Remote.Endpoint != "" {
+			writer = NewRemoteWriter(config.Remote)
+		} else {
+			fmt.Println("远程日志配置不完整，回退到标准输出")
 			writer = os.Stdout
 		}
 	default:

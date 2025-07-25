@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
+	"github.com/indulgeback/telos/pkg/tlog"
 )
 
 // contextKey 自定义 context key 类型，避免字符串冲突
@@ -110,11 +110,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		// 记录请求日志
-		// log.Printf("\033[32m%s \033[0m \033[33m%s\033[0m \033[34m%d\033[0m \033[35m%v\033[0m", r.Method, r.URL.Path, wrapped.statusCode, duration)
-		color.New(color.FgGreen).Printf("%s ", r.Method)
-		color.New(color.FgYellow).Printf("%s ", r.URL.Path)
-		color.New(color.FgBlue).Printf("%d ", wrapped.statusCode)
-		color.New(color.FgMagenta).Printf("%v\n", duration)
+		tlog.LogRequest(r.Method, r.URL.Path, r.UserAgent(), getClientIP(r), wrapped.statusCode, duration)
 	})
 }
 

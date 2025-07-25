@@ -1,23 +1,46 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/fatih/color"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
 	apimiddleware "github.com/indulgeback/telos/apps/api-gateway/internal/middleware"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
+	"github.com/indulgeback/telos/pkg/tlog"
 )
 
 func main() {
 	// 加载网关配置
 	cfg := config.LoadConfig()
+
+	// 初始化日志
+	var logConfig *tlog.Config
+
+	// 根据环境选择不同的日志配置
+	if cfg.LogOutput == "file" || cfg.LogOutput == "rotating" {
+		// 生产环境 - 文件日志
+		logConfig = tlog.ProductionConfig("api-gateway", "/var/log/telos")
+		logConfig.Level = cfg.LogLevel
+		logConfig.Format = cfg.LogFormat
+	} else {
+		// 开发环境 - 控制台日志
+		logConfig = &tlog.Config{
+			Level:       cfg.LogLevel,
+			Format:      cfg.LogFormat,
+			Output:      cfg.LogOutput,
+			ServiceName: "api-gateway",
+			EnableColor: true,
+			AddSource:   false,
+		}
+	}
+
+	tlog.Init(logConfig)
+	tlog.Info("API网关启动中...")
 
 	// 初始化服务发现和负载均衡
 	lb := service.NewRoundRobinLoadBalancer()
@@ -80,9 +103,9 @@ func main() {
 		port = "8080"
 	}
 	addr := ":" + port
-	// log.Printf("API Gateway 启动于 %s...", addr)
-	color.New(color.FgGreen).Printf("API Gateway 启动于 %s...\n", addr)
+
+	tlog.Info("API网关启动", "address", addr, "port", port)
 	if err := e.Start(addr); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("启动失败: %v", err)
+		tlog.Error("API网关启动失败", "error", err, "address", addr)
 	}
 }
