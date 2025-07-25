@@ -21,6 +21,7 @@ import {
 } from '@/components/atoms'
 import { ThemeToggle } from '@/components/molecules'
 import NotFound from '@/app/not-found'
+import { GitBranch } from 'lucide-react'
 
 const ComponentDesignPage = () => {
   const env = process.env.NEXT_PUBLIC_NODE_ENV
@@ -53,6 +54,9 @@ const ComponentDesignPage = () => {
         </Button>
         <Button variant='smart-fill-1' radius='full'>
           Button
+        </Button>
+        <Button variant='smart-fill-1' radius='full' size='icon'>
+          <GitBranch />
         </Button>
       </div>
       <div className='flex gap-4'>

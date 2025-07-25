@@ -133,7 +133,7 @@
   &::after {
     content: '';
     position: absolute;
-    left: -100%;
+    left: -125%;
     bottom: -100%;
     width: 20px;
     height: 100px;
