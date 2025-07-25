@@ -4,7 +4,7 @@ import '@/styles/globals.css'
 import NextTopLoader from 'nextjs-toploader'
 import { headers } from 'next/headers'
 import appConfig from '@/appConfig'
-import { ThemeProvider } from '@/components/providers'
+import { ThemeProvider, SessionProvider } from '@/components/providers'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,14 +45,16 @@ export default async function RootLayout({ children }: Iprops) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextTopLoader color={appConfig.subjectColor} showSpinner={false} />
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )
