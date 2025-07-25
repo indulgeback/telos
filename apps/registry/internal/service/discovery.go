@@ -2,12 +2,12 @@ package service
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/indulgeback/telos/apps/registry/internal/config"
 
+	"github.com/fatih/color"
 	consulapi "github.com/hashicorp/consul/api"
 )
 
@@ -75,7 +75,7 @@ func (c *ConsulServiceDiscovery) Register(service *ServiceInfo) error {
 		return fmt.Errorf("注册服务失败: %v", err)
 	}
 
-	log.Printf("服务注册成功: %s (%s:%d)", service.Name, service.Address, service.Port)
+	color.New(color.FgGreen).Printf("服务注册成功: %s (%s:%d)\n", service.Name, service.Address, service.Port)
 	return nil
 }
 
@@ -86,7 +86,7 @@ func (c *ConsulServiceDiscovery) Unregister(serviceID string) error {
 		return fmt.Errorf("注销服务失败: %v", err)
 	}
 
-	log.Printf("服务注销成功: %s", serviceID)
+	color.New(color.FgYellow).Printf("服务注销成功: %s\n", serviceID)
 	return nil
 }
 
@@ -145,7 +145,7 @@ func (c *ConsulServiceDiscovery) WatchService(serviceName string, callback func(
 				WaitTime:  time.Minute,
 			})
 			if err != nil {
-				log.Printf("监听服务变化失败: %v", err)
+				color.New(color.FgRed).Printf("监听服务变化失败: %v\n", err)
 				time.Sleep(time.Second * 5)
 				continue
 			}

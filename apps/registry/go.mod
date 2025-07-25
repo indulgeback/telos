@@ -3,6 +3,7 @@ module github.com/indulgeback/telos/apps/registry
 go 1.24.4
 
 require (
+	github.com/fatih/color v1.16.0
 	github.com/hashicorp/consul/api v1.32.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/spf13/viper v1.20.1
@@ -10,7 +11,6 @@ require (
 
 require (
 	github.com/armon/go-metrics v0.4.1 // indirect
-	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -44,3 +44,5 @@ require (
 	golang.org/x/text v0.25.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/indulgeback/telos/pkg/tlog => ../../pkg/tlog

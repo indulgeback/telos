@@ -3,11 +3,10 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
+	"github.com/indulgeback/telos/pkg/tlog"
 )
 
 // LoadRoutesFromFile 从文件加载路由配置
@@ -18,7 +17,7 @@ func LoadRoutesFromFile(filePath string) ([]proxy.RouteConfig, error) {
 	}
 
 	// 读取文件内容
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("读取路由配置文件失败: %v", err)
 	}
@@ -29,7 +28,7 @@ func LoadRoutesFromFile(filePath string) ([]proxy.RouteConfig, error) {
 		return nil, fmt.Errorf("解析路由配置失败: %v", err)
 	}
 
-	log.Printf("从文件 %s 加载了 %d 个路由配置", filePath, len(routes))
+	tlog.Info("路由配置加载成功", "file", filePath, "count", len(routes))
 	return routes, nil
 }
 
@@ -42,11 +41,11 @@ func SaveRoutesToFile(routes []proxy.RouteConfig, filePath string) error {
 	}
 
 	// 写入文件
-	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0644); err != nil {
 		return fmt.Errorf("写入路由配置文件失败: %v", err)
 	}
 
-	log.Printf("已将 %d 个路由配置保存到文件 %s", len(routes), filePath)
+	tlog.Info("路由配置保存成功", "file", filePath, "count", len(routes))
 	return nil
 }
 

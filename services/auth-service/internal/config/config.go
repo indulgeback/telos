@@ -17,6 +17,11 @@ type Config struct {
 	JWTSecret   string `mapstructure:"JWT_SECRET"`
 	ServiceName string `mapstructure:"SERVICE_NAME"`
 	RegistryURL string `mapstructure:"REGISTRY_URL"` // 注册中心地址
+
+	// 日志配置
+	LogLevel  string `mapstructure:"LOG_LEVEL"`  // 日志级别
+	LogFormat string `mapstructure:"LOG_FORMAT"` // 日志格式
+	LogOutput string `mapstructure:"LOG_OUTPUT"` // 日志输出
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -40,6 +45,9 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.BindEnv("JWT_SECRET")
 	viper.BindEnv("SERVICE_NAME")
 	viper.BindEnv("REGISTRY_URL")
+	viper.BindEnv("LOG_LEVEL")
+	viper.BindEnv("LOG_FORMAT")
+	viper.BindEnv("LOG_OUTPUT")
 
 	// 尝试读取配置文件
 	if err = viper.ReadInConfig(); err != nil {
@@ -74,6 +82,17 @@ func LoadConfig(path string) (config Config, err error) {
 		config.RegistryURL = os.Getenv("REGISTRY_URL")
 	}
 
+	// 设置日志默认值
+	if config.LogLevel == "" {
+		config.LogLevel = "info"
+	}
+	if config.LogFormat == "" {
+		config.LogFormat = "color"
+	}
+	if config.LogOutput == "" {
+		config.LogOutput = "stdout"
+	}
+
 	// 验证必要的配置
 	if err = validateConfig(config); err != nil {
 		return config, fmt.Errorf("配置验证失败: %v", err)
@@ -97,6 +116,9 @@ func loadFromEnv(config *Config) {
 	config.JWTSecret = os.Getenv("JWT_SECRET")
 	config.ServiceName = os.Getenv("SERVICE_NAME")
 	config.RegistryURL = os.Getenv("REGISTRY_URL")
+	config.LogLevel = os.Getenv("LOG_LEVEL")
+	config.LogFormat = os.Getenv("LOG_FORMAT")
+	config.LogOutput = os.Getenv("LOG_OUTPUT")
 
 	if dbPort := os.Getenv("DB_PORT"); dbPort != "" {
 		if p, err := fmt.Sscanf(dbPort, "%d", &config.DBPort); err == nil && p == 1 {

@@ -3,7 +3,6 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
+	"github.com/indulgeback/telos/pkg/tlog"
 )
 
 // RouteConfig 路由配置
@@ -39,7 +39,7 @@ func NewProxyManager(discovery service.ServiceDiscovery) *ProxyManager {
 // LoadRoutes 加载路由配置
 func (pm *ProxyManager) LoadRoutes(routes []RouteConfig) {
 	pm.routes = routes
-	log.Printf("已加载 %d 个路由配置", len(routes))
+	tlog.Info("路由配置加载完成", "count", len(routes))
 }
 
 // ServeHTTP 实现 http.Handler 接口
@@ -47,16 +47,22 @@ func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 查找匹配的路由
 	route := pm.findRoute(r.URL.Path)
 	if route == nil {
+		tlog.Warn("未找到匹配路由", "path", r.URL.Path, "method", r.Method)
 		writeErrorResponse(w, "未找到匹配的服务路由", http.StatusNotFound)
 		return
 	}
 
+	tlog.Debug("路由匹配成功", "path", r.URL.Path, "service", route.ServiceName, "strip_prefix", route.StripPrefix)
+
 	// 发现服务实例
 	target, err := pm.discovery.Discover(route.ServiceName)
 	if err != nil {
+		tlog.Error("服务发现失败", "service", route.ServiceName, "error", err)
 		writeErrorResponse(w, fmt.Sprintf("服务 %s 不可用: %v", route.ServiceName, err), http.StatusServiceUnavailable)
 		return
 	}
+
+	tlog.Debug("服务实例发现成功", "service", route.ServiceName, "target", target)
 
 	// 获取或创建代理
 	proxy, err := pm.getProxy(target, route)
@@ -105,6 +111,11 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 		return proxy, nil
 	}
 
+	// 检查 target 是否包含协议，若无则补全为 http://
+	if !strings.HasPrefix(target, "http://") && !strings.HasPrefix(target, "https://") {
+		target = "http://" + target
+	}
+
 	targetURL, err := url.Parse(target)
 	if err != nil {
 		return nil, fmt.Errorf("解析目标地址失败: %v", err)
@@ -121,7 +132,7 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 
 	// 设置错误处理
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Printf("代理错误: %v", err)
+		tlog.Error("代理请求失败", "target", target, "path", r.URL.Path, "error", err)
 		writeErrorResponse(w, "后端服务错误", http.StatusBadGateway)
 	}
 
@@ -145,7 +156,7 @@ func ProxyHandler(authServiceURL string) http.HandlerFunc {
 
 		proxy := httputil.NewSingleHostReverseProxy(targetURL)
 		proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-			log.Printf("代理错误: %v", err)
+			tlog.Error("简单代理请求失败", "auth_service_url", authServiceURL, "path", r.URL.Path, "error", err)
 			writeErrorResponse(w, "后端服务错误", http.StatusBadGateway)
 		}
 
@@ -158,7 +169,7 @@ func writeErrorResponse(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 
-	errorResp := map[string]interface{}{
+	errorResp := map[string]any{
 		"error":   http.StatusText(code),
 		"message": message,
 		"code":    code,

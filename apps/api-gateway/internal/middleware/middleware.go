@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
+	"github.com/indulgeback/telos/pkg/tlog"
 )
 
 // contextKey 自定义 context key 类型，避免字符串冲突
@@ -110,12 +110,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		// 记录请求日志
-		fmt.Printf("[%s] %s %s %d %v\n",
-			time.Now().Format(time.RFC3339),
-			r.Method,
-			r.URL.Path,
-			wrapped.statusCode,
-			duration)
+		tlog.LogRequest(r.Method, r.URL.Path, r.UserAgent(), getClientIP(r), wrapped.statusCode, duration)
 	})
 }
 

@@ -15,6 +15,10 @@ type Config struct {
 	LogLevel           string
 	RateLimitRequests  int
 	RateLimitWindow    int
+
+	// 日志配置
+	LogFormat string
+	LogOutput string
 }
 
 // LoadConfig 加载配置
@@ -29,6 +33,8 @@ func LoadConfig() *Config {
 		RegistryServiceURL: viper.GetString("REGISTRY_SERVICE_URL"),
 		AuthServiceURL:     viper.GetString("AUTH_SERVICE_URL"),
 		LogLevel:           viper.GetString("LOG_LEVEL"),
+		LogFormat:          viper.GetString("LOG_FORMAT"),
+		LogOutput:          viper.GetString("LOG_OUTPUT"),
 		RateLimitRequests:  viper.GetInt("RATE_LIMIT_REQUESTS"),
 		RateLimitWindow:    viper.GetInt("RATE_LIMIT_WINDOW"),
 	}
@@ -44,6 +50,12 @@ func LoadConfig() *Config {
 	}
 	if cfg.LogLevel == "" {
 		cfg.LogLevel = "info"
+	}
+	if cfg.LogFormat == "" {
+		cfg.LogFormat = "color"
+	}
+	if cfg.LogOutput == "" {
+		cfg.LogOutput = "stdout"
 	}
 	if cfg.RateLimitRequests == 0 {
 		cfg.RateLimitRequests = 100
