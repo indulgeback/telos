@@ -21,7 +21,7 @@ const buttonVariants = cva(
           'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
         'smart-text-1':
-          'text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:bg-gradient-to-r hover:from-purple-400 hover:via-pink-400 hover:to-blue-400',
+          'text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-sky-500 hover:bg-gradient-to-r hover:from-purple-400 hover:via-pink-400 hover:to-sky-400',
         'smart-text-2':
           'text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:bg-gradient-to-r hover:from-cyan-400 hover:via-purple-400 hover:to-pink-400',
         'smart-text-3':
@@ -29,7 +29,7 @@ const buttonVariants = cva(
         'smart-text-4':
           'text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-lime-500 to-emerald-500 hover:bg-gradient-to-r hover:from-green-400 hover:via-lime-400 hover:to-emerald-400',
         'smart-fill-1':
-          'text-white bg-gradient-to-tr from-purple-500 via-pink-500 to-blue-500 hover:bg-gradient-to-tr hover:from-purple-400 hover:via-pink-400 hover:to-blue-400 smart-fill-btn-hover',
+          'text-white bg-gradient-to-tr from-purple-500 via-pink-500 to-sky-500 hover:bg-gradient-to-tr hover:from-purple-400 hover:via-pink-400 hover:to-sky-400 smart-fill-btn-hover',
         'smart-fill-2':
           'text-white bg-gradient-to-tr from-cyan-500 via-purple-500 to-pink-500 hover:bg-gradient-to-tr hover:from-cyan-400 hover:via-purple-400 hover:to-pink-400 smart-fill-btn-hover',
         'smart-fill-3':

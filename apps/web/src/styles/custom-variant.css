@@ -1,0 +1,22 @@
+.smart-fill-btn-hover {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -200%;
+    bottom: -100%;
+    width: 20px;
+    height: 120px;
+    background-image: linear-gradient(to left, #ffffff76, transparent);
+    transform: rotate(-45deg) skew(20deg, 20deg);
+  }
+
+  &:hover {
+    &::after {
+      left: 120%;
+      transition: left .5s ease-in-out;
+    }
+  }
+}

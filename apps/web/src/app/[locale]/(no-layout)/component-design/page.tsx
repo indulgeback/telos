@@ -43,10 +43,15 @@ const ComponentDesignPage = () => {
         <Button variant='smart-fill-1' radius='sm'>
           Button
         </Button>
-        <Button variant='smart-fill-1' radius='md'>
+        <Button variant='smart-fill-1' radius='md' size='sm'>
           Button
         </Button>
-        <Button variant='smart-fill-1' radius='lg'>
+        <Button
+          variant='smart-fill-1'
+          radius='full'
+          size='lg'
+          className='w-[350px]'
+        >
           Button
         </Button>
         <Button variant='smart-fill-1' radius='xl'>
@@ -60,7 +65,7 @@ const ComponentDesignPage = () => {
         </Button>
       </div>
       <div className='flex gap-4'>
-        <Input />
+        <Input className='w-[350px]' />
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import './custom-variant.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -123,28 +124,5 @@
 
   body {
     @apply bg-background text-foreground;
-  }
-}
-
-.smart-fill-btn-hover {
-  position: relative;
-  overflow: hidden;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: -125%;
-    bottom: -100%;
-    width: 20px;
-    height: 100px;
-    background-image: linear-gradient(to left, #ffffff76, transparent);
-    transform: rotate(-45deg) skew(20deg, 20deg);
-  }
-
-  &:hover {
-    &::after {
-      left: 200%;
-      transition: left .5s ease-in-out;
-    }
   }
 }
