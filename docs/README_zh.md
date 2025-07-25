@@ -30,7 +30,6 @@ telos/
 │   ├── auth-service/      # 认证服务 (Go Gin)
 │   ├── user-service/      # 用户管理服务 (Go Gin)
 │   └── workflow-service/  # 工作流编排服务 (Go Gin)
-├── packages/              # 共享包 (未来)
 ├── docs/                  # 文档
 ├── pkg/                   # 共享 Go 包
 ├── node_modules/          # 根依赖

@@ -33,7 +33,6 @@ telos/
 │   ├── auth-service/      # Authentication Service (Go Gin)
 │   ├── user-service/      # User Management Service (Go Gin)
 │   └── workflow-service/  # Workflow Orchestration Service (Go Gin)
-├── packages/              # Shared Packages (Future)
 ├── docs/                  # Documentation
 ├── pkg/                   # Shared Go Packages
 ├── node_modules/          # Root Dependencies
