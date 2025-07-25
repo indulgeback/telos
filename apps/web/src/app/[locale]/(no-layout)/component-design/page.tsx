@@ -31,7 +31,7 @@ const ComponentDesignPage = () => {
   ) : (
     <div className='flex flex-col h-screen overflow-auto gap-4 p-4 bg-white dark:bg-black'>
       <ThemeToggle />
-      <div className='flex gap-4'>
+      <div className='gap-4 hidden'>
         <Button>Button</Button>
         <Button variant='destructive'>Button</Button>
         <Button variant='outline'>Button</Button>
@@ -64,8 +64,11 @@ const ComponentDesignPage = () => {
           <GitBranch />
         </Button>
       </div>
-      <div className='flex gap-4'>
+      <div className='hidden gap-4'>
         <Input className='w-[350px]' />
+        <Input className='w-[350px]' placeholder='Placeholder' />
+        <Input className='w-[350px]' disabled />
+        <Input className='w-[350px]' type='password' />
       </div>
     </div>
   )
