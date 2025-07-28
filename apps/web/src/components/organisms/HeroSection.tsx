@@ -1,5 +1,6 @@
 'use client'
 import { useRef, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { animate } from 'animejs'
 import { Badge, Button } from '@/components/atoms'
 import { Zap, ArrowRight, Github } from 'lucide-react'
@@ -9,6 +10,7 @@ import { Flow } from '@/components/molecules'
 import type { Node, Edge } from '@xyflow/react'
 
 export function HeroSection() {
+  const { data: session } = useSession()
   const t = useTranslations('HomePage')
   const titleRef = useRef(null)
   const subtitleRef = useRef(null)
@@ -288,19 +290,51 @@ export function HeroSection() {
         ref={btnsRef}
         className='flex flex-col sm:flex-row gap-4 justify-center z-10'
       >
-        <CustomLink href='/docs'>
-          <Button size='lg' className='group'>
-            {t('cta.getStarted')}
-            <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
-          </Button>
-        </CustomLink>
-        <CustomLink href='https://github.com/indulgeback/telos' target='_blank'>
-          <Button variant='outline' size='lg'>
-            <Github className='mr-2 h-4 w-4' />
-            GitHub
-          </Button>
-        </CustomLink>
+        {session ? (
+          <>
+            <CustomLink href='/dashboard'>
+              <Button size='lg' className='group'>
+                进入仪表板
+                <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
+              </Button>
+            </CustomLink>
+            <CustomLink href='/workflows'>
+              <Button variant='outline' size='lg'>
+                查看工作流
+              </Button>
+            </CustomLink>
+          </>
+        ) : (
+          <>
+            <CustomLink href='/auth/signin'>
+              <Button size='lg' className='group'>
+                {t('cta.getStarted')}
+                <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
+              </Button>
+            </CustomLink>
+            <CustomLink
+              href='https://github.com/indulgeback/telos'
+              target='_blank'
+            >
+              <Button variant='outline' size='lg'>
+                <Github className='mr-2 h-4 w-4' />
+                GitHub
+              </Button>
+            </CustomLink>
+          </>
+        )}
       </div>
+
+      {/* 用户欢迎信息 */}
+      {session && (
+        <div className='flex justify-center z-10'>
+          <div className='bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md backdrop-blur-sm'>
+            <p className='text-sm text-primary text-center'>
+              欢迎回来，{session.user?.name || session.user?.email}！
+            </p>
+          </div>
+        </div>
+      )}
       <div className='w-full h-[100vh] z-10'>
         <Flow
           ref={flowRef}

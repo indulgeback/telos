@@ -1,6 +1,6 @@
 'use client'
 
-import { ThemeToggle, LocaleToggle } from '@/components/molecules'
+import { ThemeToggle, LocaleToggle, UserAvatar } from '@/components/molecules'
 import {
   Button,
   NavigationMenu,
@@ -18,12 +18,10 @@ import {
 import { Github, Menu } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 export function Header() {
   const t = useTranslations('Header')
-  const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -41,7 +39,7 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
+      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
         scrolled
           ? 'border-slate-300 dark:border-slate-700 bg-white/10 dark:bg-slate-900/10 shadow-md'
           : 'border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80'
@@ -64,7 +62,7 @@ export function Header() {
           </a>
 
           {/* 桌面导航 */}
-          <NavigationMenu className='hidden md:flex items-center'>
+          <NavigationMenu className='hidden md:flex items-center gap-3'>
             <NavigationMenuList>
               {navLinks.map(link => {
                 return (
@@ -95,6 +93,7 @@ export function Header() {
             </a>
             <ThemeToggle />
             <LocaleToggle />
+            <UserAvatar />
           </div>
 
           {/* 移动端菜单 */}
@@ -132,18 +131,23 @@ export function Header() {
                     })}
                   </nav>
                   <SheetFooter>
-                    <a
-                      href='https://github.com/indulgeback/telos'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                    >
-                      <Button variant='outline' size='sm' className='w-full'>
-                        <Github className='h-4 w-4 mr-2' />
-                        GitHub
-                      </Button>
-                    </a>
-                    <ThemeToggle />
-                    <LocaleToggle />
+                    <div className='flex flex-col space-y-2 w-full'>
+                      <UserAvatar />
+                      <a
+                        href='https://github.com/indulgeback/telos'
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        <Button variant='outline' size='sm' className='w-full'>
+                          <Github className='h-4 w-4 mr-2' />
+                          GitHub
+                        </Button>
+                      </a>
+                      <div className='flex space-x-2'>
+                        <ThemeToggle />
+                        <LocaleToggle />
+                      </div>
+                    </div>
                   </SheetFooter>
                 </div>
               </SheetContent>

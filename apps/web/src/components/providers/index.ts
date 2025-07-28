@@ -1,4 +1,4 @@
 // Provider 组件导出
-export { ThemeProvider } from './theme-provider'
-export { MDXProseProvider } from './mdx-prose-provider'
-export { SessionProvider } from './session-provider'
+export { ThemeProvider } from './ThemeProvider'
+export { MDXProseProvider } from './MdxProseProvider'
+export { SessionProvider } from './SessionProvider'
