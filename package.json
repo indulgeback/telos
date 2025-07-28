@@ -5,6 +5,9 @@
   "scripts": {
     "prepare": "husky install",
     "web:dev": "pnpm --filter ./apps/web dev",
+    "mobile:start": "pnpm --filter ./apps/mobile start",
+    "mobile:android": "pnpm --filter ./apps/mobile android",
+    "mobile:ios": "pnpm --filter ./apps/mobile ios",
     "api-gateway:dev": "make -C apps/api-gateway dev",
     "registry:dev": "make -C apps/registry dev",
     "auth-service:dev": "make -C services/auth-service dev",

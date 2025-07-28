@@ -12,7 +12,7 @@ Telos is an intelligent workflow orchestration agent platform designed for enter
 **Project Highlights:**
 
 - **Next.js 15** frontend with App Router and React 19 concurrent features
-- **Go microservices** backend with high performance and easy scalability  
+- **Go microservices** backend with high performance and easy scalability
 - **Service discovery** with built-in registry and health checks
 - **Multi-language support** with internationalization for 18 languages
 - **Visual workflow builder** based on React Flow components
@@ -27,6 +27,7 @@ Telos is an intelligent workflow orchestration agent platform designed for enter
 telos/
 ├── apps/                   # Application Layer
 │   ├── web/               # Next.js Frontend Application
+│   ├── mobile/            # React Native Mobile Application
 │   ├── api-gateway/       # API Gateway (Go Echo)
 │   └── registry/          # Service Registry (Go Echo)
 ├── services/              # Microservices Layer
@@ -45,6 +46,8 @@ telos/
 
 ### 3.1 Frontend Stack
 
+#### Web Application (Next.js)
+
 - **Next.js 15**: App Router with server components and SSR
 - **React 19**: Latest React with concurrent features
 - **TypeScript**: Full application strict type checking
@@ -54,6 +57,15 @@ telos/
 - **React Flow**: Visual workflow builder components
 - **Zustand**: Lightweight state management
 - **React Hook Form + Zod**: Form handling and validation
+
+#### Mobile Application (React Native)
+
+- **React Native 0.80.2**: Cross-platform mobile development
+- **React 19**: Latest React with concurrent features
+- **TypeScript**: Full application strict type checking
+- **Metro**: JavaScript bundler for React Native
+- **Jest**: Testing framework with React Native testing utilities
+- **ESLint + Prettier**: Code formatting and linting
 
 ### 3.2 Backend Stack
 
@@ -82,7 +94,7 @@ telos/
 ### 4.1 Frontend Development
 
 ```bash
-# Development
+# Web Development
 pnpm web:dev                    # Start dev server on port 8800
 pnpm --filter ./apps/web dev    # Alternative dev command
 
@@ -94,6 +106,13 @@ pnpm --filter ./apps/web start  # Start production server
 pnpm --filter ./apps/web lint      # ESLint checks
 pnpm --filter ./apps/web lint:fix  # Auto-fix lint issues
 pnpm --filter ./apps/web format    # Prettier formatting
+
+# Mobile Development
+pnpm --filter ./apps/mobile start    # Start Metro bundler
+pnpm --filter ./apps/mobile android  # Run on Android
+pnpm --filter ./apps/mobile ios      # Run on iOS
+pnpm --filter ./apps/mobile test     # Run mobile tests
+pnpm --filter ./apps/mobile lint     # ESLint checks for mobile
 ```
 
 ### 4.2 Backend Services
@@ -133,6 +152,11 @@ pnpm workflow-service:dev  # Start workflow service with hot reload
 pnpm api-gateway:dev       # Start API gateway with hot reload
 pnpm registry:dev          # Start service registry with hot reload
 
+# Mobile development
+pnpm mobile:start          # Start Metro bundler
+pnpm mobile:android        # Run on Android
+pnpm mobile:ios            # Run on iOS
+
 # Git hooks
 pnpm prepare              # Install Husky hooks
 ```
@@ -149,11 +173,20 @@ pnpm prepare              # Install Husky hooks
 
 ## 5. Module Design
 
-### 5.1 Frontend Modules (apps/web)
+### 5.1 Frontend Modules
+
+#### Web Application (apps/web)
 
 - App Router: Organize code by page routes, support dynamic routing and SSR
 - Component Library: Follows atomic design (atomic, molecular, organism)
 - API Services: Use tRPC or REST to call backend, integrate React Query for data caching
+
+#### Mobile Application (apps/mobile)
+
+- Cross-platform mobile app for iOS and Android
+- Native navigation and platform-specific UI components
+- Shared business logic with web application
+- Offline-first architecture with local data synchronization
 
 ### 5.2 Backend Modules
 
@@ -180,12 +213,22 @@ pnpm prepare              # Install Husky hooks
 
 ### 6.1 Development Environment
 
-- Frontend:
+- Web Frontend:
 
   ```bash
   cd apps/web
   pnpm install
   pnpm dev
+  ```
+
+- Mobile Frontend:
+
+  ```bash
+  cd apps/mobile
+  pnpm install
+  pnpm start    # Start Metro bundler
+  pnpm android  # Run on Android (in another terminal)
+  pnpm ios      # Run on iOS (in another terminal)
   ```
 
 - Backend:
@@ -211,6 +254,7 @@ pnpm prepare              # Install Husky hooks
 ### 7.1 Environment Variables
 
 - **Backend**: Each microservice has a `.env` file in its root directory for service-specific configurations:
+
   - `PORT`: Service port number
   - `SERVICE_NAME`: Service identifier for logging and registration
   - `REGISTRY_URL`: Service registry endpoint (e.g., `http://localhost:8891`)
@@ -228,6 +272,7 @@ pnpm prepare              # Install Husky hooks
 ### 7.3 Service Registration
 
 All microservices automatically register with the service registry on startup:
+
 - **Registry endpoint**: `/api/register` (not `/register`)
 - **Service info**: Includes name, address, port, tags, and metadata
 - **Health checks**: Built-in health check endpoints at `/health`
@@ -287,6 +332,7 @@ If microservices fail to register with the registry, check:
 ### 10.3 Port Conflicts
 
 Default ports for each service:
+
 - Frontend (web): `8800`
 - Api-Gateway: `8890`
 - Registry: `8891`
