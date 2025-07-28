@@ -14,7 +14,7 @@ function CustomLink({
   className = '',
 }: CustomLinkProps) {
   return (
-    <CustomLink href={href} target={target} className={className}>
+    <Link href={href} target={target} className={className}>
       {children}
     </Link>
   )

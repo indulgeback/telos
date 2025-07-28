@@ -15,7 +15,7 @@ import {
   Skeleton,
 } from '@/components/atoms'
 import { User, Settings, LogOut } from 'lucide-react'
-import Link from 'next/link'
+import { CustomLink } from './CustomLink'
 
 export function UserAvatar() {
   const { data: session, status } = useSession()
@@ -27,7 +27,7 @@ export function UserAvatar() {
   if (status === 'unauthenticated' || !session?.user) {
     return (
       <Button asChild variant='default' size='sm'>
-        <CustomLink href='/auth/signin'>登录</Link>
+        <CustomLink href='/auth/signin'>登录</CustomLink>
       </Button>
     )
   }
@@ -67,13 +67,13 @@ export function UserAvatar() {
           <CustomLink href='/profile' className='cursor-pointer'>
             <User className='mr-2 h-4 w-4' />
             个人资料
-          </Link>
+          </CustomLink>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <CustomLink href='/settings' className='cursor-pointer'>
             <Settings className='mr-2 h-4 w-4' />
             设置
-          </Link>
+          </CustomLink>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

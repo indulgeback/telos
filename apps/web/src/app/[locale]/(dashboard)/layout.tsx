@@ -1,23 +1,21 @@
 import { auth } from '@/auth'
-import { redirect } from 'next/navigation'
+import { redirect } from '@/i18n/navigation'
 import { ReactNode } from 'react'
 import { Navbar } from '@/components/organisms'
 
-interface DashboardLayoutProps {
+interface Iprops {
   children: ReactNode
-  params: {
-    locale?: string
-  }
+  params: Promise<{
+    locale: string
+  }>
 }
 
-export default async function DashboardLayout({
-  children,
-  params: { locale },
-}: DashboardLayoutProps) {
+export default async function DashboardLayout({ children, params }: Iprops) {
+  const { locale } = await params
   const session = await auth()
 
   if (!session) {
-    redirect(`/${locale}/auth/signin`)
+    redirect({ href: '/auth/signin', locale })
   }
 
   return (
