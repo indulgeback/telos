@@ -55,13 +55,13 @@ func GetDefaultRoutes() []proxy.RouteConfig {
 		{
 			Path:        "/api/auth",
 			ServiceName: "auth-service",
-			StripPrefix: true,
+			StripPrefix: false,
 			Timeout:     10,
 		},
 		{
 			Path:        "/api/users",
 			ServiceName: "user-service",
-			StripPrefix: true,
+			StripPrefix: false,
 			Timeout:     10,
 		},
 	}

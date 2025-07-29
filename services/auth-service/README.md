@@ -1,6 +1,6 @@
 # Auth Service
 
-认证服务，提供用户注册、登录和 JWT 认证功能。
+认证服务，提供用户登录、登出和信息同步功能。
 
 > 本服务基于 Gin 框架实现，专注于高效的用户认证与鉴权。
 
@@ -37,6 +37,7 @@ cp env.example .env
 services/auth-service/
 ├── cmd/           # 启动入口
 ├── internal/      # 业务逻辑、模型、控制器等
+├── docs/          # API 文档
 ├── go.mod
 └── README.md
 ```
@@ -56,11 +57,21 @@ pnpm run auth-service:run
 
 ## API 端点
 
-- `POST /api/v1/auth/register` - 用户注册
-- `POST /api/v1/auth/login` - 用户登录
+- `POST /api/auth/signin` - 用户登录
+- `POST /api/auth/signout` - 用户登出
+- `POST /api/auth/sync` - 同步用户信息
+
+## 功能特性
+
+- **用户登录**: 支持 OAuth 登录，自动创建或更新用户信息
+- **用户登出**: 安全的用户登出功能
+- **信息同步**: 从 JWT token 同步最新用户信息到数据库
+- **JWT 认证**: 基于 JWT 的无状态认证机制
+- **自动迁移**: 自动创建数据库表结构
 
 ## 注意事项
 
 - 请确保在生产环境中使用强密码和安全的 JWT 密钥
 - 数据库连接使用 SSL 禁用模式，生产环境建议启用 SSL
 - 服务会自动创建用户表结构
+- 详细的 API 文档请参考 `docs/AUTH_API.md`

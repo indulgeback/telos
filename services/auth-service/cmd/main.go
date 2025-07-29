@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/indulgeback/telos/pkg/tlog"
 	"github.com/indulgeback/telos/services/auth-service/internal/config"
@@ -13,7 +12,6 @@ import (
 	"github.com/indulgeback/telos/services/auth-service/internal/model"
 	"github.com/indulgeback/telos/services/auth-service/internal/repository"
 	"github.com/indulgeback/telos/services/auth-service/internal/routes"
-	"github.com/indulgeback/telos/services/auth-service/internal/service"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -111,7 +109,6 @@ func main() {
 
 	// 初始化服务
 	userRepo := repository.NewUserRepository(db)
-	authService := service.NewAuthService(userRepo, cfg.JWTSecret, 24*time.Hour)
 
 	// 设置路由
 	r := gin.Default()
@@ -123,19 +120,6 @@ func main() {
 	// 设置认证API路由
 	routes.SetupAuthRoutes(r, userRepo)
 
-	// 设置受保护的路由
-	routes.SetupProtectedRoutes(r)
-
-	// 兼容旧版本的注册和登录接口
-	authControllerV2 := controller.NewAuthControllerV2(authService)
-	api := r.Group("/api/")
-	{
-		auth := api.Group("/auth")
-		{
-			auth.POST("/register", authControllerV2.Register)
-			auth.POST("/login", authControllerV2.Login)
-		}
-	}
 	r.GET("/health", controller.HealthCheck)
 
 	// 启动服务器

@@ -7,7 +7,7 @@
 ## 基础信息
 
 - **服务名称**: auth-service
-- **基础 URL**: `http://localhost:8080/api/v1`
+- **基础 URL**: `http://localhost:8080/api`
 - **认证方式**: JWT Bearer Token
 
 ## API 接口
@@ -116,226 +116,40 @@ Authorization: Bearer <jwt_token>
 }
 ```
 
-### 4. 获取用户资料
-
-**接口**: `GET /auth/profile`
-
-**描述**: 获取当前用户的详细资料
-
-**请求头**:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
-**响应示例**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "github_user_123",
-      "email": "user@example.com",
-      "name": "张三",
-      "image": "https://avatar.url",
-      "provider": "github",
-      "lastLoginAt": "2024-01-15T10:30:00Z",
-      "createdAt": "2024-01-01T08:00:00Z",
-      "updatedAt": "2024-01-15T10:30:00Z"
-    }
-  },
-  "message": "获取用户资料成功"
-}
-```
-
-### 5. 刷新令牌
-
-**接口**: `POST /auth/refresh`
-
-**描述**: 刷新 JWT 访问令牌
-
-**请求头**:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
-**响应示例**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "user": {
-      "id": "github_user_123",
-      "email": "user@example.com",
-      "name": "张三",
-      "image": "https://avatar.url"
-    },
-    "token": "new_jwt_token_here",
-    "refreshToken": "new_refresh_token_here",
-    "expiresAt": "2024-01-16T10:30:00Z"
-  },
-  "message": "令牌刷新成功"
-}
-```
-
-### 6. 获取认证状态
-
-**接口**: `GET /auth/status`
-
-**描述**: 检查用户当前的认证状态
-
-**请求头**:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
-**响应示例**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "authenticated": true,
-    "user": {
-      "id": "github_user_123",
-      "email": "user@example.com",
-      "name": "张三",
-      "image": "https://avatar.url"
-    }
-  },
-  "message": "用户已认证"
-}
-```
-
-## 工具接口
-
-### 健康检查
-
-**接口**: `GET /health`
-
-**描述**: 服务健康检查
-
-**响应示例**:
-
-```json
-{
-  "status": "healthy",
-  "service": "auth-service",
-  "version": "1.0.0"
-}
-```
-
-### 服务信息
-
-**接口**: `GET /info`
-
-**描述**: 获取服务信息和可用端点
-
-**响应示例**:
-
-```json
-{
-  "service": "Telos Auth Service",
-  "version": "1.0.0",
-  "description": "认证服务，提供用户登录、登出和信息同步功能",
-  "endpoints": {
-    "auth": {
-      "signin": "POST /api/v1/auth/signin",
-      "signout": "POST /api/v1/auth/signout",
-      "sync": "POST /api/v1/auth/sync",
-      "profile": "GET /api/v1/auth/profile",
-      "refresh": "POST /api/v1/auth/refresh",
-      "status": "GET /api/v1/auth/status"
-    },
-    "health": "GET /api/v1/health",
-    "info": "GET /api/v1/info"
-  }
-}
-```
-
-## 错误响应
-
-所有接口在出错时都会返回统一的错误格式：
-
-```json
-{
-  "success": false,
-  "error": "错误描述信息"
-}
-```
-
-### 常见错误码
-
-- `400 Bad Request`: 请求参数错误
-- `401 Unauthorized`: 未认证或认证失败
-- `404 Not Found`: 用户不存在
-- `500 Internal Server Error`: 服务器内部错误
-
-## JWT Token 格式
-
-### Header
-
-```json
-{
-  "alg": "HS256",
-  "typ": "JWT"
-}
-```
-
-### Payload
-
-```json
-{
-  "sub": "github_user_123",
-  "email": "user@example.com",
-  "name": "张三",
-  "image": "https://avatar.url",
-  "iat": 1640995200,
-  "exp": 1641081600
-}
-```
-
 ## 使用示例
 
-### 使用 curl 测试
+### cURL 示例
 
 ```bash
 # 1. 用户登录
-curl -X POST http://localhost:8080/api/v1/auth/signin \
+curl -X POST http://localhost:8080/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{
     "id": "github_user_123",
     "email": "user@example.com",
     "name": "张三",
     "image": "https://avatar.url",
-    "provider": "github"
+    "provider": "github",
+    "accessToken": "oauth_access_token"
   }'
 
-# 2. 获取用户资料（需要JWT token）
-curl -X GET http://localhost:8080/api/v1/auth/profile \
+# 2. 同步用户信息（需要JWT token）
+curl -X POST http://localhost:8080/api/auth/sync \
   -H "Authorization: Bearer <your_jwt_token>"
 
-# 3. 同步用户信息
-curl -X POST http://localhost:8080/api/v1/auth/sync \
+# 3. 用户登出
+curl -X POST http://localhost:8080/api/auth/signout \
   -H "Authorization: Bearer <your_jwt_token>"
 
-# 4. 用户登出
-curl -X POST http://localhost:8080/api/v1/auth/signout \
-  -H "Authorization: Bearer <your_jwt_token>"
-
-# 5. 健康检查
-curl -X GET http://localhost:8080/api/v1/health
+# 4. 健康检查
+curl -X GET http://localhost:8080/api/health
 ```
 
-### 使用 JavaScript 测试
+### JavaScript 示例
 
 ```javascript
 // 用户登录
-const loginResponse = await fetch("/api/v1/auth/signin", {
+const loginResponse = await fetch("/api/auth/signin", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -346,76 +160,81 @@ const loginResponse = await fetch("/api/v1/auth/signin", {
     name: "张三",
     image: "https://avatar.url",
     provider: "github",
+    accessToken: "oauth_access_token",
   }),
 })
 
 const loginData = await loginResponse.json()
+const jwtToken = loginData.token // 从响应中获取JWT token
 
-// 获取用户资料
-const profileResponse = await fetch("/api/v1/auth/profile", {
-  headers: {
-    Authorization: `Bearer ${jwtToken}`,
-  },
-})
-
-const profileData = await profileResponse.json()
-
-// 用户登出
-const logoutResponse = await fetch("/api/v1/auth/signout", {
+// 同步用户信息
+const syncResponse = await fetch("/api/auth/sync", {
   method: "POST",
   headers: {
     Authorization: `Bearer ${jwtToken}`,
   },
 })
+
+const syncData = await syncResponse.json()
+
+// 用户登出
+const logoutResponse = await fetch("/api/auth/signout", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${jwtToken}`,
+  },
+})
+
+const logoutData = await logoutResponse.json()
 ```
 
-## 环境配置
+## 错误处理
 
-确保以下环境变量已正确配置：
+### 常见错误响应
 
-```env
-# JWT 密钥（与前端 NextAuth 相同）
-AUTH_SECRET=your-jwt-secret-key
+**400 Bad Request** - 请求参数错误
 
-# 数据库配置
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=telos
-DB_USER=postgres
-DB_PASSWORD=password
-
-# 服务配置
-PORT=8080
-SERVICE_NAME=auth-service
+```json
+{
+  "success": false,
+  "error": "请求数据格式错误: 缺少必需字段"
+}
 ```
 
-## 数据库表结构
+**401 Unauthorized** - 认证失败
 
-### users 表
+```json
+{
+  "success": false,
+  "error": "用户信息获取失败"
+}
+```
 
-```sql
-CREATE TABLE users (
-    id VARCHAR(255) PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255),
-    image VARCHAR(500),
-    provider VARCHAR(50) DEFAULT 'local',
-    last_login_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
+**404 Not Found** - 用户不存在
+
+```json
+{
+  "success": false,
+  "error": "用户不存在"
+}
+```
+
+**500 Internal Server Error** - 服务器内部错误
+
+```json
+{
+  "success": false,
+  "error": "用户创建失败"
+}
 ```
 
 ## 注意事项
 
-1. **JWT 密钥**: 确保 `AUTH_SECRET` 与前端 NextAuth 配置的密钥一致
-2. **用户 ID**: 使用 OAuth 提供商的用户 ID 作为主键，确保唯一性
-3. **密码字段**: OAuth 用户可能没有密码，该字段可为空
-4. **登录记录**: 每次登录都会更新 `last_login_at` 字段
-5. **信息同步**: `/auth/sync` 接口会根据 JWT token 中的信息更新数据库
-6. **错误处理**: 所有接口都有统一的错误响应格式
-7. **日志记录**: 所有操作都会记录详细的日志信息
+1. **JWT Token**: 登录成功后需要保存返回的 JWT token，用于后续的认证请求
+2. **用户创建**: 首次登录时会自动创建用户记录
+3. **信息同步**: sync 接口会从 JWT token 中获取最新用户信息并更新数据库
+4. **错误处理**: 所有接口都会返回统一的错误格式
+5. **日志记录**: 服务会记录所有操作的详细日志
 
 ---
 

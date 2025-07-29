@@ -24,7 +24,7 @@ func NewAuthAPIController(userRepo repository.UserRepository) *AuthAPIController
 }
 
 // SignIn 用户登录接口
-// POST /api/v1/auth/signin
+// POST /api/auth/signin
 func (ac *AuthAPIController) SignIn(c *gin.Context) {
 	var loginData struct {
 		ID          string `json:"id" binding:"required"`       // 用户ID
@@ -47,7 +47,7 @@ func (ac *AuthAPIController) SignIn(c *gin.Context) {
 	tlog.Info("用户登录请求", "user_id", loginData.ID, "email", loginData.Email, "provider", loginData.Provider, "client_ip", c.ClientIP())
 
 	// 检查用户是否存在，不存在则创建
-	user, err := ac.userRepo.GetUserByID(loginData.ID)
+	user, err := ac.userRepo.GetUserByEmail(loginData.Email)
 	if err != nil {
 		// 用户不存在，创建新用户
 		newUser := &model.User{
@@ -86,16 +86,6 @@ func (ac *AuthAPIController) SignIn(c *gin.Context) {
 		}
 	}
 
-	// TODO: 记录登录日志到数据库
-	// loginLog := &model.LoginLog{
-	//     UserID:    loginData.ID,
-	//     Provider:  loginData.Provider,
-	//     IP:        c.ClientIP(),
-	//     UserAgent: c.GetHeader("User-Agent"),
-	//     LoginAt:   time.Now(),
-	// }
-	// loginService.Create(loginLog)
-
 	tlog.Info("用户登录成功", "user_id", user.ID, "email", user.Email, "provider", loginData.Provider)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -117,7 +107,7 @@ func (ac *AuthAPIController) SignIn(c *gin.Context) {
 }
 
 // SignOut 用户登出接口
-// POST /api/v1/auth/signout
+// POST /api/auth/signout
 func (ac *AuthAPIController) SignOut(c *gin.Context) {
 	// 从JWT中间件获取用户信息
 	userID, userEmail, _, _, exists := middleware.GetUserFromContext(c)
@@ -131,18 +121,6 @@ func (ac *AuthAPIController) SignOut(c *gin.Context) {
 
 	tlog.Info("用户登出请求", "user_id", userID, "email", userEmail, "client_ip", c.ClientIP())
 
-	// TODO: 记录登出日志到数据库
-	// logoutLog := &model.LogoutLog{
-	//     UserID:   userID,
-	//     IP:       c.ClientIP(),
-	//     UserAgent: c.GetHeader("User-Agent"),
-	//     LogoutAt: time.Now(),
-	// }
-	// logoutService.Create(logoutLog)
-
-	// TODO: 可以在这里实现token黑名单机制
-	// tokenBlacklistService.AddToBlacklist(tokenString)
-
 	tlog.Info("用户登出成功", "user_id", userID, "email", userEmail)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -152,7 +130,7 @@ func (ac *AuthAPIController) SignOut(c *gin.Context) {
 }
 
 // SyncUser 同步用户信息接口
-// POST /api/v1/auth/sync
+// POST /api/auth/sync
 func (ac *AuthAPIController) SyncUser(c *gin.Context) {
 	// 从JWT中间件获取用户信息
 	userID, userEmail, userName, userImage, exists := middleware.GetUserFromContext(c)
@@ -226,122 +204,11 @@ func (ac *AuthAPIController) SyncUser(c *gin.Context) {
 	})
 }
 
-// GetProfile 获取用户资料接口
-// GET /api/v1/auth/profile
-func (ac *AuthAPIController) GetProfile(c *gin.Context) {
-	// 从JWT中间件获取用户信息
-	userID, userEmail, _, _, exists := middleware.GetUserFromContext(c)
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"error":   "用户信息获取失败",
-		})
-		return
-	}
-
-	tlog.Debug("获取用户资料请求", "user_id", userID, "email", userEmail, "client_ip", c.ClientIP())
-
-	// 从数据库获取用户信息
-	user, err := ac.userRepo.GetUserByID(userID)
-	if err != nil {
-		tlog.Error("获取用户信息失败", "error", err.Error(), "user_id", userID)
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"error":   "用户不存在",
-		})
-		return
-	}
-
+// HealthCheck 健康检查接口
+// GET /api/health
+func HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": gin.H{
-			"user": gin.H{
-				"id":          user.ID,
-				"email":       user.Email,
-				"name":        user.Username,
-				"image":       user.Image,
-				"provider":    user.Provider,
-				"lastLoginAt": user.LastLoginAt,
-				"createdAt":   user.CreatedAt,
-				"updatedAt":   user.UpdatedAt,
-			},
-		},
-		"message": "获取用户资料成功",
-	})
-}
-
-// RefreshToken 刷新访问令牌接口
-// POST /api/v1/auth/refresh
-func (ac *AuthAPIController) RefreshToken(c *gin.Context) {
-	// 从JWT中间件获取用户信息
-	userID, userEmail, _, _, exists := middleware.GetUserFromContext(c)
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"error":   "用户信息获取失败",
-		})
-		return
-	}
-
-	tlog.Debug("刷新令牌请求", "user_id", userID, "email", userEmail, "client_ip", c.ClientIP())
-
-	// 验证用户是否仍然存在
-	user, err := ac.userRepo.GetUserByID(userID)
-	if err != nil {
-		tlog.Error("获取用户信息失败", "error", err.Error(), "user_id", userID)
-		c.JSON(http.StatusNotFound, gin.H{
-			"success": false,
-			"error":   "用户不存在",
-		})
-		return
-	}
-
-	// TODO: 生成新的访问令牌
-	// newToken := jwtService.GenerateToken(userID, userEmail, userName, userImage)
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"user": gin.H{
-				"id":    user.ID,
-				"email": user.Email,
-				"name":  user.Username,
-				"image": user.Image,
-			},
-			"token":        "new_jwt_token_here",     // TODO: 实际生成的token
-			"refreshToken": "new_refresh_token_here", // TODO: 实际生成的refresh token
-			"expiresAt":    time.Now().Add(24 * time.Hour),
-		},
-		"message": "令牌刷新成功",
-	})
-}
-
-// GetAuthStatus 获取认证状态接口
-// GET /api/v1/auth/status
-func (ac *AuthAPIController) GetAuthStatus(c *gin.Context) {
-	// 从JWT中间件获取用户信息
-	userID, userEmail, userName, userImage, exists := middleware.GetUserFromContext(c)
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"error":   "用户未认证",
-		})
-		return
-	}
-
-	tlog.Debug("获取认证状态请求", "user_id", userID, "email", userEmail, "client_ip", c.ClientIP())
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
-			"authenticated": true,
-			"user": gin.H{
-				"id":    userID,
-				"email": userEmail,
-				"name":  userName,
-				"image": userImage,
-			},
-		},
-		"message": "用户已认证",
+		"message": "健康检查成功",
 	})
 }

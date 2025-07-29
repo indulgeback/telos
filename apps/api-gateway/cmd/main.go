@@ -54,19 +54,19 @@ func main() {
 		{
 			Path:        "/api/auth",
 			ServiceName: "auth-service",
-			StripPrefix: true,
+			StripPrefix: false,
 			Timeout:     10,
 		},
 		{
 			Path:        "/api/user",
 			ServiceName: "user-service",
-			StripPrefix: true,
+			StripPrefix: false,
 			Timeout:     10,
 		},
 		{
 			Path:        "/api/workflow",
 			ServiceName: "workflow-service",
-			StripPrefix: true,
+			StripPrefix: false,
 			Timeout:     10,
 		},
 	}
