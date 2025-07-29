@@ -241,10 +241,10 @@ export function HeroSection() {
 
   return (
     <section
-      className='relative overflow-hidden h-[200vh] w-full px-4 sm:px-6 lg:px-8 pt-20 pb-16 flex flex-col gap-10'
+      className='relative overflow-hidden h-[200vh] w-full px-4 sm:px-6 lg:px-8 mb-16 flex flex-col gap-10'
       id='hero'
     >
-      {/* 更明显的渐变+多层光斑背景层（HEX色值） */}
+      {/* 渐变+多层光斑背景层 */}
       <div className='absolute inset-0 pointer-events-none'>
         {/* 主色大光斑 */}
         <div
@@ -262,7 +262,9 @@ export function HeroSection() {
           className='absolute right-[-8vw] bottom-[-8vw] w-[40vw] h-[30vw] bg-[#5a7fae99] rounded-full blur-[100px] opacity-80'
         />
       </div>
-      <div className='p-4 md:pl-[10vw] backdrop-blur-xs z-9 h-[100vh]'>
+
+      {/* 首屏：标题与描述 */}
+      <div className='p-4 flex flex-col justify-center gap-8 backdrop-blur-xs z-9 h-[100vh]'>
         <Badge variant='secondary' className='mb-4'>
           <Zap className='h-4 w-4 mr-2' />
           Intelligent Workflow Orchestration
@@ -285,65 +287,54 @@ export function HeroSection() {
         >
           {t('description')}
         </p>
-      </div>
-      <div
-        ref={btnsRef}
-        className='flex flex-col sm:flex-row gap-4 justify-center z-10'
-      >
-        {session ? (
-          <>
-            <CustomLink href='/dashboard'>
-              <Button size='lg' className='group'>
-                进入仪表板
-                <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
-              </Button>
-            </CustomLink>
-            <CustomLink href='/workflows'>
-              <Button variant='outline' size='lg'>
-                查看工作流
-              </Button>
-            </CustomLink>
-          </>
-        ) : (
-          <>
-            <CustomLink href='/auth/signin'>
-              <Button size='lg' className='group'>
-                {t('cta.getStarted')}
-                <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
-              </Button>
-            </CustomLink>
-            <CustomLink
-              href='https://github.com/indulgeback/telos'
-              target='_blank'
-            >
-              <Button variant='outline' size='lg'>
-                <Github className='mr-2 h-4 w-4' />
-                GitHub
-              </Button>
-            </CustomLink>
-          </>
-        )}
+        <div
+          ref={btnsRef}
+          className='flex flex-col sm:flex-row gap-8 justify-center z-10'
+        >
+          {session ? (
+            <>
+              <CustomLink href='/dashboard'>
+                <Button size='lg' className='group'>
+                  进入仪表板
+                  <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
+                </Button>
+              </CustomLink>
+              <CustomLink href='/workflows'>
+                <Button variant='outline' size='lg'>
+                  查看工作流
+                </Button>
+              </CustomLink>
+            </>
+          ) : (
+            <>
+              <CustomLink href='/auth/signin'>
+                <Button size='lg' className='group'>
+                  {t('cta.getStarted')}
+                  <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
+                </Button>
+              </CustomLink>
+              <CustomLink
+                href='https://github.com/indulgeback/telos'
+                target='_blank'
+              >
+                <Button variant='outline' size='lg'>
+                  <Github className='mr-2 h-4 w-4' />
+                  GitHub
+                </Button>
+              </CustomLink>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* 用户欢迎信息 */}
-      {session && (
-        <div className='flex justify-center z-10'>
-          <div className='bg-primary/10 border border-primary/20 rounded-lg p-4 max-w-md backdrop-blur-sm'>
-            <p className='text-sm text-primary text-center'>
-              欢迎回来，{session.user?.name || session.user?.email}！
-            </p>
-          </div>
-        </div>
-      )}
-      <div className='w-full h-[100vh] z-10'>
-        <Flow
-          ref={flowRef}
-          className='w-full h-[100vh] z-10'
-          initialNodes={initialNodes}
-          initialEdges={initialEdges}
-          showBackground
-        />
-      </div>
+      {/* 流程图 Demo */}
+      <Flow
+        ref={flowRef}
+        className='w-full h-[100vh] z-10'
+        initialNodes={initialNodes}
+        initialEdges={initialEdges}
+        showBackground
+      />
     </section>
   )
 }
