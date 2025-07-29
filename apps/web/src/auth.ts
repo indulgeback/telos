@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import GitHub from 'next-auth/providers/github'
 import type { NextAuthConfig } from 'next-auth'
+import { apiClient } from '@/lib/api-client'
 
 // 扩展 NextAuth 类型
 declare module 'next-auth' {
@@ -16,10 +17,19 @@ declare module 'next-auth' {
   interface User {
     id: string
   }
+
+  interface JWT {
+    id?: string
+    accessToken?: string
+    provider?: string
+  }
 }
 
 // NextAuth 配置
 const authConfig: NextAuthConfig = {
+  // 密钥配置（NextAuth v5 中在顶层）
+  secret: process.env.AUTH_SECRET!,
+
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
@@ -29,7 +39,7 @@ const authConfig: NextAuthConfig = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 天
+    maxAge: 24 * 60 * 60, // 30 天
     updateAge: 24 * 60 * 60, // 24 小时更新一次
   },
   callbacks: {
@@ -40,6 +50,21 @@ const authConfig: NextAuthConfig = {
         token.email = user.email
         token.name = user.name
         token.image = user.image
+
+        // 首次登录时同步用户信息到后端
+        try {
+          await apiClient.syncUser({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            provider: account?.provider || 'unknown',
+          })
+          console.log('用户信息同步成功')
+        } catch (error) {
+          console.error('用户信息同步失败:', error)
+          // 不抛出错误，避免影响登录流程
+        }
       }
 
       // 保存账户信息（如 GitHub token）
@@ -52,14 +77,15 @@ const authConfig: NextAuthConfig = {
     },
     async session({ session, token }) {
       // 将 token 信息传递给客户端 session
-      if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.email = token.email as string
-        session.user.name = token.name as string
-        session.user.image = token.image as string
+      const sessionWithUser = session as any
+      if (token && sessionWithUser?.user) {
+        sessionWithUser.user.id = token.id as string
+        sessionWithUser.user.email = token.email
+        sessionWithUser.user.name = token.name
+        sessionWithUser.user.image = token.image
       }
 
-      return session
+      return sessionWithUser
     },
     async authorized({ auth, request: { nextUrl } }) {
       // 这个回调用于中间件中的认证检查
@@ -86,14 +112,51 @@ const authConfig: NextAuthConfig = {
   },
   // 事件回调
   events: {
-    async signIn({ user, account, profile }) {
-      console.log('用户登录:', {
-        user: user.email,
-        provider: account?.provider,
-      })
+    async signIn({ user, account }) {
+      try {
+        console.log('用户登录:', {
+          user: user.email,
+          provider: account?.provider,
+        })
+
+        // 调用后端登录接口
+        await apiClient.signIn({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          provider: account?.provider || 'unknown',
+          accessToken: account?.access_token,
+        })
+
+        console.log('后端登录接口调用成功')
+      } catch (error) {
+        console.error('后端登录接口调用失败:', error)
+        // 注意：这里不要抛出错误，否则会阻止用户登录
+      }
     },
-    async signOut({ session, token }) {
-      console.log('用户登出:', { user: session?.user?.email })
+    async signOut(message: any) {
+      try {
+        let userId: string | undefined
+
+        // NextAuth v5 中 signOut 事件的参数结构有所变化
+        if (message?.session?.user) {
+          userId = message.session.user.id
+          console.log('用户登出:', { user: message.session.user.email })
+        } else if (message?.token) {
+          userId = message.token.id
+          console.log('用户登出:', { user: message.token.email })
+        }
+
+        // 调用后端登出接口
+        if (userId) {
+          await apiClient.signOut(userId)
+          console.log('后端登出接口调用成功')
+        }
+      } catch (error) {
+        console.error('后端登出接口调用失败:', error)
+        // 注意：这里不要抛出错误，否则会影响用户体验
+      }
     },
   },
   // 启用调试模式（开发环境）

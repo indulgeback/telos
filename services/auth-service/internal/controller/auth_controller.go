@@ -10,15 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthController struct {
+type AuthControllerV2 struct {
 	authService service.AuthService
 }
 
-func NewAuthController(authService service.AuthService) *AuthController {
-	return &AuthController{authService: authService}
+func NewAuthControllerV2(authService service.AuthService) *AuthControllerV2 {
+	return &AuthControllerV2{authService: authService}
 }
 
-func (c *AuthController) Register(ctx *gin.Context) {
+func (c *AuthControllerV2) Register(ctx *gin.Context) {
 	var request struct {
 		Username string `json:"username" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
@@ -50,7 +50,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	})
 }
 
-func (c *AuthController) Login(ctx *gin.Context) {
+func (c *AuthControllerV2) Login(ctx *gin.Context) {
 	var request struct {
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`

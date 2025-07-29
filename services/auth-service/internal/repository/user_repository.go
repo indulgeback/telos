@@ -10,6 +10,8 @@ type UserRepository interface {
 	CreateUser(user *model.User) error
 	GetUserByEmail(email string) (*model.User, error)
 	GetUserByID(id string) (*model.User, error)
+	UpdateUser(user *model.User) error
+	DeleteUser(id string) error
 }
 
 type userRepository struct {
@@ -40,4 +42,12 @@ func (r *userRepository) GetUserByID(id string) (*model.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *userRepository) UpdateUser(user *model.User) error {
+	return r.db.Save(user).Error
+}
+
+func (r *userRepository) DeleteUser(id string) error {
+	return r.db.Delete(&model.User{}, "id = ?", id).Error
 }

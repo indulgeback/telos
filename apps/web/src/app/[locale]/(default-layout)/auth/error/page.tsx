@@ -11,7 +11,7 @@ import {
   Alert,
 } from '@/components/atoms'
 import { AlertCircle, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { CustomLink } from '@/components/molecules'
 
 const errorMessages: Record<string, string> = {
   Configuration: '服务器配置错误',
@@ -44,14 +44,14 @@ export default function AuthErrorPage() {
 
           <div className='space-y-2'>
             <Button asChild className='w-full'>
-              <CustomLink href='/auth/signin'>重新登录</Link>
+              <CustomLink href='/auth/signin'>重新登录</CustomLink>
             </Button>
 
             <Button variant='outline' asChild className='w-full'>
               <CustomLink href='/'>
                 <ArrowLeft className='mr-2 h-4 w-4' />
                 返回首页
-              </Link>
+              </CustomLink>
             </Button>
           </div>
 

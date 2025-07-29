@@ -12,6 +12,7 @@ import (
 	"github.com/indulgeback/telos/services/auth-service/internal/controller"
 	"github.com/indulgeback/telos/services/auth-service/internal/model"
 	"github.com/indulgeback/telos/services/auth-service/internal/repository"
+	"github.com/indulgeback/telos/services/auth-service/internal/routes"
 	"github.com/indulgeback/telos/services/auth-service/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -119,14 +120,20 @@ func main() {
 	r.Use(tlog.GinMiddleware(tlog.WithService("认证服务")))
 	r.Use(tlog.RequestIDMiddleware())
 
-	authController := controller.NewAuthController(authService)
+	// 设置认证API路由
+	routes.SetupAuthRoutes(r, userRepo)
 
-	api := r.Group("/api/v1")
+	// 设置受保护的路由
+	routes.SetupProtectedRoutes(r)
+
+	// 兼容旧版本的注册和登录接口
+	authControllerV2 := controller.NewAuthControllerV2(authService)
+	api := r.Group("/api/")
 	{
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", authController.Register)
-			auth.POST("/login", authController.Login)
+			auth.POST("/register", authControllerV2.Register)
+			auth.POST("/login", authControllerV2.Login)
 		}
 	}
 	r.GET("/health", controller.HealthCheck)
