@@ -41,6 +41,12 @@ export function UserAvatar() {
         .toUpperCase()
     : user.email?.[0]?.toUpperCase() || 'U'
 
+  const handleSignOut = async () => {
+    console.log('开始登出流程')
+    await signOut({ callbackUrl: '/' })
+    console.log('登出流程完成')
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -77,8 +83,8 @@ export function UserAvatar() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className='cursor-pointer text-red-600 focus:text-red-600'
-          onClick={() => signOut({ callbackUrl: '/' })}
+          className='cursor-pointer text-destructive focus:text-destructive/80'
+          onClick={handleSignOut}
         >
           <LogOut className='mr-2 h-4 w-4' />
           登出

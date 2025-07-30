@@ -1,43 +1,23 @@
-// 认证相关类型定义
+// NextAuth 相关类型定义
+import { DefaultSession } from 'next-auth'
 
-export interface UserData {
-  id: string
-  email?: string | null
-  name?: string | null
-  image?: string | null
-  provider: string
+// 扩展 NextAuth 的 Session 类型
+export interface ExtendedSession extends DefaultSession {
+  user: {
+    id: string
+    provider: string
+  } & DefaultSession['user']
 }
 
-export interface SignInData extends UserData {
-  accessToken?: string
-}
-
-export interface SignOutData {
-  userId: string
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean
-  data?: T
-  message?: string
-  error?: string
-}
-
-// 后端用户模型
-export interface BackendUser {
-  id: string
-  email: string
-  name?: string
-  avatar?: string
-  provider: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-// 后端认证响应
-export interface AuthResponse {
-  user: BackendUser
-  token?: string
-  refreshToken?: string
+// NextAuth 配置类型
+export interface AuthConfig {
+  providers: any[]
+  callbacks: {
+    jwt: (params: any) => any
+    session: (params: any) => any
+  }
+  pages: {
+    signIn: string
+    error: string
+  }
 }
