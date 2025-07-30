@@ -82,7 +82,7 @@ pnpm dev
 
 ## 项目结构
 
-```
+```plaintext
 apps/web/
 ├── src/
 │   ├── app/                    # Next.js App Router
