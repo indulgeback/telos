@@ -1,5 +1,5 @@
-const { translate } = require('bing-translate-api')
-const AutoTranslator = require('next-auto-translator')
+import AutoTranslator from 'next-auto-translator'
+import { translate } from 'bing-translate-api'
 
 async function translateText(text, _source, target) {
   const res = await translate(text, null, target)

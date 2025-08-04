@@ -2,6 +2,7 @@
   "name": "telos-web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev -p 8800",
     "dev:turbo": "next dev --turbopack -p 8801",
