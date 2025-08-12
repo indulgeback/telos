@@ -9,6 +9,7 @@ const withNextIntl = createNextIntlPlugin()
 
 const nextConfig: NextConfig = {
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  output: 'standalone', // 支持 Docker 部署
   webpack: (config, { dev }) => {
     if (dev) {
       config.plugins.push(

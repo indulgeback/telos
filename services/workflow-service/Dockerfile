@@ -1,4 +1,4 @@
-# 服务注册中心 Dockerfile
+# 工作流服务 Dockerfile
 FROM golang:1.24-alpine AS builder
 
 # 安装必要的系统依赖
@@ -8,13 +8,13 @@ RUN apk add --no-cache git ca-certificates tzdata
 WORKDIR /app
 
 # 复制 go mod 文件
-COPY apps/registry/go.mod apps/registry/go.sum ./
+COPY services/workflow-service/go.mod services/workflow-service/go.sum ./
 
 # 下载依赖
 RUN go mod download
 
 # 复制源代码
-COPY apps/registry/ ./
+COPY services/workflow-service/ ./
 
 # 构建应用
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/main.go
@@ -41,7 +41,7 @@ COPY --from=builder /app/.env* ./
 USER appuser
 
 # 暴露端口
-EXPOSE 8090
+EXPOSE 8083
 
 # 启动应用
 CMD ["./main"]

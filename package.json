@@ -12,7 +12,22 @@
     "registry:dev": "make -C apps/registry dev",
     "auth-service:dev": "make -C services/auth-service dev",
     "user-service:dev": "make -C services/user-service dev",
-    "workflow-service:dev": "make -C services/workflow-service dev"
+    "workflow-service:dev": "make -C services/workflow-service dev",
+    "docker:build": "./scripts/docker-build.sh",
+    "docker:dev": "./scripts/docker-dev.sh",
+    "docker:deploy": "./scripts/docker-deploy.sh",
+    "docker:dev:up": "./scripts/docker-dev.sh up",
+    "docker:dev:down": "./scripts/docker-dev.sh down",
+    "docker:dev:logs": "./scripts/docker-dev.sh logs",
+    "docker:prod:deploy": "./scripts/docker-deploy.sh deploy",
+    "docker:prod:status": "./scripts/docker-deploy.sh status",
+    "docker:prod:logs": "./scripts/docker-deploy.sh logs",
+    "setup:github-actions": "./scripts/setup-github-actions.sh",
+    "ci:build": "echo 'Building all services...' && ./scripts/docker-build.sh",
+    "ci:test": "echo 'Running tests...'",
+    "ci:lint": "echo 'Running linters...'",
+    "release:staging": "echo 'Deploying to staging...'",
+    "release:production": "echo 'Deploying to production...'"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

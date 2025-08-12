@@ -1,0 +1,307 @@
+name: 🚀 发布版本
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "发布版本 (例: v1.0.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "是否为预发布版本"
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/telos
+
+jobs:
+  # 创建发布版本
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ 确定版本信息
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            TAG="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "发布版本: ${VERSION}"
+
+      - name: 📝 生成变更日志
+        id: changelog
+        run: |
+          # 获取上一个标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            echo "## 🔄 变更内容" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            
+            # 获取提交信息
+            git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD >> CHANGELOG.md
+            
+            echo "" >> CHANGELOG.md
+            echo "**完整变更**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${{ steps.version.outputs.tag }}" >> CHANGELOG.md
+          else
+            echo "## 🎉 首次发布" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "这是 Telos 项目的首次发布版本。" >> CHANGELOG.md
+          fi
+
+          # 输出变更日志内容
+          cat CHANGELOG.md
+
+      - name: 🏷️ 创建 Git 标签
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: 📦 创建 GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+
+  # 构建和推送发布镜像
+  build-release-images:
+    needs: create-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service:
+          [
+            web,
+            mobile,
+            api-gateway,
+            registry,
+            auth-service,
+            user-service,
+            workflow-service,
+          ]
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🔐 登录到容器注册表
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ 提取元数据
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=raw,value=${{ needs.create-release.outputs.version }}
+            type=raw,value=latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: 🔧 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ 构建和推送发布镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service == 'api-gateway' || matrix.service == 'registry' && format('./apps/{0}/Dockerfile', matrix.service) || format('./services/{0}/Dockerfile', matrix.service) }}
+          target: ${{ matrix.service == 'mobile' && 'metro' || '' }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ needs.create-release.outputs.version }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VCS_REF=${{ github.sha }}
+
+  # 部署到生产环境
+  deploy-production:
+    needs: [create-release, build-release-images]
+    runs-on: ubuntu-latest
+    environment: production
+    if: ${{ !github.event.inputs.prerelease }}
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🚀 触发生产环境部署
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy.yml',
+              ref: '${{ needs.create-release.outputs.tag }}',
+              inputs: {
+                environment: 'production',
+                service: 'all',
+                image_tag: '${{ needs.create-release.outputs.version }}',
+                force_recreate: 'true'
+              }
+            });
+
+  # 更新文档
+  update-docs:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝 更新版本文档
+        run: |
+          # 更新 README.md 中的版本信息
+          sed -i "s/Version-[^-]*-/Version-${{ needs.create-release.outputs.version }}-/" README.md
+
+          # 更新 package.json 版本
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${{ needs.create-release.outputs.version }}\"/" package.json
+
+          # 更新 apps/web/package.json 版本
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"${{ needs.create-release.outputs.version }}\"/" apps/web/package.json
+
+      - name: 📤 提交版本更新
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "没有需要提交的更改"
+          else
+            git add .
+            git commit -m "chore: update version to ${{ needs.create-release.outputs.version }}"
+            git push origin main
+          fi
+
+  # 通知发布
+  notify-release:
+    needs: [create-release, build-release-images, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: 📢 发布通知
+        run: |
+          echo "## 🚀 发布完成" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**版本**: ${{ needs.create-release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**标签**: ${{ needs.create-release.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**发布时间**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "**构建状态**:" >> $GITHUB_STEP_SUMMARY
+          echo "- 镜像构建: ${{ needs.build-release-images.result == 'success' && '✅ 成功' || '❌ 失败' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 生产部署: ${{ needs.deploy-production.result == 'success' && '✅ 成功' || needs.deploy-production.result == 'skipped' && '⏭️ 跳过' || '❌ 失败' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "**镜像地址**:" >> $GITHUB_STEP_SUMMARY
+          echo "- Web: \`${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:${{ needs.create-release.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- API Gateway: \`${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api-gateway:${{ needs.create-release.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Auth Service: \`${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-auth-service:${{ needs.create-release.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "**发布链接**: https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+
+      # 可选: 发送 Slack 通知
+      - name: 📱 发送 Slack 通知
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"🚀 Telos ${{ needs.create-release.outputs.version }} 发布成功！\",
+              \"attachments\": [{
+                \"color\": \"good\",
+                \"fields\": [{
+                  \"title\": \"版本\",
+                  \"value\": \"${{ needs.create-release.outputs.version }}\",
+                  \"short\": true
+                }, {
+                  \"title\": \"发布链接\",
+                  \"value\": \"https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.tag }}\",
+                  \"short\": true
+                }]
+              }]
+            }" \
+            $SLACK_WEBHOOK_URL
+
+  # 清理旧版本
+  cleanup-old-versions:
+    needs: [create-release, build-release-images]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: 🧹 清理旧的预发布版本
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            // 保留最新的 5 个预发布版本
+            const prereleases = releases.filter(r => r.prerelease).slice(5);
+
+            for (const release of prereleases) {
+              console.log(`删除旧的预发布版本: ${release.tag_name}`);
+              
+              try {
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.id
+                });
+                
+                // 删除对应的标签
+                await github.rest.git.deleteRef({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: `tags/${release.tag_name}`
+                });
+              } catch (error) {
+                console.log(`删除失败: ${error.message}`);
+              }
+            }

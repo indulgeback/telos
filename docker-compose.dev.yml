@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  # 数据库服务
+  postgres:
+    image: postgres:15-alpine
+    container_name: telos-postgres-dev
+    environment:
+      POSTGRES_DB: telos_dev
+      POSTGRES_USER: telos
+      POSTGRES_PASSWORD: telos123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - telos-dev-network
+
+  # Redis 缓存服务
+  redis:
+    image: redis:7-alpine
+    container_name: telos-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - telos-dev-network
+
+  # 数据库管理工具
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: telos-pgadmin-dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@telos.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - telos-dev-network
+
+  # Redis 管理工具
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: telos-redis-commander-dev
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - telos-dev-network
+
+networks:
+  telos-dev-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
