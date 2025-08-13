@@ -7,31 +7,28 @@ import { auth } from './auth'
 const intlMiddleware = createIntlMiddleware(routing)
 
 // 定义需要认证保护的路径（不包含语言前缀）
-const protectedPaths = [
-  '/dashboard',
-  '/profile', 
-  '/workflows',
-  '/settings'
-]
+const protectedPaths = ['/dashboard', '/profile', '/workflows', '/settings']
 
 // 定义认证相关路径（不需要保护）
 const authPaths = [
   '/auth/signin',
-  '/auth/signup', 
+  '/auth/signup',
   '/auth/error',
-  '/auth/signout'
+  '/auth/signout',
 ]
 
 // 检查路径是否需要认证保护
 function isProtectedPath(pathname: string): boolean {
   // 移除语言前缀来检查路径
-  const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?/, '') || '/'
+  const pathWithoutLocale =
+    pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?/, '') || '/'
   return protectedPaths.some(path => pathWithoutLocale.startsWith(path))
 }
 
 // 检查是否为认证相关路径
 function isAuthPath(pathname: string): boolean {
-  const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?/, '') || '/'
+  const pathWithoutLocale =
+    pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?/, '') || '/'
   return authPaths.some(path => pathWithoutLocale.startsWith(path))
 }
 
@@ -39,7 +36,7 @@ function isAuthPath(pathname: string): boolean {
 function getLocaleFromPathname(pathname: string): string | null {
   const segments = pathname.split('/')
   const potentialLocale = segments[1]
-  
+
   if (potentialLocale && routing.locales.includes(potentialLocale as any)) {
     return potentialLocale
   }
@@ -48,53 +45,53 @@ function getLocaleFromPathname(pathname: string): string | null {
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
+
   // 1. 首先让 next-intl 处理国际化路由
   // 这一步会处理语言前缀的重定向和路由匹配
   const intlResponse = intlMiddleware(request)
-  
+
   // 如果 intl 中间件返回重定向，我们需要先处理它
   if (intlResponse && intlResponse.status !== 200) {
     return intlResponse
   }
-  
+
   // 2. 获取处理后的路径（可能已经被 intl 中间件修改）
   const processedPathname = intlResponse?.headers.get('x-pathname') || pathname
-  
+
   // 3. 现在处理认证逻辑
   try {
     const session = await auth()
-    const currentLocale = getLocaleFromPathname(pathname) || routing.defaultLocale
-    
+    const currentLocale =
+      getLocaleFromPathname(pathname) || routing.defaultLocale
+
     // 检查是否为受保护的路径
     if (isProtectedPath(pathname)) {
       if (!session) {
         // 构建带语言前缀的登录页面 URL
-        const signInPath = currentLocale === routing.defaultLocale 
-          ? '/auth/signin' 
-          : `/${currentLocale}/auth/signin`
-        
+        const signInPath =
+          currentLocale === routing.defaultLocale
+            ? '/auth/signin'
+            : `/${currentLocale}/auth/signin`
+
         const signInUrl = new URL(signInPath, request.url)
         signInUrl.searchParams.set('callbackUrl', request.url)
-        
+
         return NextResponse.redirect(signInUrl)
       }
     }
-    
+
     // 如果已认证用户访问登录页，重定向到首页
     if (session && isAuthPath(pathname)) {
-      const homePath = currentLocale === routing.defaultLocale 
-        ? '/' 
-        : `/${currentLocale}`
-      
+      const homePath =
+        currentLocale === routing.defaultLocale ? '/' : `/${currentLocale}`
+
       return NextResponse.redirect(new URL(homePath, request.url))
     }
-    
   } catch (error) {
     // 认证检查失败时，记录错误但不阻止请求
     console.error('认证中间件错误:', error)
   }
-  
+
   // 4. 返回 intl 中间件的响应，或者继续处理请求
   return intlResponse || NextResponse.next()
 }

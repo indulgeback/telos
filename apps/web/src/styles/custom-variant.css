@@ -16,7 +16,7 @@
   &:hover {
     &::after {
       left: 120%;
-      transition: left .5s ease-in-out;
+      transition: left 0.5s ease-in-out;
     }
   }
 }
