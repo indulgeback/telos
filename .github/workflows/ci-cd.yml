@@ -73,16 +73,16 @@ jobs:
       - name: 📥 检出代码
         uses: actions/checkout@v4
 
-      - name: 📦 设置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
       - name: 📦 设置 pnpm
         uses: pnpm/action-setup@v2
         with:
           version: latest
+
+      - name: 📦 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
 
       - name: 📦 设置 Go
         uses: actions/setup-go@v4
