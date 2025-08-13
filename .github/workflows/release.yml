@@ -1,4 +1,4 @@
-name: 🚀 发布版本
+name: 🚀 Release Version
 
 on:
   push:

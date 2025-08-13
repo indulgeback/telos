@@ -1,4 +1,4 @@
-name: 🐳 构建和推送 Docker 镜像
+name: 🐳 Build and Push Docker Images
 
 on:
   workflow_dispatch:

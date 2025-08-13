@@ -1,4 +1,4 @@
-name: 🔄 CI/CD 流水线
+name: 🔄 CI/CD Pipeline
 
 on:
   push:

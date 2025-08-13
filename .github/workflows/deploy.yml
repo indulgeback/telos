@@ -1,4 +1,4 @@
-name: 🚀 部署到服务器
+name: 🚀 Deploy to Server
 
 on:
   workflow_dispatch:
