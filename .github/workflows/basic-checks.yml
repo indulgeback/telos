@@ -27,7 +27,9 @@ jobs:
           cache: "pnpm"
 
       - name: 📦 安装依赖
-        run: pnpm install --frozen-lockfile
+        run: |
+          cd apps/web
+          pnpm install --frozen-lockfile
 
       - name: 🔍 检查 Web 应用
         run: |
