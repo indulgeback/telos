@@ -274,10 +274,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-
 # Kubernetes
 *.kubeconfig
 
@@ -343,11 +339,6 @@ coverage/
 # Documentation build
 docs/_build/
 docs/build/
-
-# Package managers
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Editor directories and files
 .vscode/
