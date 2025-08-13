@@ -27,7 +27,9 @@
     "ci:test": "echo 'Running tests...'",
     "ci:lint": "echo 'Running linters...'",
     "release:staging": "echo 'Deploying to staging...'",
-    "release:production": "echo 'Deploying to production...'"
+    "release:production": "echo 'Deploying to production...'",
+    "stat:front": "npx cloc --include-lang=JavaScript,TypeScript,SCSS,CSS --exclude-dir='node_modules,dist,build,.next,vendor' .",
+    "stat:back": "npx cloc --include-lang=go --exclude-dir='node_modules,dist,build,.next,vendor' ."
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
