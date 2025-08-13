@@ -1,0 +1,144 @@
+name: ✅ Basic Checks
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+  GO_VERSION: "1.24"
+  PNPM_VERSION: "latest"
+
+jobs:
+  # 前端基础检查
+  frontend-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📦 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Web 应用代码检查
+        run: |
+          cd apps/web
+          echo "运行 ESLint 检查..."
+          pnpm lint
+          echo "运行 Prettier 格式检查..."
+          pnpm format:check
+
+      - name: 🏗️ Web 应用构建测试
+        run: |
+          cd apps/web
+          echo "构建 Web 应用..."
+          pnpm build
+
+  # 后端基础检查
+  backend-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # 允许部分服务失败
+      matrix:
+        service:
+          - { name: "api-gateway", path: "apps/api-gateway" }
+          - { name: "registry", path: "apps/registry" }
+          - { name: "auth-service", path: "services/auth-service" }
+          - { name: "user-service", path: "services/user-service" }
+          - { name: "workflow-service", path: "services/workflow-service" }
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 设置 Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: 📦 缓存 Go 模块
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: 🔍 检查服务 - ${{ matrix.service.name }}
+        run: |
+          cd ${{ matrix.service.path }}
+
+          # 检查 go.mod 文件是否存在
+          if [[ ! -f "go.mod" ]]; then
+            echo "⚠️ go.mod 文件不存在，跳过 ${{ matrix.service.name }} 服务"
+            exit 0
+          fi
+
+          echo "检查 Go 模块..."
+          go mod download
+          go mod tidy
+
+          echo "运行 go fmt..."
+          if ! go fmt ./...; then
+            echo "❌ go fmt 检查失败"
+            exit 1
+          fi
+
+          echo "运行 go vet..."
+          if ! go vet ./...; then
+            echo "❌ go vet 检查失败"
+            exit 1
+          fi
+
+          echo "尝试构建..."
+          if [[ -d "cmd" ]]; then
+            if ! go build -v ./cmd/...; then
+              echo "❌ 构建失败"
+              exit 1
+            fi
+          else
+            echo "⚠️ 没有找到 cmd 目录，跳过构建"
+          fi
+
+          echo "✅ ${{ matrix.service.name }} 检查通过"
+
+  # 基础检查汇总
+  checks-summary:
+    runs-on: ubuntu-latest
+    needs: [frontend-checks, backend-checks]
+    if: always()
+    steps:
+      - name: 📊 检查结果汇总
+        run: |
+          echo "## ✅ 基础检查结果" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "| 检查类型 | 状态 |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 前端检查 | ${{ needs.frontend-checks.result == 'success' && '✅ 通过' || needs.frontend-checks.result == 'failure' && '❌ 失败' || '⏭️ 跳过' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 后端检查 | ${{ needs.backend-checks.result == 'success' && '✅ 通过' || needs.backend-checks.result == 'failure' && '❌ 失败' || '⏭️ 跳过' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.frontend-checks.result }}" == "success" && "${{ needs.backend-checks.result }}" == "success" ]]; then
+            echo "🎉 所有基础检查都通过了！" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ 部分检查失败，请查看详细日志。" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**说明**: 这是简化的基础检查，主要验证代码格式和构建。" >> $GITHUB_STEP_SUMMARY

@@ -60,7 +60,7 @@
 
 **触发规则**:
 
-- `develop` 分支 → 自动部署到 staging
+- `dev` 分支 → 自动部署到 staging
 - `main` 分支 → 自动部署到 production
 - Pull Request → 运行测试和检查
 
@@ -177,10 +177,10 @@ git add .
 git commit -m "feat: add new feature"
 git push origin feature/new-feature
 
-# 3. 创建 PR 到 develop
+# 3. 创建 PR 到 dev
 # → 自动触发测试
 
-# 4. 合并到 develop
+# 4. 合并到 dev
 # → 自动构建并部署到 staging
 
 # 5. 测试通过后合并到 main

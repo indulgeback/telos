@@ -2,14 +2,14 @@ name: 🔄 CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, dev]
     paths:
       - "apps/**"
       - "services/**"
       - "docker-compose*.yml"
       - "Dockerfile*"
   pull_request:
-    branches: [main, develop]
+    branches: [main, dev]
     paths:
       - "apps/**"
       - "services/**"
@@ -91,7 +91,7 @@ jobs:
 
       - name: 🔍 安装前端依赖
         if: needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.mobile == 'true'
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: 🔍 Web 应用代码检查
         if: needs.detect-changes.outputs.web == 'true'
@@ -99,6 +99,12 @@ jobs:
           cd apps/web
           pnpm lint
           pnpm format:check
+
+      - name: 🏗️ Web 应用构建测试
+        if: needs.detect-changes.outputs.web == 'true'
+        run: |
+          cd apps/web
+          pnpm build
 
       - name: 🔍 Go 服务代码检查
         if: |
@@ -118,10 +124,24 @@ jobs:
           for service in "${services[@]}"; do
             echo "检查 $service..."
             cd "$service"
+            
+            # 检查 go.mod 文件是否存在
+            if [[ ! -f "go.mod" ]]; then
+              echo "⚠️ go.mod 文件不存在，跳过 $service"
+              cd - > /dev/null
+              continue
+            fi
+            
             go mod tidy
             go fmt ./...
             go vet ./...
-            # go test ./... # 如果有测试的话
+            
+            # 尝试构建
+            if [[ -d "cmd" ]]; then
+              echo "构建 $service..."
+              go build -v ./cmd/...
+            fi
+            
             cd - > /dev/null
           done
 
@@ -206,7 +226,7 @@ jobs:
     if: |
       needs.detect-changes.outputs.any-service == 'true' && 
       github.event_name == 'push' && 
-      github.ref == 'refs/heads/develop'
+      github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -218,11 +238,11 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: 'deploy.yml',
-              ref: 'develop',
+              ref: 'dev',
               inputs: {
                 environment: 'staging',
                 service: 'all',
-                image_tag: 'develop',
+                image_tag: 'dev',
                 force_recreate: 'false'
               }
             });
