@@ -8,8 +8,22 @@ import { codeInspectorPlugin } from 'code-inspector-plugin'
 const withNextIntl = createNextIntlPlugin()
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   output: 'standalone', // 支持 Docker 部署
+  compress: true,
+  trailingSlash: true,
+  compiler: {
+    removeConsole: {
+      exclude:
+        process.env.NEXT_PUBLIC_NODE_ENV === 'dev'
+          ? ['log', 'warn', 'error']
+          : ['warn', 'error'],
+    },
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { dev }) => {
     if (dev) {
       config.plugins.push(

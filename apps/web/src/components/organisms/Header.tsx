@@ -19,6 +19,7 @@ import { Github, Menu } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
+import { Link } from '@/i18n/navigation'
 
 export function Header() {
   const t = useTranslations('Header')
@@ -48,7 +49,7 @@ export function Header() {
       <div className='px-4'>
         <div className='flex h-16 items-center justify-between'>
           {/* Logo */}
-          <a href='/' className='flex items-center space-x-2 cursor-pointer'>
+          <Link href='/' className='flex items-center space-x-2 cursor-pointer'>
             <Image
               src='/favicon.png'
               alt='Telos'
@@ -59,7 +60,7 @@ export function Header() {
             <span className='font-bold text-xl text-slate-900 dark:text-white'>
               Telos
             </span>
-          </a>
+          </Link>
 
           {/* 桌面导航 */}
           <NavigationMenu className='hidden md:flex items-center gap-3'>
