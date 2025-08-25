@@ -140,7 +140,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ matrix.service == 'api-gateway' || matrix.service == 'registry' && format('./apps/{0}/Dockerfile', matrix.service) || format('./services/{0}/Dockerfile', matrix.service) }}
+          file: ${{ (matrix.service == 'api-gateway' || matrix.service == 'registry') && format('./apps/{0}/Dockerfile', matrix.service) || format('./services/{0}/Dockerfile', matrix.service) }}
           target: ${{ matrix.service == 'mobile' && 'metro' || '' }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}

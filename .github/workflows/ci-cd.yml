@@ -81,13 +81,13 @@ jobs:
       - name: 📦 设置 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "pnpm"
 
       - name: 📦 设置 Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.24"
+          go-version: "1.24.4"
 
       - name: 🔍 安装前端依赖
         if: needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.mobile == 'true'
