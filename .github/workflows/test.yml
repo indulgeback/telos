@@ -35,19 +35,24 @@ jobs:
           cache: "pnpm"
 
       - name: 📦 安装依赖
-        run: pnpm install --frozen-lockfile
+        run: |
+          cd apps/${{ matrix.app }}
+          pnpm install --frozen-lockfile
 
       - name: 🔍 代码检查 - ${{ matrix.app }}
         run: |
-          pnpm --filter ./apps/${{ matrix.app }} lint
-          pnpm --filter ./apps/${{ matrix.app }} format:check
+          cd apps/${{ matrix.app }}
+          pnpm lint
+          pnpm format:check
 
       - name: 🏗️ 构建测试 - ${{ matrix.app }}
         run: |
-          pnpm --filter ./apps/${{ matrix.app }} build
+          cd apps/${{ matrix.app }}
+          pnpm build
 
       - name: 🧪 单元测试 - ${{ matrix.app }}
         run: |
+          cd apps/${{ matrix.app }}
           echo "单元测试暂未配置，跳过测试步骤"
 
   # 后端测试

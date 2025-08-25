@@ -91,18 +91,30 @@ jobs:
 
       - name: 🔍 安装前端依赖
         if: needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.mobile == 'true'
-        run: pnpm install --frozen-lockfile
+        run: |
+          if [[ "${{ needs.detect-changes.outputs.web }}" == "true" ]]; then
+            cd apps/web
+            pnpm install --frozen-lockfile
+            cd ../..
+          fi
+          if [[ "${{ needs.detect-changes.outputs.mobile }}" == "true" ]]; then
+            cd apps/mobile
+            pnpm install --frozen-lockfile
+            cd ../..
+          fi
 
       - name: 🔍 Web 应用代码检查
         if: needs.detect-changes.outputs.web == 'true'
         run: |
-          pnpm --filter ./apps/web lint
-          pnpm --filter ./apps/web format:check
+          cd apps/web
+          pnpm lint
+          pnpm format:check
 
       - name: 🏗️ Web 应用构建测试
         if: needs.detect-changes.outputs.web == 'true'
         run: |
-          pnpm --filter ./apps/web build
+          cd apps/web
+          pnpm build
 
       - name: 🔍 Go 服务代码检查
         if: |

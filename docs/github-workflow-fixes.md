@@ -36,15 +36,15 @@
 - **问题**: 一些npm scripts只是简单的echo命令，没有实际功能
 - **修复**: 更新为更明确的占位符消息，表明功能待实现
 
-### 5. pnpm monorepo配置问题 ✅ 🆕
+### 5. GitHub Actions前端依赖安装问题 ✅ 🆕
 
 - **问题**: `next: not found` 和 `node_modules missing` 错误
-- **根因**: 在子目录安装依赖导致workspace配置失效
-- **修复**: 改为从根目录安装依赖，使用 `pnpm --filter` 命令执行子项目任务
+- **根因**: 项目不是标准monorepo结构，各应用有独立的workspace配置
+- **修复**: 改回在各自的应用目录下安装依赖
 - **修复详情**:
-  - 从根目录执行 `pnpm install --frozen-lockfile` 安装所有workspace依赖
-  - 使用 `pnpm --filter ./apps/web lint` 而不是 `cd apps/web && pnpm lint`
-  - 确保所有子项目都能正确访问其依赖
+  - 恢复在 `apps/web` 目录下执行 `pnpm install --frozen-lockfile`
+  - 恢复使用 `cd apps/web && pnpm lint` 而不是 `pnpm --filter`
+  - 确保每个应用都在自己的目录下管理依赖
 - **影响文件**:
   - `.github/workflows/basic-checks.yml`
   - `.github/workflows/ci-cd.yml`
@@ -134,7 +134,7 @@
 | Node.js版本差异 | ✅ 已修复 | 中 |
 | Docker路径逻辑 | ✅ 已修复 | 高 |
 | 空npm命令 | ✅ 已优化 | 低 |
-| pnpm monorepo配置 | ✅ 已修复 | 高 |
+| 前端依赖安装 | ✅ 已修复 | 高 |
 | workflow-service middleware | ✅ 已修复 | 高 |
 
 所有关键问题已修复，GitHub工作流现在应该能够正常运行。建议进行一次完整的CI/CD测试来验证修复效果。
