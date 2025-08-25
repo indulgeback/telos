@@ -39,18 +39,15 @@ jobs:
 
       - name: 🔍 代码检查 - ${{ matrix.app }}
         run: |
-          cd apps/${{ matrix.app }}
-          pnpm lint
-          pnpm format:check
+          pnpm --filter ./apps/${{ matrix.app }} lint
+          pnpm --filter ./apps/${{ matrix.app }} format:check
 
       - name: 🏗️ 构建测试 - ${{ matrix.app }}
         run: |
-          cd apps/${{ matrix.app }}
-          pnpm build
+          pnpm --filter ./apps/${{ matrix.app }} build
 
       - name: 🧪 单元测试 - ${{ matrix.app }}
         run: |
-          cd apps/${{ matrix.app }}
           echo "单元测试暂未配置，跳过测试步骤"
 
   # 后端测试

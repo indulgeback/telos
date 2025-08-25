@@ -28,18 +28,17 @@ jobs:
 
       - name: 📦 安装依赖
         run: |
-          cd apps/web
+          # 从根目录安装所有workspace依赖
           pnpm install --frozen-lockfile
 
       - name: 🔍 检查 Web 应用
         run: |
-          cd apps/web
           echo "🔍 运行 ESLint..."
-          pnpm lint
+          pnpm --filter ./apps/web lint
           echo "🎨 检查代码格式..."
-          pnpm format:check
+          pnpm --filter ./apps/web format:check
           echo "🏗️ 构建测试..."
-          pnpm build
+          pnpm --filter ./apps/web build
           echo "✅ Web 应用检查完成"
 
   # 后端检查

@@ -96,15 +96,13 @@ jobs:
       - name: 🔍 Web 应用代码检查
         if: needs.detect-changes.outputs.web == 'true'
         run: |
-          cd apps/web
-          pnpm lint
-          pnpm format:check
+          pnpm --filter ./apps/web lint
+          pnpm --filter ./apps/web format:check
 
       - name: 🏗️ Web 应用构建测试
         if: needs.detect-changes.outputs.web == 'true'
         run: |
-          cd apps/web
-          pnpm build
+          pnpm --filter ./apps/web build
 
       - name: 🔍 Go 服务代码检查
         if: |
