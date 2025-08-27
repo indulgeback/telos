@@ -101,7 +101,8 @@ jobs:
             
             echo "  🏗️ 构建测试..."
             if [[ -d "cmd" ]]; then
-              go build -v ./cmd/... || { echo "❌ 构建失败"; cd - > /dev/null; continue; }
+              # 修改构建命令，避免与已存在的cmd目录冲突
+              go build -o build_output ./cmd/... || { echo "❌ 构建失败"; cd - > /dev/null; continue; }
             fi
             
             echo "  ✅ $service 检查通过"

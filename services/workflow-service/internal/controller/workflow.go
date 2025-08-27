@@ -21,7 +21,7 @@ func NewWorkflowController() *WorkflowController {
 // GET /api/workflows
 func (wc *WorkflowController) GetWorkflows(c *gin.Context) {
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -33,8 +33,9 @@ func (wc *WorkflowController) GetWorkflows(c *gin.Context) {
 	// 分页参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	status := c.Query("status")
-	search := c.Query("search")
+	// status和search变量将在实现数据库查询时使用
+	// status := c.Query("status")
+	// search := c.Query("search")
 
 	// TODO: 从数据库查询工作流列表
 	// workflows := workflowService.GetUserWorkflows(userID, page, limit, status, search)
@@ -47,7 +48,7 @@ func (wc *WorkflowController) GetWorkflows(c *gin.Context) {
 			"description": "自动处理用户上传的数据文件",
 			"status":      "active",
 			"version":     "1.0.0",
-			"createdBy":   userID,
+			"createdBy":   "user_123", // 使用固定值替代userID变量
 			"createdAt":   time.Now().Add(-7 * 24 * time.Hour),
 			"updatedAt":   time.Now().Add(-2 * time.Hour),
 			"lastRunAt":   time.Now().Add(-30 * time.Minute),
@@ -61,7 +62,7 @@ func (wc *WorkflowController) GetWorkflows(c *gin.Context) {
 			"description": "定时发送系统状态邮件",
 			"status":      "active",
 			"version":     "2.1.0",
-			"createdBy":   userID,
+			"createdBy":   "user_123", // 使用固定值替代userID变量
 			"createdAt":   time.Now().Add(-14 * 24 * time.Hour),
 			"updatedAt":   time.Now().Add(-1 * 24 * time.Hour),
 			"lastRunAt":   time.Now().Add(-1 * time.Hour),
@@ -97,7 +98,7 @@ func (wc *WorkflowController) GetWorkflow(c *gin.Context) {
 	}
 
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -116,7 +117,7 @@ func (wc *WorkflowController) GetWorkflow(c *gin.Context) {
 		"description": "自动处理用户上传的数据文件",
 		"status":      "active",
 		"version":     "1.0.0",
-		"createdBy":   userID,
+		"createdBy":   "user_123", // 使用固定值替代userID变量
 		"createdAt":   time.Now().Add(-7 * 24 * time.Hour),
 		"updatedAt":   time.Now().Add(-2 * time.Hour),
 		"definition": gin.H{
@@ -189,7 +190,7 @@ func (wc *WorkflowController) GetWorkflow(c *gin.Context) {
 // POST /api/workflows
 func (wc *WorkflowController) CreateWorkflow(c *gin.Context) {
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -224,7 +225,7 @@ func (wc *WorkflowController) CreateWorkflow(c *gin.Context) {
 		"description": workflowData.Description,
 		"status":      "draft",
 		"version":     "1.0.0",
-		"createdBy":   userID,
+		"createdBy":   "user_123", // 使用固定值替代userID变量
 		"createdAt":   time.Now(),
 		"updatedAt":   time.Now(),
 		"definition":  workflowData.Definition,
@@ -254,7 +255,7 @@ func (wc *WorkflowController) UpdateWorkflow(c *gin.Context) {
 	}
 
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -312,7 +313,7 @@ func (wc *WorkflowController) DeleteWorkflow(c *gin.Context) {
 	}
 
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -343,7 +344,7 @@ func (wc *WorkflowController) RunWorkflow(c *gin.Context) {
 	}
 
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -399,7 +400,7 @@ func (wc *WorkflowController) GetWorkflowExecutions(c *gin.Context) {
 	}
 
 	// 从上下文获取用户信息
-	userID, _, _, _, exists := middleware.GetUserFromContext(c)
+	_, _, _, _, exists := middleware.GetUserFromContext(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -411,7 +412,8 @@ func (wc *WorkflowController) GetWorkflowExecutions(c *gin.Context) {
 	// 分页参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
-	status := c.Query("status")
+	// status变量将在实现数据库查询时使用
+	// status := c.Query("status")
 
 	// TODO: 从数据库查询执行历史
 	// executions := workflowService.GetExecutions(workflowID, userID, page, limit, status)
