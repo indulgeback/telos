@@ -46,7 +46,17 @@ function getLocaleFromPathname(pathname: string): string | null {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 1. 首先让 next-intl 处理国际化路由
+  // 1. HTTPS 强制重定向（生产环境）
+  if (
+    process.env.NODE_ENV === 'production' &&
+    request.headers.get('x-forwarded-proto') !== 'https'
+  ) {
+    const httpsUrl = new URL(request.url)
+    httpsUrl.protocol = 'https:'
+    return NextResponse.redirect(httpsUrl, 301)
+  }
+
+  // 2. 首先让 next-intl 处理国际化路由
   // 这一步会处理语言前缀的重定向和路由匹配
   const intlResponse = intlMiddleware(request)
 
@@ -92,8 +102,43 @@ export default async function middleware(request: NextRequest) {
     console.error('认证中间件错误:', error)
   }
 
-  // 4. 返回 intl 中间件的响应，或者继续处理请求
-  return intlResponse || NextResponse.next()
+  // 4. 添加安全头
+  const response = intlResponse || NextResponse.next()
+
+  // 设置安全头
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+
+  // 内容安全策略（CSP）
+  const cspHeader = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://apis.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' blob: data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://api.github.com https://accounts.google.com https://oauth2.googleapis.com",
+    "frame-src 'self' https://accounts.google.com",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+  ].join('; ')
+
+  response.headers.set('Content-Security-Policy', cspHeader)
+
+  // 严格传输安全（HSTS）- 仅在生产环境的 HTTPS 下设置
+  if (
+    process.env.NODE_ENV === 'production' &&
+    request.headers.get('x-forwarded-proto') === 'https'
+  ) {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains; preload'
+    )
+  }
+
+  return response
 }
 
 export const config = {

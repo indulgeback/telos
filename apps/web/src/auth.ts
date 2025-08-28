@@ -1,7 +1,22 @@
 import NextAuth from 'next-auth'
 import GitHub from 'next-auth/providers/github'
+import Google from 'next-auth/providers/google'
 import type { NextAuthConfig } from 'next-auth'
 import { apiClient } from '@/lib/api-client'
+import { SECURITY_CONFIG, validateSecurityConfig } from '@/lib/security'
+
+// 验证安全配置
+const securityValidation = validateSecurityConfig()
+if (!securityValidation.isValid) {
+  console.warn('安全配置验证警告:', securityValidation.errors)
+  // 只在真正的生产运行时（非构建时）抛出错误
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.VERCEL_ENV === 'production'
+  ) {
+    throw new Error('生产环境安全配置不完整，请检查环境变量')
+  }
+}
 
 // 扩展 NextAuth 类型
 declare module 'next-auth' {
@@ -34,14 +49,73 @@ const authConfig: NextAuthConfig = {
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      // 最小化权限范围
+      authorization: {
+        params: {
+          scope: SECURITY_CONFIG.OAUTH_SCOPES.GITHUB,
+        },
+      },
     }),
-    // 可以添加更多认证提供者
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // 最小化权限范围
+      authorization: {
+        params: {
+          scope: SECURITY_CONFIG.OAUTH_SCOPES.GOOGLE,
+        },
+      },
+    }),
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 30 天
-    updateAge: 24 * 60 * 60, // 24 小时更新一次
+    maxAge: SECURITY_CONFIG.SESSION.MAX_AGE,
+    updateAge: SECURITY_CONFIG.SESSION.UPDATE_AGE,
   },
+  // JWT 配置
+  jwt: {
+    maxAge: SECURITY_CONFIG.SESSION.MAX_AGE,
+  },
+  // Cookie 安全配置
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: SECURITY_CONFIG.COOKIES.HTTP_ONLY,
+        sameSite: SECURITY_CONFIG.COOKIES.SAME_SITE,
+        path: '/',
+        secure: SECURITY_CONFIG.COOKIES.SECURE,
+        domain:
+          process.env.NODE_ENV === 'production'
+            ? process.env.NEXT_PUBLIC_DOMAIN
+            : undefined,
+      },
+    },
+    callbackUrl: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.callback-url`,
+      options: {
+        httpOnly: SECURITY_CONFIG.COOKIES.HTTP_ONLY,
+        sameSite: SECURITY_CONFIG.COOKIES.SAME_SITE,
+        path: '/',
+        secure: SECURITY_CONFIG.COOKIES.SECURE,
+        domain:
+          process.env.NODE_ENV === 'production'
+            ? process.env.NEXT_PUBLIC_DOMAIN
+            : undefined,
+      },
+    },
+    csrfToken: {
+      name: `${process.env.NODE_ENV === 'production' ? '__Host-' : ''}next-auth.csrf-token`,
+      options: {
+        httpOnly: SECURITY_CONFIG.COOKIES.HTTP_ONLY,
+        sameSite: SECURITY_CONFIG.COOKIES.SAME_SITE,
+        path: '/',
+        secure: SECURITY_CONFIG.COOKIES.SECURE,
+      },
+    },
+  },
+  // 使用状态参数进行 CSRF 保护
+  useSecureCookies: process.env.NODE_ENV === 'production',
   callbacks: {
     async jwt({ token, user, account }) {
       // 首次登录时保存用户信息
@@ -60,9 +134,14 @@ const authConfig: NextAuthConfig = {
             image: user.image,
             provider: account?.provider || 'unknown',
           })
-          console.log('用户信息同步成功')
+          console.log(
+            `用户信息同步成功 - Provider: ${account?.provider}, User: ${user.email}`
+          )
         } catch (error) {
-          console.error('用户信息同步失败:', error)
+          console.error(
+            `用户信息同步失败 - Provider: ${account?.provider}, User: ${user.email}`,
+            error
+          )
           // 不抛出错误，避免影响登录流程
         }
       }
@@ -129,7 +208,9 @@ const authConfig: NextAuthConfig = {
           accessToken: account?.access_token,
         })
 
-        console.log('后端登录接口调用成功')
+        console.log(
+          `后端登录接口调用成功 - Provider: ${account?.provider}, User: ${user.email}`
+        )
       } catch (error) {
         console.error('后端登录接口调用失败:', error)
         // 注意：这里不要抛出错误，否则会阻止用户登录

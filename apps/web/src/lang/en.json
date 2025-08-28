@@ -92,5 +92,34 @@
     "features": "Core features",
     "techStack": "Tech stack",
     "quickStart": "Get started quickly"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to Telos Intelligent Workflow Platform",
+      "signInWithGoogle": "Sign in with Google",
+      "signInWithGitHub": "Sign in with GitHub",
+      "signInWithEmail": "Send login link (Coming Soon)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "Email Address",
+      "or": "or",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up now",
+      "loginFailed": "Login Failed",
+      "tryAgain": "Try Again",
+      "backToHome": "Back to Home"
+    },
+    "error": {
+      "title": "Authentication Error",
+      "subtitle": "An error occurred during the login process",
+      "oauthSignin": "Third-party login service is temporarily unavailable, please try again later",
+      "oauthCallback": "Login callback processing failed, please try again",
+      "oauthCreateAccount": "Account creation failed, please contact administrator",
+      "accessDenied": "Access denied, please check your permissions",
+      "verification": "Verification failed, please login again",
+      "oauthAccountNotLinked": "This email is already associated with another account, please use a different login method",
+      "unknownError": "An unknown error occurred, please try again",
+      "contactSupport": "If the problem persists, please contact technical support"
+    }
   }
 }

@@ -92,5 +92,34 @@
     "features": "コア特性",
     "techStack": "技術スタック",
     "quickStart": "迅速に習得する"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "おかえりなさい",
+      "subtitle": "Telos インテリジェントワークフロープラットフォームにサインイン",
+      "signInWithGoogle": "Google でサインイン",
+      "signInWithGitHub": "GitHub でサインイン",
+      "signInWithEmail": "ログインリンクを送信（近日公開）",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "メールアドレス",
+      "or": "または",
+      "noAccount": "アカウントをお持ちでないですか？",
+      "signUp": "今すぐ登録",
+      "loginFailed": "ログインに失敗しました",
+      "tryAgain": "再試行",
+      "backToHome": "ホームに戻る"
+    },
+    "error": {
+      "title": "認証エラー",
+      "subtitle": "ログイン処理中にエラーが発生しました",
+      "oauthSignin": "サードパーティログインサービスが一時的に利用できません。後でもう一度お試しください",
+      "oauthCallback": "ログインコールバック処理に失敗しました。再度お試しください",
+      "oauthCreateAccount": "アカウント作成に失敗しました。管理者にお問い合わせください",
+      "accessDenied": "アクセスが拒否されました。権限を確認してください",
+      "verification": "検証に失敗しました。再度ログインしてください",
+      "oauthAccountNotLinked": "このメールアドレスは既に他のアカウントに関連付けられています。別のログイン方法をお使いください",
+      "unknownError": "不明なエラーが発生しました。再度お試しください",
+      "contactSupport": "問題が続く場合は、技術サポートにお問い合わせください"
+    }
   }
 }

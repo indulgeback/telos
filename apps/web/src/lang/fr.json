@@ -92,5 +92,34 @@
     "features": "Caractéristiques principales",
     "techStack": "Pile technologique",
     "quickStart": "Démarrez rapidement"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bon retour",
+      "subtitle": "Connectez-vous à la plateforme de flux de travail intelligent Telos",
+      "signInWithGoogle": "Se connecter avec Google",
+      "signInWithGitHub": "Se connecter avec GitHub",
+      "signInWithEmail": "Envoyer le lien de connexion (Bientôt disponible)",
+      "emailPlaceholder": "votre@email.com",
+      "emailLabel": "Adresse e-mail",
+      "or": "ou",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "signUp": "S'inscrire maintenant",
+      "loginFailed": "Échec de la connexion",
+      "tryAgain": "Réessayer",
+      "backToHome": "Retour à l'accueil"
+    },
+    "error": {
+      "title": "Erreur d'authentification",
+      "subtitle": "Une erreur s'est produite lors du processus de connexion",
+      "oauthSignin": "Le service de connexion tiers est temporairement indisponible, veuillez réessayer plus tard",
+      "oauthCallback": "Le traitement du rappel de connexion a échoué, veuillez réessayer",
+      "oauthCreateAccount": "Échec de la création du compte, veuillez contacter l'administrateur",
+      "accessDenied": "Accès refusé, veuillez vérifier vos autorisations",
+      "verification": "Échec de la vérification, veuillez vous reconnecter",
+      "oauthAccountNotLinked": "Cet e-mail est déjà associé à un autre compte, veuillez utiliser une méthode de connexion différente",
+      "unknownError": "Une erreur inconnue s'est produite, veuillez réessayer",
+      "contactSupport": "Si le problème persiste, veuillez contacter le support technique"
+    }
   }
 }

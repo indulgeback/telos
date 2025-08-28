@@ -92,5 +92,34 @@
     "features": "核心特性",
     "techStack": "技术栈",
     "quickStart": "快速上手"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "欢迎回来",
+      "subtitle": "登录到 Telos 智能工作流平台",
+      "signInWithGoogle": "使用 Google 登录",
+      "signInWithGitHub": "使用 GitHub 登录",
+      "signInWithEmail": "发送登录链接（即将推出）",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "邮箱地址",
+      "or": "或者",
+      "noAccount": "还没有账户？",
+      "signUp": "立即注册",
+      "loginFailed": "登录失败",
+      "tryAgain": "重新登录",
+      "backToHome": "返回首页"
+    },
+    "error": {
+      "title": "认证错误",
+      "subtitle": "登录过程中发生了错误",
+      "oauthSignin": "第三方登录服务暂时不可用，请稍后重试",
+      "oauthCallback": "登录回调处理失败，请重新尝试",
+      "oauthCreateAccount": "创建账户失败，请联系管理员",
+      "accessDenied": "访问被拒绝，请检查您的权限",
+      "verification": "验证失败，请重新登录",
+      "oauthAccountNotLinked": "该邮箱已与其他账户关联，请使用其他登录方式",
+      "unknownError": "发生未知错误，请重试",
+      "contactSupport": "如果问题持续存在，请联系技术支持"
+    }
   }
 }
