@@ -92,5 +92,34 @@
     "features": "Sentrale funksjoner",
     "techStack": "Teknisk stabel",
     "quickStart": "Kom raskt i gang"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Velkommen tilbake",
+      "subtitle": "Logg inn på Telos Smart Workflow Platform",
+      "signInWithGoogle": "Logg på med Google",
+      "signInWithGitHub": "Logg på med GitHub",
+      "signInWithEmail": "Send påloggingslenke (kommer snart)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "E-postadresse",
+      "or": "eller",
+      "noAccount": "Har du ikke en konto ennå?",
+      "signUp": "Registrer deg nå",
+      "loginFailed": "Pålogging mislyktes",
+      "tryAgain": "Logg inn igjen",
+      "backToHome": "Tilbake til startsiden"
+    },
+    "error": {
+      "title": "Feil ved godkjenning",
+      "subtitle": "Det oppstod en feil under pålogging",
+      "oauthSignin": "Tredjeparts påloggingstjeneste er midlertidig utilgjengelig, prøv igjen senere",
+      "oauthCallback": "Hvis påloggingstilbakeringingen mislykkes, prøv igjen",
+      "oauthCreateAccount": "Hvis kontoopprettingen mislyktes, kontakter du administratoren din",
+      "accessDenied": "Tilgang nektes, vennligst sjekk tillatelsene dine",
+      "verification": "Hvis verifiseringen mislykkes, vennligst logg på igjen",
+      "oauthAccountNotLinked": "Denne e-postadressen er allerede knyttet til en annen konto, vennligst bruk en annen påloggingsmetode",
+      "unknownError": "Det oppstod en ukjent feil, prøv igjen",
+      "contactSupport": "Hvis problemet vedvarer, kontakt teknisk støtte"
+    }
   }
 }

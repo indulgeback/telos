@@ -95,31 +95,31 @@
   },
   "Auth": {
     "signIn": {
-      "title": "Bon retour",
-      "subtitle": "Connectez-vous à la plateforme de flux de travail intelligent Telos",
+      "title": "Bienvenue",
+      "subtitle": "Connectez-vous à la plateforme Telos Smart Workflow",
       "signInWithGoogle": "Se connecter avec Google",
       "signInWithGitHub": "Se connecter avec GitHub",
-      "signInWithEmail": "Envoyer le lien de connexion (Bientôt disponible)",
-      "emailPlaceholder": "votre@email.com",
-      "emailLabel": "Adresse e-mail",
+      "signInWithEmail": "Envoyer le lien de connexion (à venir)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "Adresse courriel",
       "or": "ou",
-      "noAccount": "Vous n'avez pas de compte ?",
-      "signUp": "S'inscrire maintenant",
+      "noAccount": "Vous n’avez pas encore de compte ?",
+      "signUp": "Inscrivez-vous maintenant",
       "loginFailed": "Échec de la connexion",
-      "tryAgain": "Réessayer",
-      "backToHome": "Retour à l'accueil"
+      "tryAgain": "Se reconnecter",
+      "backToHome": "Retour à l’accueil"
     },
     "error": {
-      "title": "Erreur d'authentification",
-      "subtitle": "Une erreur s'est produite lors du processus de connexion",
+      "title": "Erreurs d’authentification",
+      "subtitle": "Une erreur s’est produite lors de la connexion",
       "oauthSignin": "Le service de connexion tiers est temporairement indisponible, veuillez réessayer plus tard",
-      "oauthCallback": "Le traitement du rappel de connexion a échoué, veuillez réessayer",
-      "oauthCreateAccount": "Échec de la création du compte, veuillez contacter l'administrateur",
-      "accessDenied": "Accès refusé, veuillez vérifier vos autorisations",
-      "verification": "Échec de la vérification, veuillez vous reconnecter",
-      "oauthAccountNotLinked": "Cet e-mail est déjà associé à un autre compte, veuillez utiliser une méthode de connexion différente",
-      "unknownError": "Une erreur inconnue s'est produite, veuillez réessayer",
-      "contactSupport": "Si le problème persiste, veuillez contacter le support technique"
+      "oauthCallback": "Si le rappel de connexion échoue, veuillez réessayer",
+      "oauthCreateAccount": "Si la création du compte a échoué, contactez votre administrateur",
+      "accessDenied": "L’accès est refusé, veuillez vérifier vos autorisations",
+      "verification": "Si la vérification échoue, veuillez vous connecter à nouveau",
+      "oauthAccountNotLinked": "Cette adresse e-mail est déjà liée à un autre compte, veuillez utiliser une autre méthode de connexion",
+      "unknownError": "Une erreur inconnue s’est produite, veuillez réessayer",
+      "contactSupport": "Si le problème persiste, contactez le support technique"
     }
   }
 }

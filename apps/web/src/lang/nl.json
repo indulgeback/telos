@@ -92,5 +92,34 @@
     "features": "Kernfuncties",
     "techStack": "Technische stapel",
     "quickStart": "Snel aan de slag"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Setup voortzetten",
+      "subtitle": "Log in op het Telos Smart Workflow Platform",
+      "signInWithGoogle": "Inloggen met Google",
+      "signInWithGitHub": "Aanmelden met GitHub",
+      "signInWithEmail": "Inloglink verzenden (binnenkort beschikbaar)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "E-mailadres",
+      "or": "of",
+      "noAccount": "Heb je nog geen account?",
+      "signUp": "Registreer nu",
+      "loginFailed": "Inloggen mislukt",
+      "tryAgain": "Log opnieuw in",
+      "backToHome": "Terug naar home"
+    },
+    "error": {
+      "title": "Authenticatie fouten",
+      "subtitle": "Er is een fout opgetreden tijdens het inloggen",
+      "oauthSignin": "De inlogservice van derden is tijdelijk niet beschikbaar, probeer het later opnieuw",
+      "oauthCallback": "Als het terugbellen van het inloggen mislukt, probeer het dan opnieuw",
+      "oauthCreateAccount": "Als het maken van het account is mislukt, neemt u contact op met uw beheerder",
+      "accessDenied": "Toegang is geweigerd, controleer uw toestemmingen",
+      "verification": "Als de verificatie mislukt, log dan opnieuw in",
+      "oauthAccountNotLinked": "Dit e-mailadres is al gekoppeld aan een ander account, gebruik een andere inlogmethode",
+      "unknownError": "Er is een onbekende fout opgetreden, probeer het opnieuw",
+      "contactSupport": "Als het probleem zich blijft voordoen, neem dan contact op met de technische ondersteuning"
+    }
   }
 }

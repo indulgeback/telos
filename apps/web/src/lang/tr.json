@@ -92,5 +92,34 @@
     "features": "Temel özellikler",
     "techStack": "Teknoloji yığını",
     "quickStart": "Hızlı bir başlangıç yapın"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Tekrar hoş geldiniz",
+      "subtitle": "Telos Akıllı İş Akışı Platformu'na giriş yapın",
+      "signInWithGoogle": "Google ile giriş yap",
+      "signInWithGitHub": "GitHub ile oturum açın",
+      "signInWithEmail": "Giriş bağlantısı gönder (çok yakında)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "E-posta adresi",
+      "or": "veya",
+      "noAccount": "Henüz bir üyeliğniz yok mu?",
+      "signUp": "Şimdi kaydolun",
+      "loginFailed": "Oturum açma başarısız oldu",
+      "tryAgain": "Tekrar giriş yap",
+      "backToHome": "Eve dönüş"
+    },
+    "error": {
+      "title": "Kimlik doğrulama hataları",
+      "subtitle": "Oturum açma sırasında bir hata oluştu",
+      "oauthSignin": "Üçüncü taraf oturum açma hizmeti geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin",
+      "oauthCallback": "Oturum açma geri araması başarısız olursa, lütfen tekrar deneyin",
+      "oauthCreateAccount": "Hesap oluşturma işlemi başarısız olursa yöneticinizle iletişime geçin",
+      "accessDenied": "Erişim reddedildi, lütfen izinlerinizi kontrol edin",
+      "verification": "Doğrulama başarısız olursa, lütfen tekrar giriş yapın",
+      "oauthAccountNotLinked": "Bu e-posta adresi zaten başka bir hesaba bağlı, lütfen farklı bir giriş yöntemi kullanın",
+      "unknownError": "Bilinmeyen bir hata oluştu, lütfen tekrar deneyin",
+      "contactSupport": "Sorun devam ederse teknik desteğe başvurun"
+    }
   }
 }

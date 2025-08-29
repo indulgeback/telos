@@ -92,5 +92,34 @@
     "features": "Caratteristiche principali",
     "techStack": "Stack tecnologico",
     "quickStart": "Inizia rapidamente"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bentornato",
+      "subtitle": "Accedi alla piattaforma Telos Smart Workflow",
+      "signInWithGoogle": "Accedi con Google",
+      "signInWithGitHub": "Accedere con GitHub",
+      "signInWithEmail": "Invia il link di accesso (disponibile a breve)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "Indirizzo email",
+      "or": "o",
+      "noAccount": "Non hai ancora un account?",
+      "signUp": "Registrati ora",
+      "loginFailed": "Accesso non riuscito",
+      "tryAgain": "Accedi di nuovo",
+      "backToHome": "Torna alla home"
+    },
+    "error": {
+      "title": "Errori di autenticazione",
+      "subtitle": "Si è verificato un errore durante l'accesso",
+      "oauthSignin": "Il servizio di accesso di terze parti non è temporaneamente disponibile, riprova più tardi",
+      "oauthCallback": "Se la richiamata di accesso non riesce, riprova",
+      "oauthCreateAccount": "Se la creazione dell'account non è riuscita, contatta l'amministratore",
+      "accessDenied": "L'accesso è negato, controlla le tue autorizzazioni",
+      "verification": "Se la verifica non riesce, accedi nuovamente",
+      "oauthAccountNotLinked": "Questo indirizzo e-mail è già collegato a un altro account, si prega di utilizzare un metodo di accesso diverso",
+      "unknownError": "Si è verificato un errore sconosciuto, riprova",
+      "contactSupport": "Se il problema persiste, contattare l'assistenza tecnica"
+    }
   }
 }

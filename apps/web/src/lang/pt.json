@@ -92,5 +92,34 @@
     "features": "Características principais",
     "techStack": "Pilha de tecnologia",
     "quickStart": "Comece rapidamente"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bem-vindo de volta",
+      "subtitle": "Faça login na plataforma de fluxo de trabalho inteligente Telos",
+      "signInWithGoogle": "Fazer login com o Google",
+      "signInWithGitHub": "Entrar com GitHub",
+      "signInWithEmail": "Enviar link de login (em breve)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "Endereço eletrônico",
+      "or": "ou",
+      "noAccount": "Ainda não tem uma conta?",
+      "signUp": "Registre-se agora",
+      "loginFailed": "Falha no login",
+      "tryAgain": "Faça login novamente",
+      "backToHome": "Voltar para casa"
+    },
+    "error": {
+      "title": "Erros de autenticação",
+      "subtitle": "Ocorreu um erro durante o login",
+      "oauthSignin": "O serviço de login de terceiros está temporariamente indisponível, tente novamente mais tarde",
+      "oauthCallback": "Se o retorno de chamada de login falhar, tente novamente",
+      "oauthCreateAccount": "Se a criação da conta falhar, entre em contato com o administrador",
+      "accessDenied": "O acesso foi negado, verifique suas permissões",
+      "verification": "Se a verificação falhar, faça login novamente",
+      "oauthAccountNotLinked": "Este endereço de e-mail já está vinculado a outra conta, use um método de login diferente",
+      "unknownError": "Ocorreu um erro desconhecido, tente novamente",
+      "contactSupport": "Se o problema persistir, entre em contato com o suporte técnico"
+    }
   }
 }

@@ -92,5 +92,34 @@
     "features": "Podstawowe cechy",
     "techStack": "Stos technologiczny",
     "quickStart": "Szybkie rozpoczynanie pracy"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Witamy ponownie",
+      "subtitle": "Zaloguj się do platformy Telos Smart Workflow",
+      "signInWithGoogle": "Zaloguj się przez Google",
+      "signInWithGitHub": "Zaloguj się za pomocą usługi GitHub",
+      "signInWithEmail": "Wyślij link do logowania (wkrótce)",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "Adres e-mail",
+      "or": "lub",
+      "noAccount": "Nie masz jeszcze konta?",
+      "signUp": "Zarejestruj się teraz",
+      "loginFailed": "Logowanie nie powiodło się",
+      "tryAgain": "Zaloguj się ponownie",
+      "backToHome": "Powrót do strony głównej"
+    },
+    "error": {
+      "title": "Błędy uwierzytelniania",
+      "subtitle": "Wystąpił błąd podczas logowania",
+      "oauthSignin": "Usługa logowania innej firmy jest chwilowo niedostępna, spróbuj ponownie później",
+      "oauthCallback": "Jeśli wywołanie zwrotne logowania nie powiedzie się, spróbuj ponownie",
+      "oauthCreateAccount": "Jeśli utworzenie konta nie powiedzie się, skontaktuj się z administratorem",
+      "accessDenied": "Odmowa dostępu, sprawdź swoje uprawnienia",
+      "verification": "Jeśli weryfikacja się nie powiedzie, zaloguj się ponownie",
+      "oauthAccountNotLinked": "Ten adres e-mail jest już powiązany z innym kontem, użyj innej metody logowania",
+      "unknownError": "Wystąpił nieznany błąd, spróbuj ponownie",
+      "contactSupport": "Jeśli problem będzie się powtarzał, skontaktuj się z pomocą techniczną"
+    }
   }
 }

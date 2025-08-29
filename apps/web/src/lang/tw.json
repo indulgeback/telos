@@ -92,5 +92,34 @@
     "features": "核心特性",
     "techStack": "技術棧",
     "quickStart": "快速上手"
+  },
+  "Auth": {
+    "signIn": {
+      "title": "歡迎回來",
+      "subtitle": "登錄到 Telos 智慧工作流平臺",
+      "signInWithGoogle": "使用Google登錄",
+      "signInWithGitHub": "使用 GitHub 登錄",
+      "signInWithEmail": "傳送登入連結（即將推出）",
+      "emailPlaceholder": "your@email.com",
+      "emailLabel": "郵箱位址",
+      "or": "或者",
+      "noAccount": "還沒有帳戶？",
+      "signUp": "立即註冊",
+      "loginFailed": "登錄失敗",
+      "tryAgain": "重新登錄",
+      "backToHome": "返回首頁"
+    },
+    "error": {
+      "title": "認證錯誤",
+      "subtitle": "登錄過程中發生了錯誤",
+      "oauthSignin": "第三方登錄服務暫時不可用，請稍後重試",
+      "oauthCallback": "登錄回調處理失敗，請重新嘗試",
+      "oauthCreateAccount": "創建帳戶失敗，請聯繫管理員",
+      "accessDenied": "訪問被拒絕，請檢查您的許可權",
+      "verification": "驗證失敗，請重新登錄",
+      "oauthAccountNotLinked": "該郵箱已與其他帳戶關聯，請使用其他登錄方式",
+      "unknownError": "發生未知錯誤，請重試",
+      "contactSupport": "如果問題持續存在，請聯繫技術支援"
+    }
   }
 }
