@@ -32,12 +32,10 @@ function isAuthPath(pathname: string): boolean {
   return authPaths.some(path => pathWithoutLocale.startsWith(path))
 }
 
-// 获取当前语言前缀
+// 从路径中提取语言代码
 function getLocaleFromPathname(pathname: string): string | null {
-  const segments = pathname.split('/')
-  const potentialLocale = segments[1]
-
-  if (potentialLocale && routing.locales.includes(potentialLocale as any)) {
+  const potentialLocale = pathname.split('/')[1]
+  if (routing.locales.includes(potentialLocale)) {
     return potentialLocale
   }
   return null
@@ -145,13 +143,13 @@ export const config = {
   // 匹配所有路径，除了 API 路由、静态文件等
   matcher: [
     /*
-     * 匹配所有请求路径，除了以下开头的：
+     * 匹配所有请求路径，除了以下开头的路径：
      * - api (API 路由)
      * - _next/static (静态文件)
      * - _next/image (图片优化文件)
      * - favicon.ico (网站图标)
-     * - 其他静态资源文件
+     * - public 文件夹中的文件
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|trpc|_vercel).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -8,7 +8,7 @@ Telos Web 是基于 Next.js 15 构建的现代化前端应用，为 Telos 智能
 - **React 19** - 最新的 React 并发特性
 - **TypeScript** - 类型安全的 JavaScript
 - **Tailwind CSS 4** - 实用优先的 CSS 框架
-- **NextAuth.js** - 身份认证解决方案
+- **NextAuth.js v5** - 身份认证解决方案
 - **Next-intl** - 国际化支持（18 种语言）
 - **Shadcn UI** - 基于 Radix UI 的组件库
 
@@ -54,7 +54,8 @@ pnpm dev
 
 - **身份认证系统**
   - GitHub OAuth 登录
-  - 会话管理
+  - 基于 Cookie 的会话管理
+  - 服务端 JWT 验证
   - 受保护的路由
   - 用户状态显示
 
@@ -77,26 +78,30 @@ pnpm dev
 - 邮箱登录支持
 - 工作流可视化编辑器
 - 实时数据更新
-- 与后端 API 集成
 - 更多认证提供者
 
 ## 项目结构
 
-```
+```plaintext
 apps/web/
 ├── src/
 │   ├── app/                    # Next.js App Router
 │   │   ├── [locale]/          # 国际化路由
 │   │   │   ├── (dashboard)/   # 受保护的仪表板页面
-│   │   │   ├── (no-layout)/   # 无布局页面（如登录）
+│   │   │   ├── (default-layout)/ # 默认布局页面
 │   │   │   └── page.tsx       # 首页
 │   │   ├── api/               # API 路由
+│   │   │   └── auth/          # NextAuth API 路由
 │   │   └── layout.tsx         # 根布局
 │   ├── components/            # React 组件
 │   │   ├── atoms/            # 基础组件
 │   │   ├── molecules/        # 复合组件
 │   │   ├── organisms/        # 复杂组件
 │   │   └── providers/        # 上下文提供者
+│   ├── service/              # API 服务层
+│   │   ├── auth.ts           # 认证服务
+│   │   ├── request.ts        # 请求服务
+│   │   └── index.ts          # 服务导出
 │   ├── lib/                  # 工具函数
 │   ├── styles/               # 样式文件
 │   ├── i18n/                 # 国际化配置
@@ -131,28 +136,117 @@ pnpm comp:add <component>  # 添加 Shadcn UI 组件
 pnpm translate             # 运行翻译脚本
 ```
 
-## 认证流程
+## 认证架构
 
-### 登录流程
+### 认证流程概述
 
-1. 用户访问 `/auth/signin`
-2. 点击 "使用 GitHub 登录"
-3. 重定向到 GitHub 授权页面
-4. 用户授权后返回应用
-5. NextAuth 处理回调并创建会话
-6. 重定向到仪表板或原始页面
+Telos Web 采用基于 NextAuth.js v5 的现代化认证架构，结合服务端 JWT 验证：
+
+1. **前端认证**：NextAuth.js 处理 OAuth 流程和会话管理
+2. **服务端验证**：后端 API 通过 httpOnly cookie 验证用户身份
+3. **无状态设计**：前端不直接处理 JWT token，提高安全性
+
+### 详细认证流程
+
+#### 登录流程
+
+1. **用户发起登录**
+   - 用户访问 `/auth/signin`
+   - 点击 "使用 GitHub 登录"
+
+2. **OAuth 授权**
+   - 重定向到 GitHub 授权页面
+   - 用户授权后返回应用
+
+3. **NextAuth 处理**
+   - NextAuth 处理 OAuth 回调
+   - 创建 JWT session token
+   - 设置 httpOnly cookie
+
+4. **后端同步**
+   - 触发 `signIn` 事件回调
+   - 调用 `AuthService.signIn()` 同步用户信息到后端
+   - 后端创建或更新用户记录
+
+5. **完成登录**
+   - 重定向到仪表板或原始页面
+   - 用户状态更新为已认证
+
+#### API 请求认证
+
+1. **自动 Cookie 发送**
+   - 所有 API 请求使用 `credentials: 'include'`
+   - 浏览器自动发送 httpOnly cookie
+
+2. **服务端验证**
+   - 后端从 cookie 中提取 session token
+   - 验证 token 有效性
+   - 返回用户信息和响应
+
+3. **错误处理**
+   - 无效 token 返回 401 状态
+   - 前端自动重定向到登录页面
+
+#### 登出流程
+
+1. **前端登出**
+   - 用户点击登出按钮
+   - 调用 `AuthService.signOut()` 通知后端
+
+2. **后端清理**
+   - 后端清理用户会话状态
+   - 返回登出确认
+
+3. **NextAuth 清理**
+   - 执行 NextAuth 的 `signOut()`
+   - 清除 httpOnly cookie
+   - 重定向到首页
 
 ### 路由保护
 
-- 中间件自动检查受保护的路由
-- 未认证用户重定向到登录页面
-- 已认证用户访问登录页面时重定向到首页
+- **中间件检查**：`middleware.ts` 自动检查受保护的路由
+- **服务端验证**：每个受保护页面通过 `auth()` 函数验证
+- **客户端状态**：使用 `useSession()` 显示用户状态
 
-### 会话管理
+### 安全特性
 
-- JWT 策略，会话有效期 30 天
-- 自动刷新机制
-- 安全的会话存储
+- **httpOnly Cookies**：JWT token 存储在 httpOnly cookie 中，防止 XSS 攻击
+- **CSRF 保护**：NextAuth 自动处理 CSRF 保护
+- **安全重定向**：所有重定向都经过验证
+- **会话管理**：自动会话刷新和过期处理
+
+## API 服务层
+
+### AuthService
+
+提供认证相关的 API 调用：
+
+```typescript
+// 用户登录
+AuthService.signIn(userData: SignInData)
+
+// 用户登出
+AuthService.signOut(userId: string)
+
+// 同步用户信息
+AuthService.syncUser(userData: UserData)
+
+// 获取当前用户
+AuthService.getCurrentUser()
+
+// 更新用户信息
+AuthService.updateUser(userId: string, userData: Partial<BackendUser>)
+```
+
+### RequestService
+
+统一的 HTTP 请求服务：
+
+```typescript
+// 自动包含 credentials
+requestService.get('/api/users/profile')
+requestService.post('/api/auth/signout', { userId })
+```
 
 ## 环境变量
 
@@ -162,6 +256,7 @@ pnpm translate             # 运行翻译脚本
 | `NEXTAUTH_URL`         | 应用 URL                   | ✅   |
 | `GITHUB_CLIENT_ID`     | GitHub OAuth Client ID     | ✅   |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret | ✅   |
+| `NEXT_PUBLIC_API_URL`  | 后端 API 地址              | ❌   |
 | `NEXT_PUBLIC_DOMAIN`   | 公开域名                   | ❌   |
 | `NEXT_PUBLIC_NODE_ENV` | 环境标识                   | ❌   |
 
@@ -187,18 +282,31 @@ pnpm translate             # 运行翻译脚本
    - 确认回调 URL 配置正确
    - 查看浏览器控制台错误
 
-2. **会话问题**
+2. **API 请求失败**
+   - 检查 `NEXT_PUBLIC_API_URL` 是否正确
+   - 确认后端服务正在运行
+   - 查看网络请求的 cookie 是否正确发送
+
+3. **会话问题**
    - 检查 AUTH_SECRET 是否设置
    - 确认 NEXTAUTH_URL 正确
    - 清除浏览器缓存和 cookies
 
-3. **路由重定向问题**
+4. **路由重定向问题**
    - 检查中间件配置
    - 确认路由保护逻辑
 
 ### 调试模式
 
 开发环境已启用 NextAuth 调试模式，查看控制台日志获取详细信息。
+
+### 网络调试
+
+使用浏览器开发者工具检查：
+
+- Network 标签页中的请求是否包含 cookie
+- Application 标签页中的 Cookies 是否正确设置
+- Console 标签页中的错误信息
 
 ## 贡献
 

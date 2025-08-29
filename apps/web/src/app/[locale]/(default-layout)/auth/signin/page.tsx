@@ -1,8 +1,8 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
-import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Card,
@@ -20,6 +20,8 @@ import { GoogleIcon } from '@/components/atoms/icons'
 
 export default function SignInPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const error = searchParams.get('error')
   const t = useTranslations('Auth.signIn')
@@ -29,10 +31,18 @@ export default function SignInPage() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
   const [email, setEmail] = useState('')
 
+  // 如果用户已经登录，直接跳转到目标页面
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push(callbackUrl)
+    }
+  }, [status, session, callbackUrl, router])
+
   const handleSignIn = async (provider: string) => {
     setIsLoading(true)
     setLoadingProvider(provider)
     try {
+      // 对于 OAuth 提供者，使用默认重定向（这是必需的）
       await signIn(provider, { callbackUrl })
     } catch (error) {
       console.error(`${provider} 登录失败:`, error)
@@ -46,7 +56,17 @@ export default function SignInPage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      await signIn('email', { email, callbackUrl })
+      const result = await signIn('email', {
+        email,
+        callbackUrl,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        console.error('邮箱登录失败:', result.error)
+      } else if (result?.ok) {
+        router.push(callbackUrl)
+      }
     } catch (error) {
       console.error('邮箱登录失败:', error)
     } finally {
@@ -63,7 +83,7 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent className='space-y-4'>
           {error && (
-            <div className='flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800'>
+            <div className='flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 dark:bg-destructive/20 dark:text-destructive rounded-md border border-destructive/20 dark:border-destructive/80'>
               <AlertCircle className='h-4 w-4' />
               <div>
                 <p className='font-medium'>{t('loginFailed')}</p>

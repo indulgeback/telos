@@ -2,7 +2,7 @@ import NextAuth from 'next-auth'
 import GitHub from 'next-auth/providers/github'
 import Google from 'next-auth/providers/google'
 import type { NextAuthConfig } from 'next-auth'
-import { apiClient } from '@/lib/api-client'
+import { AuthService } from '@/service/auth'
 import { SECURITY_CONFIG, validateSecurityConfig } from '@/lib/security'
 
 // 验证安全配置
@@ -183,6 +183,19 @@ const authConfig: NextAuthConfig = {
 
       return true
     },
+    async redirect({ url, baseUrl }) {
+      // 自定义重定向逻辑，减少不必要的页面刷新
+      // 如果 URL 是相对路径，添加 baseUrl
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      // 如果 URL 是同一域名，直接返回
+      else if (new URL(url).origin === baseUrl) {
+        return url
+      }
+      // 默认返回 baseUrl
+      return baseUrl
+    },
   },
   pages: {
     signIn: '/auth/signin',
@@ -199,7 +212,7 @@ const authConfig: NextAuthConfig = {
         })
 
         // 调用后端登录接口
-        await apiClient.signIn({
+        await AuthService.signIn({
           id: user.id,
           email: user.email,
           name: user.name,
@@ -214,29 +227,6 @@ const authConfig: NextAuthConfig = {
       } catch (error) {
         console.error('后端登录接口调用失败:', error)
         // 注意：这里不要抛出错误，否则会阻止用户登录
-      }
-    },
-    async signOut(message: any) {
-      try {
-        let userId: string | undefined
-
-        // NextAuth v5 中 signOut 事件的参数结构有所变化
-        if (message?.session?.user) {
-          userId = message.session.user.id
-          console.log('用户登出:', { user: message.session.user.email })
-        } else if (message?.token) {
-          userId = message.token.id
-          console.log('用户登出:', { user: message.token.email })
-        }
-
-        // 调用后端登出接口
-        if (userId) {
-          await apiClient.signOut(userId)
-          console.log('后端登出接口调用成功')
-        }
-      } catch (error) {
-        console.error('后端登出接口调用失败:', error)
-        // 注意：这里不要抛出错误，否则会影响用户体验
       }
     },
   },
