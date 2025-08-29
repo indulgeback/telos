@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth'
 import GitHub from 'next-auth/providers/github'
 import type { NextAuthConfig } from 'next-auth'
-import { apiClient } from '@/lib/api-client'
+import { AuthService } from '@/service/auth'
 
 // 扩展 NextAuth 类型
 declare module 'next-auth' {
@@ -39,8 +39,47 @@ const authConfig: NextAuthConfig = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 30 天
+    maxAge: 24 * 60 * 60, // 24 小时
     updateAge: 24 * 60 * 60, // 24 小时更新一次
+  },
+  // NextAuth v5 cookies 配置
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.session-token'
+          : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    callbackUrl: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Secure-next-auth.callback-url'
+          : 'next-auth.callback-url',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Host-next-auth.csrf-token'
+          : 'next-auth.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user, account }) {
@@ -50,21 +89,6 @@ const authConfig: NextAuthConfig = {
         token.email = user.email
         token.name = user.name
         token.image = user.image
-
-        // 首次登录时同步用户信息到后端
-        try {
-          await apiClient.syncUser({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            provider: account?.provider || 'unknown',
-          })
-          console.log('用户信息同步成功')
-        } catch (error) {
-          console.error('用户信息同步失败:', error)
-          // 不抛出错误，避免影响登录流程
-        }
       }
 
       // 保存账户信息（如 GitHub token）
@@ -104,6 +128,19 @@ const authConfig: NextAuthConfig = {
 
       return true
     },
+    async redirect({ url, baseUrl }) {
+      // 自定义重定向逻辑，减少不必要的页面刷新
+      // 如果 URL 是相对路径，添加 baseUrl
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      // 如果 URL 是同一域名，直接返回
+      else if (new URL(url).origin === baseUrl) {
+        return url
+      }
+      // 默认返回 baseUrl
+      return baseUrl
+    },
   },
   pages: {
     signIn: '/auth/signin',
@@ -120,7 +157,7 @@ const authConfig: NextAuthConfig = {
         })
 
         // 调用后端登录接口
-        await apiClient.signIn({
+        await AuthService.signIn({
           id: user.id,
           email: user.email,
           name: user.name,
@@ -133,29 +170,6 @@ const authConfig: NextAuthConfig = {
       } catch (error) {
         console.error('后端登录接口调用失败:', error)
         // 注意：这里不要抛出错误，否则会阻止用户登录
-      }
-    },
-    async signOut(message: any) {
-      try {
-        let userId: string | undefined
-
-        // NextAuth v5 中 signOut 事件的参数结构有所变化
-        if (message?.session?.user) {
-          userId = message.session.user.id
-          console.log('用户登出:', { user: message.session.user.email })
-        } else if (message?.token) {
-          userId = message.token.id
-          console.log('用户登出:', { user: message.token.email })
-        }
-
-        // 调用后端登出接口
-        if (userId) {
-          await apiClient.signOut(userId)
-          console.log('后端登出接口调用成功')
-        }
-      } catch (error) {
-        console.error('后端登出接口调用失败:', error)
-        // 注意：这里不要抛出错误，否则会影响用户体验
       }
     },
   },
