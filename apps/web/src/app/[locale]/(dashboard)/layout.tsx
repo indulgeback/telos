@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { auth } from '@/lib/auth'
 import { redirect } from '@/i18n/navigation'
 import { ReactNode } from 'react'
 import { Navbar } from '@/components/organisms'
