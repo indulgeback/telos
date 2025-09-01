@@ -43,7 +43,7 @@ export const Flow: React.FC<IProps> = ({
   const onConnect = useCallback(
     (params: Connection) =>
       setEdges(edgesSnapshot => addEdge(params, edgesSnapshot)),
-    []
+    [setEdges]
   )
 
   return (

@@ -1,0 +1,20 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 运行代码检查和格式化..."
+
+# 运行 web 项目的 lint:fix
+echo "📝 修复 ESLint 问题..."
+if ! pnpm --filter ./apps/web lint:fix; then
+  echo "❌ ESLint 修复失败，请手动修复后再提交"
+  exit 1
+fi
+
+# 运行 web 项目的 format
+echo "🎨 格式化代码..."
+if ! pnpm --filter ./apps/web format; then
+  echo "❌ 代码格式化失败，请检查代码语法"
+  exit 1
+fi
+
+echo "✅ 代码检查和格式化完成！"
