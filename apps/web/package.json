@@ -81,6 +81,7 @@
     "@eslint/eslintrc": "^3",
     "@next/eslint-plugin-next": "^15.4.6",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.8.0",
     "@types/mdx": "^2.0.13",
     "@types/node": "^20",
     "@types/react": "^19",
