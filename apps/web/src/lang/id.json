@@ -97,8 +97,7 @@
     "signIn": {
       "title": "Selamat datang kembali",
       "subtitle": "Masuk ke Platform Alur Kerja Cerdas Telos",
-      "signInWithGoogle": "Login dengan Google",
-      "signInWithGitHub": "Masuk dengan GitHub",
+      "socialLoginRemoved": "Fitur login sosial telah dihapus",
       "signInWithEmail": "Kirim tautan login (segera hadir)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "Alamat email",

@@ -20,8 +20,7 @@ jest.mock('@/lib/security', () => ({
       SECURE: false,
     },
     OAUTH_SCOPES: {
-      GITHUB: 'read:user user:email',
-      GOOGLE: 'openid email profile',
+      // OAuth 提供者权限范围已移除
     },
   },
   validateSecurityConfig: jest.fn(() => ({
@@ -46,16 +45,10 @@ describe('NextAuth Configuration', () => {
   })
 
   describe('Provider Configuration', () => {
-    it('应该配置 GitHub 提供者', () => {
-      // 验证环境变量
-      expect(process.env.GITHUB_CLIENT_ID).toBeDefined()
-      expect(process.env.GITHUB_CLIENT_SECRET).toBeDefined()
-    })
-
-    it('应该配置 Google 提供者', async () => {
-      // 验证环境变量
-      expect(process.env.GOOGLE_CLIENT_ID).toBeDefined()
-      expect(process.env.GOOGLE_CLIENT_SECRET).toBeDefined()
+    it('应该支持基础认证配置', () => {
+      // 验证基础环境变量
+      expect(process.env.AUTH_SECRET).toBeDefined()
+      expect(process.env.NEXTAUTH_URL).toBeDefined()
     })
   })
 
@@ -68,7 +61,7 @@ describe('NextAuth Configuration', () => {
         image: 'https://example.com/avatar.jpg',
       }
       const mockAccount = {
-        provider: 'google',
+        provider: 'test',
         access_token: 'access_token_123',
       }
 
@@ -189,7 +182,7 @@ describe('NextAuth Configuration', () => {
         image: 'https://example.com/avatar.jpg',
       }
       const mockAccount = {
-        provider: 'google',
+        provider: 'test',
         access_token: 'access_token_123',
       }
 
@@ -263,8 +256,8 @@ describe('NextAuth Configuration', () => {
     it('应该使用最小化的 OAuth 权限范围', async () => {
       const { SECURITY_CONFIG } = await import('@/lib/security')
 
-      expect(SECURITY_CONFIG.OAUTH_SCOPES.GITHUB).toBe('read:user user:email')
-      expect(SECURITY_CONFIG.OAUTH_SCOPES.GOOGLE).toBe('openid email profile')
+      expect(SECURITY_CONFIG.OAUTH_SCOPES).toBeDefined()
+      expect(typeof SECURITY_CONFIG.OAUTH_SCOPES).toBe('object')
     })
   })
 })

@@ -97,8 +97,7 @@
     "signIn": {
       "title": "Bem-vindo de volta",
       "subtitle": "Faça login na plataforma de fluxo de trabalho inteligente Telos",
-      "signInWithGoogle": "Fazer login com o Google",
-      "signInWithGitHub": "Entrar com GitHub",
+      "socialLoginRemoved": "Os recursos de login social foram removidos",
       "signInWithEmail": "Enviar link de login (em breve)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "Endereço eletrônico",

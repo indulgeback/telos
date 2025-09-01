@@ -97,8 +97,7 @@
     "signIn": {
       "title": "Bienvenido",
       "subtitle": "Inicie sesión en la plataforma de flujo de trabajo inteligente de Telos",
-      "signInWithGoogle": "Iniciar sesión con Google",
-      "signInWithGitHub": "Iniciar sesión con GitHub",
+      "socialLoginRemoved": "Las funciones de inicio de sesión social han sido eliminadas",
       "signInWithEmail": "Enviar enlace de inicio de sesión (próximamente)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "Dirección de correo electrónico",

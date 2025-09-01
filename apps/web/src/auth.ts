@@ -1,6 +1,4 @@
 import NextAuth from 'next-auth'
-import GitHub from 'next-auth/providers/github'
-import Google from 'next-auth/providers/google'
 import type { NextAuthConfig } from 'next-auth'
 import { AuthService } from '@/service/auth'
 import { SECURITY_CONFIG, validateSecurityConfig } from '@/lib/security'
@@ -46,26 +44,7 @@ const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET!,
 
   providers: [
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      // 最小化权限范围
-      authorization: {
-        params: {
-          scope: SECURITY_CONFIG.OAUTH_SCOPES.GITHUB,
-        },
-      },
-    }),
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // 最小化权限范围
-      authorization: {
-        params: {
-          scope: SECURITY_CONFIG.OAUTH_SCOPES.GOOGLE,
-        },
-      },
-    }),
+    // OAuth 提供者已移除，可以在此添加其他认证方式
   ],
   session: {
     strategy: 'jwt',
@@ -127,26 +106,26 @@ const authConfig: NextAuthConfig = {
 
         // 首次登录时同步用户信息到后端
         try {
-          await apiClient.syncUser({
+          await AuthService.syncUser({
             id: user.id,
             email: user.email,
             name: user.name,
             image: user.image,
-            provider: account?.provider || 'unknown',
+            provider: account?.provider || 'local',
           })
           console.log(
-            `用户信息同步成功 - Provider: ${account?.provider}, User: ${user.email}`
+            `用户信息同步成功 - Provider: ${account?.provider || 'local'}, User: ${user.email}`
           )
         } catch (error) {
           console.error(
-            `用户信息同步失败 - Provider: ${account?.provider}, User: ${user.email}`,
+            `用户信息同步失败 - Provider: ${account?.provider || 'local'}, User: ${user.email}`,
             error
           )
           // 不抛出错误，避免影响登录流程
         }
       }
 
-      // 保存账户信息（如 GitHub token）
+      // 保存账户信息
       if (account) {
         token.accessToken = account.access_token
         token.provider = account.provider
@@ -166,23 +145,7 @@ const authConfig: NextAuthConfig = {
 
       return sessionWithUser
     },
-    async authorized({ auth, request: { nextUrl } }) {
-      // 这个回调用于中间件中的认证检查
-      // 返回 true 表示允许访问，false 表示需要认证
-      const isLoggedIn = !!auth?.user
-      const isOnProtectedPage = [
-        '/dashboard',
-        '/profile',
-        '/workflows',
-        '/settings',
-      ].some(path => nextUrl.pathname.includes(path))
-
-      if (isOnProtectedPage) {
-        return isLoggedIn
-      }
-
-      return true
-    },
+    // authorized 回调已移至 middleware 中处理
     async redirect({ url, baseUrl }) {
       // 自定义重定向逻辑，减少不必要的页面刷新
       // 如果 URL 是相对路径，添加 baseUrl

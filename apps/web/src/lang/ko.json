@@ -97,8 +97,7 @@
     "signIn": {
       "title": "돌아와서 반가워요",
       "subtitle": "Telos Smart Workflow 플랫폼에 로그인",
-      "signInWithGoogle": "Google로 로그인",
-      "signInWithGitHub": "GitHub로 로그인",
+      "socialLoginRemoved": "소셜 로그인 기능이 제거되었습니다",
       "signInWithEmail": "로그인 링크 보내기(출시 예정)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "이메일 주소",

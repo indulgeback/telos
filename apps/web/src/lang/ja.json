@@ -97,8 +97,7 @@
     "signIn": {
       "title": "お帰りなさい",
       "subtitle": "Telosスマートワークフロープラットフォームにログインする",
-      "signInWithGoogle": "Googleでログイン",
-      "signInWithGitHub": "GitHubでログインする",
+      "socialLoginRemoved": "ソーシャルログイン機能は削除されました",
       "signInWithEmail": "ログインリンクを送信します（近日中に提供予定）",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "メールアドレス",

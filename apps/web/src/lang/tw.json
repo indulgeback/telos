@@ -97,8 +97,7 @@
     "signIn": {
       "title": "歡迎回來",
       "subtitle": "登錄到 Telos 智慧工作流平臺",
-      "signInWithGoogle": "使用Google登錄",
-      "signInWithGitHub": "使用 GitHub 登錄",
+      "socialLoginRemoved": "社交登錄功能已移除",
       "signInWithEmail": "傳送登入連結（即將推出）",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "郵箱位址",

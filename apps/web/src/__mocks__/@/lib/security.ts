@@ -13,8 +13,7 @@ export const SECURITY_CONFIG = {
     SECURE: false,
   },
   OAUTH_SCOPES: {
-    GITHUB: 'read:user user:email',
-    GOOGLE: 'openid email profile',
+    // OAuth 提供者权限范围已移除
   },
 }
 

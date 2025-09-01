@@ -97,8 +97,7 @@
     "signIn": {
       "title": "Tekrar hoş geldiniz",
       "subtitle": "Telos Akıllı İş Akışı Platformu'na giriş yapın",
-      "signInWithGoogle": "Google ile giriş yap",
-      "signInWithGitHub": "GitHub ile oturum açın",
+      "socialLoginRemoved": "Sosyal giriş özellikleri kaldırıldı",
       "signInWithEmail": "Giriş bağlantısı gönder (çok yakında)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "E-posta adresi",

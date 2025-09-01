@@ -154,7 +154,7 @@ export default function SettingsPage() {
             <div className='space-y-2'>
               <Label>登录方式</Label>
               <p className='text-sm text-muted-foreground'>
-                当前通过 GitHub 登录
+                当前通过本地账户登录
               </p>
             </div>
             <Separator />

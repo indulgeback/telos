@@ -25,9 +25,9 @@ describe('Security Configuration', () => {
       expect(SECURITY_CONFIG.COOKIES.HTTP_ONLY).toBe(true)
     })
 
-    it('应该包含正确的 OAuth 权限范围', () => {
-      expect(SECURITY_CONFIG.OAUTH_SCOPES.GITHUB).toBe('read:user user:email')
-      expect(SECURITY_CONFIG.OAUTH_SCOPES.GOOGLE).toBe('openid email profile')
+    it('应该包含 OAuth 权限范围配置', () => {
+      expect(SECURITY_CONFIG.OAUTH_SCOPES).toBeDefined()
+      expect(typeof SECURITY_CONFIG.OAUTH_SCOPES).toBe('object')
     })
   })
 
@@ -46,10 +46,7 @@ describe('Security Configuration', () => {
     it('应该在所有必需环境变量存在时返回有效', () => {
       process.env.AUTH_SECRET = 'test-secret-key-for-testing-purposes-only'
       process.env.NEXTAUTH_URL = 'http://localhost:3000'
-      process.env.GITHUB_CLIENT_ID = 'test-github-client-id'
-      process.env.GITHUB_CLIENT_SECRET = 'test-github-client-secret'
-      process.env.GOOGLE_CLIENT_ID = 'test-google-client-id'
-      process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret'
+      // OAuth 环境变量已移除
       process.env.NODE_ENV = 'test'
 
       const result = validateSecurityConfig()
@@ -80,8 +77,7 @@ describe('Security Configuration', () => {
       const csp = generateCSPHeader()
 
       expect(csp).toContain("default-src 'self'")
-      expect(csp).toContain('https://accounts.google.com')
-      expect(csp).toContain('https://avatars.githubusercontent.com')
+      // GitHub 和 Google 相关域名已移除
       expect(csp).toContain("object-src 'none'")
     })
 
@@ -103,10 +99,7 @@ describe('Security Configuration', () => {
 
     it('应该接受可信来源', () => {
       expect(isRequestFromTrustedOrigin('https://example.com')).toBe(true)
-      expect(isRequestFromTrustedOrigin('https://accounts.google.com')).toBe(
-        true
-      )
-      expect(isRequestFromTrustedOrigin('https://github.com')).toBe(true)
+      // GitHub 和 Google 相关域名已移除
     })
 
     it('应该拒绝不可信来源', () => {

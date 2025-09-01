@@ -97,8 +97,7 @@
     "signIn": {
       "title": "ยินดีต้อนรับกลับมา",
       "subtitle": "เข้าสู่ระบบ Telos Smart Workflow Platform",
-      "signInWithGoogle": "ลงชื่อเข้าใช้ด้วย Google",
-      "signInWithGitHub": "ลงชื่อเข้าใช้ด้วย GitHub",
+      "socialLoginRemoved": "ฟีเจอร์เข้าสู่ระบบผ่านโซเชียลถูกลบออกแล้ว",
       "signInWithEmail": "ส่งลิงค์เข้าสู่ระบบ (เร็ว ๆ นี้)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "ที่อยู่อีเมล",

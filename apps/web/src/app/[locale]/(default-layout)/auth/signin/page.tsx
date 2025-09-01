@@ -14,9 +14,8 @@ import {
   Input,
   Label,
 } from '@/components/atoms'
-import { Github, Mail, Loader2, AlertCircle } from 'lucide-react'
+import { Mail, Loader2, AlertCircle } from 'lucide-react'
 import { CustomLink } from '@/components/molecules'
-import { GoogleIcon } from '@/components/atoms/icons'
 
 export default function SignInPage() {
   const searchParams = useSearchParams()
@@ -109,46 +108,17 @@ export default function SignInPage() {
             </div>
           )}
 
-          {/* 社交登录按钮 */}
+          {/* GitHub 登录按钮 */}
           <div className='space-y-2'>
-            <Button
-              variant='outline'
-              className='w-full'
-              onClick={() => handleSignIn('google')}
-              disabled={isLoading}
-            >
-              {loadingProvider === 'google' ? (
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-              ) : (
-                <GoogleIcon className='mr-2' size={16} />
-              )}
-              {t('signInWithGoogle')}
-            </Button>
-
-            <Button
-              variant='outline'
-              className='w-full'
-              onClick={() => handleSignIn('github')}
-              disabled={isLoading}
-            >
-              {loadingProvider === 'github' ? (
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-              ) : (
-                <Github className='mr-2 h-4 w-4' />
-              )}
-              {t('signInWithGitHub')}
-            </Button>
-          </div>
-
-          <div className='relative'>
-            <div className='absolute inset-0 flex items-center'>
-              <span className='w-full border-t' />
-            </div>
-            <div className='relative flex justify-center text-xs uppercase'>
-              <span className='bg-background px-2 text-muted-foreground'>
-                {t('or')}
-              </span>
-            </div>
+            <p className='text-center text-sm text-muted-foreground'>
+              <Button
+                type='button'
+                className='w-full'
+                onClick={() => handleSignIn('github')}
+              >
+                Github
+              </Button>
+            </p>
           </div>
 
           {/* 邮箱登录表单 - 暂时禁用，需要配置邮箱提供者 */}

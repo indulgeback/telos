@@ -37,11 +37,11 @@ describe('会话管理和持久化测试', () => {
                     id: '123456789',
                     email: 'test@gmail.com',
                     name: 'Test User',
-                    image: 'https://lh3.googleusercontent.com/a/avatar.jpg',
+                    image: 'https://example.com/avatar.jpg',
                 },
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                accessToken: 'google_access_token_123',
-                provider: 'google',
+                accessToken: 'test_access_token_123',
+                provider: 'test',
             }
 
             mockUseSession.mockReturnValue({
@@ -267,7 +267,7 @@ describe('会话管理和持久化测试', () => {
                     id: '123456789',
                     email: 'test@gmail.com',
                     name: 'Test User',
-                    image: 'https://lh3.googleusercontent.com/a/avatar.jpg',
+                    image: 'https://example.com/avatar.jpg',
                 },
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             }

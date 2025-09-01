@@ -24,10 +24,9 @@ export const SECURITY_CONFIG = {
     TOKEN_LENGTH: 32,
   },
 
-  // OAuth 权限范围
+  // OAuth 权限范围（已移除 GitHub 和 Google）
   OAUTH_SCOPES: {
-    GITHUB: 'read:user user:email',
-    GOOGLE: 'openid email profile',
+    // 可以在此添加其他 OAuth 提供者的权限范围
   },
 
   // 安全头配置
@@ -59,10 +58,7 @@ export function validateSecurityConfig(): {
   const requiredEnvVars = [
     'AUTH_SECRET',
     'NEXTAUTH_URL',
-    'GITHUB_CLIENT_ID',
-    'GITHUB_CLIENT_SECRET',
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
+    // GitHub 和 Google OAuth 相关环境变量已移除
   ]
 
   for (const envVar of requiredEnvVars) {
@@ -109,12 +105,12 @@ export function validateSecurityConfig(): {
 export function generateCSPHeader(): string {
   const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://apis.google.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' blob: data: https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
+    "img-src 'self' blob: data:",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.github.com https://accounts.google.com https://oauth2.googleapis.com",
-    "frame-src 'self' https://accounts.google.com",
+    "connect-src 'self'",
+    "frame-src 'self'",
     "form-action 'self'",
     "base-uri 'self'",
     "object-src 'none'",
@@ -122,8 +118,7 @@ export function generateCSPHeader(): string {
 
   // 开发环境允许更宽松的策略
   if (process.env.NODE_ENV === 'development') {
-    directives[1] =
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://apis.google.com"
+    directives[1] = "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
     directives.push('upgrade-insecure-requests')
   }
 
@@ -138,8 +133,7 @@ export function isRequestFromTrustedOrigin(origin: string | null): boolean {
 
   const trustedOrigins = [
     process.env.NEXTAUTH_URL,
-    'https://accounts.google.com',
-    'https://github.com',
+    // GitHub 和 Google 相关域名已移除
   ].filter(Boolean)
 
   return trustedOrigins.some(trusted => origin.startsWith(trusted!))

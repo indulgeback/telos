@@ -15,7 +15,7 @@ import {
   Button,
   Separator,
 } from '@/components/atoms'
-import { User, Mail, Calendar, Github, Settings } from 'lucide-react'
+import { User, Mail, Calendar, Settings } from 'lucide-react'
 import { CustomLink } from '@/components/molecules'
 import { redirect } from 'next/navigation'
 
@@ -83,8 +83,8 @@ export default function ProfilePage() {
                   {user.email}
                 </p>
                 <Badge variant='secondary' className='w-fit'>
-                  <Github className='h-3 w-3 mr-1' />
-                  GitHub 用户
+                  <User className='h-3 w-3 mr-1' />
+                  平台用户
                 </Badge>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function ProfilePage() {
                 <label className='text-sm font-medium'>注册时间</label>
                 <p className='text-sm text-muted-foreground flex items-center gap-1'>
                   <Calendar className='h-3 w-3' />
-                  通过 GitHub 登录
+                  本地账户登录
                 </p>
               </div>
             </div>

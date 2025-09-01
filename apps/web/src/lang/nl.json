@@ -97,8 +97,7 @@
     "signIn": {
       "title": "Setup voortzetten",
       "subtitle": "Log in op het Telos Smart Workflow Platform",
-      "signInWithGoogle": "Inloggen met Google",
-      "signInWithGitHub": "Aanmelden met GitHub",
+      "socialLoginRemoved": "Sociale inlogfuncties zijn verwijderd",
       "signInWithEmail": "Inloglink verzenden (binnenkort beschikbaar)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "E-mailadres",

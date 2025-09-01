@@ -97,8 +97,7 @@
     "signIn": {
       "title": "Witamy ponownie",
       "subtitle": "Zaloguj się do platformy Telos Smart Workflow",
-      "signInWithGoogle": "Zaloguj się przez Google",
-      "signInWithGitHub": "Zaloguj się za pomocą usługi GitHub",
+      "socialLoginRemoved": "Funkcje logowania społecznościowego zostały usunięte",
       "signInWithEmail": "Wyślij link do logowania (wkrótce)",
       "emailPlaceholder": "your@email.com",
       "emailLabel": "Adres e-mail",
