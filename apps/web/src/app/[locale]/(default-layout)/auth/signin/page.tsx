@@ -41,8 +41,7 @@ export default function SignInPage() {
     setIsLoading(true)
     setLoadingProvider(provider)
     try {
-      // 对于 OAuth 提供者，使用默认重定向（这是必需的）
-      await signIn(provider, { callbackUrl })
+      await signIn(provider)
     } catch (error) {
       console.error(`${provider} 登录失败:`, error)
     } finally {
@@ -116,7 +115,26 @@ export default function SignInPage() {
                 className='w-full'
                 onClick={() => handleSignIn('github')}
               >
+                {isLoading && loadingProvider === 'github' && (
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                )}
                 Github
+              </Button>
+            </p>
+          </div>
+
+          {/* Google 登录按钮 */}
+          <div className='space-y-2'>
+            <p className='text-center text-sm text-muted-foreground'>
+              <Button
+                type='button'
+                className='w-full'
+                onClick={() => handleSignIn('google')}
+              >
+                {isLoading && loadingProvider === 'google' && (
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                )}
+                Google
               </Button>
             </p>
           </div>

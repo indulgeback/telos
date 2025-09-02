@@ -24,11 +24,6 @@ export const SECURITY_CONFIG = {
     TOKEN_LENGTH: 32,
   },
 
-  // OAuth 权限范围（已移除 GitHub 和 Google）
-  OAUTH_SCOPES: {
-    // 可以在此添加其他 OAuth 提供者的权限范围
-  },
-
   // 安全头配置
   SECURITY_HEADERS: {
     FRAME_OPTIONS: 'DENY',

@@ -1,5 +1,7 @@
 import NextAuth from 'next-auth'
 import type { NextAuthConfig } from 'next-auth'
+import Github from 'next-auth/providers/github'
+import Google from 'next-auth/providers/google'
 import { AuthService } from '@/service/auth'
 import { SECURITY_CONFIG, validateSecurityConfig } from '@/lib/security'
 
@@ -44,7 +46,24 @@ const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET!,
 
   providers: [
-    // OAuth 提供者已移除，可以在此添加其他认证方式
+    Github({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'read:user user:email',
+        },
+      },
+    }),
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'openid email profile',
+        },
+      },
+    }),
   ],
   session: {
     strategy: 'jwt',
@@ -105,24 +124,24 @@ const authConfig: NextAuthConfig = {
         token.image = user.image
 
         // 首次登录时同步用户信息到后端
-        try {
-          await AuthService.syncUser({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            provider: account?.provider || 'local',
-          })
-          console.log(
-            `用户信息同步成功 - Provider: ${account?.provider || 'local'}, User: ${user.email}`
-          )
-        } catch (error) {
-          console.error(
-            `用户信息同步失败 - Provider: ${account?.provider || 'local'}, User: ${user.email}`,
-            error
-          )
-          // 不抛出错误，避免影响登录流程
-        }
+        // try {
+        //   await AuthService.syncUser({
+        //     id: user.id,
+        //     email: user.email,
+        //     name: user.name,
+        //     image: user.image,
+        //     provider: account?.provider || 'local',
+        //   })
+        //   console.log(
+        //     `用户信息同步成功 - Provider: ${account?.provider || 'local'}, User: ${user.email}`
+        //   )
+        // } catch (error) {
+        //   console.error(
+        //     `用户信息同步失败 - Provider: ${account?.provider || 'local'}, User: ${user.email}`,
+        //     error
+        //   )
+        //   // 不抛出错误，避免影响登录流程
+        // }
       }
 
       // 保存账户信息
@@ -175,18 +194,18 @@ const authConfig: NextAuthConfig = {
         })
 
         // 调用后端登录接口
-        await AuthService.signIn({
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          provider: account?.provider || 'unknown',
-          accessToken: account?.access_token,
-        })
+        // await AuthService.signIn({
+        //   id: user.id,
+        //   email: user.email,
+        //   name: user.name,
+        //   image: user.image,
+        //   provider: account?.provider || 'unknown',
+        //   accessToken: account?.access_token,
+        // })
 
-        console.log(
-          `后端登录接口调用成功 - Provider: ${account?.provider}, User: ${user.email}`
-        )
+        // console.log(
+        //   `后端登录接口调用成功 - Provider: ${account?.provider}, User: ${user.email}`
+        // )
       } catch (error) {
         console.error('后端登录接口调用失败:', error)
         // 注意：这里不要抛出错误，否则会阻止用户登录
