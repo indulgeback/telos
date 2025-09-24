@@ -265,25 +265,25 @@ export function HeroSection() {
 
       {/* 首屏：标题与描述 */}
       <div className='p-4 flex flex-col justify-center gap-8 backdrop-blur-xs z-9 h-[100vh]'>
-        <Badge variant='secondary' className='mb-4'>
+        <Badge variant='secondary' className='mb-4 font-body'>
           <Zap className='h-4 w-4 mr-2' />
           Intelligent Workflow Orchestration
         </Badge>
         <h1
           ref={titleRef}
-          className='text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6 max-w-4xl'
+          className='text-4xl md:text-6xl font-display font-bold text-slate-900 dark:text-white mb-6 max-w-4xl leading-tight'
         >
           {t('title')}
         </h1>
         <p
           ref={subtitleRef}
-          className='text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 max-w-3xl'
+          className='text-xl md:text-2xl font-body font-medium text-slate-600 dark:text-slate-300 mb-8 max-w-3xl leading-relaxed'
         >
           {t('subtitle')}
         </p>
         <p
           ref={descRef}
-          className='text-lg text-slate-500 dark:text-slate-400 mb-12 max-w-2xl'
+          className='text-lg font-sans text-slate-500 dark:text-slate-400 mb-12 max-w-2xl leading-relaxed'
         >
           {t('description')}
         </p>
@@ -294,13 +294,17 @@ export function HeroSection() {
           {session ? (
             <>
               <CustomLink href='/dashboard'>
-                <Button size='lg' className='group'>
+                <Button size='lg' className='group font-body font-semibold'>
                   进入仪表板
                   <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
                 </Button>
               </CustomLink>
               <CustomLink href='/workflows'>
-                <Button variant='outline' size='lg'>
+                <Button
+                  variant='outline'
+                  size='lg'
+                  className='font-body font-medium'
+                >
                   查看工作流
                 </Button>
               </CustomLink>
@@ -308,7 +312,7 @@ export function HeroSection() {
           ) : (
             <>
               <CustomLink href='/auth/signin'>
-                <Button size='lg' className='group'>
+                <Button size='lg' className='group font-body font-semibold'>
                   {t('cta.getStarted')}
                   <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
                 </Button>
@@ -317,7 +321,11 @@ export function HeroSection() {
                 href='https://github.com/indulgeback/telos'
                 target='_blank'
               >
-                <Button variant='outline' size='lg'>
+                <Button
+                  variant='outline'
+                  size='lg'
+                  className='font-body font-medium'
+                >
                   <Github className='mr-2 h-4 w-4' />
                   GitHub
                 </Button>

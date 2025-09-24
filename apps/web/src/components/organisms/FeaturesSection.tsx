@@ -65,7 +65,7 @@ export function FeaturesSection() {
         <div className='text-center mb-16'>
           <h2
             ref={titleRef}
-            className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'
+            className='text-3xl md:text-4xl font-display font-bold text-slate-900 dark:text-white mb-4 leading-tight'
           >
             {t('features.title')}
           </h2>
@@ -84,10 +84,10 @@ export function FeaturesSection() {
                   {feature.icon}
                 </div>
               </div>
-              <h3 className='text-lg font-semibold text-slate-900 dark:text-white mb-2'>
+              <h3 className='text-lg font-body font-semibold text-slate-900 dark:text-white mb-2'>
                 {feature.title}
               </h3>
-              <p className='text-slate-600 dark:text-slate-400'>
+              <p className='text-slate-600 dark:text-slate-400 font-sans leading-relaxed'>
                 {feature.description}
               </p>
             </div>

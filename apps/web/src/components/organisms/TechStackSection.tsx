@@ -73,7 +73,7 @@ export function TechStackSection() {
         <div className='text-center mb-16'>
           <h2
             ref={titleRef}
-            className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4'
+            className='text-3xl md:text-4xl font-display font-bold text-slate-900 dark:text-white mb-4 leading-tight'
           >
             {t('architecture.title')}
           </h2>
@@ -87,7 +87,7 @@ export function TechStackSection() {
               key={index}
               className='space-y-6'
             >
-              <h3 className='text-xl font-semibold text-slate-900 dark:text-white text-center'>
+              <h3 className='text-xl font-body font-semibold text-slate-900 dark:text-white text-center mb-4'>
                 {stack.category}
               </h3>
               <div className='space-y-4'>
@@ -96,10 +96,10 @@ export function TechStackSection() {
                     key={itemIndex}
                     className='p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
                   >
-                    <h4 className='font-medium text-slate-900 dark:text-white mb-1'>
+                    <h4 className='font-mono font-medium text-slate-900 dark:text-white mb-1'>
                       {item.name}
                     </h4>
-                    <p className='text-sm text-slate-600 dark:text-slate-400'>
+                    <p className='text-sm text-slate-600 dark:text-slate-400 font-sans leading-relaxed'>
                       {item.desc}
                     </p>
                   </div>

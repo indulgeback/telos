@@ -1,5 +1,12 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import {
+  Geist,
+  Geist_Mono,
+  Inter,
+  Playfair_Display,
+  JetBrains_Mono,
+  Poppins,
+} from 'next/font/google'
 import '@/styles/globals.css'
 import NextTopLoader from 'nextjs-toploader'
 import { headers } from 'next/headers'
@@ -14,6 +21,27 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+})
+
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+})
+
+const playfairDisplay = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains-mono',
+  subsets: ['latin'],
+})
+
+const poppins = Poppins({
+  variable: '--font-poppins',
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -42,7 +70,7 @@ export default async function RootLayout({ children }: Iprops) {
         <link rel='icon' type='image/png' href='/favicon.png' />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${poppins.variable} antialiased`}
       >
         <NextTopLoader color={appConfig.subjectColor} showSpinner={false} />
         <SessionProvider>

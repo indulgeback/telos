@@ -49,7 +49,7 @@ export function QuickStartSection() {
       <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center'>
         <h2
           ref={titleRef}
-          className='text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-8'
+          className='text-3xl md:text-4xl font-display font-bold text-slate-900 dark:text-white mb-8 leading-tight'
         >
           {t('quickStart.title')}
         </h2>
@@ -65,10 +65,10 @@ export function QuickStartSection() {
               {i === 0 && (
                 <>
                   <Play className='h-8 w-8 mx-auto mb-4 text-blue-600 dark:text-blue-400' />
-                  <h3 className='font-semibold text-slate-900 dark:text-white mb-2'>
+                  <h3 className='font-body font-semibold text-slate-900 dark:text-white mb-2'>
                     {t('quickStart.frontend')}
                   </h3>
-                  <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded'>
+                  <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono'>
                     pnpm dev
                   </code>
                 </>
@@ -76,10 +76,10 @@ export function QuickStartSection() {
               {i === 1 && (
                 <>
                   <Server className='h-8 w-8 mx-auto mb-4 text-green-600 dark:text-green-400' />
-                  <h3 className='font-semibold text-slate-900 dark:text-white mb-2'>
+                  <h3 className='font-body font-semibold text-slate-900 dark:text-white mb-2'>
                     {t('quickStart.backend')}
                   </h3>
-                  <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded'>
+                  <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono'>
                     go run main.go
                   </code>
                 </>
@@ -87,10 +87,10 @@ export function QuickStartSection() {
               {i === 2 && (
                 <>
                   <Database className='h-8 w-8 mx-auto mb-4 text-orange-600 dark:text-orange-400' />
-                  <h3 className='font-semibold text-slate-900 dark:text-white mb-2'>
+                  <h3 className='font-body font-semibold text-slate-900 dark:text-white mb-2'>
                     {t('quickStart.database')}
                   </h3>
-                  <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded'>
+                  <code className='text-sm bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono'>
                     docker-compose up
                   </code>
                 </>
@@ -102,11 +102,11 @@ export function QuickStartSection() {
           ref={btnsRef}
           className='flex flex-col sm:flex-row gap-4 justify-center'
         >
-          <Button size='lg' variant='outline'>
+          <Button size='lg' variant='outline' className='font-body font-medium'>
             <BookOpen className='mr-2 h-4 w-4' />
             {t('cta.viewDocs')}
           </Button>
-          <Button size='lg'>
+          <Button size='lg' className='font-body font-semibold'>
             {t('cta.learnMore')}
             <ArrowRight className='ml-2 h-4 w-4' />
           </Button>

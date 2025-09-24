@@ -7,6 +7,21 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          'var(--font-inter)',
+          'var(--font-geist-sans)',
+          'system-ui',
+          'sans-serif',
+        ],
+        mono: [
+          'var(--font-jetbrains-mono)',
+          'var(--font-geist-mono)',
+          'monospace',
+        ],
+        display: ['var(--font-playfair)', 'serif'],
+        body: ['var(--font-poppins)', 'var(--font-inter)', 'sans-serif'],
+      },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
