@@ -7,6 +7,10 @@ Telos 移动应用是基于 React Native 构建的跨平台移动客户端，为
 - **React Native 0.80.2**: 跨平台移动开发框架
 - **React 19**: 最新的 React 并发特性
 - **TypeScript**: 严格类型检查
+- **React Navigation**: 导航管理
+- **AsyncStorage**: 本地数据存储
+- **Gesture Handler**: 手势处理
+- **Safe Area Context**: 安全区域管理
 - **Metro**: JavaScript 打包工具
 - **Jest**: 测试框架
 - **ESLint + Prettier**: 代码质量工具
@@ -109,20 +113,36 @@ npx react-native clean  # 清理构建缓存
 
 ```
 apps/mobile/
-├── __tests__/          # 测试文件
-├── android/            # Android 原生代码
-├── ios/                # iOS 原生代码
-├── src/                # 源代码（待创建）
-│   ├── components/     # React 组件
-│   ├── screens/        # 页面组件
-│   ├── navigation/     # 导航配置
-│   ├── services/       # API 服务
-│   ├── utils/          # 工具函数
-│   └── types/          # TypeScript 类型定义
-├── App.tsx             # 应用入口
-├── index.js            # 注册入口
-├── package.json        # 依赖配置
-└── README.md           # 本文档
+├── __tests__/              # 测试文件
+├── android/                # Android 原生代码
+├── ios/                    # iOS 原生代码
+├── src/                    # 源代码
+│   ├── components/         # React 组件
+│   │   ├── atoms/         # 原子组件 (Button, Input, Card 等)
+│   │   ├── molecules/     # 分子组件 (WorkflowCard, UserHeader 等)
+│   │   └── organisms/     # 有机体组件
+│   ├── screens/           # 页面组件
+│   │   ├── LoginScreen.tsx
+│   │   ├── RegisterScreen.tsx
+│   │   ├── HomeScreen.tsx
+│   │   ├── WorkflowsScreen.tsx
+│   │   └── ProfileScreen.tsx
+│   ├── navigation/        # 导航配置
+│   │   ├── AppNavigator.tsx
+│   │   ├── AuthNavigator.tsx
+│   │   └── MainNavigator.tsx
+│   ├── services/          # API 服务
+│   │   ├── api.ts         # API 客户端
+│   │   ├── auth.ts        # 认证服务
+│   │   └── workflow.ts    # 工作流服务
+│   ├── utils/             # 工具函数
+│   ├── types/             # TypeScript 类型定义
+│   ├── hooks/             # 自定义 Hooks
+│   └── assets/            # 静态资源
+├── App.tsx                # 应用入口
+├── index.js               # 注册入口
+├── package.json           # 依赖配置
+└── README.md              # 本文档
 ```
 
 ## 开发指南
