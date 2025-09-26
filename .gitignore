@@ -391,3 +391,6 @@ Temporary Items
 # kiro
 .kiro/
 
+
+*storybook.log
+storybook-static
