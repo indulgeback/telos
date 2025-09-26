@@ -119,7 +119,7 @@ export const WithLabelAndHelperText: Story = {
       <Label htmlFor='email-2'>Email</Label>
       <Input {...args} id='email-2' />
       <p className='text-sm text-muted-foreground'>
-        We&apos;ll never share your email with anyone else.
+        We'll never share your email with anyone else.
       </p>
     </div>
   ),
