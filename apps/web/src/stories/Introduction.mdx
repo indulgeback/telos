@@ -1,0 +1,142 @@
+import { Meta } from '@storybook/blocks'
+
+<Meta title='Introduction' />
+
+# Telos Design System
+
+欢迎来到 Telos 设计系统的 Storybook！这里展示了我们构建用户界面所使用的所有组件。
+
+## 🎨 设计原则
+
+我们的设计系统基于以下原则构建：
+
+- **一致性**: 所有组件都遵循统一的设计语言
+- **可访问性**: 符合 WCAG 2.1 AA 标准
+- **可定制性**: 支持主题定制和品牌化
+- **性能**: 优化的组件确保快速加载
+- **开发者体验**: 易于使用和集成
+
+## 🏗️ 架构
+
+我们的组件库采用原子设计模式：
+
+### 原子组件 (Atoms)
+
+最基础的UI构建块，如按钮、输入框、标签等。这些组件不能进一步分解，是构建更复杂组件的基础。
+
+- [Button](/docs/atoms-button--docs) - 各种样式的按钮组件
+- [Input](/docs/atoms-input--docs) - 输入框组件
+- [Card](/docs/atoms-card--docs) - 卡片容器组件
+- [Avatar](/docs/atoms-avatar--docs) - 用户头像组件
+- [Badge](/docs/atoms-badge--docs) - 徽章和标签组件
+- [Label](/docs/atoms-label--docs) - 表单标签组件
+
+### 分子组件 (Molecules)
+
+由原子组件组合而成的功能组件，如搜索框、用户卡片等。
+
+### 有机体组件 (Organisms)
+
+复杂的UI部分，由原子和分子组件组成，如导航栏、表单等。
+
+## 🛠️ 技术栈
+
+- **React 19** - 最新的React版本
+- **TypeScript** - 类型安全
+- **Tailwind CSS** - 实用优先的CSS框架
+- **Radix UI** - 无样式的可访问组件原语
+- **Lucide React** - 图标库
+- **Class Variance Authority** - 变体管理
+- **Storybook** - 组件开发和文档
+
+## 🚀 快速开始
+
+### 安装
+
+```bash
+npm install @telos/ui-components
+# 或
+pnpm add @telos/ui-components
+```
+
+### 使用
+
+```jsx
+import { Button, Card, Avatar } from '@telos/ui-components'
+
+function MyComponent() {
+  return (
+    <Card>
+      <Avatar src='/avatar.jpg' fallback='JD' />
+      <Button variant='primary'>Click me</Button>
+    </Card>
+  )
+}
+```
+
+## 🎯 组件特性
+
+### 变体支持
+
+大多数组件都支持多种变体，如：
+
+```jsx
+<Button variant="default">Default</Button>
+<Button variant="destructive">Destructive</Button>
+<Button variant="outline">Outline</Button>
+<Button variant="ghost">Ghost</Button>
+```
+
+### 尺寸选项
+
+组件通常提供多种尺寸：
+
+```jsx
+<Button size="sm">Small</Button>
+<Button size="default">Default</Button>
+<Button size="lg">Large</Button>
+```
+
+### 主题定制
+
+所有组件都支持深色/浅色主题，并可通过CSS变量进行定制。
+
+## 🧪 测试
+
+我们使用多种测试策略确保组件质量：
+
+- **Visual Testing** - 通过 Chromatic 进行视觉回归测试
+- **Accessibility Testing** - 内置 a11y 插件检查可访问性
+- **Interaction Testing** - 测试用户交互行为
+- **Unit Testing** - 通过 Vitest 进行单元测试
+
+## 📖 文档约定
+
+每个组件的文档包含：
+
+- **Overview** - 组件概述和用途
+- **Examples** - 各种使用示例
+- **API Reference** - 属性和方法文档
+- **Accessibility** - 可访问性指南
+- **Design Guidelines** - 设计使用建议
+
+## 🤝 贡献
+
+我们欢迎社区贡献！请查看我们的贡献指南：
+
+1. Fork 项目
+2. 创建功能分支
+3. 添加测试和文档
+4. 提交 Pull Request
+
+## 📞 支持
+
+如有问题或建议，请：
+
+- 查看文档和示例
+- 提交 GitHub Issue
+- 联系设计系统团队
+
+---
+
+让我们一起构建出色的用户体验！ 🎉
