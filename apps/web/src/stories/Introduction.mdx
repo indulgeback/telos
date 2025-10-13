@@ -1,6 +1,6 @@
-import { Meta } from '@storybook/blocks';
+import { Meta } from '@storybook/blocks'
 
-<Meta title="Introduction" />
+<Meta title='Introduction' />
 
 # Telos Design System
 
@@ -21,6 +21,7 @@ import { Meta } from '@storybook/blocks';
 我们的组件库采用原子设计模式：
 
 ### 原子组件 (Atoms)
+
 最基础的UI构建块，如按钮、输入框、标签等。这些组件不能进一步分解，是构建更复杂组件的基础。
 
 - [Button](/docs/telos-atoms-button--docs) - 各种样式的按钮组件
@@ -31,9 +32,11 @@ import { Meta } from '@storybook/blocks';
 - [Label](/docs/telos-atoms-label--docs) - 表单标签组件
 
 ### 分子组件 (Molecules)
+
 由原子组件组合而成的功能组件，如搜索框、用户卡片等。
 
 ### 有机体组件 (Organisms)
+
 复杂的UI部分，由原子和分子组件组成，如导航栏、表单等。
 
 ## 🛠️ 技术栈
@@ -64,10 +67,8 @@ import { Button, Card, Avatar } from '@telos/ui-components'
 function MyComponent() {
   return (
     <Card>
-      <Avatar src="/avatar.jpg" fallback="JD" />
-      <Button variant="primary">
-        Click me
-      </Button>
+      <Avatar src='/avatar.jpg' fallback='JD' />
+      <Button variant='primary'>Click me</Button>
     </Card>
   )
 }
@@ -76,6 +77,7 @@ function MyComponent() {
 ## 🎯 组件特性
 
 ### 变体支持
+
 大多数组件都支持多种变体，如：
 
 ```jsx
@@ -86,6 +88,7 @@ function MyComponent() {
 ```
 
 ### 尺寸选项
+
 组件通常提供多种尺寸：
 
 ```jsx
@@ -95,6 +98,7 @@ function MyComponent() {
 ```
 
 ### 主题定制
+
 所有组件都支持深色/浅色主题，并可通过CSS变量进行定制。
 
 ## 🧪 测试
