@@ -6,7 +6,8 @@ export const metadata = {
   date: '2024-09-15',
   readTime: '9 min read',
   tags: ['Performance', 'Optimization', 'Tutorial'],
-  coverImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+  coverImage:
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
 }
 
 <AuthorInfo
@@ -190,7 +191,10 @@ Don't fetch more data than needed:
 const users = await db.users.find({})
 
 // ✅ Good: Limit and paginate
-const users = await db.users.find({}).limit(100).skip(page * 100)
+const users = await db.users
+  .find({})
+  .limit(100)
+  .skip(page * 100)
 ```
 
 ### Select Specific Fields
@@ -424,4 +428,3 @@ Remember: Premature optimization is the root of all evil. Optimize based on real
 
 - [Getting Started with Workflow Automation](/blog/getting-started-with-workflow-automation)
 - [Building Scalable Microservices with Telos](/blog/building-scalable-microservices)
-
