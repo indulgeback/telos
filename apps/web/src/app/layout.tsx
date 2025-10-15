@@ -16,32 +16,40 @@ import { ThemeProvider, SessionProvider } from '@/components/providers'
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
+  preload: true,
 })
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+  display: 'swap',
+  preload: true,
 })
 
 const playfairDisplay = Playfair_Display({
   variable: '--font-playfair',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const jetbrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains-mono',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const poppins = Poppins({
   variable: '--font-poppins',
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -68,6 +76,16 @@ export default async function RootLayout({ children }: Iprops) {
     <html lang={lang} suppressHydrationWarning>
       <head>
         <link rel='icon' type='image/png' href='/favicon.png' />
+        <link
+          rel='preconnect'
+          href='https://fonts.googleapis.com'
+          crossOrigin='anonymous'
+        />
+        <link
+          rel='preconnect'
+          href='https://fonts.gstatic.com'
+          crossOrigin='anonymous'
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${poppins.variable} antialiased`}
