@@ -13,6 +13,18 @@ const nextConfig: NextConfig = {
   output: 'standalone', // 支持 Docker 部署
   compress: true,
   trailingSlash: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'plus.unsplash.com',
+      },
+    ],
+  },
   compiler: {
     removeConsole: {
       exclude:

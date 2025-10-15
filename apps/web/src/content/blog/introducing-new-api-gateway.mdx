@@ -1,0 +1,291 @@
+export const metadata = {
+  title: 'Introducing the New Telos API Gateway',
+  description: 'Enhanced features, better performance, and improved developer experience',
+  author: 'Emily Product',
+  authorBio: 'Product Manager at Telos',
+  date: '2024-09-20',
+  readTime: '6 min read',
+  tags: ['Product Update', 'API', 'Release'],
+  coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
+}
+
+<AuthorInfo
+  name='Emily Product'
+  bio='Product Manager at Telos'
+  date='2024-09-20'
+  readTime='6 min read'
+/>
+
+# Introducing the New Telos API Gateway
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80'
+  alt='Modern API Gateway infrastructure'
+  caption='The new Telos API Gateway - faster, more powerful, easier to use'
+  priority
+/>
+
+We're excited to announce the release of our completely redesigned API Gateway! After months of development and extensive beta testing, we're ready to bring you a faster, more powerful, and easier-to-use gateway.
+
+<InfoBox type='info' title='Key Highlights'>
+
+- 3x faster request processing
+- Advanced routing capabilities
+- Built-in rate limiting and caching
+- Enhanced security features
+- Improved monitoring and analytics
+
+</InfoBox>
+
+## What's New?
+
+### Performance Improvements
+
+Our new API Gateway is built from the ground up with performance in mind:
+
+- **3x Faster**: Average response time reduced from 150ms to 50ms
+- **Higher Throughput**: Handle up to 100,000 requests per second
+- **Lower Latency**: Edge caching reduces latency by up to 80%
+
+```typescript
+// Performance metrics comparison
+const metrics = {
+  old: { avgResponseTime: '150ms', maxThroughput: '30k/s' },
+  new: { avgResponseTime: '50ms', maxThroughput: '100k/s' },
+}
+```
+
+### Advanced Routing
+
+More flexible and powerful routing options:
+
+**Path-based Routing:**
+
+```typescript
+{
+  path: '/api/v2/users/*',
+  target: 'user-service-v2',
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
+}
+```
+
+**Header-based Routing:**
+
+```typescript
+{
+  path: '/api/users/*',
+  target: 'user-service-beta',
+  conditions: {
+    headers: { 'X-Beta-User': 'true' }
+  }
+}
+```
+
+**Weight-based Routing:**
+
+Perfect for canary deployments:
+
+```typescript
+{
+  path: '/api/orders/*',
+  targets: [
+    { service: 'orders-v1', weight: 90 },
+    { service: 'orders-v2', weight: 10 }
+  ]
+}
+```
+
+### Built-in Rate Limiting
+
+Protect your services with intelligent rate limiting:
+
+<InfoBox type='info' title='Multiple Strategies'>
+
+Choose from fixed window, sliding window, or token bucket algorithms.
+
+</InfoBox>
+
+```typescript
+const rateLimit = {
+  strategy: 'sliding-window',
+  limit: 1000,
+  window: '1m',
+  keyBy: 'ip', // or 'user', 'api-key'
+}
+```
+
+### Response Caching
+
+Reduce backend load with smart caching:
+
+```typescript
+const cacheConfig = {
+  enabled: true,
+  ttl: 300, // 5 minutes
+  varyBy: ['query', 'headers.accept-language'],
+  exclude: ['/api/auth/*', '/api/admin/*'],
+}
+```
+
+## Enhanced Security
+
+### Authentication Methods
+
+Support for multiple authentication schemes:
+
+- API Keys
+- OAuth 2.0
+- JWT Tokens
+- Mutual TLS
+- Custom authentication plugins
+
+### Request Validation
+
+Automatically validate requests against schemas:
+
+```typescript
+const validation = {
+  enabled: true,
+  schema: {
+    body: {
+      type: 'object',
+      required: ['email', 'name'],
+      properties: {
+        email: { type: 'string', format: 'email' },
+        name: { type: 'string', minLength: 2 },
+      },
+    },
+  },
+}
+```
+
+<InfoBox type='warning' title='Security First'>
+
+All requests are validated and sanitized before reaching your backend services.
+
+</InfoBox>
+
+## Developer Experience
+
+### Real-time Monitoring
+
+New dashboard with real-time insights:
+
+- Request volume and latency
+- Error rates and types
+- Cache hit/miss ratios
+- Top endpoints and consumers
+- Geographic distribution
+
+### API Documentation
+
+Auto-generated, always up-to-date documentation:
+
+```typescript
+// OpenAPI 3.0 support
+export const openAPIConfig = {
+  version: '3.0.0',
+  info: {
+    title: 'Telos API',
+    version: '2.0.0',
+  },
+  autoGenerate: true,
+}
+```
+
+### Testing Tools
+
+Built-in API testing and debugging:
+
+- Request/response inspector
+- Mock responses for testing
+- Load testing capabilities
+- API playground
+
+## Migration Guide
+
+### Step 1: Review Configuration
+
+Export your current gateway configuration:
+
+```bash
+telos gateway export --output config.json
+```
+
+### Step 2: Update Routes
+
+The new routing syntax is more powerful but slightly different:
+
+```typescript
+// Old syntax
+{
+  route: '/users',
+  service: 'user-service'
+}
+
+// New syntax
+{
+  path: '/users/*',
+  target: 'user-service',
+  version: 'v2'
+}
+```
+
+### Step 3: Test in Staging
+
+Deploy to staging environment first:
+
+```bash
+telos gateway deploy --env staging --config new-config.json
+```
+
+### Step 4: Gradual Rollout
+
+Use traffic splitting for safe migration:
+
+<InfoBox type='info' title='Zero Downtime'>
+
+Run old and new gateways in parallel during migration for zero downtime.
+
+</InfoBox>
+
+## Pricing
+
+The new API Gateway is available at the same price:
+
+- **Free Tier**: Up to 1M requests/month
+- **Pro**: $49/month for 10M requests
+- **Enterprise**: Custom pricing for high volume
+
+## What's Next?
+
+We're already working on the next set of features:
+
+- GraphQL support
+- WebSocket proxying
+- Advanced analytics and insights
+- Plugin marketplace
+- Multi-region deployment
+
+## Get Started Today
+
+Ready to upgrade? Check out our migration guide and start experiencing the benefits of the new API Gateway.
+
+<InfoBox type='info' title='Resources'>
+
+- [Migration Guide](/docs/gateway/migration)
+- [API Reference](/docs/gateway/api)
+- [Video Tutorial](/tutorials/gateway)
+- [Support Forum](/community/gateway)
+
+</InfoBox>
+
+---
+
+We can't wait to see what you build with the new API Gateway. As always, we're here to help – reach out to our support team if you have any questions!
+
+### Related Posts
+
+- [Building Scalable Microservices with Telos](/blog/building-scalable-microservices)
+- [Security Best Practices for Your Workflows](/blog/security-best-practices)
+

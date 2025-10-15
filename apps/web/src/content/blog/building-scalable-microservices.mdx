@@ -1,0 +1,300 @@
+export const metadata = {
+  title: 'Building Scalable Microservices with Telos',
+  description: 'Discover best practices for building and deploying scalable microservices',
+  author: 'Sarah Architecture',
+  authorBio: 'Solutions Architect at Telos',
+  date: '2024-10-05',
+  readTime: '12 min read',
+  tags: ['Architecture', 'Microservices', 'Best Practices'],
+  coverImage: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80',
+}
+
+<AuthorInfo
+  name='Sarah Architecture'
+  bio='Solutions Architect at Telos'
+  date='2024-10-05'
+  readTime='12 min read'
+/>
+
+# Building Scalable Microservices with Telos
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80'
+  alt='Modern cloud infrastructure and microservices architecture'
+  caption='Build scalable microservices with best practices'
+  priority
+/>
+
+Microservices architecture has become the de facto standard for building modern, scalable applications. In this comprehensive guide, we'll explore how to leverage Telos to build, deploy, and manage microservices effectively.
+
+<InfoBox type='info' title="What You'll Learn">
+
+- Microservices architecture fundamentals
+- Service design patterns
+- API Gateway integration
+- Service discovery and communication
+- Monitoring and observability
+
+</InfoBox>
+
+## Why Microservices?
+
+Microservices offer several compelling advantages over monolithic architectures:
+
+- **Scalability**: Scale individual services independently based on demand
+- **Flexibility**: Use different technologies for different services
+- **Resilience**: Isolate failures to individual services
+- **Development Speed**: Teams can work independently on different services
+- **Deployment**: Deploy services independently without affecting the entire system
+
+## Core Principles
+
+### 1. Single Responsibility
+
+Each microservice should focus on a single business capability:
+
+```typescript
+// Good: User Service handles only user-related operations
+class UserService {
+  async createUser(userData) {...}
+  async getUserById(id) {...}
+  async updateUser(id, data) {...}
+  async deleteUser(id) {...}
+}
+```
+
+### 2. Loose Coupling
+
+Services should be independent and communicate through well-defined interfaces:
+
+<InfoBox type='note'>
+
+Use asynchronous messaging and event-driven patterns to reduce coupling between services.
+
+</InfoBox>
+
+### 3. API First Design
+
+Design your APIs before implementing services:
+
+```typescript
+// API Contract Example
+interface OrderAPI {
+  POST / orders: CreateOrder
+  GET / orders /: id: GetOrder
+  PUT / orders /: id: UpdateOrder
+  DELETE / orders /: id: CancelOrder
+}
+```
+
+## Service Communication Patterns
+
+### Synchronous Communication
+
+Using REST APIs or gRPC for request-response patterns:
+
+```typescript
+const response = await fetch('https://api.telos.com/users/123', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+})
+```
+
+### Asynchronous Communication
+
+Using message queues for event-driven architecture:
+
+<InfoBox type='info' title='Event-Driven Benefits'>
+
+Asynchronous communication improves resilience and allows services to process events at their own pace.
+
+</InfoBox>
+
+## API Gateway Integration
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80'
+  alt='Network and API connections visualization'
+  caption='API Gateway as unified entry point for microservices'
+/>
+
+Telos API Gateway provides a unified entry point for all your microservices:
+
+**Key Features:**
+
+- Request routing and load balancing
+- Authentication and authorization
+- Rate limiting and throttling
+- Request/response transformation
+- Caching and performance optimization
+
+```typescript
+// API Gateway Configuration
+const gatewayConfig = {
+  routes: [
+    {
+      path: '/api/users/*',
+      target: 'user-service:8080',
+      rateLimit: 1000,
+    },
+    {
+      path: '/api/orders/*',
+      target: 'order-service:8080',
+      rateLimit: 500,
+    },
+  ],
+}
+```
+
+## Data Management
+
+### Database Per Service
+
+Each microservice should own its data:
+
+<InfoBox type='warning' title='Important'>
+
+Never share databases between services. This creates tight coupling and defeats the purpose of microservices.
+
+</InfoBox>
+
+### Data Consistency
+
+Use eventual consistency and saga patterns for distributed transactions:
+
+1. **Orchestration**: Central coordinator manages the transaction
+2. **Choreography**: Services coordinate through events
+
+## Monitoring and Observability
+
+### Distributed Tracing
+
+Track requests across multiple services:
+
+```typescript
+// Add correlation IDs to track requests
+const correlationId = generateId()
+headers['X-Correlation-ID'] = correlationId
+```
+
+### Centralized Logging
+
+Aggregate logs from all services:
+
+- Use structured logging
+- Include correlation IDs
+- Log service name and version
+- Track request/response times
+
+### Health Checks
+
+Implement health check endpoints:
+
+```typescript
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date(),
+    dependencies: {
+      database: 'connected',
+      cache: 'connected',
+    },
+  })
+})
+```
+
+## Deployment Strategies
+
+### Container-Based Deployment
+
+Use Docker for consistent deployment:
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production
+COPY . .
+EXPOSE 8080
+CMD ["node", "server.js"]
+```
+
+### Rolling Updates
+
+Deploy new versions without downtime:
+
+1. Deploy new version alongside old
+2. Gradually shift traffic to new version
+3. Monitor for issues
+4. Complete rollout or rollback if needed
+
+<InfoBox type='info' title='Zero Downtime'>
+
+Always use rolling updates or blue-green deployments to ensure zero downtime.
+
+</InfoBox>
+
+## Security Best Practices
+
+### Service-to-Service Authentication
+
+Use mutual TLS or JWT tokens:
+
+```typescript
+const token = jwt.sign(
+  {
+    serviceId: 'order-service',
+    scope: ['read:users'],
+  },
+  SECRET_KEY,
+  { expiresIn: '1h' }
+)
+```
+
+### API Security
+
+- Always use HTTPS
+- Implement rate limiting
+- Validate all inputs
+- Use API keys for external access
+- Implement proper CORS policies
+
+## Common Pitfalls
+
+### 1. Creating Too Many Services
+
+Start with a modular monolith and extract services as needed.
+
+### 2. Chatty Services
+
+Avoid excessive inter-service communication:
+
+- ❌ Making 10 API calls to render one page
+- ✅ Aggregate data at the API Gateway level
+
+### 3. Ignoring Network Failures
+
+Always implement retry logic and circuit breakers:
+
+<InfoBox type='warning'>
+
+Network failures are inevitable in distributed systems. Plan for them from the start.
+
+</InfoBox>
+
+## Conclusion
+
+Building scalable microservices requires careful planning and adherence to best practices. Telos provides the tools and infrastructure to make microservices development easier and more efficient.
+
+Start small, focus on business capabilities, and iterate based on real-world needs.
+
+---
+
+### Related Posts
+
+- [Getting Started with Workflow Automation](/blog/getting-started-with-workflow-automation)
+- [Security Best Practices for Your Workflows](/blog/security-best-practices)
+- [Introducing the New Telos API Gateway](/blog/introducing-new-api-gateway)
+

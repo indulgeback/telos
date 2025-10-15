@@ -1,0 +1,199 @@
+export const metadata = {
+  title: 'Getting Started with Workflow Automation',
+  description: 'Learn how to create your first automated workflow on Telos',
+  author: 'John Developer',
+  authorBio: 'Senior Software Engineer at Telos',
+  date: '2024-10-10',
+  readTime: '8 min read',
+  tags: ['Tutorial', 'Workflows', 'Getting Started'],
+  coverImage: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
+}
+
+<AuthorInfo
+  name='John Developer'
+  bio='Senior Software Engineer at Telos'
+  date='2024-10-10'
+  readTime='8 min read'
+/>
+
+# Getting Started with Workflow Automation
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80'
+  alt='Workflow automation dashboard with charts and graphs'
+  caption='Automate your workflows with Telos platform'
+  priority
+/>
+
+Workflow automation is one of the most powerful features of the Telos platform. In this comprehensive guide, we'll walk through everything you need to know to create your first automated workflow.
+
+<InfoBox type='info' title="What You'll Learn">
+
+- Understanding workflow concepts
+- Creating your first workflow
+- Connecting services and triggers
+- Best practices and common pitfalls
+
+</InfoBox>
+
+## What is Workflow Automation?
+
+Workflow automation allows you to connect different services and automate repetitive tasks without writing code. Think of it as creating a recipe where one action triggers another, forming a chain of automated processes.
+
+### Key Benefits
+
+Workflow automation offers several advantages:
+
+- **Time Savings**: Eliminate manual, repetitive tasks
+- **Consistency**: Ensure processes are executed the same way every time
+- **Error Reduction**: Minimize human error in routine operations
+- **Scalability**: Handle increased workload without additional resources
+- **Integration**: Connect disparate systems seamlessly
+
+## Understanding Workflow Components
+
+Before we dive in, let's understand the key components of a workflow:
+
+### Triggers
+
+Triggers are events that start your workflow. Common triggers include:
+
+- **Webhooks**: HTTP requests from external services
+- **Schedules**: Time-based triggers (e.g., daily at 9 AM)
+- **Manual**: Workflows started by user action
+- **Events**: Platform events like new user registration
+
+### Actions
+
+Actions are the tasks your workflow performs. Examples include:
+
+- Sending emails or notifications
+- Creating or updating database records
+- Calling external APIs
+- Processing and transforming data
+- Conditional logic and branching
+
+### Connections
+
+Connections link triggers to actions and actions to other actions, forming the workflow pipeline.
+
+<InfoBox type='note'>
+
+Think of workflows as a flowchart where each node represents an action, and arrows represent the flow of data between them.
+
+</InfoBox>
+
+## Creating Your First Workflow
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80'
+  alt='Creating workflow diagrams on computer'
+  caption='Build your first automated workflow step by step'
+/>
+
+Let's create a simple workflow that sends a welcome email when a new user registers.
+
+### Step 1: Create a New Workflow
+
+Navigate to the Workflows section and click "Create New Workflow". Give your workflow a descriptive name like "New User Welcome Email".
+
+```typescript
+// Example workflow configuration
+const workflow = {
+  name: 'New User Welcome Email',
+  description: 'Send welcome email to new users',
+  trigger: {
+    type: 'event',
+    event: 'user.registered',
+  },
+}
+```
+
+### Step 2: Add a Trigger
+
+Select the "User Registered" event trigger. This will fire whenever a new user completes registration.
+
+**Configuration:**
+
+- Event Type: `user.registered`
+- Filter: None (trigger for all new users)
+
+### Step 3: Add an Email Action
+
+Add a "Send Email" action to your workflow:
+
+```typescript
+// Email action configuration
+const emailAction = {
+  type: 'send_email',
+  config: {
+    to: '{{trigger.user.email}}',
+    subject: 'Welcome to Telos!',
+    template: 'welcome_email',
+    variables: {
+      userName: '{{trigger.user.name}}',
+      loginUrl: 'https://app.telos.com/login',
+    },
+  },
+}
+```
+
+<InfoBox type='info' title='Pro Tip'>
+
+Use template variables like `{{trigger.user.email}}` to dynamically insert data from the trigger event.
+
+</InfoBox>
+
+### Step 4: Test Your Workflow
+
+Before activating, test your workflow:
+
+1. Click the "Test" button
+2. Provide sample trigger data
+3. Review the execution results
+4. Check that the email is sent correctly
+
+### Step 5: Activate
+
+Once testing is complete, activate your workflow. It will now run automatically whenever a new user registers!
+
+## Best Practices
+
+### 1. Keep Workflows Focused
+
+Each workflow should have a single, clear purpose. Avoid creating overly complex workflows that try to do too much.
+
+### 2. Use Descriptive Names
+
+Name your workflows, actions, and variables clearly:
+
+- ✅ `send_welcome_email_to_premium_users`
+- ❌ `workflow_1`
+
+### 3. Implement Monitoring
+
+Set up monitoring for your workflows:
+
+- Track execution times
+- Monitor success/failure rates
+- Set up alerts for failures
+- Review logs regularly
+
+<InfoBox type='warning' title='Security Alert'>
+
+Never hardcode API keys or passwords in your workflows. Use the secure credentials store instead.
+
+</InfoBox>
+
+## Conclusion
+
+Workflow automation is a powerful tool that can save time, reduce errors, and improve efficiency. Start simple, follow best practices, and gradually build more complex workflows as you gain experience.
+
+---
+
+<InfoBox type='note'>
+
+Did you find this guide helpful? Let us know what other topics you'd like us to cover at blog@telos.com
+
+</InfoBox>
+

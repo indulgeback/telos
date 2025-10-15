@@ -1,0 +1,401 @@
+export const metadata = {
+  title: 'Case Study: How Company X Automated Their DevOps Pipeline',
+  description: 'Reducing deployment time by 75% and improving reliability with Telos',
+  author: 'David Success',
+  authorBio: 'Customer Success Manager at Telos',
+  date: '2024-09-08',
+  readTime: '11 min read',
+  tags: ['Case Study', 'DevOps', 'Success Story'],
+  coverImage: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&q=80',
+}
+
+<AuthorInfo
+  name='David Success'
+  bio='Customer Success Manager at Telos'
+  date='2024-09-08'
+  readTime='11 min read'
+/>
+
+# Case Study: How Company X Automated Their DevOps Pipeline
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1200&q=80'
+  alt='DevOps team collaboration and automation'
+  caption='How Company X transformed their DevOps with automation'
+  priority
+/>
+
+Company X, a fast-growing SaaS company with 50+ engineers, was struggling with slow and error-prone deployments. Their manual deployment process was taking hours and often resulted in production issues. Here's how they used Telos to transform their DevOps pipeline.
+
+<InfoBox type='info' title='Key Results'>
+
+- 75% reduction in deployment time
+- 90% fewer deployment errors
+- 100% deployment automation
+- 50% reduction in DevOps team workload
+
+</InfoBox>
+
+## The Challenge
+
+### Before Telos
+
+Company X's deployment process was a nightmare:
+
+- **Manual Steps**: 15+ manual steps per deployment
+- **Long Duration**: 4-6 hours for a full deployment
+- **High Error Rate**: 25% of deployments required rollback
+- **Limited Visibility**: No centralized monitoring
+- **Team Burnout**: DevOps team working nights and weekends
+
+### Pain Points
+
+```typescript
+// Their manual deployment checklist
+const deploymentSteps = [
+  'Run tests locally',
+  'Build Docker images',
+  'Tag images manually',
+  'Update Kubernetes manifests',
+  'Apply manifests one by one',
+  'Monitor logs manually',
+  'Update database schemas',
+  'Run migration scripts',
+  'Verify deployment manually',
+  'Update documentation',
+  'Notify team',
+  'Monitor for issues',
+]
+```
+
+<InfoBox type='warning' title='The Breaking Point'>
+
+A critical deployment failure during peak hours cost them $50,000 in lost revenue and damaged customer trust.
+
+</InfoBox>
+
+## The Solution
+
+### Phase 1: Automated CI/CD Pipeline
+
+First, they automated their build and test process:
+
+```typescript
+// Automated CI/CD workflow
+const cicdWorkflow = {
+  name: 'Build and Deploy',
+  trigger: {
+    type: 'git_push',
+    branch: 'main',
+  },
+  steps: [
+    {
+      name: 'Run Tests',
+      action: 'run_tests',
+      config: {
+        command: 'npm test',
+        coverage: true,
+      },
+    },
+    {
+      name: 'Build Images',
+      action: 'docker_build',
+      config: {
+        tags: ['${GIT_COMMIT}', 'latest'],
+      },
+    },
+    {
+      name: 'Push to Registry',
+      action: 'docker_push',
+      config: {
+        registry: 'company-x-registry',
+      },
+    },
+  ],
+}
+```
+
+### Phase 2: Automated Deployment
+
+Next, they automated the deployment process:
+
+**Staging Environment:**
+
+```typescript
+const stagingDeploy = {
+  name: 'Deploy to Staging',
+  trigger: {
+    type: 'workflow_complete',
+    workflow: 'Build and Deploy',
+  },
+  steps: [
+    {
+      name: 'Update K8s Manifests',
+      action: 'kubectl_apply',
+      config: {
+        environment: 'staging',
+        namespace: 'company-x-staging',
+      },
+    },
+    {
+      name: 'Run Smoke Tests',
+      action: 'run_tests',
+      config: {
+        suite: 'smoke',
+        environment: 'staging',
+      },
+    },
+    {
+      name: 'Notify Team',
+      action: 'slack_notify',
+      config: {
+        channel: '#deployments',
+        message: 'Staging deployment complete ✅',
+      },
+    },
+  ],
+}
+```
+
+**Production Environment:**
+
+```typescript
+const prodDeploy = {
+  name: 'Deploy to Production',
+  trigger: {
+    type: 'manual_approval',
+    approvers: ['devops-team'],
+  },
+  steps: [
+    {
+      name: 'Database Migration',
+      action: 'run_migration',
+      config: {
+        direction: 'up',
+        dryRun: true,
+      },
+    },
+    {
+      name: 'Rolling Update',
+      action: 'kubectl_rollout',
+      config: {
+        strategy: 'rolling',
+        maxSurge: '25%',
+        maxUnavailable: '0',
+      },
+    },
+    {
+      name: 'Health Check',
+      action: 'health_check',
+      config: {
+        endpoint: '/health',
+        retries: 5,
+        interval: 10,
+      },
+    },
+  ],
+}
+```
+
+### Phase 3: Monitoring and Alerting
+
+Finally, they implemented comprehensive monitoring:
+
+<InfoBox type='info' title='Real-time Monitoring'>
+
+All deployments are monitored in real-time with automatic rollback on failures.
+
+</InfoBox>
+
+```typescript
+const monitoring = {
+  name: 'Production Monitoring',
+  checks: [
+    {
+      metric: 'error_rate',
+      threshold: 1, // 1%
+      action: 'rollback',
+    },
+    {
+      metric: 'response_time',
+      threshold: 500, // 500ms
+      action: 'alert',
+    },
+    {
+      metric: 'cpu_usage',
+      threshold: 80, // 80%
+      action: 'scale_up',
+    },
+  ],
+}
+```
+
+## Implementation Journey
+
+### Week 1-2: Planning and Setup
+
+- Audited existing deployment process
+- Identified automation opportunities
+- Set up Telos account and integration
+- Trained team on platform
+
+### Week 3-4: CI/CD Automation
+
+- Automated build and test processes
+- Implemented Docker image building
+- Set up container registry integration
+
+### Week 5-6: Staging Deployments
+
+- Automated staging deployments
+- Implemented smoke tests
+- Set up Slack notifications
+
+### Week 7-8: Production Deployments
+
+- Automated production deployments
+- Implemented approval workflows
+- Added rollback capabilities
+
+### Week 9-10: Monitoring and Optimization
+
+- Set up comprehensive monitoring
+- Configured alerts and notifications
+- Optimized workflow performance
+
+## The Results
+
+<BlogImage
+  src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80'
+  alt='Success metrics and performance improvement charts'
+  caption='Impressive results: 75% faster deployments, 90% fewer errors'
+/>
+
+### Quantitative Improvements
+
+| Metric                | Before   | After     | Improvement |
+| --------------------- | -------- | --------- | ----------- |
+| Deployment Time       | 4-6 hrs  | 45-60 min | -75%        |
+| Deployment Frequency  | Weekly   | Daily     | 7x          |
+| Error Rate            | 25%      | 2.5%      | -90%        |
+| Rollback Time         | 2-3 hrs  | 5-10 min  | -95%        |
+| Manual Steps Required | 15+      | 1         | -93%        |
+
+### Qualitative Improvements
+
+**Developer Experience:**
+
+- Developers can deploy confidently
+- Faster feedback loops
+- More time for feature development
+
+**Team Morale:**
+
+- No more weekend deployments
+- Reduced stress and burnout
+- Better work-life balance
+
+**Business Impact:**
+
+- Faster time to market
+- Improved reliability
+- Better customer satisfaction
+- Reduced operational costs
+
+<InfoBox type='info' title='ROI Calculation'>
+
+Telos paid for itself in the first month through reduced DevOps labor costs alone.
+
+</InfoBox>
+
+## Lessons Learned
+
+### What Worked Well
+
+1. **Start Small**: Began with CI/CD before tackling deployments
+2. **Incremental Rollout**: Staging first, then production
+3. **Team Buy-in**: Involved entire team in planning
+4. **Documentation**: Maintained clear documentation throughout
+
+### Challenges Faced
+
+1. **Legacy Systems**: Some old services needed refactoring
+2. **Learning Curve**: Team needed time to adapt
+3. **Edge Cases**: Discovered unique scenarios requiring special handling
+
+### Best Practices Adopted
+
+```typescript
+// Deployment best practices
+const bestPractices = {
+  alwaysUseVersionTags: true,
+  implementHealthChecks: true,
+  enableAutomaticRollback: true,
+  maintainDeploymentLogs: true,
+  requireCodeReview: true,
+  runAutomatedTests: true,
+  useFeatureFlags: true,
+  monitorInProduction: true,
+}
+```
+
+## Advice for Others
+
+### For Companies Considering Automation
+
+<InfoBox type='info' title='Start Today'>
+
+The best time to automate was yesterday. The second best time is today.
+
+</InfoBox>
+
+**Key Recommendations:**
+
+1. **Measure First**: Document current process and metrics
+2. **Start Simple**: Automate one workflow at a time
+3. **Get Buy-in**: Involve stakeholders early
+4. **Test Thoroughly**: Test automation in staging first
+5. **Monitor Everything**: Set up monitoring from day one
+6. **Iterate**: Continuously improve based on feedback
+
+### Common Pitfalls to Avoid
+
+- Don't try to automate everything at once
+- Don't skip testing phases
+- Don't ignore edge cases
+- Don't forget about monitoring
+- Don't underestimate training needs
+
+## What's Next for Company X
+
+Company X continues to expand their automation:
+
+- **Infrastructure as Code**: Automating infrastructure provisioning
+- **Auto-scaling**: Dynamic resource allocation
+- **Multi-region Deployments**: Global deployment automation
+- **Disaster Recovery**: Automated backup and recovery workflows
+
+## Conclusion
+
+Company X's transformation from manual, error-prone deployments to a fully automated DevOps pipeline demonstrates the power of workflow automation. The results speak for themselves: faster deployments, fewer errors, and happier teams.
+
+If they can do it, so can you. Start small, iterate quickly, and watch your DevOps efficiency soar.
+
+---
+
+<InfoBox type='info' title='Want Similar Results?'>
+
+Contact our team to learn how Telos can transform your DevOps pipeline.
+
+- [Schedule a Demo](/demo)
+- [Talk to Sales](/contact)
+- [Read Documentation](/docs)
+
+</InfoBox>
+
+### Related Posts
+
+- [Getting Started with Workflow Automation](/blog/getting-started-with-workflow-automation)
+- [Building Scalable Microservices with Telos](/blog/building-scalable-microservices)
+- [Optimizing Workflow Performance](/blog/optimizing-workflow-performance)
+
