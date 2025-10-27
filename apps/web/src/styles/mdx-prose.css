@@ -514,7 +514,6 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-
   .mdx-section-title,
   .mdx-blog-card-title,
   .mdx-author-name,
