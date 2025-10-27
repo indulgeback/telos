@@ -323,11 +323,11 @@
 .mdx-blog-card {
   display: block;
   text-decoration: none !important;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s ease-in-out;
 }
 
 .mdx-blog-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-8px);
   text-decoration: none !important;
 }
 
@@ -343,8 +343,9 @@
   border-radius: 1rem;
   overflow: hidden;
   transition:
-    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-color 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out,
+    transform 0.3s ease-in-out;
   box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.05),
     0 1px 2px -1px rgba(0, 0, 0, 0.05);
@@ -368,11 +369,11 @@
 
 .mdx-blog-card-cover-img {
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease-in-out;
 }
 
 .mdx-blog-card:hover .mdx-blog-card-cover-img {
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 .mdx-blog-card-body {
@@ -388,7 +389,7 @@
   margin-bottom: 0.75rem;
   color: #1a202c;
   line-height: 1.4;
-  transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 0.3s ease-in-out;
 }
 
 .mdx-blog-card:hover .mdx-blog-card-title {
@@ -439,13 +440,15 @@
   font-size: 0.75rem;
   font-weight: 600;
   transition:
-    background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background 0.3s ease-in-out,
+    transform 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out;
 }
 
 .mdx-blog-card:hover .mdx-blog-card-tag {
   background: linear-gradient(135deg, #dbeafe 0%, #c7d2fe 100%);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 /* MDX Author Info Component */
@@ -511,6 +514,7 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+
   .mdx-section-title,
   .mdx-blog-card-title,
   .mdx-author-name,
