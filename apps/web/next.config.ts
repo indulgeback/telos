@@ -4,6 +4,7 @@ import createMDX from '@next/mdx'
 import remarkGfm from 'remark-gfm'
 import rehypePrismPlus from 'rehype-prism-plus'
 import { codeInspectorPlugin } from 'code-inspector-plugin'
+import path from 'path'
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -17,6 +18,9 @@ const nextConfig: NextConfig = {
   output: 'standalone', // 支持 Docker 部署
   compress: true,
   trailingSlash: true,
+  turbopack: {
+    root: path.join(process.cwd(), '../../'),
+  },
   images: {
     remotePatterns: [
       {
