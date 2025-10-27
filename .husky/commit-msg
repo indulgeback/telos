@@ -1,5 +1,2 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 # 运行 commitlint 检查
 npx --no-install commitlint --edit "$1" 
