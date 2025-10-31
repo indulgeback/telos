@@ -17,8 +17,11 @@ function ThemeToggle() {
   const [mounted, setMounted] = useState(false)
   const t = useTranslations('Common')
 
+  // 使用 useEffect 的清理函数来避免在 effect 中直接 setState
   useEffect(() => {
-    setMounted(true)
+    // 使用 setTimeout 确保在下一个 tick 中更新状态
+    const timer = setTimeout(() => setMounted(true), 0)
+    return () => clearTimeout(timer)
   }, [])
 
   if (!mounted) {

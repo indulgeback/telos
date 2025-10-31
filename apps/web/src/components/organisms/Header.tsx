@@ -18,7 +18,7 @@ import {
 import { Github, Menu } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from '@/i18n/navigation'
 
 export function Header() {
@@ -26,11 +26,14 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
-  if (typeof window !== 'undefined') {
-    window.onscroll = () => {
+  useEffect(() => {
+    const handleScroll = () => {
       setScrolled(window.scrollY > 50)
     }
-  }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const navLinks = [
     { href: '#features', label: t('features') },

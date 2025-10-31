@@ -7,6 +7,15 @@ import { LastUpdated } from './LastUpdated'
 import { BlogCard } from './BlogCard'
 import { AuthorInfo } from './AuthorInfo'
 import { BlogImage } from './BlogImage'
+import { CodeBlock } from './CodeBlock'
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHeader,
+} from './Table'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -19,5 +28,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     BlogCard,
     AuthorInfo,
     BlogImage,
+    code: CodeBlock,
+    table: Table,
+    thead: TableHead,
+    tbody: TableBody,
+    tr: TableRow,
+    td: TableCell,
+    th: TableHeader,
   }
 }

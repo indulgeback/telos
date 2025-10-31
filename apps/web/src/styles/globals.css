@@ -128,3 +128,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Task list styles - convert checkboxes to icons */
+.prose li:has(> input[type='checkbox']) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose li > input[type='checkbox'] {
+  display: none;
+}
+
+.prose li > input[type='checkbox'] + * {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prose li > input[type='checkbox']:checked + *::before {
+  content: '✅';
+  font-size: 1.1em;
+}
+
+.prose li > input[type='checkbox']:not(:checked) + *::before {
+  content: '⬜';
+  font-size: 1.1em;
+}

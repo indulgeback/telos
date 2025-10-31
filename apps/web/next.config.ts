@@ -1,14 +1,13 @@
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 import createMDX from '@next/mdx'
-import remarkGfm from 'remark-gfm'
-import rehypePrismPlus from 'rehype-prism-plus'
 import { codeInspectorPlugin } from 'code-inspector-plugin'
 import path from 'path'
+import bundleAnalyzer from '@next/bundle-analyzer'
 
 const withNextIntl = createNextIntlPlugin()
 
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
+const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
@@ -45,9 +44,6 @@ const nextConfig: NextConfig = {
           : ['warn', 'error'],
     },
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   webpack: (config, { dev }) => {
     if (dev) {
       config.plugins.push(
@@ -63,9 +59,8 @@ const nextConfig: NextConfig = {
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
   options: {
-    providerImportSource: '@/components/mdx-components',
-    remarkPlugins: [remarkGfm],
-    rehypePlugins: [rehypePrismPlus],
+    remarkPlugins: [],
+    rehypePlugins: [],
   },
 })
 

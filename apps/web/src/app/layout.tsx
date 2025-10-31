@@ -17,7 +17,6 @@ const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
-  preload: true,
 })
 
 const geistMono = Geist_Mono({
@@ -30,7 +29,6 @@ const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
   display: 'swap',
-  preload: true,
 })
 
 const playfairDisplay = Playfair_Display({

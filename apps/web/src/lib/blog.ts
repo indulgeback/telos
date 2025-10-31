@@ -1,3 +1,11 @@
+// 静态导入所有博客文章（Turbopack 不支持动态导入）
+import * as gettingStarted from '@/content/blog/getting-started-with-workflow-automation.mdx'
+import * as buildingMicroservices from '@/content/blog/building-scalable-microservices.mdx'
+import * as securityBestPractices from '@/content/blog/security-best-practices.mdx'
+import * as apiGateway from '@/content/blog/introducing-new-api-gateway.mdx'
+import * as workflowPerformance from '@/content/blog/optimizing-workflow-performance.mdx'
+import * as caseStudy from '@/content/blog/case-study-company-x-devops.mdx'
+
 export interface BlogPost {
   slug: string
   title: string
@@ -10,25 +18,25 @@ export interface BlogPost {
   coverImage?: string
 }
 
-const BLOG_POSTS = [
-  'getting-started-with-workflow-automation',
-  'building-scalable-microservices',
-  'security-best-practices',
-  'introducing-new-api-gateway',
-  'optimizing-workflow-performance',
-  'case-study-company-x-devops',
-] as const
+// 博客文章映射表
+const BLOG_POST_MODULES = {
+  'getting-started-with-workflow-automation': gettingStarted,
+  'building-scalable-microservices': buildingMicroservices,
+  'security-best-practices': securityBestPractices,
+  'introducing-new-api-gateway': apiGateway,
+  'optimizing-workflow-performance': workflowPerformance,
+  'case-study-company-x-devops': caseStudy,
+} as const
 
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   const posts: BlogPost[] = []
 
-  for (const slug of BLOG_POSTS) {
+  for (const [slug, module] of Object.entries(BLOG_POST_MODULES)) {
     try {
-      const postModule = await import(`@/content/blog/${slug}.mdx`)
-      if (postModule.metadata) {
+      if (module.metadata) {
         posts.push({
           slug,
-          ...postModule.metadata,
+          ...module.metadata,
         })
       }
     } catch (error) {
@@ -43,18 +51,18 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function getBlogPost(slug: string) {
-  try {
-    const postModule = await import(`@/content/blog/${slug}.mdx`)
-    return {
-      slug,
-      metadata: postModule.metadata,
-      content: postModule.default,
-    }
-  } catch (error) {
+  const postModule = BLOG_POST_MODULES[slug as keyof typeof BLOG_POST_MODULES]
+  if (!postModule) {
     return null
+  }
+
+  return {
+    slug,
+    metadata: postModule.metadata,
+    content: postModule.default,
   }
 }
 
 export function getBlogSlugs() {
-  return BLOG_POSTS
+  return Object.keys(BLOG_POST_MODULES)
 }
