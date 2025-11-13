@@ -1,9 +1,11 @@
 packages:
-  - "apps/*"
-  - "services/*"
-  - "pkg/*"
+  - apps/*
+  - services/*
+  - pkg/*
+
+nodeLinker: hoisted
 
 onlyBuiltDependencies:
-  - "@tailwindcss/oxide"
+  - '@tailwindcss/oxide'
   - sharp
   - unrs-resolver
