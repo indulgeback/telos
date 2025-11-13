@@ -1,0 +1,2232 @@
+{
+  "acceptAspectRatios": ["9x16", "16x9", "1x1"],
+  "cache": false,
+  "timeline": {
+    "assets": {
+      "ced3050d-4c89-460a-8e48-524dd396fbd0_first_frame": {
+        "id": "ced3050d-4c89-460a-8e48-524dd396fbd0_first_frame",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/ff53ec4e-c09a-9652-9c87-ea60d1a44568.mp4.at_0.jpg",
+        "type": "image",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "select_type": "original",
+        "score": 0
+      },
+      "ced3050d-4c89-460a-8e48-524dd396fbd0": {
+        "id": "ced3050d-4c89-460a-8e48-524dd396fbd0",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/ff53ec4e-c09a-9652-9c87-ea60d1a44568.mp4",
+        "type": "video",
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/videos/ff53ec4e-c09a-9652-9c87-ea60d1a44568.mp4.at_0.jpg",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "duration": 45.011,
+        "select_type": "original",
+        "transparent": false,
+        "startFrom": 0.0,
+        "isClip": false,
+        "sourceType": "user_upload",
+        "score": 0,
+        "generatedType": "original",
+        "whetherGenerated": false
+      },
+      "56a8af17-383a-4d77-b515-8f45eba82e22_05a192fd": {
+        "id": "56a8af17-383a-4d77-b515-8f45eba82e22_05a192fd",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/pm.webm",
+        "type": "avatar",
+        "faceId": "56a8af17-383a-4d77-b515-8f45eba82e22",
+        "faceAspectRatio": "9x16",
+        "originalHeight": 1920,
+        "originalWidth": 1080,
+        "duration": 8.2,
+        "transparent": true,
+        "srcset": [
+          {
+            "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/matted_portrait_lipsync_video_404x720.webm",
+            "height": 720,
+            "width": 404
+          }
+        ],
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/pmt.png",
+        "style": "presenter"
+      },
+      "6026dd34-d0ed-4b9a-b044-a1b779775a3a": {
+        "id": "6026dd34-d0ed-4b9a-b044-a1b779775a3a",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-8tWJUtJiXwDBu4LxWq81-0-s.mp3",
+        "type": "audio",
+        "duration": 7.68
+      },
+      "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19": {
+        "id": "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/p.mp4",
+        "type": "avatar",
+        "faceId": "56a8af17-383a-4d77-b515-8f45eba82e22",
+        "faceAspectRatio": "9x16",
+        "originalHeight": 1920,
+        "originalWidth": 1080,
+        "duration": 8.2,
+        "transparent": false,
+        "srcset": [
+          {
+            "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/portrait_lipsync_video_404x720.mp4",
+            "height": 720,
+            "width": 404
+          }
+        ],
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/pt.png",
+        "style": "presenter"
+      },
+      "f382925b-4439-4d6a-9941-0d6f01857d92_original": {
+        "id": "f382925b-4439-4d6a-9941-0d6f01857d92_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/2e03b8e4a200f8793875dce3568e5911964f477646d7462aadde385758b27ceb.jpg",
+        "type": "image",
+        "originalHeight": 1476,
+        "originalWidth": 1184,
+        "select_type": "original",
+        "sourceType": "user_upload",
+        "score": 0.6187215
+      },
+      "9970264e-3a5d-4522-935f-c1cb58348fea_original": {
+        "id": "9970264e-3a5d-4522-935f-c1cb58348fea_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/0da9bc227d7f3a24bb15f7473a60855f48b9e9d2c1b92374b5552b6363b1e14f.jpg",
+        "type": "image",
+        "originalHeight": 1484,
+        "originalWidth": 1184,
+        "select_type": "original",
+        "sourceType": "user_upload",
+        "score": 0.6179657
+      },
+      "45528de5-63a8-4aac-9ecc-c67b3ab85233": {
+        "id": "45528de5-63a8-4aac-9ecc-c67b3ab85233",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-CnjhKYaLK1Z7P98ITL02-1-s.mp3",
+        "type": "audio",
+        "duration": 5.88
+      },
+      "05b71643-24f5-4aa0-872a-d11ea596ff14_first_frame": {
+        "id": "05b71643-24f5-4aa0-872a-d11ea596ff14_first_frame",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/1494d1f7-c8b2-2b39-fe7f-db415ae535d1.mp4.at_0.jpg",
+        "type": "image",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "select_type": "original",
+        "score": 0
+      },
+      "05b71643-24f5-4aa0-872a-d11ea596ff14": {
+        "id": "05b71643-24f5-4aa0-872a-d11ea596ff14",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/1494d1f7-c8b2-2b39-fe7f-db415ae535d1.mp4",
+        "type": "video",
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/videos/1494d1f7-c8b2-2b39-fe7f-db415ae535d1.mp4.at_0.jpg",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "duration": 70.937,
+        "select_type": "original",
+        "transparent": false,
+        "startFrom": 0.0,
+        "isClip": false,
+        "sourceType": "user_upload",
+        "score": 0,
+        "generatedType": "original",
+        "whetherGenerated": false
+      },
+      "56a8af17-383a-4d77-b515-8f45eba82e22_04495d33": {
+        "id": "56a8af17-383a-4d77-b515-8f45eba82e22_04495d33",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/s.mp4",
+        "type": "avatar",
+        "faceId": "56a8af17-383a-4d77-b515-8f45eba82e22",
+        "faceAspectRatio": "1x1",
+        "originalHeight": 1920,
+        "originalWidth": 1920,
+        "duration": 8.2,
+        "transparent": false,
+        "srcset": [
+          {
+            "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/squared_lipsync_video_720x720.mp4",
+            "height": 720,
+            "width": 720
+          }
+        ],
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/st.png",
+        "style": "presenter"
+      },
+      "3b690c8e-1572-4285-a13e-0c006abd82b6": {
+        "id": "3b690c8e-1572-4285-a13e-0c006abd82b6",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-r4qWhBBGOCpc47KBIxT8-2-s.mp3",
+        "type": "audio",
+        "duration": 5.04
+      },
+      "9d349d02-fd8a-404f-b48b-660f2ed854f7_original": {
+        "id": "9d349d02-fd8a-404f-b48b-660f2ed854f7_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/b1cba4b18ece5e4666ee34686131107ee578d52043020ed234ce284d8240f091.jpg",
+        "type": "image",
+        "originalHeight": 1500,
+        "originalWidth": 1245,
+        "select_type": "original",
+        "sourceType": "user_upload",
+        "score": 0.5911615
+      },
+      "821b1f2d-01b9-4048-8a59-cc7e3796fa89_original": {
+        "id": "821b1f2d-01b9-4048-8a59-cc7e3796fa89_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/6f6184222046e1b2f0c397175de37a77f0731d9308500f41c48538228872064d.jpg",
+        "type": "image",
+        "originalHeight": 1472,
+        "originalWidth": 1173,
+        "select_type": "original",
+        "sourceType": "user_upload",
+        "score": 0.5899184
+      },
+      "dbe3bd9a-e208-49d6-82cc-0c1e050e47d2": {
+        "id": "dbe3bd9a-e208-49d6-82cc-0c1e050e47d2",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-V6W0hZ1oHCybKCaCJWXh-3-s.mp3",
+        "type": "audio",
+        "duration": 5.3
+      },
+      "dcbb5d72-1409-4fc2-8e55-16c1f0d1bbfb_first_frame": {
+        "id": "dcbb5d72-1409-4fc2-8e55-16c1f0d1bbfb_first_frame",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/25398783-4c4a-bd55-e24c-214853f0747a.mp4.at_0.jpg",
+        "type": "image",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "select_type": "original",
+        "score": 0
+      },
+      "dcbb5d72-1409-4fc2-8e55-16c1f0d1bbfb": {
+        "id": "dcbb5d72-1409-4fc2-8e55-16c1f0d1bbfb",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/25398783-4c4a-bd55-e24c-214853f0747a.mp4",
+        "type": "video",
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/videos/25398783-4c4a-bd55-e24c-214853f0747a.mp4.at_0.jpg",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "duration": 192.125,
+        "select_type": "original",
+        "transparent": false,
+        "startFrom": 0.0,
+        "isClip": false,
+        "sourceType": "user_upload",
+        "score": 0,
+        "generatedType": "original",
+        "whetherGenerated": false
+      },
+      "268b8a68-c0de-4a44-9612-8129531c21c1": {
+        "id": "268b8a68-c0de-4a44-9612-8129531c21c1",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-W8MD1XdXcUijMxWm9379-4-s.mp3",
+        "type": "audio",
+        "duration": 3.55
+      },
+      "259435e6-104f-438b-8191-7a0ea187e7dc_original": {
+        "id": "259435e6-104f-438b-8191-7a0ea187e7dc_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/c271b5d9970ca5ef4a4ddc5f43e018703f80cc03aa6bc33ed846a5f84e8b4f5b.jpg",
+        "type": "image",
+        "originalHeight": 1500,
+        "originalWidth": 1200,
+        "select_type": "original",
+        "sourceType": "user_upload",
+        "score": 0.58178735
+      },
+      "1cee90a2-d9df-4a20-ad4c-fa8be9860ebb_original": {
+        "id": "1cee90a2-d9df-4a20-ad4c-fa8be9860ebb_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/2122bc19c7a7253a22a91084a130dc5987a945cf3468622b05bfe32a2a254799.jpg",
+        "type": "image",
+        "originalHeight": 1632,
+        "originalWidth": 1224,
+        "select_type": "original",
+        "sourceType": "user_upload",
+        "score": 0.57983685
+      },
+      "a1645657-facb-4613-a15a-3bb6c7792053": {
+        "id": "a1645657-facb-4613-a15a-3bb6c7792053",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-Ag77Xcdki41s2hcl0ZQw-5-s.mp3",
+        "type": "audio",
+        "duration": 4.03
+      },
+      "73025c93-f671-4702-a491-1ea88552a966": {
+        "id": "73025c93-f671-4702-a491-1ea88552a966",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/6f6184222046e1b2f0c397175de37a77f0731d9308500f41c48538228872064d.jpg",
+        "type": "image",
+        "originalHeight": 1472,
+        "originalWidth": 1173,
+        "select_type": "original",
+        "score": 0
+      },
+      "6c9f1d1b-2719-4433-b9a3-5cbb381e8db5": {
+        "id": "6c9f1d1b-2719-4433-b9a3-5cbb381e8db5",
+        "src": "https://dpbavq092lwjh.cloudfront.net/assets/music/b22b2edd-1b79-4d8a-9e45-92b5bd629f95.mp3",
+        "type": "audio",
+        "duration": 108.98,
+        "musicId": "b22b2edd-1b79-4d8a-9e45-92b5bd629f95"
+      }
+    },
+    "elements": {
+      "40b86a9f-f68d-47db-9b21-3e809b4d5b0d": {
+        "id": "40b86a9f-f68d-47db-9b21-3e809b4d5b0d",
+        "type": "video",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 0.0,
+        "length": 7.68,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "assetFit": "contain_blur",
+        "assetId": "ced3050d-4c89-460a-8e48-524dd396fbd0",
+        "startFrom": 0.0,
+        "loop": true
+      },
+      "d465b6e8-b492-4e4b-bf9f-12f285156eab": {
+        "id": "d465b6e8-b492-4e4b-bf9f-12f285156eab",
+        "type": "avatar",
+        "specialType": "DIGITAL_AVATAR",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 0.0,
+        "length": 7.68,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": -238.89600000000002,
+        "y": 576.0,
+        "scaleX": 0.55,
+        "scaleY": 0.55,
+        "rotate": 0.0,
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_05a192fd",
+        "startFrom": 0.0
+      },
+      "da08286b-3e8e-4fc1-98f3-af76f1fcc332": {
+        "id": "da08286b-3e8e-4fc1-98f3-af76f1fcc332",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 0.0,
+        "length": 1.312,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -499.20000000000005,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "My dentist was shocked when I",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "My ",
+            "start": 0.0,
+            "end": 0.197,
+            "duration": 0.197
+          },
+          {
+            "text": "dentist ",
+            "start": 0.197,
+            "end": 0.511,
+            "duration": 0.314
+          },
+          {
+            "text": "was ",
+            "start": 0.511,
+            "end": 0.673,
+            "duration": 0.162
+          },
+          {
+            "text": "shocked ",
+            "start": 0.673,
+            "end": 1.057,
+            "duration": 0.384
+          },
+          {
+            "text": "when ",
+            "start": 1.057,
+            "end": 1.219,
+            "duration": 0.162
+          },
+          {
+            "text": "I",
+            "start": 1.219,
+            "end": 1.312,
+            "duration": 0.093
+          }
+        ]
+      },
+      "ae1115b9-80a3-48f9-8ffa-ef112d30b0da": {
+        "id": "ae1115b9-80a3-48f9-8ffa-ef112d30b0da",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 1.312,
+        "length": 0.964,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -499.20000000000005,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "told her I've been skipping",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "told ",
+            "start": 0.0,
+            "end": 0.221,
+            "duration": 0.221
+          },
+          {
+            "text": "her ",
+            "start": 0.221,
+            "end": 0.325,
+            "duration": 0.104
+          },
+          {
+            "text": "I've ",
+            "start": 0.325,
+            "end": 0.441,
+            "duration": 0.116
+          },
+          {
+            "text": "been ",
+            "start": 0.441,
+            "end": 0.604,
+            "duration": 0.163
+          },
+          {
+            "text": "skipping",
+            "start": 0.604,
+            "end": 0.964,
+            "duration": 0.36
+          }
+        ]
+      },
+      "6532b2c9-e58c-4169-be72-0a830b2c75b6": {
+        "id": "6532b2c9-e58c-4169-be72-0a830b2c75b6",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 2.276,
+        "length": 1.091,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -499.20000000000005,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "regular floss for 6",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "regular ",
+            "start": 0.0,
+            "end": 0.348,
+            "duration": 0.348
+          },
+          {
+            "text": "floss ",
+            "start": 0.348,
+            "end": 0.673,
+            "duration": 0.325
+          },
+          {
+            "text": "for ",
+            "start": 0.673,
+            "end": 0.835,
+            "duration": 0.162
+          },
+          {
+            "text": "6",
+            "start": 0.835,
+            "end": 1.091,
+            "duration": 0.256
+          }
+        ]
+      },
+      "26021de9-24a1-4f92-857d-9a8116309235": {
+        "id": "26021de9-24a1-4f92-857d-9a8116309235",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 3.367,
+        "length": 0.929,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -499.20000000000005,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "months—here's what I'm",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "months—here's ",
+            "start": 0.0,
+            "end": 0.662,
+            "duration": 0.662
+          },
+          {
+            "text": "what ",
+            "start": 0.662,
+            "end": 0.778,
+            "duration": 0.116
+          },
+          {
+            "text": "I'm",
+            "start": 0.778,
+            "end": 0.929,
+            "duration": 0.151
+          }
+        ]
+      },
+      "46d8d702-5918-4dd7-ad9b-76eec5e45586": {
+        "id": "46d8d702-5918-4dd7-ad9b-76eec5e45586",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 4.296,
+        "length": 1.323,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -499.20000000000005,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "using instead that removes",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "using ",
+            "start": 0.0,
+            "end": 0.29,
+            "duration": 0.29
+          },
+          {
+            "text": "instead ",
+            "start": 0.29,
+            "end": 0.696,
+            "duration": 0.406
+          },
+          {
+            "text": "that ",
+            "start": 0.696,
+            "end": 0.87,
+            "duration": 0.174
+          },
+          {
+            "text": "removes",
+            "start": 0.87,
+            "end": 1.323,
+            "duration": 0.453
+          }
+        ]
+      },
+      "472eba16-aee1-42c0-b559-24b4fc2ba4f5": {
+        "id": "472eba16-aee1-42c0-b559-24b4fc2ba4f5",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 5.619,
+        "length": 1.997,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -499.20000000000005,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "99.9% of stains",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "99.9% ",
+            "start": 0.0,
+            "end": 1.312,
+            "duration": 1.312
+          },
+          {
+            "text": "of ",
+            "start": 1.312,
+            "end": 1.405,
+            "duration": 0.093
+          },
+          {
+            "text": "stains.",
+            "start": 1.405,
+            "end": 1.997,
+            "duration": 0.592
+          }
+        ]
+      },
+      "de82e23d-8a14-48e3-af26-93bc673d8fdd": {
+        "id": "de82e23d-8a14-48e3-af26-93bc673d8fdd",
+        "type": "voiceover",
+        "specialType": "voiceover",
+        "parent": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "start": 0,
+        "length": 7.68,
+        "hidden": false,
+        "assetId": "6026dd34-d0ed-4b9a-b044-a1b779775a3a",
+        "volume": 0.8,
+        "script": "My dentist was shocked when I told her I've been skipping regular floss for 6 months—here's what I'm using instead that removes 99.9% of stains.",
+        "accent": "7acba837-0fa4-4b8d-b612-03247ed06b36",
+        "voiceSync": false
+      },
+      "14da2e3a-a4bb-4080-955e-d7b86fca2fa5": {
+        "id": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5",
+        "templateId": "f612bea7-b60c-4606-8ad9-ffb30adfafdd",
+        "sceneName": "GreenScreenEffect - Quick",
+        "type": "scene",
+        "length": 7.68,
+        "tracks": [
+          {
+            "id": "67d0e506-26d2-448b-b0e3-54d96216a424",
+            "clips": [
+              {
+                "id": "40b86a9f-f68d-47db-9b21-3e809b4d5b0d"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "06b6aa5c-4e6e-40a5-9b37-bd128a2fd264",
+            "type": "avatar",
+            "clips": [
+              {
+                "id": "d465b6e8-b492-4e4b-bf9f-12f285156eab"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "e244712c-6bfa-4e32-8d8f-1eb34a356d6c",
+            "type": "voiceover",
+            "clips": [
+              {
+                "id": "de82e23d-8a14-48e3-af26-93bc673d8fdd"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "94161a4b-ca07-4014-8961-1d384ac4d5f6",
+            "type": "caption",
+            "clips": [
+              {
+                "id": "da08286b-3e8e-4fc1-98f3-af76f1fcc332"
+              },
+              {
+                "id": "ae1115b9-80a3-48f9-8ffa-ef112d30b0da"
+              },
+              {
+                "id": "6532b2c9-e58c-4169-be72-0a830b2c75b6"
+              },
+              {
+                "id": "26021de9-24a1-4f92-857d-9a8116309235"
+              },
+              {
+                "id": "46d8d702-5918-4dd7-ad9b-76eec5e45586"
+              },
+              {
+                "id": "472eba16-aee1-42c0-b559-24b4fc2ba4f5"
+              }
+            ],
+            "hidden": false
+          }
+        ],
+        "avatar_track_index": 1,
+        "background": ""
+      },
+      "eb9d5c85-17ed-4052-b98f-9404b21487ca": {
+        "id": "eb9d5c85-17ed-4052-b98f-9404b21487ca",
+        "type": "avatar",
+        "specialType": "DIGITAL_AVATAR",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 0.0,
+        "length": 5.88,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19",
+        "startFrom": 7.68
+      },
+      "f8d8b25c-203e-4704-994c-73c628f6ad59": {
+        "id": "f8d8b25c-203e-4704-994c-73c628f6ad59",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 0.0,
+        "length": 1.602,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "This Onlyone water flosser",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "This ",
+            "start": 0.0,
+            "end": 0.418,
+            "duration": 0.418
+          },
+          {
+            "text": "Onlyone ",
+            "start": 0.418,
+            "end": 0.882,
+            "duration": 0.464
+          },
+          {
+            "text": "water ",
+            "start": 0.882,
+            "end": 1.173,
+            "duration": 0.291
+          },
+          {
+            "text": "flosser",
+            "start": 1.173,
+            "end": 1.602,
+            "duration": 0.429
+          }
+        ]
+      },
+      "36ea2ba8-aea2-479b-ad6f-1f102a67962e": {
+        "id": "36ea2ba8-aea2-479b-ad6f-1f102a67962e",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 1.602,
+        "length": 2.253,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "delivers 1500-2000 pulses",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "delivers ",
+            "start": 0.0,
+            "end": 0.441,
+            "duration": 0.441
+          },
+          {
+            "text": "1500-2000 ",
+            "start": 0.441,
+            "end": 1.858,
+            "duration": 1.417
+          },
+          {
+            "text": "pulses",
+            "start": 1.858,
+            "end": 2.253,
+            "duration": 0.395
+          }
+        ]
+      },
+      "5ed263f3-1e74-44ab-afd0-d3d267930b30": {
+        "id": "5ed263f3-1e74-44ab-afd0-d3d267930b30",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 3.855,
+        "length": 1.95,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "per minute at professional-grade pressure",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "per ",
+            "start": 0.0,
+            "end": 0.162,
+            "duration": 0.162
+          },
+          {
+            "text": "minute ",
+            "start": 0.162,
+            "end": 0.429,
+            "duration": 0.267
+          },
+          {
+            "text": "at ",
+            "start": 0.429,
+            "end": 0.568,
+            "duration": 0.139
+          },
+          {
+            "text": "professional-grade ",
+            "start": 0.568,
+            "end": 1.323,
+            "duration": 0.755
+          },
+          {
+            "text": "pressure.",
+            "start": 1.323,
+            "end": 1.95,
+            "duration": 0.627
+          }
+        ]
+      },
+      "73a41d0b-6304-4640-b9d5-130b5be43918": {
+        "id": "73a41d0b-6304-4640-b9d5-130b5be43918",
+        "type": "image",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 0.0,
+        "length": 2.0,
+        "hidden": false,
+        "background": "#fff",
+        "width": 691,
+        "height": 864,
+        "x": 0.0,
+        "y": 331.968,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "shape": "rounded",
+        "animation": {
+          "in": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          },
+          "out": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          }
+        },
+        "assetId": "f382925b-4439-4d6a-9941-0d6f01857d92_original"
+      },
+      "b99a8e9e-182e-4a9c-9cfb-b665533d76c5": {
+        "id": "b99a8e9e-182e-4a9c-9cfb-b665533d76c5",
+        "type": "image",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 2.0,
+        "length": 3.88,
+        "hidden": false,
+        "background": "#fff",
+        "width": 691,
+        "height": 864,
+        "x": 0.0,
+        "y": 331.968,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "shape": "rounded",
+        "animation": {
+          "in": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          },
+          "out": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          }
+        },
+        "assetId": "9970264e-3a5d-4522-935f-c1cb58348fea_original"
+      },
+      "95211404-1c89-4bcd-b1b4-777f34bcff90": {
+        "id": "95211404-1c89-4bcd-b1b4-777f34bcff90",
+        "type": "voiceover",
+        "specialType": "voiceover",
+        "parent": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "start": 0,
+        "length": 5.88,
+        "hidden": false,
+        "assetId": "45528de5-63a8-4aac-9ecc-c67b3ab85233",
+        "volume": 0.8,
+        "script": "This Onlyone water flosser delivers 1500-2000 pulses per minute at professional-grade pressure.",
+        "accent": "7acba837-0fa4-4b8d-b612-03247ed06b36",
+        "voiceSync": false
+      },
+      "dee3d083-593c-4ac6-9b28-6e3e48503dec": {
+        "id": "dee3d083-593c-4ac6-9b28-6e3e48503dec",
+        "templateId": "cfa75621-b945-4396-bdad-ca8b7627cc10",
+        "sceneName": "Post It",
+        "type": "scene",
+        "length": 5.88,
+        "tracks": [
+          {
+            "id": "cde3af8f-00ab-4a9b-9338-239c73978429",
+            "type": "avatar",
+            "clips": [
+              {
+                "id": "eb9d5c85-17ed-4052-b98f-9404b21487ca"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "a3998b04-8f5c-4fbe-afcd-8d55ba29755c",
+            "type": "voiceover",
+            "clips": [
+              {
+                "id": "95211404-1c89-4bcd-b1b4-777f34bcff90"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "c81038c8-26cf-4514-a124-34ec426fdba7",
+            "type": "caption",
+            "clips": [
+              {
+                "id": "f8d8b25c-203e-4704-994c-73c628f6ad59"
+              },
+              {
+                "id": "36ea2ba8-aea2-479b-ad6f-1f102a67962e"
+              },
+              {
+                "id": "5ed263f3-1e74-44ab-afd0-d3d267930b30"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "63c18363-b608-415a-ba3c-7d7a5301478f",
+            "clips": [
+              {
+                "id": "73a41d0b-6304-4640-b9d5-130b5be43918"
+              },
+              {
+                "id": "b99a8e9e-182e-4a9c-9cfb-b665533d76c5"
+              }
+            ],
+            "hidden": false
+          }
+        ],
+        "avatar_track_index": 0,
+        "background": ""
+      },
+      "bd09ddad-f616-4434-bee8-2ed016e4b69c": {
+        "id": "bd09ddad-f616-4434-bee8-2ed016e4b69c",
+        "type": "video",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "start": 0.0,
+        "length": 5.04,
+        "hidden": false,
+        "width": 1920,
+        "height": 1920,
+        "x": 0.0,
+        "y": -422.4,
+        "scaleX": 0.5625,
+        "scaleY": 0.5625,
+        "rotate": 0.0,
+        "assetFit": "contain_blur",
+        "assetId": "05b71643-24f5-4aa0-872a-d11ea596ff14",
+        "startFrom": 0.0,
+        "loop": true
+      },
+      "19638c92-7956-4039-8c70-122e30ac9f6b": {
+        "id": "19638c92-7956-4039-8c70-122e30ac9f6b",
+        "type": "avatar",
+        "specialType": "DIGITAL_AVATAR",
+        "parent": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "start": 0.0,
+        "length": 5.04,
+        "hidden": false,
+        "width": 1920,
+        "height": 1920,
+        "x": 0.0,
+        "y": 576.0,
+        "scaleX": 0.5625,
+        "scaleY": 0.5625,
+        "rotate": 0.0,
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_04495d33",
+        "startFrom": 5.359999999999999
+      },
+      "51e7a595-42b9-4045-a9f1-c0d2b375d4c7": {
+        "id": "51e7a595-42b9-4045-a9f1-c0d2b375d4c7",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "start": 0.0,
+        "length": 1.3,
+        "hidden": false,
+        "width": 1080,
+        "x": 0.0,
+        "y": 38.4,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "Four customizable modes",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "Four ",
+            "start": 0.0,
+            "end": 0.313,
+            "duration": 0.313
+          },
+          {
+            "text": "customizable ",
+            "start": 0.313,
+            "end": 0.964,
+            "duration": 0.651
+          },
+          {
+            "text": "modes",
+            "start": 0.964,
+            "end": 1.3,
+            "duration": 0.336
+          }
+        ]
+      },
+      "7913f333-2509-40e4-b0e3-5bdbe87c77b5": {
+        "id": "7913f333-2509-40e4-b0e3-5bdbe87c77b5",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "start": 1.3,
+        "length": 1.51,
+        "hidden": false,
+        "width": 1080,
+        "x": 0.0,
+        "y": 38.4,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "plus five jet tips means it",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "plus ",
+            "start": 0.0,
+            "end": 0.279,
+            "duration": 0.279
+          },
+          {
+            "text": "five ",
+            "start": 0.279,
+            "end": 0.592,
+            "duration": 0.313
+          },
+          {
+            "text": "jet ",
+            "start": 0.592,
+            "end": 0.836,
+            "duration": 0.244
+          },
+          {
+            "text": "tips ",
+            "start": 0.836,
+            "end": 1.196,
+            "duration": 0.36
+          },
+          {
+            "text": "means ",
+            "start": 1.196,
+            "end": 1.417,
+            "duration": 0.221
+          },
+          {
+            "text": "it",
+            "start": 1.417,
+            "end": 1.51,
+            "duration": 0.093
+          }
+        ]
+      },
+      "8a7f0171-904d-4576-b051-2d8b294c1291": {
+        "id": "8a7f0171-904d-4576-b051-2d8b294c1291",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "start": 2.81,
+        "length": 2.159,
+        "hidden": false,
+        "width": 1080,
+        "x": 0.0,
+        "y": 38.4,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "adapts to your sensitivity perfectly",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "adapts ",
+            "start": 0.0,
+            "end": 0.429,
+            "duration": 0.429
+          },
+          {
+            "text": "to ",
+            "start": 0.429,
+            "end": 0.557,
+            "duration": 0.128
+          },
+          {
+            "text": "your ",
+            "start": 0.557,
+            "end": 0.719,
+            "duration": 0.162
+          },
+          {
+            "text": "sensitivity ",
+            "start": 0.719,
+            "end": 1.404,
+            "duration": 0.685
+          },
+          {
+            "text": "perfectly.",
+            "start": 1.404,
+            "end": 2.159,
+            "duration": 0.755
+          }
+        ]
+      },
+      "c7a3e4fd-1e38-4ba2-80fa-edcbd20c9d78": {
+        "id": "c7a3e4fd-1e38-4ba2-80fa-edcbd20c9d78",
+        "type": "voiceover",
+        "specialType": "voiceover",
+        "parent": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "start": 0,
+        "length": 5.04,
+        "hidden": false,
+        "assetId": "3b690c8e-1572-4285-a13e-0c006abd82b6",
+        "volume": 0.8,
+        "script": "Four customizable modes plus five jet tips means it adapts to your sensitivity perfectly.",
+        "accent": "7acba837-0fa4-4b8d-b612-03247ed06b36",
+        "voiceSync": false
+      },
+      "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc": {
+        "id": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc",
+        "templateId": "14d6ea6c-49ee-4dc6-87e9-f0cfc05a161f",
+        "sceneName": "UpAndDown",
+        "type": "scene",
+        "length": 5.04,
+        "tracks": [
+          {
+            "id": "50e5ea73-1ca3-4582-9bbb-cc0095c902a0",
+            "clips": [
+              {
+                "id": "bd09ddad-f616-4434-bee8-2ed016e4b69c"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "8998045b-58ca-4e8f-a04d-2b62bd7c1389",
+            "type": "avatar",
+            "clips": [
+              {
+                "id": "19638c92-7956-4039-8c70-122e30ac9f6b"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "206d012e-a6f4-4216-8f56-e0f2858f91c5",
+            "type": "voiceover",
+            "clips": [
+              {
+                "id": "c7a3e4fd-1e38-4ba2-80fa-edcbd20c9d78"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "a976f089-60a4-44f6-b552-d79d018c760f",
+            "type": "caption",
+            "clips": [
+              {
+                "id": "51e7a595-42b9-4045-a9f1-c0d2b375d4c7"
+              },
+              {
+                "id": "7913f333-2509-40e4-b0e3-5bdbe87c77b5"
+              },
+              {
+                "id": "8a7f0171-904d-4576-b051-2d8b294c1291"
+              }
+            ],
+            "hidden": false
+          }
+        ],
+        "avatar_track_index": 1,
+        "background": ""
+      },
+      "ee725dfd-a28a-49f8-9308-ad1dc3ad692c": {
+        "id": "ee725dfd-a28a-49f8-9308-ad1dc3ad692c",
+        "type": "avatar",
+        "specialType": "DIGITAL_AVATAR",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 0.0,
+        "length": 5.3,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19",
+        "startFrom": 2.1999999999999993
+      },
+      "a528b658-be72-4c6a-bb92-feb29d07047a": {
+        "id": "a528b658-be72-4c6a-bb92-feb29d07047a",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 0.0,
+        "length": 1.8,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "The 300ml tank finishes your",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "The ",
+            "start": 0.0,
+            "end": 0.267,
+            "duration": 0.267
+          },
+          {
+            "text": "300ml ",
+            "start": 0.267,
+            "end": 0.929,
+            "duration": 0.662
+          },
+          {
+            "text": "tank ",
+            "start": 0.929,
+            "end": 1.207,
+            "duration": 0.278
+          },
+          {
+            "text": "finishes ",
+            "start": 1.207,
+            "end": 1.625,
+            "duration": 0.418
+          },
+          {
+            "text": "your",
+            "start": 1.625,
+            "end": 1.8,
+            "duration": 0.175
+          }
+        ]
+      },
+      "fd1ec059-daeb-4c27-b824-9becd488cc10": {
+        "id": "fd1ec059-daeb-4c27-b824-9becd488cc10",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 1.8,
+        "length": 1.497,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "entire mouth without refilling",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "entire ",
+            "start": 0.0,
+            "end": 0.418,
+            "duration": 0.418
+          },
+          {
+            "text": "mouth ",
+            "start": 0.418,
+            "end": 0.661,
+            "duration": 0.243
+          },
+          {
+            "text": "without ",
+            "start": 0.661,
+            "end": 0.963,
+            "duration": 0.302
+          },
+          {
+            "text": "refilling,",
+            "start": 0.963,
+            "end": 1.497,
+            "duration": 0.534
+          }
+        ]
+      },
+      "67569c62-cbe0-4d2b-803b-ed58c01bd692": {
+        "id": "67569c62-cbe0-4d2b-803b-ed58c01bd692",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 3.297,
+        "length": 1.951,
+        "hidden": false,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "and one charge lasts thirty days",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "and ",
+            "start": 0.0,
+            "end": 0.198,
+            "duration": 0.198
+          },
+          {
+            "text": "one ",
+            "start": 0.198,
+            "end": 0.395,
+            "duration": 0.197
+          },
+          {
+            "text": "charge ",
+            "start": 0.395,
+            "end": 0.743,
+            "duration": 0.348
+          },
+          {
+            "text": "lasts ",
+            "start": 0.743,
+            "end": 1.068,
+            "duration": 0.325
+          },
+          {
+            "text": "thirty ",
+            "start": 1.068,
+            "end": 1.382,
+            "duration": 0.314
+          },
+          {
+            "text": "days.",
+            "start": 1.382,
+            "end": 1.951,
+            "duration": 0.569
+          }
+        ]
+      },
+      "73b4363c-c644-4eb1-a2bf-1ba6e4254af9": {
+        "id": "73b4363c-c644-4eb1-a2bf-1ba6e4254af9",
+        "type": "image",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 0.0,
+        "length": 2.0,
+        "hidden": false,
+        "background": "#fff",
+        "width": 691,
+        "height": 864,
+        "x": 0.0,
+        "y": 331.968,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "shape": "rounded",
+        "animation": {
+          "in": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          },
+          "out": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          }
+        },
+        "assetId": "9d349d02-fd8a-404f-b48b-660f2ed854f7_original"
+      },
+      "fa802e22-2b4a-46c6-9aaf-733c58df0488": {
+        "id": "fa802e22-2b4a-46c6-9aaf-733c58df0488",
+        "type": "image",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 2.0,
+        "length": 3.3,
+        "hidden": false,
+        "background": "#fff",
+        "width": 691,
+        "height": 864,
+        "x": 0.0,
+        "y": 331.968,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "shape": "rounded",
+        "animation": {
+          "in": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          },
+          "out": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          }
+        },
+        "assetId": "821b1f2d-01b9-4048-8a59-cc7e3796fa89_original"
+      },
+      "d8293edc-4e5c-46f1-bebf-7cae89e937e1": {
+        "id": "d8293edc-4e5c-46f1-bebf-7cae89e937e1",
+        "type": "voiceover",
+        "specialType": "voiceover",
+        "parent": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "start": 0,
+        "length": 5.3,
+        "hidden": false,
+        "assetId": "dbe3bd9a-e208-49d6-82cc-0c1e050e47d2",
+        "volume": 0.8,
+        "script": "The 300ml tank finishes your entire mouth without refilling, and one charge lasts thirty days.",
+        "accent": "7acba837-0fa4-4b8d-b612-03247ed06b36",
+        "voiceSync": false
+      },
+      "365f0bcd-6ce1-481a-a627-6823964cbba2": {
+        "id": "365f0bcd-6ce1-481a-a627-6823964cbba2",
+        "templateId": "cfa75621-b945-4396-bdad-ca8b7627cc10",
+        "sceneName": "Post It",
+        "type": "scene",
+        "length": 5.3,
+        "tracks": [
+          {
+            "id": "caf0b008-1154-4de7-8270-04eae12f0bdb",
+            "type": "avatar",
+            "clips": [
+              {
+                "id": "ee725dfd-a28a-49f8-9308-ad1dc3ad692c"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "a97a3eda-220b-4dd5-80d5-b2a68d523678",
+            "type": "voiceover",
+            "clips": [
+              {
+                "id": "d8293edc-4e5c-46f1-bebf-7cae89e937e1"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "4d68483f-f28c-45d7-b033-1fdbaa5ec0f4",
+            "type": "caption",
+            "clips": [
+              {
+                "id": "a528b658-be72-4c6a-bb92-feb29d07047a"
+              },
+              {
+                "id": "fd1ec059-daeb-4c27-b824-9becd488cc10"
+              },
+              {
+                "id": "67569c62-cbe0-4d2b-803b-ed58c01bd692"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "d7bd5400-2264-4c0d-bc51-344bba31fb31",
+            "clips": [
+              {
+                "id": "73b4363c-c644-4eb1-a2bf-1ba6e4254af9"
+              },
+              {
+                "id": "fa802e22-2b4a-46c6-9aaf-733c58df0488"
+              }
+            ],
+            "hidden": false
+          }
+        ],
+        "avatar_track_index": 0,
+        "background": ""
+      },
+      "6f119dbd-cb60-4215-aa81-09a37e70de74": {
+        "id": "6f119dbd-cb60-4215-aa81-09a37e70de74",
+        "type": "video",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "start": 0.0,
+        "length": 3.55,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "assetFit": "contain_blur",
+        "assetId": "dcbb5d72-1409-4fc2-8e55-16c1f0d1bbfb",
+        "startFrom": 0.0,
+        "loop": true
+      },
+      "ec62a1ec-f89b-4edb-9af6-7337dc9aae8b": {
+        "id": "ec62a1ec-f89b-4edb-9af6-7337dc9aae8b",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "start": 0.0,
+        "length": 1.277,
+        "hidden": false,
+        "width": 862,
+        "x": 0.0,
+        "y": -672.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "It's dentist-recommended",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "It's ",
+            "start": 0.0,
+            "end": 0.36,
+            "duration": 0.36
+          },
+          {
+            "text": "dentist-recommended",
+            "start": 0.36,
+            "end": 1.277,
+            "duration": 0.917
+          }
+        ]
+      },
+      "e33d7a5e-a5c8-499f-a07e-7f3578a496c6": {
+        "id": "e33d7a5e-a5c8-499f-a07e-7f3578a496c6",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "start": 1.277,
+        "length": 0.743,
+        "hidden": false,
+        "width": 862,
+        "x": 0.0,
+        "y": -672.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "and three times more",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "and ",
+            "start": 0.0,
+            "end": 0.151,
+            "duration": 0.151
+          },
+          {
+            "text": "three ",
+            "start": 0.151,
+            "end": 0.36,
+            "duration": 0.209
+          },
+          {
+            "text": "times ",
+            "start": 0.36,
+            "end": 0.604,
+            "duration": 0.244
+          },
+          {
+            "text": "more",
+            "start": 0.604,
+            "end": 0.743,
+            "duration": 0.139
+          }
+        ]
+      },
+      "7b7ef5b8-68b2-4215-bfbd-37441b2b8ed0": {
+        "id": "7b7ef5b8-68b2-4215-bfbd-37441b2b8ed0",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "start": 2.02,
+        "length": 1.463,
+        "hidden": false,
+        "width": 862,
+        "x": 0.0,
+        "y": -672.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "effective than string floss",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "effective ",
+            "start": 0.0,
+            "end": 0.383,
+            "duration": 0.383
+          },
+          {
+            "text": "than ",
+            "start": 0.383,
+            "end": 0.546,
+            "duration": 0.163
+          },
+          {
+            "text": "string ",
+            "start": 0.546,
+            "end": 0.836,
+            "duration": 0.29
+          },
+          {
+            "text": "floss.",
+            "start": 0.836,
+            "end": 1.463,
+            "duration": 0.627
+          }
+        ]
+      },
+      "79e2f560-4d22-48df-a7fa-5c99b00ccb4a": {
+        "id": "79e2f560-4d22-48df-a7fa-5c99b00ccb4a",
+        "type": "avatar",
+        "specialType": "DIGITAL_AVATAR",
+        "parent": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "start": 0.0,
+        "length": 3.55,
+        "hidden": false,
+        "width": 1920,
+        "height": 1920,
+        "x": -212.76000000000002,
+        "y": 393.984,
+        "scaleX": 0.2648,
+        "scaleY": 0.2648,
+        "rotate": 0.0,
+        "shape": "circle",
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_04495d33",
+        "startFrom": 7.5
+      },
+      "e85d139c-b046-41f0-9296-12fcad26bf39": {
+        "id": "e85d139c-b046-41f0-9296-12fcad26bf39",
+        "type": "voiceover",
+        "specialType": "voiceover",
+        "parent": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "start": 0,
+        "length": 3.55,
+        "hidden": false,
+        "assetId": "268b8a68-c0de-4a44-9612-8129531c21c1",
+        "volume": 0.8,
+        "script": "It's dentist-recommended and three times more effective than string floss.",
+        "accent": "7acba837-0fa4-4b8d-b612-03247ed06b36",
+        "voiceSync": false
+      },
+      "1823cded-ea2b-4aa0-a58b-20b8f4d958a9": {
+        "id": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9",
+        "templateId": "ee8760b1-7730-408e-bcbb-be96594b0ded",
+        "sceneName": "ReverseMagnifyingGlassCircle",
+        "type": "scene",
+        "length": 3.55,
+        "tracks": [
+          {
+            "id": "882ad0b4-1f03-4463-9109-a1f1453bbd4a",
+            "clips": [
+              {
+                "id": "6f119dbd-cb60-4215-aa81-09a37e70de74"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "8cd6e9cc-fcde-46eb-83f8-9c9088b3cbe3",
+            "type": "caption",
+            "clips": [
+              {
+                "id": "ec62a1ec-f89b-4edb-9af6-7337dc9aae8b"
+              },
+              {
+                "id": "e33d7a5e-a5c8-499f-a07e-7f3578a496c6"
+              },
+              {
+                "id": "7b7ef5b8-68b2-4215-bfbd-37441b2b8ed0"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "ffe77e59-31ff-48db-a250-0ba1b02eecbf",
+            "type": "avatar",
+            "clips": [
+              {
+                "id": "79e2f560-4d22-48df-a7fa-5c99b00ccb4a"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "d2321cf1-7dc1-4bc7-ba1d-38d3e8a7e419",
+            "type": "voiceover",
+            "clips": [
+              {
+                "id": "e85d139c-b046-41f0-9296-12fcad26bf39"
+              }
+            ],
+            "hidden": false
+          }
+        ],
+        "avatar_track_index": 2,
+        "background": ""
+      },
+      "d97ef823-c89e-4c96-bc41-8d0e01289d63": {
+        "id": "d97ef823-c89e-4c96-bc41-8d0e01289d63",
+        "type": "avatar",
+        "specialType": "DIGITAL_AVATAR",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 0.0,
+        "length": 4.03,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19",
+        "startFrom": 2.8500000000000014
+      },
+      "07702852-e93e-4f6b-af93-55c982fcb75b": {
+        "id": "07702852-e93e-4f6b-af93-55c982fcb75b",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 0.0,
+        "length": 1.707,
+        "hidden": true,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "Get yours now and see why your",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "Get ",
+            "start": 0.0,
+            "end": 0.406,
+            "duration": 0.406
+          },
+          {
+            "text": "yours ",
+            "start": 0.406,
+            "end": 0.743,
+            "duration": 0.337
+          },
+          {
+            "text": "now ",
+            "start": 0.743,
+            "end": 1.033,
+            "duration": 0.29
+          },
+          {
+            "text": "and ",
+            "start": 1.033,
+            "end": 1.207,
+            "duration": 0.174
+          },
+          {
+            "text": "see ",
+            "start": 1.207,
+            "end": 1.405,
+            "duration": 0.198
+          },
+          {
+            "text": "why ",
+            "start": 1.405,
+            "end": 1.567,
+            "duration": 0.162
+          },
+          {
+            "text": "your",
+            "start": 1.567,
+            "end": 1.707,
+            "duration": 0.14
+          }
+        ]
+      },
+      "b969f0c9-0c6e-4fe3-82ca-3b5b4d383e4d": {
+        "id": "b969f0c9-0c6e-4fe3-82ca-3b5b4d383e4d",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 1.707,
+        "length": 1.137,
+        "hidden": true,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "dentist will be impressed at",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "dentist ",
+            "start": 0.0,
+            "end": 0.348,
+            "duration": 0.348
+          },
+          {
+            "text": "will ",
+            "start": 0.348,
+            "end": 0.522,
+            "duration": 0.174
+          },
+          {
+            "text": "be ",
+            "start": 0.522,
+            "end": 0.615,
+            "duration": 0.093
+          },
+          {
+            "text": "impressed ",
+            "start": 0.615,
+            "end": 1.045,
+            "duration": 0.43
+          },
+          {
+            "text": "at",
+            "start": 1.045,
+            "end": 1.137,
+            "duration": 0.092
+          }
+        ]
+      },
+      "1100d8dc-d10a-49b0-9b6c-3afb6947024b": {
+        "id": "1100d8dc-d10a-49b0-9b6c-3afb6947024b",
+        "type": "caption",
+        "specialType": "CAPTION",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 2.844,
+        "length": 1.103,
+        "hidden": true,
+        "width": 1024,
+        "x": 0.0,
+        "y": -768.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "text": "your next visit!",
+        "templateStyle": {
+          "name": "normal-white"
+        },
+        "words": [
+          {
+            "text": "your ",
+            "start": 0.0,
+            "end": 0.163,
+            "duration": 0.163
+          },
+          {
+            "text": "next ",
+            "start": 0.163,
+            "end": 0.442,
+            "duration": 0.279
+          },
+          {
+            "text": "visit!",
+            "start": 0.442,
+            "end": 1.103,
+            "duration": 0.661
+          }
+        ]
+      },
+      "3039d4a1-1ae5-41a8-8272-af277201bc6a": {
+        "id": "3039d4a1-1ae5-41a8-8272-af277201bc6a",
+        "type": "image",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 0.0,
+        "length": 2.0,
+        "hidden": false,
+        "background": "#fff",
+        "width": 691,
+        "height": 864,
+        "x": 0.0,
+        "y": 331.968,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "shape": "rounded",
+        "animation": {
+          "in": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          },
+          "out": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          }
+        },
+        "assetId": "259435e6-104f-438b-8191-7a0ea187e7dc_original"
+      },
+      "7ac6d3d0-2572-4399-a1d9-e4487b43bb3e": {
+        "id": "7ac6d3d0-2572-4399-a1d9-e4487b43bb3e",
+        "type": "image",
+        "specialType": "PRODUCT_ASSET",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 2.0,
+        "length": 2.0300000000000002,
+        "hidden": false,
+        "background": "#fff",
+        "width": 691,
+        "height": 864,
+        "x": 0.0,
+        "y": 331.968,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "shape": "rounded",
+        "animation": {
+          "in": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          },
+          "out": {
+            "name": "leftSwipe",
+            "duration": 0.3
+          }
+        },
+        "assetId": "1cee90a2-d9df-4a20-ad4c-fa8be9860ebb_original"
+      },
+      "53fe2224-063c-4b58-8bb6-79c88bfaf751": {
+        "id": "53fe2224-063c-4b58-8bb6-79c88bfaf751",
+        "type": "voiceover",
+        "specialType": "voiceover",
+        "parent": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "start": 0,
+        "length": 4.03,
+        "hidden": false,
+        "assetId": "a1645657-facb-4613-a15a-3bb6c7792053",
+        "volume": 0.8,
+        "script": "Get yours now and see why your dentist will be impressed at your next visit!",
+        "accent": "7acba837-0fa4-4b8d-b612-03247ed06b36",
+        "voiceSync": false
+      },
+      "d4dd17ac-6502-474d-acc1-afe981092d3e": {
+        "id": "d4dd17ac-6502-474d-acc1-afe981092d3e",
+        "templateId": "cfa75621-b945-4396-bdad-ca8b7627cc10",
+        "sceneName": "Post It",
+        "type": "scene",
+        "length": 4.03,
+        "tracks": [
+          {
+            "id": "263cbea2-d5bf-40d9-a2d6-7ecd208ad8cb",
+            "type": "avatar",
+            "clips": [
+              {
+                "id": "d97ef823-c89e-4c96-bc41-8d0e01289d63"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "6fabc62d-a1db-44c1-af2c-3d2425973bc9",
+            "type": "voiceover",
+            "clips": [
+              {
+                "id": "53fe2224-063c-4b58-8bb6-79c88bfaf751"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "ad676fe8-f477-463b-9600-b603d6e11021",
+            "type": "caption",
+            "clips": [
+              {
+                "id": "07702852-e93e-4f6b-af93-55c982fcb75b"
+              },
+              {
+                "id": "b969f0c9-0c6e-4fe3-82ca-3b5b4d383e4d"
+              },
+              {
+                "id": "1100d8dc-d10a-49b0-9b6c-3afb6947024b"
+              }
+            ],
+            "hidden": false
+          },
+          {
+            "id": "dc2d24f8-9785-41af-9b6e-c502b554171b",
+            "clips": [
+              {
+                "id": "3039d4a1-1ae5-41a8-8272-af277201bc6a"
+              },
+              {
+                "id": "7ac6d3d0-2572-4399-a1d9-e4487b43bb3e"
+              }
+            ],
+            "hidden": false
+          }
+        ],
+        "avatar_track_index": 0,
+        "background": ""
+      },
+      "fd53f462-6beb-42a5-802e-4deffd36ef7f": {
+        "id": "fd53f462-6beb-42a5-802e-4deffd36ef7f",
+        "type": "image",
+        "specialType": "BRAND_BACKGROUND",
+        "start": 28.95,
+        "length": 2.5300000000000002,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "assetId": "73025c93-f671-4702-a491-1ea88552a966",
+        "ctaName": "CTA + CTA Button"
+      },
+      "16a662a4-b848-4c84-8500-0cbb9b46d7ae": {
+        "id": "16a662a4-b848-4c84-8500-0cbb9b46d7ae",
+        "type": "shape",
+        "specialType": "BRAND_MASK",
+        "start": 28.95,
+        "length": 2.5300000000000002,
+        "hidden": false,
+        "width": 1080,
+        "height": 1920,
+        "x": 0.0,
+        "y": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "fill": "rgba(0,0,0,0.5)",
+        "blur": 18,
+        "ctaName": "CTA + CTA Button"
+      },
+      "ef2db5d3-27c6-46da-a584-072b82a44a1e": {
+        "id": "ef2db5d3-27c6-46da-a584-072b82a44a1e",
+        "type": "text",
+        "specialType": "BRAND_SLOGAN",
+        "start": 28.95,
+        "length": 2.5300000000000002,
+        "hidden": false,
+        "width": 942,
+        "x": 0.0,
+        "y": -153.6,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "opacity": 1.0,
+        "animation": {
+          "in": {
+            "name": "slideCropUp"
+          }
+        },
+        "text": "Choose OnlyOne Flosser Today",
+        "style": {
+          "fontFamily": "Dela Gothic One",
+          "textDecoration": "none",
+          "fontStyle": "normal",
+          "fontWeight": "bold",
+          "fontSize": "93px",
+          "background": "#ffffff00",
+          "color": "#ffffff"
+        },
+        "ctaName": "CTA + CTA Button"
+      },
+      "9a07a46f-554b-4b59-bcfc-90ba0fca51e3": {
+        "id": "9a07a46f-554b-4b59-bcfc-90ba0fca51e3",
+        "type": "text",
+        "specialType": "BRAND_BUTTON",
+        "start": 28.95,
+        "length": 2.5300000000000002,
+        "hidden": false,
+        "x": 0.0,
+        "y": 213.12,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "rotate": 0.0,
+        "opacity": 1.0,
+        "animation": {
+          "in": {
+            "name": "slideCropUp"
+          }
+        },
+        "text": "  BUY NOW  ",
+        "style": {
+          "fontFamily": "Figtree",
+          "fontSize": "100px",
+          "fontWeight": 900,
+          "background": "#ff0000",
+          "padding": "0.3em"
+        },
+        "ctaName": "CTA + CTA Button"
+      },
+      "576eae09-f069-4b20-9f3f-29db39b74347": {
+        "id": "576eae09-f069-4b20-9f3f-29db39b74347",
+        "type": "audio",
+        "specialType": "background_music",
+        "start": 0.0,
+        "length": 31.48,
+        "hidden": false,
+        "assetId": "6c9f1d1b-2719-4433-b9a3-5cbb381e8db5",
+        "volume": 0.3,
+        "audioAnimation": {
+          "out": {
+            "name": "fade",
+            "duration": 3.0
+          }
+        }
+      }
+    },
+    "background": "#ffffff",
+    "fonts": [],
+    "tracks": [
+      {
+        "id": "9a2e8144-be05-430e-a8b1-3e8a5e194aa6",
+        "type": "scene",
+        "clips": [
+          {
+            "id": "14da2e3a-a4bb-4080-955e-d7b86fca2fa5"
+          },
+          {
+            "id": "dee3d083-593c-4ac6-9b28-6e3e48503dec"
+          },
+          {
+            "id": "6a0a0f03-88b0-48d1-b9e2-542cfa4763dc"
+          },
+          {
+            "id": "365f0bcd-6ce1-481a-a627-6823964cbba2"
+          },
+          {
+            "id": "1823cded-ea2b-4aa0-a58b-20b8f4d958a9"
+          },
+          {
+            "id": "d4dd17ac-6502-474d-acc1-afe981092d3e"
+          }
+        ],
+        "hidden": false
+      },
+      {
+        "id": "c020292a-692a-4a60-96e2-7fac44e1531d",
+        "clips": [
+          {
+            "id": "fd53f462-6beb-42a5-802e-4deffd36ef7f"
+          }
+        ],
+        "hidden": false
+      },
+      {
+        "id": "ca25a630-578b-4922-a333-a46172aa5d27",
+        "clips": [
+          {
+            "id": "16a662a4-b848-4c84-8500-0cbb9b46d7ae"
+          }
+        ],
+        "hidden": false
+      },
+      {
+        "id": "cf4c4d0e-4939-480e-8a02-0d6f2264f4cf",
+        "clips": [
+          {
+            "id": "ef2db5d3-27c6-46da-a584-072b82a44a1e"
+          }
+        ],
+        "hidden": false
+      },
+      {
+        "id": "b270888e-46b8-405c-afd6-2c24efc64645",
+        "clips": [
+          {
+            "id": "9a07a46f-554b-4b59-bcfc-90ba0fca51e3"
+          }
+        ],
+        "hidden": false
+      },
+      {
+        "id": "ce33ab60-29a1-4bd5-a730-e6db2f92a779",
+        "type": "audio",
+        "clips": [
+          {
+            "id": "576eae09-f069-4b20-9f3f-29db39b74347"
+          }
+        ],
+        "hidden": false
+      }
+    ],
+    "transitions": {}
+  },
+  "output": {
+    "fps": 30,
+    "size": {
+      "width": 1080,
+      "height": 1920
+    },
+    "format": "mp4"
+  },
+  "tags": ["UGC Style"],
+  "removeWatermark": false,
+  "withNewWatermark": true,
+  "smallWatermark": false,
+  "name": "Dynamic Green Screen Effect",
+  "template": "Dynamic Green Screen Effect",
+  "thumbnailFrame": 15,
+  "renderIndex": 0,
+  "variables": {},
+  "variablesUsed": {}
+}

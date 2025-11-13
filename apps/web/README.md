@@ -106,7 +106,7 @@ apps/web/
 │   ├── styles/               # 样式文件
 │   ├── i18n/                 # 国际化配置
 │   ├── auth.ts               # NextAuth 配置
-│   └── middleware.ts         # 中间件
+│   └── proxy.ts              # 边缘代理逻辑（原 middleware）
 ├── public/                   # 静态资源
 ├── docs/                     # 文档
 └── package.json              # 依赖配置
@@ -204,7 +204,7 @@ Telos Web 采用基于 NextAuth.js v5 的现代化认证架构，结合服务端
 
 ### 路由保护
 
-- **中间件检查**：`middleware.ts` 自动检查受保护的路由
+- **边缘代理检查**：`proxy.ts` 自动检查受保护的路由
 - **服务端验证**：每个受保护页面通过 `auth()` 函数验证
 - **客户端状态**：使用 `useSession()` 显示用户状态
 

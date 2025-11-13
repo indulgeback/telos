@@ -1,0 +1,203 @@
+{
+  "acceptAspectRatios": ["9x16"],
+  "timeline": {
+    "assets": {
+      "ced3050d-4c89-460a-8e48-524dd396fbd0": {
+        "id": "ced3050d-4c89-460a-8e48-524dd396fbd0",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/videos/ff53ec4e-c09a-9652-9c87-ea60d1a44568.mp4",
+        "type": "video",
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/videos/ff53ec4e-c09a-9652-9c87-ea60d1a44568.mp4.at_0.jpg",
+        "originalHeight": 1080,
+        "originalWidth": 1920,
+        "duration": 45.011,
+        "transparent": false,
+        "startFrom": 0.0
+      },
+      "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19": {
+        "id": "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/p.mp4",
+        "type": "avatar",
+        "faceId": "56a8af17-383a-4d77-b515-8f45eba82e22",
+        "faceAspectRatio": "9x16",
+        "originalHeight": 1920,
+        "originalWidth": 1080,
+        "duration": 8.2,
+        "transparent": false,
+        "poster": "https://d35ghwdno3nak3.cloudfront.net/creator/56a8af17-383a-4d77-b515-8f45eba82e22/pt.png",
+        "style": "presenter"
+      },
+      "6026dd34-d0ed-4b9a-b044-a1b779775a3a": {
+        "id": "6026dd34-d0ed-4b9a-b044-a1b779775a3a",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/user/unknown/2025-11-03/bd04-req-8tWJUtJiXwDBu4LxWq81-0-s.mp3",
+        "type": "audio",
+        "duration": 7.68
+      },
+      "f382925b-4439-4d6a-9941-0d6f01857d92_original": {
+        "id": "f382925b-4439-4d6a-9941-0d6f01857d92_original",
+        "src": "https://d35ghwdno3nak3.cloudfront.net/images/2e03b8e4a200f8793875dce3568e5911964f477646d7462aadde385758b27ceb.jpg",
+        "type": "image",
+        "originalHeight": 1476,
+        "originalWidth": 1184,
+        "select_type": "original",
+        "sourceType": "user_upload"
+      }
+    },
+    "elements": {
+      "scene-1": {
+        "id": "scene-1",
+        "type": "scene",
+        "length": 5,
+        "sceneName": "第一个场景"
+      },
+      "scene-2": {
+        "id": "scene-2",
+        "type": "scene",
+        "length": 4,
+        "sceneName": "第二个场景"
+      },
+      "video-elem-1": {
+        "id": "video-elem-1",
+        "type": "video",
+        "parent": "scene-1",
+        "start": 0,
+        "length": 5,
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1920,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotate": 0,
+        "opacity": 1,
+        "assetId": "ced3050d-4c89-460a-8e48-524dd396fbd0",
+        "volume": 0.5,
+        "startFrom": 0
+      },
+      "caption-elem-1": {
+        "id": "caption-elem-1",
+        "type": "caption",
+        "parent": "scene-1",
+        "start": 0,
+        "length": 5,
+        "x": 100,
+        "y": 1600,
+        "width": 880,
+        "height": 200,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotate": 0,
+        "opacity": 1,
+        "text": "My dentist was shocked when I told her I've been skipping regular floss for 6 months",
+        "fontSize": 48,
+        "color": "#FFFFFF",
+        "fontFamily": "Arial, sans-serif",
+        "textAlign": "center",
+        "fontWeight": "bold"
+      },
+      "avatar-elem-2": {
+        "id": "avatar-elem-2",
+        "type": "avatar",
+        "parent": "scene-2",
+        "start": 0,
+        "length": 4,
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1920,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotate": 0,
+        "opacity": 1,
+        "assetId": "56a8af17-383a-4d77-b515-8f45eba82e22_cefe5f19",
+        "volume": 0
+      },
+      "image-elem-2": {
+        "id": "image-elem-2",
+        "type": "image",
+        "parent": "scene-2",
+        "start": 1,
+        "length": 2,
+        "x": 50,
+        "y": 1300,
+        "width": 400,
+        "height": 600,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotate": 0,
+        "opacity": 0.8,
+        "assetId": "f382925b-4439-4d6a-9941-0d6f01857d92_original"
+      },
+      "caption-elem-2": {
+        "id": "caption-elem-2",
+        "type": "caption",
+        "parent": "scene-2",
+        "start": 0,
+        "length": 3,
+        "x": 100,
+        "y": 1700,
+        "width": 880,
+        "height": 150,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotate": 0,
+        "opacity": 1,
+        "text": "here's what I'm using instead that removes 99.9% of stains",
+        "fontSize": 42,
+        "color": "#FFD700",
+        "fontFamily": "Arial, sans-serif",
+        "textAlign": "center",
+        "fontWeight": "bold"
+      },
+      "audio-elem-global": {
+        "id": "audio-elem-global",
+        "type": "voiceover",
+        "start": 0,
+        "length": 7.68,
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotate": 0,
+        "assetId": "6026dd34-d0ed-4b9a-b044-a1b779775a3a",
+        "volume": 0.8,
+        "loop": false,
+        "script": "My dentist was shocked when I told her I've been skipping regular floss for 6 months—here's what I'm using instead that removes 99.9% of stains."
+      }
+    },
+    "tracks": [
+      {
+        "id": "scene-track",
+        "type": "scene",
+        "clips": [
+          {
+            "id": "scene-1"
+          },
+          {
+            "id": "scene-2"
+          }
+        ],
+        "hidden": false
+      },
+      {
+        "id": "audio-track",
+        "type": "audio",
+        "clips": [
+          {
+            "id": "audio-elem-global"
+          }
+        ],
+        "hidden": false
+      }
+    ]
+  },
+  "output": {
+    "fps": 30,
+    "size": {
+      "width": 1080,
+      "height": 1920
+    },
+    "format": "mp4"
+  }
+}

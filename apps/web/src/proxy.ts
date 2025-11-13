@@ -1,10 +1,11 @@
 import createIntlMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
 
-// 创建国际化中间件
-const intlMiddleware = createIntlMiddleware(routing)
+// 创建国际化代理（兼容新 proxy 约定）
+const intlProxy = createIntlMiddleware(routing)
 
-export default intlMiddleware
+export const proxy = intlProxy
+export default intlProxy
 
 export const config = {
   // 匹配所有需要国际化处理的路径
