@@ -52,7 +52,7 @@ const BaseNode: React.FC<BaseNodeProps> = ({
             width: 10,
             height: 10,
             borderRadius: 5,
-            background: 'var(--primary)',
+            background: 'hsl(var(--primary))',
             ...h.style,
           }}
         />
