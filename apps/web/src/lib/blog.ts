@@ -6,6 +6,12 @@ import * as apiGateway from '@/content/blog/introducing-new-api-gateway.mdx'
 import * as workflowPerformance from '@/content/blog/optimizing-workflow-performance.mdx'
 import * as caseStudy from '@/content/blog/case-study-company-x-devops.mdx'
 
+// MDX 模块类型定义
+type MDXModule = {
+  metadata: BlogPost
+  default: React.ComponentType
+}
+
 export interface BlogPost {
   slug: string
   title: string
@@ -19,14 +25,14 @@ export interface BlogPost {
 }
 
 // 博客文章映射表
-const BLOG_POST_MODULES = {
-  'getting-started-with-workflow-automation': gettingStarted,
-  'building-scalable-microservices': buildingMicroservices,
-  'security-best-practices': securityBestPractices,
-  'introducing-new-api-gateway': apiGateway,
-  'optimizing-workflow-performance': workflowPerformance,
-  'case-study-company-x-devops': caseStudy,
-} as const
+const BLOG_POST_MODULES: Record<string, MDXModule> = {
+  'getting-started-with-workflow-automation': gettingStarted as MDXModule,
+  'building-scalable-microservices': buildingMicroservices as MDXModule,
+  'security-best-practices': securityBestPractices as MDXModule,
+  'introducing-new-api-gateway': apiGateway as MDXModule,
+  'optimizing-workflow-performance': workflowPerformance as MDXModule,
+  'case-study-company-x-devops': caseStudy as MDXModule,
+}
 
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   const posts: BlogPost[] = []
@@ -35,8 +41,8 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
     try {
       if (module.metadata) {
         posts.push({
-          slug,
           ...module.metadata,
+          slug,
         })
       }
     } catch (error) {
@@ -51,7 +57,7 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function getBlogPost(slug: string) {
-  const postModule = BLOG_POST_MODULES[slug as keyof typeof BLOG_POST_MODULES]
+  const postModule = BLOG_POST_MODULES[slug]
   if (!postModule) {
     return null
   }

@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   turbopack: {
     root: path.join(process.cwd(), '../../'),
+    rules: codeInspectorPlugin({
+      bundler: 'turbopack',
+    }),
   },
   images: {
     remotePatterns: [
@@ -55,16 +58,6 @@ const nextConfig: NextConfig = {
           ? ['log', 'warn', 'error']
           : ['warn', 'error'],
     },
-  },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.plugins.push(
-        codeInspectorPlugin({
-          bundler: 'webpack',
-        })
-      )
-    }
-    return config
   },
   // Remotion 配置
   async headers() {
