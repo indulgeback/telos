@@ -11,6 +11,11 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
+const codeInspectorRules =
+  codeInspectorPlugin({
+    bundler: 'turbopack',
+  }) || {}
+
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
@@ -19,9 +24,22 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   turbopack: {
     root: path.join(process.cwd(), '../../'),
-    rules: codeInspectorPlugin({
-      bundler: 'turbopack',
-    }),
+    rules: {
+      ...codeInspectorRules,
+      '*.svg': {
+        loaders: [
+          {
+            loader: '@svgr/webpack',
+            options: {
+              icon: true,
+              svgo: true,
+              dimensions: false,
+            },
+          },
+        ],
+        as: '*.js',
+      },
+    },
   },
   images: {
     remotePatterns: [
