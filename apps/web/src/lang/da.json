@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "Prøv det nu",
       "learnMore": "Lær mere",
-      "viewDocs": "Se dokumentationen"
+      "viewDocs": "Se dokumentationen",
+      "title": "Er du klar til at starte?",
+      "description": "Oplev straks Telos intelligente workflowplatform og forbedr din automations effektivitet"
     },
     "gsap": {
       "animation": "Seje adgangsanimationer drevet af GSAP!"
+    },
+    "stats": {
+      "languages": "Understøttede sprog",
+      "services": "mikrotjenester",
+      "uptime": "Brugervenlighed",
+      "latency": "responstidsforsinkelse"
     }
   },
   "Header": {
     "home": "Hjem",
-    "features": "Kernefunktioner",
+    "features": "Funktioner",
     "techStack": "Teknisk stak",
-    "quickStart": "Kom hurtigt i gang"
+    "quickStart": "Kom hurtigt i gang",
+    "pricing": "Prissætning",
+    "about": "Om os",
+    "contact": "Kontakt os"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "Denne e-mailadresse er allerede knyttet til en anden konto, brug venligst en anden login-metode",
       "unknownError": "Der opstod en ukendt fejl, prøv igen",
       "contactSupport": "Hvis problemet fortsætter, skal du kontakte teknisk support"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Kraftfulde funktioner designet til moderne arbejdsgange",
+      "subtitle": "Alt, hvad du behøver for at bygge, implementere og skalere intelligent automation"
+    },
+    "core": {
+      "title": "Kernefunktion",
+      "subtitle": "Bygget med moderne teknologi, med fokus på optimal ydeevne",
+      "frontend": {
+        "title": "moderne frontend",
+        "desc": "Next.js 15 kombineret med App Router, React 19 og Shadcn UI, leverer en glat brugeroplevelse"
+      },
+      "backend": {
+        "title": "Go-mikrotjenester",
+        "desc": "Højtydende backend baseret på Gin/Echo-rammen, med indbygget understøttelse af høj samtidighed"
+      },
+      "communication": {
+        "title": "Typesikker API",
+        "desc": "tRPC og gRPC implementerer end-to-end typesikkerhed og effektiv kommunikation"
+      },
+      "i18n": {
+        "title": "18 Sprogunderstøttelse",
+        "desc": "Fuldt internationaliseringsstøtte baseret på next-intl, rettet mod brugere over hele verden"
+      },
+      "deployment": {
+        "title": "Klar til containerisering",
+        "desc": "Understøtter Docker og Kubernetes, indbygget CI/CD-pipeline"
+      },
+      "monorepo": {
+        "title": "Monorepo-arkitektur",
+        "desc": "Brug pnpm workspaces til at administrere kodebasen samlet"
+      }
+    },
+    "advanced": {
+      "title": "Avancerede færdigheder",
+      "subtitle": "Enterprise-funktioner til komplekse arbejdsprocesser",
+      "security": {
+        "title": "Virksomhedsniveau sikkerhed",
+        "desc": "JWT-godkendelse, rollebaseret adgangskontrol og sikre API-gateways"
+      },
+      "ai": {
+        "title": "AI-integration",
+        "desc": "Indbygget AI-agent support og intelligent arbejdsflow-orchestrering"
+      },
+      "data": {
+        "title": "Datahåndtering",
+        "desc": "PostgreSQL vedvarende lager, Redis-cache og realtidssynkronisering"
+      },
+      "workflow": {
+        "title": "Visuel workflow-builder",
+        "desc": "Træk-og-slip workflowdesigner baseret på React Flow"
+      }
+    },
+    "cta": {
+      "title": "Er du klar til at begynde at bygge?",
+      "description": "Begynd at opbygge intelligente arbejdsgange med det samme",
+      "primary": "Start med det samme",
+      "secondary": "Se dokumentet"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Enkel og gennemsigtig prissætning",
+      "subtitle": "Vælg den plan, der passer til dine behov"
+    },
+    "plans": {
+      "free": {
+        "name": "Open source-udgave",
+        "price": "Gratis",
+        "description": "Velegnet til personlige projekter og studier",
+        "features": {
+          "0": "Uendelig arbejdsproces",
+          "1": "Fællesskabsstøtte",
+          "2": "Grundlæggende integration",
+          "3": "Selvhostet implementering"
+        },
+        "cta": "Start med det samme"
+      },
+      "pro": {
+        "name": "Professionel udgave",
+        "price": "199 ¥",
+        "period": "/måned",
+        "description": "Velegnet til teams og vækstvirksomheder",
+        "features": {
+          "0": "Inkluderer alle funktioner i gratisversionen",
+          "1": "Prioriteret support",
+          "2": "Avanceret analyse",
+          "3": "Teamarbejde",
+          "4": "Brugerdefineret integration"
+        },
+        "cta": "Start gratis prøveperiode"
+      },
+      "enterprise": {
+        "name": "Enterprise-udgave",
+        "price": "tilpasset",
+        "description": "Velegnet til store organisationer med tilpassede behov",
+        "features": {
+          "0": "Inkluderer alle funktioner i Professional-versionen",
+          "1": "Eksklusiv support",
+          "2": "SLA-garanti",
+          "3": "Privat udrulning",
+          "4": "Brugerdefineret udvikling"
+        },
+        "cta": "Kontakt salg"
+      }
+    },
+    "faq": {
+      "title": "Ofte stillede spørgsmål",
+      "subtitle": "Alle spørgsmål om prisfastsættelse",
+      "items": {
+        "0": {
+          "question": "Er Telos virkelig gratis?",
+          "answer": "Ja! Telos er open source og gratis, du kan selv hoste og bruge det gratis."
+        },
+        "1": {
+          "question": "Hvad indeholder professionel udgave?",
+          "answer": "Professionel udgave inkluderer prioriteret support, avanceret analyse, team-samarbejdsfunktioner og tilpassede integrationer."
+        },
+        "2": {
+          "question": "Kan planen ændres når som helst?",
+          "answer": "Selvfølgelig! Du kan til enhver tid opgradere eller nedgradere din plan."
+        },
+        "3": {
+          "question": "Kan jeg få refusion?",
+          "answer": "Ja, alle betalte planer understøtter 30 dages tilbagebetalingsret uden grund."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "Om Telos",
+      "subtitle": "Byg fremtiden for intelligent workflow-automatisering"
+    },
+    "mission": {
+      "title": "Vores mission",
+      "content": "Telos er en open source-platform til intelligent workflow-orkestrering, designet til automatiseringsscenarier på virksomheds niveau. Vi tror på, at kraftfulde automatiseringsværktøjer bør være tilgængelige for alle, uanset om det er individuelle udviklere eller store organisationer."
+    },
+    "stats": {
+      "founded": "Etableringsår",
+      "languages": "Understøttede sprog",
+      "services": "Antal mikrotjenester",
+      "openSource": "Open source"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos har fuldstændigt ændret måden, vi håndterer workflow-automation på. Den visuelle builder er meget intuitiv.",
+        "author": "Chen Ming",
+        "role": "Seniorudviklingsingeniør",
+        "company": "teknologivirksomhed"
+      },
+      "1": {
+        "quote": "Mikrotjenestearkitektur gør det nemt at skalere. Vi har allerede implementeret det på flere områder.",
+        "author": "Jin Xiaoya",
+        "role": "DevOps-ansvarlig",
+        "company": "Cloudtjenestefirma"
+      },
+      "2": {
+        "quote": "Endelig er der en open source-løsning, hvor funktionaliteten ikke kompromitteres. Kan varmt anbefales!",
+        "author": "Zhang Wei",
+        "role": "CTO",
+        "company": "Startup-virksomhed"
+      },
+      "title": "Brugeranmeldelser",
+      "subtitle": "Hør, hvad udviklere, der bruger Telos, har at sige"
+    },
+    "cta": {
+      "title": "Deltag i fællesskabet",
+      "description": "Deltag i Telos bidrag og form fremtiden for workflow-automatisering sammen",
+      "primary": "Start med det samme",
+      "secondary": "Se på GitHub"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Kontakt os",
+      "subtitle": "Vi vil meget gerne høre din mening"
+    },
+    "methods": {
+      "title": "Kontaktoplysninger",
+      "email": {
+        "title": "E-mail"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Feedback på problemer",
+        "value": "Opret GitHub-issue"
+      }
+    },
+    "form": {
+      "title": "Send besked",
+      "name": "Dit navn",
+      "email": "E-mailadresse",
+      "subject": "Emne",
+      "message": "Din besked",
+      "submit": "Send besked"
     }
   }
 }

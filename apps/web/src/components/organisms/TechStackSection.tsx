@@ -1,36 +1,11 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useRef, useEffect } from 'react'
-import { animate, stagger } from 'animejs'
+import { motion } from 'motion/react'
+import { SectionWrapper, SectionTitle } from '@/components/molecules'
 
 export function TechStackSection() {
   const t = useTranslations('HomePage')
-  const titleRef = useRef(null)
-  const stackRefs = useRef<Array<HTMLDivElement | null>>([])
-
-  useEffect(() => {
-    // 标题动画
-    if (titleRef.current) {
-      animate(titleRef.current, {
-        translateY: [40, 0],
-        opacity: [0, 1],
-        duration: 800,
-        easing: 'easeOutCubic',
-      })
-    }
-
-    // 技术栈卡片动画
-    if (stackRefs.current && stackRefs.current.length > 0) {
-      animate(stackRefs.current, {
-        translateY: [40, 0],
-        opacity: [0, 1],
-        duration: 700,
-        delay: stagger(180),
-        easing: 'easeOutCubic',
-      })
-    }
-  }, [])
 
   const techStacks = [
     {
@@ -67,48 +42,52 @@ export function TechStackSection() {
       ],
     },
   ]
+
   return (
-    <section className='py-20 bg-slate-50 dark:bg-slate-800' id='tech-stack'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-        <div className='text-center mb-16'>
-          <h2
-            ref={titleRef}
-            className='text-3xl md:text-4xl font-display font-bold text-slate-900 dark:text-white mb-4 leading-tight'
+    <SectionWrapper variant='muted'>
+      <SectionTitle title={t('architecture.title')} />
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+        {techStacks.map((stack, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{
+              duration: 0.7,
+              delay: index * 0.15,
+              ease: [0.33, 1, 0.68, 1],
+            }}
+            className='space-y-6'
           >
-            {t('architecture.title')}
-          </h2>
-        </div>
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-          {techStacks.map((stack, index) => (
-            <div
-              ref={el => {
-                stackRefs.current[index] = el
-              }}
-              key={index}
-              className='space-y-6'
-            >
-              <h3 className='text-xl font-body font-semibold text-slate-900 dark:text-white text-center mb-4'>
-                {stack.category}
-              </h3>
-              <div className='space-y-4'>
-                {stack.items.map((item, itemIndex) => (
-                  <div
-                    key={itemIndex}
-                    className='p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-                  >
-                    <h4 className='font-mono font-medium text-slate-900 dark:text-white mb-1'>
-                      {item.name}
-                    </h4>
-                    <p className='text-sm text-slate-600 dark:text-slate-400 font-sans leading-relaxed'>
-                      {item.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
+            <h3 className='text-xl font-body font-semibold text-foreground text-center mb-4'>
+              {stack.category}
+            </h3>
+            <div className='space-y-4'>
+              {stack.items.map((item, itemIndex) => (
+                <motion.div
+                  key={itemIndex}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{
+                    duration: 0.5,
+                    delay: index * 0.1 + itemIndex * 0.05,
+                  }}
+                  className='p-4 rounded-lg border border-border bg-card hover:border-primary/30 transition-colors'
+                >
+                  <h4 className='font-mono font-medium text-foreground mb-1'>
+                    {item.name}
+                  </h4>
+                  <p className='text-sm text-muted-foreground font-sans leading-relaxed'>
+                    {item.desc}
+                  </p>
+                </motion.div>
+              ))}
             </div>
-          ))}
-        </div>
+          </motion.div>
+        ))}
       </div>
-    </section>
+    </SectionWrapper>
   )
 }

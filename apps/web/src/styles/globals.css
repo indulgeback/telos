@@ -53,81 +53,83 @@
 
 :root {
   --radius: 0.625rem;
-  --background: 215 22% 93%;
-  --foreground: 222 33% 12%;
-  --card: 215 20% 91%;
-  --card-foreground: 222 33% 12%;
-  --popover: 215 20% 95%;
-  --popover-foreground: 222 33% 12%;
-  --primary: 221 62% 40%;
-  --primary-foreground: 215 22% 94%;
-  --secondary: 218 16% 28%;
-  --secondary-foreground: 215 22% 94%;
-  --muted: 218 14% 60%;
-  --muted-foreground: 220 10% 24%;
-  --accent: 208 24% 38%;
-  --accent-foreground: 215 22% 95%;
-  --destructive: 0 70% 46%;
-  --destructive-foreground: 215 22% 95%;
-  --border: 218 14% 70%;
-  --input: 218 14% 70%;
-  --ring: 221 62% 40%;
-  --success: 152 28% 32%;
-  --success-foreground: 150 16% 89%;
-  --warning: 33 70% 46%;
-  --warning-foreground: 30 26% 15%;
-  --chart-1: 221 62% 40%;
-  --chart-2: 215 18% 52%;
-  --chart-3: 208 24% 38%;
-  --chart-4: 204 16% 30%;
-  --chart-5: 210 12% 22%;
-  --sidebar: 217 18% 24%;
-  --sidebar-foreground: 215 22% 94%;
-  --sidebar-primary: 221 62% 40%;
-  --sidebar-primary-foreground: 215 22% 94%;
-  --sidebar-accent: 208 24% 38%;
-  --sidebar-accent-foreground: 215 22% 94%;
-  --sidebar-border: 218 14% 32%;
-  --sidebar-ring: 221 62% 40%;
+  /* Light mode - 清新自然的浅绿灰 */
+  --background: 150 15% 95%;
+  --foreground: 160 25% 10%;
+  --card: 150 12% 92%;
+  --card-foreground: 160 25% 10%;
+  --popover: 150 14% 96%;
+  --popover-foreground: 160 25% 10%;
+  --primary: 160 65% 35%;
+  --primary-foreground: 150 20% 98%;
+  --secondary: 155 18% 25%;
+  --secondary-foreground: 150 15% 95%;
+  --muted: 150 10% 75%;
+  --muted-foreground: 155 15% 35%;
+  --accent: 165 40% 30%;
+  --accent-foreground: 150 20% 96%;
+  --destructive: 0 65% 50%;
+  --destructive-foreground: 150 20% 98%;
+  --border: 150 12% 80%;
+  --input: 150 12% 80%;
+  --ring: 160 65% 35%;
+  --success: 155 50% 35%;
+  --success-foreground: 150 20% 95%;
+  --warning: 40 75% 50%;
+  --warning-foreground: 40 30% 15%;
+  --chart-1: 160 65% 35%;
+  --chart-2: 155 35% 45%;
+  --chart-3: 165 40% 30%;
+  --chart-4: 150 25% 40%;
+  --chart-5: 145 20% 50%;
+  --sidebar: 160 30% 12%;
+  --sidebar-foreground: 150 15% 92%;
+  --sidebar-primary: 160 65% 45%;
+  --sidebar-primary-foreground: 150 20% 98%;
+  --sidebar-accent: 165 40% 25%;
+  --sidebar-accent-foreground: 150 15% 92%;
+  --sidebar-border: 155 20% 22%;
+  --sidebar-ring: 160 65% 45%;
 }
 
 .dark {
-  --background: 220 15% 11%;
-  --foreground: 215 22% 88%;
-  --card: 220 18% 14%;
-  --card-foreground: 215 22% 88%;
-  --popover: 220 20% 18%;
-  --popover-foreground: 215 22% 88%;
-  --primary: 221 50% 56%;
-  --primary-foreground: 215 22% 94%;
-  --secondary: 217 19% 26%;
-  --secondary-foreground: 215 22% 88%;
-  --muted: 218 12% 24%;
-  --muted-foreground: 214 10% 68%;
-  --accent: 208 22% 36%;
-  --accent-foreground: 215 22% 90%;
-  --destructive: 0 68% 54%;
-  --destructive-foreground: 215 22% 92%;
-  --border: 218 12% 28%;
-  --input: 218 12% 28%;
-  --ring: 221 50% 56%;
-  --success: 152 26% 38%;
-  --success-foreground: 150 16% 88%;
-  --warning: 33 68% 52%;
-  --warning-foreground: 30 24% 14%;
-  --chart-1: 221 50% 56%;
-  --chart-2: 215 18% 46%;
-  --chart-3: 208 22% 36%;
-  --chart-4: 204 16% 28%;
-  --chart-5: 210 12% 20%;
-  --sidebar: 220 18% 10%;
-  --sidebar-foreground: 215 22% 88%;
-  --sidebar-primary: 221 50% 56%;
-  --sidebar-primary-foreground: 220 18% 14%;
-  --sidebar-accent: 208 22% 36%;
-  --sidebar-accent-foreground: 215 22% 90%;
-  --sidebar-border: 218 12% 28%;
-  --sidebar-ring: 221 50% 56%;
+  /* Dark mode - 神秘深邃的绿黑 */
+  --background: 160 20% 6%;
+  --foreground: 150 15% 90%;
+  --card: 158 22% 9%;
+  --card-foreground: 150 15% 90%;
+  --popover: 156 24% 12%;
+  --popover-foreground: 150 15% 90%;
+  --primary: 160 70% 45%;
+  --primary-foreground: 160 25% 6%;
+  --secondary: 155 20% 16%;
+  --secondary-foreground: 150 15% 88%;
+  --muted: 155 15% 18%;
+  --muted-foreground: 150 12% 60%;
+  --accent: 165 50% 32%;
+  --accent-foreground: 150 15% 92%;
+  --destructive: 0 60% 55%;
+  --destructive-foreground: 150 15% 95%;
+  --border: 155 18% 20%;
+  --input: 155 18% 20%;
+  --ring: 160 70% 45%;
+  --success: 155 55% 40%;
+  --success-foreground: 150 15% 92%;
+  --warning: 42 70% 55%;
+  --warning-foreground: 40 25% 12%;
+  --chart-1: 160 70% 45%;
+  --chart-2: 155 45% 38%;
+  --chart-3: 165 50% 32%;
+  --chart-4: 150 35% 28%;
+  --chart-5: 145 25% 22%;
+  --sidebar: 160 25% 5%;
+  --sidebar-foreground: 150 15% 88%;
+  --sidebar-primary: 160 70% 45%;
+  --sidebar-primary-foreground: 160 25% 6%;
+  --sidebar-accent: 165 50% 28%;
+  --sidebar-accent-foreground: 150 15% 90%;
+  --sidebar-border: 155 18% 18%;
+  --sidebar-ring: 160 70% 45%;
 }
 
 @layer base {
@@ -164,4 +166,59 @@
 .prose li > input[type='checkbox']:not(:checked) + *::before {
   content: '⬜';
   font-size: 1.1em;
+}
+
+/* Custom scrollbar styles - overlay mode to prevent layout shift */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border) / 0.35) transparent;
+}
+
+*:hover {
+  scrollbar-color: hsl(var(--border) / 0.5) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border) / 0.25);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--border) / 0.45);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Prevent layout shift when scrollbar appears/disappears */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Dark mode scrollbar - emerald tint for visibility */
+.dark {
+  scrollbar-color: hsl(160 30% 35% / 0.4) transparent;
+}
+
+.dark:hover {
+  scrollbar-color: hsl(160 35% 40% / 0.55) transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(160 30% 35% / 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(160 40% 42% / 0.5);
 }

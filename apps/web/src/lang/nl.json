@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "Probeer het nu",
       "learnMore": "Meer informatie",
-      "viewDocs": "Bekijk de documentatie"
+      "viewDocs": "Bekijk de documentatie",
+      "title": "Klaar om te beginnen?",
+      "description": "Ervaar onmiddellijk het Telos slimme workflowplatform en verbeter uw automatiseringsefficiëntie"
     },
     "gsap": {
       "animation": "Coole toegangsanimaties mogelijk gemaakt door GSAP!"
+    },
+    "stats": {
+      "languages": "Ondersteunde talen",
+      "services": "microservices",
+      "uptime": "Beschikbaarheid",
+      "latency": "Reactievertraging"
     }
   },
   "Header": {
     "home": "Thuis",
-    "features": "Kernfuncties",
+    "features": "Functies",
     "techStack": "Technische stapel",
-    "quickStart": "Snel aan de slag"
+    "quickStart": "Snel aan de slag",
+    "pricing": "Prijsstelling",
+    "about": "Over ons",
+    "contact": "Neem contact met ons op"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "Dit e-mailadres is al gekoppeld aan een ander account, gebruik een andere inlogmethode",
       "unknownError": "Er is een onbekende fout opgetreden, probeer het opnieuw",
       "contactSupport": "Als het probleem zich blijft voordoen, neem dan contact op met de technische ondersteuning"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Krachtige functies ontworpen voor moderne workflows",
+      "subtitle": "Alles wat je nodig hebt om intelligente automatisering te bouwen, implementeren en opschalen"
+    },
+    "core": {
+      "title": "Kernfunctie",
+      "subtitle": "Bouw met moderne technologie, streef naar optimale prestaties",
+      "frontend": {
+        "title": "G gemoderniseerde frontend",
+        "desc": "Next.js 15 in combinatie met App Router, React 19 en Shadcn UI biedt een soepele gebruikerservaring"
+      },
+      "backend": {
+        "title": "Go microservices",
+        "desc": "Hoogwaardige backend gebaseerd op het Gin/Echo-framework, met native ondersteuning voor hoge gelijktijdigheid"
+      },
+      "communication": {
+        "title": "Typeveilige API",
+        "desc": "tRPC en gRPC implementeren end-to-end typeveiligheid en efficiënte communicatie"
+      },
+      "i18n": {
+        "title": "18 Taalondersteuning",
+        "desc": "Volledige internationalisatie ondersteund door next-intl, gericht op wereldwijde gebruikers"
+      },
+      "deployment": {
+        "title": "Containerklaar",
+        "desc": "Ondersteunt Docker en Kubernetes, met ingebouwde CI/CD-pijplijn"
+      },
+      "monorepo": {
+        "title": "Monorepo-architectuur",
+        "desc": "Gebruik pnpm workspaces om de codebase centraal te beheren"
+      }
+    },
+    "advanced": {
+      "title": "Geavanceerde vaardigheden",
+      "subtitle": "Enterprisefuncties voor complexe workflows",
+      "security": {
+        "title": "Enterprisebeveiliging",
+        "desc": "JWT-authenticatie, op rollen gebaseerde toegangscontrole en veilige API-gateway"
+      },
+      "ai": {
+        "title": "AI-integratie",
+        "desc": "Ingebouwde AI-agentondersteuning en slimme workfloworkestratie"
+      },
+      "data": {
+        "title": "Gegevensbeheer",
+        "desc": "PostgreSQL persistentie, Redis-cache en realtime synchronisatie"
+      },
+      "workflow": {
+        "title": "Visual workflow builder",
+        "desc": "Drag-and-drop workflowontwerper op basis van React Flow"
+      }
+    },
+    "cta": {
+      "title": "Klaar om te beginnen met bouwen?",
+      "description": "Begin direct met het opbouwen van intelligente workflows",
+      "primary": "Direct beginnen",
+      "secondary": "Bekijk document"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Eenvoudige en transparante prijsstelling",
+      "subtitle": "Kies het plan dat bij uw behoeften past"
+    },
+    "plans": {
+      "free": {
+        "name": "Open source-versie",
+        "price": "gratis",
+        "description": "Geschikt voor persoonlijke projecten en studie",
+        "features": {
+          "0": "Onbeperkte workflow",
+          "1": "Gemeenschapssteun",
+          "2": "Basisintegratie",
+          "3": "Zelfgehoste implementatie"
+        },
+        "cta": "Direct beginnen"
+      },
+      "pro": {
+        "name": "Professionele editie",
+        "price": "¥199",
+        "period": "/maand",
+        "description": "Geschikt voor teams en groeiende bedrijven",
+        "features": {
+          "0": "Bevat alle functies van de gratis versie",
+          "1": "Prioriteitsondersteuning",
+          "2": "Geavanceerde analyse",
+          "3": "Teamwerk",
+          "4": "Aangepaste integratie"
+        },
+        "cta": "Begin gratis proefperiode"
+      },
+      "enterprise": {
+        "name": "Enterprise-editie",
+        "price": "op maat gemaakt",
+        "description": "Geschikt voor grote organisaties met maatwerkbehoeften",
+        "features": {
+          "0": "Bevat alle functies van de professionele versie",
+          "1": "Exclusieve ondersteuning",
+          "2": "SLA-garantie",
+          "3": "Private implementatie",
+          "4": "Aangepaste ontwikkeling"
+        },
+        "cta": "Neem contact op met de verkoop"
+      }
+    },
+    "faq": {
+      "title": "Veelgestelde vragen",
+      "subtitle": "Alle vragen over prijsstelling",
+      "items": {
+        "0": {
+          "question": "Is Telos echt gratis?",
+          "answer": "Ja! Telos is open source en gratis, u kunt het gratis zelf hosten en gebruiken."
+        },
+        "1": {
+          "question": "Wat is inbegrepen in de professionele versie?",
+          "answer": "De professionele versie bevat prioriteitsondersteuning, geavanceerde analyse, teamwerkfuncties en aangepaste integraties."
+        },
+        "2": {
+          "question": "Kan ik het plan op elk moment wijzigen?",
+          "answer": "Natuurlijk! U kunt uw abonnement op elk moment upgraden of downgraden."
+        },
+        "3": {
+          "question": "Ondersteunt u terugbetalingen?",
+          "answer": "Ja, alle betaalde abonnementen ondersteunen 30-dagen zonder reden terugbetalingen."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "Over Telos",
+      "subtitle": "De toekomst van intelligente workflowautomatisering opbouwen"
+    },
+    "mission": {
+      "title": "Onze missie",
+      "content": "Telos is een open-source platform voor slimme workflow-orkestratie, speciaal ontworpen voor automatiseringsscenario's op bedrijfsniveau. Wij geloven dat krachtige automatiseringstools voor iedereen toegankelijk zouden moeten zijn, of het nu individuele ontwikkelaars of grote organisaties zijn."
+    },
+    "stats": {
+      "founded": "Oprichtingsjaar",
+      "languages": "Ondersteunde talen",
+      "services": "Aantal microservices",
+      "openSource": "open source"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos heeft onze manier van omgaan met workflowautomatisering volledig veranderd. De visuele builder is zeer intuïtief.",
+        "author": "Chen Ming",
+        "role": "Senior software-ontwikkelaar",
+        "company": "technologiebedrijf"
+      },
+      "1": {
+        "quote": "Microservices-architectuur maakt schaalvergroting eenvoudig. We hebben het al in meerdere regio's uitgerold.",
+        "author": "Jin Xiaoya",
+        "role": "DevOps-manager",
+        "company": "cloudservicebedrijf"
+      },
+      "2": {
+        "quote": "Eindelijk is er een open-source oplossing die volledig functioneel is. Sterk aanbevolen!",
+        "author": "Zhang Wei",
+        "role": "CTO",
+        "company": "startupbedrijf"
+      },
+      "title": "Gebruikersbeoordeling",
+      "subtitle": "Luister naar wat ontwikkelaars die Telos gebruiken te zeggen hebben"
+    },
+    "cta": {
+      "title": "Word lid van de gemeenschap",
+      "description": "Doe mee aan de bijdrage aan Telos en vorm samen de toekomst van workflowautomatisering",
+      "primary": "Direct beginnen",
+      "secondary": "Bekijk op GitHub"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Neem contact met ons op",
+      "subtitle": "We horen graag uw mening"
+    },
+    "methods": {
+      "title": "Contactgegevens",
+      "email": {
+        "title": "E-mail"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Probleemfeedback",
+        "value": "GitHub-issue indienen"
+      }
+    },
+    "form": {
+      "title": "Bericht verzenden",
+      "name": "Uw naam",
+      "email": "E-mailadres",
+      "subject": "Onderwerp",
+      "message": "Uw bericht",
+      "submit": "Bericht verzenden"
     }
   }
 }

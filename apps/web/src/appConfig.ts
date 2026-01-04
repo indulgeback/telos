@@ -22,7 +22,7 @@ const appConfig = {
     'tr',
   ],
   defaultLocale: 'en',
-  subjectColor: '#5a7fae',
+  subjectColor: '#22c55e', // 翡翠绿主题色 (hsl 160 65% 45%)
 }
 
 export default appConfig

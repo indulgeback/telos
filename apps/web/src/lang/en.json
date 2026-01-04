@@ -81,17 +81,26 @@
     "cta": {
       "getStarted": "Try it now",
       "learnMore": "Learn more",
-      "viewDocs": "Check out the documentation"
+      "viewDocs": "Check out the documentation",
+      "title": "Are you ready to get started?",
+      "description": "Experience the Telos intelligent workflow orchestration platform now and boost your automation efficiency."
     },
     "gsap": {
       "animation": "Cool admission animations powered by GSAP!"
+    },
+    "stats": {
+      "languages": "Supported Languages",
+      "services": "Microservices",
+      "uptime": "Usability",
+      "latency": "Response delay"
     }
   },
   "Header": {
     "home": "Home",
-    "features": "Core features",
-    "techStack": "Tech stack",
-    "quickStart": "Get started quickly"
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About Us",
+    "contact": "Contact Us"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +128,206 @@
       "oauthAccountNotLinked": "This email address is already linked to another account, please use a different login method",
       "unknownError": "An unknown error occurred, please try again",
       "contactSupport": "If the problem persists, contact technical support"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Powerful features designed for modern workflows",
+      "subtitle": "Everything you need to build, deploy, and scale intelligent automation"
+    },
+    "core": {
+      "title": "Core Function",
+      "subtitle": "Built with modern technology, pursuing ultimate performance",
+      "frontend": {
+        "title": "Modern Frontend",
+        "desc": "Next.js 15, combined with App Router, React 19, and Shadcn UI, provides a smooth user experience"
+      },
+      "backend": {
+        "title": "Go microservices",
+        "desc": "High-performance backend based on the Gin/Echo framework, natively supporting high concurrency"
+      },
+      "communication": {
+        "title": "Type-safe API",
+        "desc": "tRPC and gRPC implement end-to-end type safety and efficient communication"
+      },
+      "i18n": {
+        "title": "18 Language Support",
+        "desc": "Complete internationalization support based on next-intl, aimed at global users"
+      },
+      "deployment": {
+        "title": "Container-Ready",
+        "desc": "Supports Docker and Kubernetes, with built-in CI/CD pipelines"
+      },
+      "monorepo": {
+        "title": "Monorepo architecture",
+        "desc": "Use pnpm workspaces to manage the codebase uniformly"
+      }
+    },
+    "advanced": {
+      "title": "Advanced capabilities",
+      "subtitle": "Enterprise-level features for complex workflows",
+      "security": {
+        "title": "Enterprise-level security",
+        "desc": "JWT authentication, role-based access control, and secure API gateway"
+      },
+      "ai": {
+        "title": "AI Integration",
+        "desc": "Built-in AI agent support and intelligent workflow orchestration"
+      },
+      "data": {
+        "title": "Data Management",
+        "desc": "PostgreSQL persistence, Redis caching, and real-time synchronization"
+      },
+      "workflow": {
+        "title": "Visual Workflow Builder",
+        "desc": "Drag-and-Drop Workflow Designer Based on React Flow"
+      }
+    },
+    "cta": {
+      "title": "Are you ready to start building?",
+      "description": "Start building intelligent workflows now",
+      "primary": "Start Now",
+      "secondary": "View Document"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Simple and transparent pricing",
+      "subtitle": "Choose the plan that suits your needs"
+    },
+    "plans": {
+      "free": {
+        "name": "Open Source Version",
+        "price": "Free",
+        "description": "Suitable for personal projects and learning",
+        "features": {
+          "0": "Infinite Workflow",
+          "1": "Community Support",
+          "2": "Basic Integration",
+          "3": "Self-hosted deployment"
+        },
+        "cta": "Start Now"
+      },
+      "pro": {
+        "name": "Professional Edition",
+        "price": "¥199",
+        "period": "/month",
+        "description": "Suitable for teams and growing businesses",
+        "features": {
+          "0": "Includes all features of the free version",
+          "1": "Priority support",
+          "2": "Advanced Analytics",
+          "3": "Team Collaboration",
+          "4": "Custom Integration"
+        },
+        "cta": "Start Free Trial"
+      },
+      "enterprise": {
+        "name": "Enterprise Edition",
+        "price": "Customized",
+        "description": "Suitable for large organizations with custom requirements",
+        "features": {
+          "0": "Includes all features of the professional version",
+          "1": "Exclusive support",
+          "2": "SLA Guarantee",
+          "3": "Private deployment",
+          "4": "Custom Development"
+        },
+        "cta": "Contact Sales"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "All questions about pricing",
+      "items": {
+        "0": {
+          "question": "Is Telos really free?",
+          "answer": "Yes! Telos is open-source and free; you can self-host and use it at no cost."
+        },
+        "1": {
+          "question": "What does the professional version include?",
+          "answer": "The professional version includes priority support, advanced analytics, team collaboration features, and custom integrations."
+        },
+        "2": {
+          "question": "Can the plan be changed at any time?",
+          "answer": "Of course! You can upgrade or downgrade your plan at any time."
+        },
+        "3": {
+          "question": "Do you support refunds?",
+          "answer": "Yes, all paid plans support a 30-day no-questions-asked refund."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "About Telos",
+      "subtitle": "Building the Future of Intelligent Workflow Automation"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "content": "Telos is an open-source intelligent workflow orchestration platform designed for enterprise-level automation scenarios. We believe powerful automation tools should be accessible to everyone, whether individual developers or large organizations."
+    },
+    "stats": {
+      "founded": "Year of Establishment",
+      "languages": "Supported Languages",
+      "services": "Number of microservices",
+      "openSource": "Open source"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos has completely transformed the way we handle workflow automation. The visual builder is extremely intuitive.",
+        "author": "Chen Ming",
+        "role": "Senior Software Engineer",
+        "company": "Technology company"
+      },
+      "1": {
+        "quote": "Microservices architecture makes scaling easy. We have already deployed it in multiple regions.",
+        "author": "Jin Xiaoya",
+        "role": "DevOps Manager",
+        "company": "Cloud service company"
+      },
+      "2": {
+        "quote": "Finally, there's an open-source solution that doesn't compromise on functionality. Highly recommended!",
+        "author": "Zhang Wei",
+        "role": "CTO",
+        "company": "Startup"
+      },
+      "title": "User Reviews",
+      "subtitle": "Hear what developers using Telos have to say"
+    },
+    "cta": {
+      "title": "Join the community",
+      "description": "Join Telos contributions and shape the future of workflow automation together",
+      "primary": "Start Now",
+      "secondary": "View on GitHub"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Contact Us",
+      "subtitle": "We are happy to hear your feedback."
+    },
+    "methods": {
+      "title": "Contact Information",
+      "email": {
+        "title": "Email"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Feedback",
+        "value": "Submit GitHub Issue"
+      }
+    },
+    "form": {
+      "title": "Send Message",
+      "name": "Your Name",
+      "email": "Email address",
+      "subject": "Theme",
+      "message": "Your message",
+      "submit": "Send Message"
     }
   }
 }

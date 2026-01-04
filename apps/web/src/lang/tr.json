@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "Şimdi Deneyin",
       "learnMore": "Daha fazla bilgi edinin",
-      "viewDocs": "Belgelere göz atın"
+      "viewDocs": "Belgelere göz atın",
+      "title": "Başlamaya hazır mısın?",
+      "description": "Telos akıllı iş akışı düzenleme platformunu hemen deneyimleyin ve otomasyon verimliliğinizi artırın"
     },
     "gsap": {
       "animation": "GSAP tarafından desteklenen harika giriş animasyonları!"
+    },
+    "stats": {
+      "languages": "Desteklenen diller",
+      "services": "Mikro hizmet",
+      "uptime": "Kullanılabilirlik",
+      "latency": "Tepki gecikmesi"
     }
   },
   "Header": {
     "home": "Ev",
-    "features": "Temel özellikler",
+    "features": "Özellikler",
     "techStack": "Teknoloji yığını",
-    "quickStart": "Hızlı bir başlangıç yapın"
+    "quickStart": "Hızlı bir başlangıç yapın",
+    "pricing": "Fiyatlandırma",
+    "about": "Hakkımızda",
+    "contact": "Bize Ulaşın"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "Bu e-posta adresi zaten başka bir hesaba bağlı, lütfen farklı bir giriş yöntemi kullanın",
       "unknownError": "Bilinmeyen bir hata oluştu, lütfen tekrar deneyin",
       "contactSupport": "Sorun devam ederse teknik desteğe başvurun"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Modern iş akışları için geliştirilmiş güçlü özellikler",
+      "subtitle": "Akıllı otomasyonu oluşturmak, dağıtmak ve ölçeklendirmek için gereken her şey"
+    },
+    "core": {
+      "title": "çekirdek işlev",
+      "subtitle": "Modern teknolojilerle inşa edilmiştir, en yüksek performansı hedefler",
+      "frontend": {
+        "title": "Modern Ön Uç",
+        "desc": "Next.js 15, App Router, React 19 ve Shadcn UI ile sorunsuz bir kullanıcı deneyimi sunuyor"
+      },
+      "backend": {
+        "title": "Go mikro hizmetleri",
+        "desc": "Gin/Echo çerçevesine dayalı yüksek performanslı arka uç, yüksek eşzamanlılığı doğal olarak destekler"
+      },
+      "communication": {
+        "title": "Tür güvenli API",
+        "desc": "tRPC ve gRPC, uçtan uca tür güvenliği ve verimli iletişim sağlar"
+      },
+      "i18n": {
+        "title": "18 Dil Desteği",
+        "desc": "Next-intl tabanlı tam uluslararasılaşma desteği, küresel kullanıcılar için"
+      },
+      "deployment": {
+        "title": "Konteyner Hazır",
+        "desc": "Docker ve Kubernetes'i destekler, yerleşik CI/CD hattına sahiptir"
+      },
+      "monorepo": {
+        "title": "Monorepo mimarisi",
+        "desc": "pnpm workspaces kullanarak kod deposunu bir arada yönetmek"
+      }
+    },
+    "advanced": {
+      "title": "İleri düzey yetenek",
+      "subtitle": "Karmaşık iş akışlarına yönelik kurumsal düzeyde özellikler",
+      "security": {
+        "title": "Kurumsal düzeyde güvenlik",
+        "desc": "JWT doğrulama, rol tabanlı erişim kontrolü ve güvenli API geçidi"
+      },
+      "ai": {
+        "title": "Yapay Zeka Entegrasyonu",
+        "desc": "Yerleşik AI Ajan desteği ve akıllı iş akışı düzenleme"
+      },
+      "data": {
+        "title": "Veri Yönetimi",
+        "desc": "PostgreSQL kalıcılığı, Redis önbelleği ve gerçek zamanlı senkronizasyon"
+      },
+      "workflow": {
+        "title": "Görselleştirilmiş İş Akışı Oluşturucu",
+        "desc": "React Flow'a Dayalı Sürükle ve Bırak İş Akışı Tasarımcısı"
+      }
+    },
+    "cta": {
+      "title": "İnşa etmeye başlamaya hazır mısınız?",
+      "description": "Akıllı iş akışlarını hemen oluşturmaya başlayın",
+      "primary": "Hemen başla",
+      "secondary": "Belgeleri görüntüle"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Basit ve şeffaf fiyatlandırma",
+      "subtitle": "İhtiyaçlarınıza uygun planı seçin"
+    },
+    "plans": {
+      "free": {
+        "name": "Açık kaynak sürümü",
+        "price": "Ücretsiz",
+        "description": "Bireysel projeler ve öğrenim için uygundur",
+        "features": {
+          "0": "Sınırsız iş akışı",
+          "1": "Topluluk Desteği",
+          "2": "Temel Entegrasyon",
+          "3": "Kendi kendine barındırılan dağıtım"
+        },
+        "cta": "Hemen başla"
+      },
+      "pro": {
+        "name": "Profesyonel Sürüm",
+        "price": "¥199",
+        "period": "/Ay",
+        "description": "Takımlar ve büyümekte olan işletmeler için uygun",
+        "features": {
+          "0": "Ücretsiz sürümdeki tüm özellikleri içerir",
+          "1": "Öncelikli destek",
+          "2": "İleri Düzey Analiz",
+          "3": "Ekip çalışması",
+          "4": "Özelleştirilmiş Entegrasyon"
+        },
+        "cta": "Ücretsiz denemeye başla"
+      },
+      "enterprise": {
+        "name": "Kurumsal Sürüm",
+        "price": "özel yapım",
+        "description": "Özelleştirme ihtiyacı olan büyük kuruluşlar için uygun",
+        "features": {
+          "0": "Profesyonel sürümdeki tüm özellikleri içerir",
+          "1": "Özel Destek",
+          "2": "SLA Güvencesi",
+          "3": "Özel dağıtım",
+          "4": "Özel geliştirme"
+        },
+        "cta": "Satış ile iletişime geçin"
+      }
+    },
+    "faq": {
+      "title": "Sık Sorulan Sorular",
+      "subtitle": "Fiyatlandırmayla ilgili tüm sorular",
+      "items": {
+        "0": {
+          "question": "Telos gerçekten ücretsiz mi?",
+          "answer": "Evet! Telos açık kaynak ve ücretsizdir, kendi sunucunuzda ücretsiz olarak kullanabilirsiniz."
+        },
+        "1": {
+          "question": "Profesyonel sürüm neleri içeriyor?",
+          "answer": "Profesyonel sürüm, öncelikli destek, gelişmiş analiz, ekip işbirliği özellikleri ve özelleştirilmiş entegrasyonlar içerir."
+        },
+        "2": {
+          "question": "Planı her zaman değiştirebilir miyim?",
+          "answer": "Tabii ki! Planınızı her zaman yükseltebilir veya düşürebilirsiniz."
+        },
+        "3": {
+          "question": "İade destekleniyor mu?",
+          "answer": "Evet, tüm ücretli planlar 30 gün içinde koşulsuz iade desteği sunar."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "Telos Hakkında",
+      "subtitle": "Akıllı iş akışı otomasyonunun geleceğini inşa etmek"
+    },
+    "mission": {
+      "title": "Bizim misyonumuz",
+      "content": "Telos, kurumsal otomasyon senaryoları için tasarlanmış açık kaynaklı bir akıllı iş akışı düzenleme platformudur. Güçlü otomasyon araçlarının, ister bireysel geliştirici ister büyük organizasyon olsun, herkesin erişebileceği şekilde olması gerektiğine inanıyoruz."
+    },
+    "stats": {
+      "founded": "Kuruluş Yılı",
+      "languages": "Desteklenen diller",
+      "services": "Mikro hizmet sayısı",
+      "openSource": "Açık kaynak"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos, iş akışı otomasyonunu ele alış şeklimizi tamamen değiştirdi. Görsel oluşturucu çok sezgisel.",
+        "author": "Chen Ming",
+        "role": "Kıdemli Yazılım Mühendisi",
+        "company": "Teknoloji şirketi"
+      },
+      "1": {
+        "quote": "Mikro hizmet mimarisi, ölçeklemeyi kolaylaştırır. Biz bunu birden fazla bölgede devreye aldık.",
+        "author": "Jin Xiaoya",
+        "role": "DevOps Sorumlusu",
+        "company": "Bulut hizmetleri şirketi"
+      },
+      "2": {
+        "quote": "Nihayet tüm işlevleri eksiksiz sunan bir açık kaynak çözüm var. Şiddetle tavsiye ederim!",
+        "author": "Zhang Wei",
+        "role": "CTO",
+        "company": "Girişim şirketi"
+      },
+      "title": "Kullanıcı Değerlendirmesi",
+      "subtitle": "Telos kullanan geliştiricilerin neler söylediğini dinleyin"
+    },
+    "cta": {
+      "title": "Topluluğa katıl",
+      "description": "Telos'a katkıda bulunun ve iş akışı otomasyonunun geleceğini birlikte şekillendirin",
+      "primary": "Hemen başla",
+      "secondary": "GitHub'da görüntüle"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Bize Ulaşın",
+      "subtitle": "Görüşlerinizi duymaktan memnuniyet duyarız"
+    },
+    "methods": {
+      "title": "İletişim bilgileri",
+      "email": {
+        "title": "E-posta"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Geri bildirim",
+        "value": "GitHub Sorunu Gönder"
+      }
+    },
+    "form": {
+      "title": "Mesaj gönder",
+      "name": "Adınız",
+      "email": "E-posta adresi",
+      "subject": "konu",
+      "message": "Mesajınız",
+      "submit": "Mesaj gönder"
     }
   }
 }

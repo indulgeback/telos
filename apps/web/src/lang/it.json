@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "Provalo ora",
       "learnMore": "Ulteriori informazioni",
-      "viewDocs": "Consulta la documentazione"
+      "viewDocs": "Consulta la documentazione",
+      "title": "Sei pronto per cominciare?",
+      "description": "Prova subito la piattaforma di orchestrazione dei flussi di lavoro intelligenti Telos e aumenta l'efficienza della tua automazione"
     },
     "gsap": {
       "animation": "Fantastiche animazioni di ammissione alimentate da GSAP!"
+    },
+    "stats": {
+      "languages": "Lingue supportate",
+      "services": "Microservizi",
+      "uptime": "Disponibilità",
+      "latency": "Ritardo di risposta"
     }
   },
   "Header": {
     "home": "Casa",
-    "features": "Caratteristiche principali",
+    "features": "Caratteristiche funzionali",
     "techStack": "Stack tecnologico",
-    "quickStart": "Inizia rapidamente"
+    "quickStart": "Inizia rapidamente",
+    "pricing": "Prezzo",
+    "about": "Chi siamo",
+    "contact": "Contattaci"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "Questo indirizzo e-mail è già collegato a un altro account, si prega di utilizzare un metodo di accesso diverso",
       "unknownError": "Si è verificato un errore sconosciuto, riprova",
       "contactSupport": "Se il problema persiste, contattare l'assistenza tecnica"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Funzionalità potente progettata per i flussi di lavoro moderni",
+      "subtitle": "Tutto il necessario per costruire, distribuire e ampliare l'automazione intelligente"
+    },
+    "core": {
+      "title": "Funzione principale",
+      "subtitle": "Costruito con tecnologie moderne, per prestazioni estreme",
+      "frontend": {
+        "title": "Frontend moderno",
+        "desc": "Next.js 15 con App Router, React 19 e Shadcn UI offre un'esperienza utente fluida"
+      },
+      "backend": {
+        "title": "Microservizi Go",
+        "desc": "Backend ad alte prestazioni basato sui framework Gin/Echo, con supporto nativo per alta concorrenza"
+      },
+      "communication": {
+        "title": "API sicura per tipi",
+        "desc": "tRPC e gRPC implementano una comunicazione efficiente e sicura in termini di tipo end-to-end"
+      },
+      "i18n": {
+        "title": "18 Supporto linguistico",
+        "desc": "Supporto completo per l'internazionalizzazione basato su next-intl, rivolto agli utenti di tutto il mondo"
+      },
+      "deployment": {
+        "title": "Pronto per la containerizzazione",
+        "desc": "Supporta Docker e Kubernetes, con pipeline CI/CD integrate"
+      },
+      "monorepo": {
+        "title": "Architettura Monorepo",
+        "desc": "Utilizzare i workspace di pnpm per gestire un codice base unificato"
+      }
+    },
+    "advanced": {
+      "title": "Abilità avanzata",
+      "subtitle": "Funzionalità aziendali per flussi di lavoro complessi",
+      "security": {
+        "title": "Sicurezza a livello aziendale",
+        "desc": "Autenticazione JWT, controllo degli accessi basato sui ruoli e gateway API sicuro"
+      },
+      "ai": {
+        "title": "Integrazione AI",
+        "desc": "Supporto integrato per agenti AI e orchestrazione intelligente dei flussi di lavoro"
+      },
+      "data": {
+        "title": "Gestione dei dati",
+        "desc": "Persistenza PostgreSQL, caching Redis e sincronizzazione in tempo reale"
+      },
+      "workflow": {
+        "title": "Costruttore di flussi di lavoro visuale",
+        "desc": "Progettista di flussi di lavoro drag-and-drop basato su React Flow"
+      }
+    },
+    "cta": {
+      "title": "Sei pronto per iniziare a costruire?",
+      "description": "Inizia subito a costruire flussi di lavoro intelligenti",
+      "primary": "Inizia subito",
+      "secondary": "Visualizza documento"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Prezzi semplici e trasparenti",
+      "subtitle": "Scegli il piano più adatto alle tue esigenze"
+    },
+    "plans": {
+      "free": {
+        "name": "Versione open source",
+        "price": "Gratis",
+        "description": "Adatto per progetti personali e per lo studio",
+        "features": {
+          "0": "Flusso di lavoro illimitato",
+          "1": "Supporto della comunità",
+          "2": "Integrazione di base",
+          "3": "Distribuzione self-hosted"
+        },
+        "cta": "Inizia subito"
+      },
+      "pro": {
+        "name": "Versione professionale",
+        "price": "¥199",
+        "period": "/mese",
+        "description": "Adatto a team e imprese in crescita",
+        "features": {
+          "0": "Include tutte le funzionalità della versione gratuita",
+          "1": "Supporto prioritario",
+          "2": "Analisi avanzata",
+          "3": "Collaborazione di squadra",
+          "4": "Integrazione personalizzata"
+        },
+        "cta": "Inizia la prova gratuita"
+      },
+      "enterprise": {
+        "name": "Versione aziendale",
+        "price": "Personalizzato",
+        "description": "Adatto a grandi organizzazioni con esigenze di personalizzazione",
+        "features": {
+          "0": "Include tutte le funzionalità della versione professionale",
+          "1": "Supporto esclusivo",
+          "2": "Garanzia SLA",
+          "3": "Distribuzione privata",
+          "4": "Sviluppo su misura"
+        },
+        "cta": "Contattare le vendite"
+      }
+    },
+    "faq": {
+      "title": "Domande frequenti",
+      "subtitle": "Tutte le domande sui prezzi",
+      "items": {
+        "0": {
+          "question": "Telos è davvero gratuito?",
+          "answer": "Sì! Telos è open source e gratuito, puoi utilizzarlo in self-hosting senza costi."
+        },
+        "1": {
+          "question": "Cosa include la versione professionale?",
+          "answer": "La versione professionale include supporto prioritario, analisi avanzate, funzionalità di collaborazione per il team e integrazioni personalizzate."
+        },
+        "2": {
+          "question": "Posso cambiare piano in qualsiasi momento?",
+          "answer": "Certo! Puoi aggiornare o downgrade il tuo piano in qualsiasi momento."
+        },
+        "3": {
+          "question": "Supporta i rimborsi?",
+          "answer": "Sì, tutti i piani a pagamento offrono un rimborso senza motivo entro 30 giorni."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "Riguardo a Telos",
+      "subtitle": "Costruire il futuro dell'automazione dei flussi di lavoro intelligenti"
+    },
+    "mission": {
+      "title": "La nostra missione",
+      "content": "Telos è una piattaforma open source per l'orchestrazione dei flussi di lavoro intelligenti, progettata per scenari di automazione a livello aziendale. Crediamo che strumenti di automazione potenti dovrebbero essere accessibili a tutti, sia ai singoli sviluppatori che alle grandi organizzazioni."
+    },
+    "stats": {
+      "founded": "Anno di fondazione",
+      "languages": "Lingue supportate",
+      "services": "Numero di microservizi",
+      "openSource": "Open source"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos ha completamente cambiato il nostro modo di gestire l'automazione dei flussi di lavoro. Il costruttore visivo è molto intuitivo.",
+        "author": "Chen Ming",
+        "role": "Ingegnere di sviluppo senior",
+        "company": "azienda tecnologica"
+      },
+      "1": {
+        "quote": "L'architettura a microservizi rende la scalabilità semplice. L'abbiamo già implementata in diverse regioni.",
+        "author": "Jin Xiaoya",
+        "role": "Responsabile DevOps",
+        "company": "Azienda di servizi cloud"
+      },
+      "2": {
+        "quote": "Finalmente esiste una soluzione open source con tutte le funzionalità senza compromessi. La consiglio vivamente!",
+        "author": "Zhang Wei",
+        "role": "CTO",
+        "company": "startup"
+      },
+      "title": "Recensioni degli utenti",
+      "subtitle": "Ascolta cosa dicono gli sviluppatori che usano Telos"
+    },
+    "cta": {
+      "title": "Unisciti alla comunità",
+      "description": "Partecipa al contributo di Telos e contribuisci a plasmare il futuro dell'automazione dei flussi di lavoro",
+      "primary": "Inizia subito",
+      "secondary": "Visualizza su GitHub"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Contattaci",
+      "subtitle": "Siamo lieti di ascoltare la vostra opinione"
+    },
+    "methods": {
+      "title": "Informazioni di contatto",
+      "email": {
+        "title": "casella di posta"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Feedback sui problemi",
+        "value": "Invia un problema su GitHub"
+      }
+    },
+    "form": {
+      "title": "Invia messaggio",
+      "name": "Il tuo nome",
+      "email": "Indirizzo email",
+      "subject": "Tema",
+      "message": "Il tuo messaggio",
+      "submit": "Invia messaggio"
     }
   }
 }

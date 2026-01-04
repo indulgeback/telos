@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "Coba sekarang",
       "learnMore": "Pelajari lebih lanjut",
-      "viewDocs": "Lihat dokumentasinya"
+      "viewDocs": "Lihat dokumentasinya",
+      "title": "Sudah siap untuk memulai?",
+      "description": "Rasakan segera platform Orkestrasi Alur Kerja Cerdas Telos, tingkatkan efisiensi otomatisasi Anda"
     },
     "gsap": {
       "animation": "Animasi penerimaan keren yang didukung oleh GSAP!"
+    },
+    "stats": {
+      "languages": "Bahasa yang Didukung",
+      "services": "Layanan mikro",
+      "uptime": "Ketersediaan",
+      "latency": "Waktu respons"
     }
   },
   "Header": {
     "home": "Rumah",
-    "features": "Fitur inti",
+    "features": "Fitur dan Fungsi",
     "techStack": "Tumpukan teknologi",
-    "quickStart": "Mulai dengan cepat"
+    "quickStart": "Mulai dengan cepat",
+    "pricing": "Penetapan harga",
+    "about": "Tentang Kami",
+    "contact": "Hubungi Kami"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "Alamat email ini sudah ditautkan ke akun lain, silakan gunakan metode login yang berbeda",
       "unknownError": "Terjadi kesalahan yang tidak diketahui, silakan coba lagi",
       "contactSupport": "Jika masalah berlanjut, hubungi dukungan teknis"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Fitur canggih yang dirancang untuk alur kerja modern",
+      "subtitle": "Segala yang Anda butuhkan untuk membangun, menerapkan, dan mengembangkan otomatisasi cerdas"
+    },
+    "core": {
+      "title": "Fungsi inti",
+      "subtitle": "Dibangun dengan teknologi modern, mengejar kinerja maksimal",
+      "frontend": {
+        "title": "Frontend Modern",
+        "desc": "Next.js 15 dengan App Router, React 19, dan Shadcn UI, memberikan pengalaman pengguna yang lancar"
+      },
+      "backend": {
+        "title": "Go Layanan Mikro",
+        "desc": "Backend berkinerja tinggi berbasis kerangka Gin/Echo, mendukung konkurensi tinggi secara native"
+      },
+      "communication": {
+        "title": "API yang aman tipe",
+        "desc": "tRPC dan gRPC mewujudkan komunikasi yang aman secara tipe dan efisien dari ujung ke ujung"
+      },
+      "i18n": {
+        "title": "18 Dukungan Bahasa",
+        "desc": "Dukungan internasionalisasi penuh berbasis next-intl, ditujukan untuk pengguna di seluruh dunia"
+      },
+      "deployment": {
+        "title": "Siap untuk Kontainerisasi",
+        "desc": "Mendukung Docker dan Kubernetes, dengan pipeline CI/CD bawaan"
+      },
+      "monorepo": {
+        "title": "Arsitektur Monorepo",
+        "desc": "Mengelola repositori kode secara terpadu dengan pnpm workspaces"
+      }
+    },
+    "advanced": {
+      "title": "Kemampuan tingkat tinggi",
+      "subtitle": "Fitur tingkat perusahaan untuk alur kerja yang kompleks",
+      "security": {
+        "title": "Keamanan tingkat perusahaan",
+        "desc": "Autentikasi JWT, kontrol akses berbasis peran, dan gerbang API yang aman"
+      },
+      "ai": {
+        "title": "Integrasi AI",
+        "desc": "Dukungan Agen AI bawaan dan orkestrasi alur kerja cerdas"
+      },
+      "data": {
+        "title": "Manajemen Data",
+        "desc": "PostgreSQL persisten, cache Redis, dan sinkronisasi real-time"
+      },
+      "workflow": {
+        "title": "Pembuat Alur Kerja Visual",
+        "desc": "Perancang alur kerja seret dan lepas berbasis React Flow"
+      }
+    },
+    "cta": {
+      "title": "Sudah siap untuk mulai membangun?",
+      "description": "Mulai membangun alur kerja cerdas sekarang",
+      "primary": "Mulai sekarang",
+      "secondary": "Lihat dokumen"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Harga yang sederhana dan transparan",
+      "subtitle": "Pilih paket yang sesuai dengan kebutuhan Anda"
+    },
+    "plans": {
+      "free": {
+        "name": "Versi sumber terbuka",
+        "price": "Gratis",
+        "description": "Cocok untuk proyek pribadi dan penggunaan belajar",
+        "features": {
+          "0": "Alur kerja tanpa batas",
+          "1": "Dukungan komunitas",
+          "2": "Integrasi Dasar",
+          "3": "Deploy mandiri"
+        },
+        "cta": "Mulai sekarang"
+      },
+      "pro": {
+        "name": "Versi Profesional",
+        "price": "¥199",
+        "period": "/bulan",
+        "description": "Cocok untuk tim dan perusahaan yang sedang berkembang",
+        "features": {
+          "0": "Mencakup semua fitur versi gratis",
+          "1": "Dukungan prioritas",
+          "2": "Analisis Lanjutan",
+          "3": "Kerja tim",
+          "4": "Integrasi Kustom"
+        },
+        "cta": "Mulai uji coba gratis"
+      },
+      "enterprise": {
+        "name": "Edisi Perusahaan",
+        "price": "Kustom",
+        "description": "Cocok untuk organisasi besar dengan kebutuhan kustomisasi",
+        "features": {
+          "0": "Mencakup semua fitur versi profesional",
+          "1": "Dukungan eksklusif",
+          "2": "Jaminan SLA",
+          "3": "Deploy privat",
+          "4": "Pengembangan khusus"
+        },
+        "cta": "Hubungi penjualan"
+      }
+    },
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "subtitle": "Segala pertanyaan tentang penetapan harga",
+      "items": {
+        "0": {
+          "question": "Apakah Telos benar-benar gratis?",
+          "answer": "Ya! Telos adalah open source dan gratis, Anda bisa menggunakannya secara self-hosting secara gratis."
+        },
+        "1": {
+          "question": "Versi profesional menyertakan apa saja?",
+          "answer": "Versi profesional mencakup dukungan prioritas, analisis lanjutan, fitur kolaborasi tim, dan integrasi kustom."
+        },
+        "2": {
+          "question": "Apakah bisa mengganti rencana kapan saja?",
+          "answer": "Tentu saja! Anda dapat meningkatkan atau menurunkan paket Anda kapan saja."
+        },
+        "3": {
+          "question": "Apakah mendukung pengembalian dana?",
+          "answer": "Ya, semua paket berbayar mendukung pengembalian dana tanpa alasan selama 30 hari."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "Tentang Telos",
+      "subtitle": "Membangun Masa Depan Otomatisasi Alur Kerja Cerdas"
+    },
+    "mission": {
+      "title": "Misi kami",
+      "content": "Telos adalah platform orkestrasi alur kerja cerdas sumber terbuka, dirancang khusus untuk skenario otomasi tingkat perusahaan. Kami percaya bahwa alat otomasi yang kuat harus dapat diakses oleh semua orang, baik pengembang individu maupun organisasi besar."
+    },
+    "stats": {
+      "founded": "Tahun berdiri",
+      "languages": "Bahasa yang Didukung",
+      "services": "Jumlah layanan mikro",
+      "openSource": "Sumber terbuka"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos telah sepenuhnya mengubah cara kita menangani otomatisasi alur kerja. Pembuat visualnya sangat intuitif.",
+        "author": "Chen Ming",
+        "role": "Insinyur Pengembangan Senior",
+        "company": "Perusahaan teknologi"
+      },
+      "1": {
+        "quote": "Arsitektur mikroservis membuat perluasan menjadi mudah. Kami sudah menerapkannya di beberapa wilayah.",
+        "author": "Jin Xiaoya",
+        "role": "Kepala DevOps",
+        "company": "Perusahaan layanan cloud"
+      },
+      "2": {
+        "quote": "Akhirnya ada solusi open source yang fiturnya tidak dikurangi. Sangat direkomendasikan!",
+        "author": "Zhang Wei",
+        "role": "CTO",
+        "company": "Perusahaan rintisan"
+      },
+      "title": "Ulasan pengguna",
+      "subtitle": "Dengar apa kata pengembang yang menggunakan Telos"
+    },
+    "cta": {
+      "title": "Bergabung dengan komunitas",
+      "description": "Berpartisipasi dalam kontribusi Telos, bersama-sama membentuk masa depan otomatisasi alur kerja",
+      "primary": "Mulai sekarang",
+      "secondary": "Lihat di GitHub"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Hubungi Kami",
+      "subtitle": "Kami senang mendengar pendapat Anda"
+    },
+    "methods": {
+      "title": "Kontak",
+      "email": {
+        "title": "Email"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Umpan balik masalah",
+        "value": "Kirim Masalah GitHub"
+      }
+    },
+    "form": {
+      "title": "Kirim pesan",
+      "name": "Nama Anda",
+      "email": "Alamat email",
+      "subject": "Tema",
+      "message": "Pesan Anda",
+      "submit": "Kirim pesan"
     }
   }
 }

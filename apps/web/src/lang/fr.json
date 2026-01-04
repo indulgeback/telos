@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "Essayez-le maintenant",
       "learnMore": "Pour en savoir plus",
-      "viewDocs": "Consulter la documentation"
+      "viewDocs": "Consulter la documentation",
+      "title": "Prêt à commencer ?",
+      "description": "Découvrez dès maintenant la plateforme d'orchestration de flux de travail intelligent Telos et améliorez votre efficacité en automatisation"
     },
     "gsap": {
       "animation": "Des animations d’admission sympas alimentées par GSAP !"
+    },
+    "stats": {
+      "languages": "Langues prises en charge",
+      "services": "Microservices",
+      "uptime": "Disponibilité",
+      "latency": "Délai de réponse"
     }
   },
   "Header": {
     "home": "Domicile",
-    "features": "Caractéristiques principales",
+    "features": "Fonctionnalités",
     "techStack": "Pile technologique",
-    "quickStart": "Démarrez rapidement"
+    "quickStart": "Démarrez rapidement",
+    "pricing": "Tarification",
+    "about": "À propos de nous",
+    "contact": "Contactez-nous"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "Cette adresse e-mail est déjà liée à un autre compte, veuillez utiliser une autre méthode de connexion",
       "unknownError": "Une erreur inconnue s’est produite, veuillez réessayer",
       "contactSupport": "Si le problème persiste, contactez le support technique"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "Fonctionnalités puissantes conçues pour les flux de travail modernes",
+      "subtitle": "Tout ce dont vous avez besoin pour créer, déployer et étendre l'automatisation intelligente"
+    },
+    "core": {
+      "title": "Fonctionnalité principale",
+      "subtitle": "Construit avec des technologies modernes, visant des performances extrêmes",
+      "frontend": {
+        "title": "Frontend moderne",
+        "desc": "Next.js 15 avec App Router, React 19 et Shadcn UI, offre une expérience utilisateur fluide"
+      },
+      "backend": {
+        "title": "Microservices en Go",
+        "desc": "Backend haute performance basé sur les frameworks Gin/Echo, supportant nativement la haute concurrence"
+      },
+      "communication": {
+        "title": "API de type sécurisé",
+        "desc": "tRPC et gRPC réalisent une communication efficace et sécurisée de bout en bout avec typage."
+      },
+      "i18n": {
+        "title": "18 Support linguistique",
+        "desc": "Prise en charge complète de l'internationalisation basée sur next-intl, destinée aux utilisateurs du monde entier"
+      },
+      "deployment": {
+        "title": "Prêt pour la conteneurisation",
+        "desc": "Prend en charge Docker et Kubernetes, avec des pipelines CI/CD intégrés"
+      },
+      "monorepo": {
+        "title": "Architecture Monorepo",
+        "desc": "Utiliser les workspaces pnpm pour gérer un dépôt de code de manière unifiée"
+      }
+    },
+    "advanced": {
+      "title": "Compétence avancée",
+      "subtitle": "Fonctionnalités d'entreprise pour les workflows complexes",
+      "security": {
+        "title": "Sécurité de niveau entreprise",
+        "desc": "Authentification JWT, contrôle d'accès basé sur les rôles et passerelle API sécurisée"
+      },
+      "ai": {
+        "title": "Intégration de l'IA",
+        "desc": "Prise en charge intégrée des agents IA et orchestration intelligente des flux de travail"
+      },
+      "data": {
+        "title": "Gestion des données",
+        "desc": "Persistance PostgreSQL, cache Redis et synchronisation en temps réel"
+      },
+      "workflow": {
+        "title": "Constructeur de flux de travail visuel",
+        "desc": "Concepteur de flux de travail par glisser-déposer basé sur React Flow"
+      }
+    },
+    "cta": {
+      "title": "Prêt à commencer à construire ?",
+      "description": "Commencez à créer des flux de travail intelligents dès maintenant",
+      "primary": "Commencer immédiatement",
+      "secondary": "Voir le document"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "Tarification simple et transparente",
+      "subtitle": "Choisissez l’option qui convient à vos besoins"
+    },
+    "plans": {
+      "free": {
+        "name": "Version open source",
+        "price": "Gratuit",
+        "description": "Convient pour les projets personnels et l'apprentissage",
+        "features": {
+          "0": "Flux de travail infini",
+          "1": "Soutien communautaire",
+          "2": "Intégration de base",
+          "3": "Déploiement auto-hébergé"
+        },
+        "cta": "Commencer immédiatement"
+      },
+      "pro": {
+        "name": "Version professionnelle",
+        "price": "199 ¥",
+        "period": "/mois",
+        "description": "Convient aux équipes et aux entreprises en croissance",
+        "features": {
+          "0": "Comprend toutes les fonctionnalités de la version gratuite",
+          "1": "Soutien prioritaire",
+          "2": "Analyse avancée",
+          "3": "Travail d'équipe",
+          "4": "Intégration personnalisée"
+        },
+        "cta": "Commencer l'essai gratuit"
+      },
+      "enterprise": {
+        "name": "Édition entreprise",
+        "price": "Personnalisé",
+        "description": "Convient aux grandes organisations ayant des besoins personnalisés",
+        "features": {
+          "0": "Comprend toutes les fonctionnalités de la version professionnelle",
+          "1": "Assistance exclusive",
+          "2": "Garantie SLA",
+          "3": "Déploiement privé",
+          "4": "Développement sur mesure"
+        },
+        "cta": "Contacter les ventes"
+      }
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "subtitle": "Toutes les questions concernant la tarification",
+      "items": {
+        "0": {
+          "question": "Telos est-il vraiment gratuit ?",
+          "answer": "Oui ! Telos est open source et gratuit, vous pouvez l’héberger et l’utiliser gratuitement."
+        },
+        "1": {
+          "question": "Que comprend la version professionnelle ?",
+          "answer": "La version professionnelle comprend un support prioritaire, des analyses avancées, des fonctionnalités de collaboration en équipe et des intégrations personnalisées."
+        },
+        "2": {
+          "question": "Puis-je changer de plan à tout moment ?",
+          "answer": "Bien sûr ! Vous pouvez mettre à niveau ou rétrograder votre forfait à tout moment."
+        },
+        "3": {
+          "question": "Est-ce que le remboursement est possible ?",
+          "answer": "Oui, tous les plans payants bénéficient d'une garantie de remboursement de 30 jours sans motif."
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "À propos de Telos",
+      "subtitle": "Construire l'avenir de l'automatisation des flux de travail intelligents"
+    },
+    "mission": {
+      "title": "Notre mission",
+      "content": "Telos est une plateforme d'orchestration de flux de travail intelligente open source, conçue pour les scénarios d'automatisation à l'échelle de l'entreprise. Nous croyons que des outils d'automatisation puissants devraient être à la portée de tous, que vous soyez un développeur individuel ou une grande organisation."
+    },
+    "stats": {
+      "founded": "Année de création",
+      "languages": "Langues prises en charge",
+      "services": "Nombre de microservices",
+      "openSource": "Open source"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos a complètement changé notre façon de gérer l'automatisation des flux de travail. Le constructeur visuel est très intuitif.",
+        "author": "Chen Ming",
+        "role": "Ingénieur de développement senior",
+        "company": "Entreprise technologique"
+      },
+      "1": {
+        "quote": "L'architecture microservices facilite l'extension. Nous l'avons déjà déployée dans plusieurs régions.",
+        "author": "Jin Xiaoya",
+        "role": "Responsable DevOps",
+        "company": "Entreprise de services cloud"
+      },
+      "2": {
+        "quote": "Enfin, il existe une solution open source pleinement fonctionnelle. Je la recommande vivement !",
+        "author": "Zhang Wei",
+        "role": "Directeur technique",
+        "company": "startup"
+      },
+      "title": "Avis des utilisateurs",
+      "subtitle": "Écoutez ce que disent les développeurs qui utilisent Telos"
+    },
+    "cta": {
+      "title": "Rejoindre la communauté",
+      "description": "Participez à la contribution de Telos et façonnez ensemble l'avenir de l'automatisation des flux de travail",
+      "primary": "Commencer immédiatement",
+      "secondary": "Voir sur GitHub"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "Contactez-nous",
+      "subtitle": "Nous serions ravis d'entendre vos avis."
+    },
+    "methods": {
+      "title": "Coordonnées",
+      "email": {
+        "title": "Boîte mail"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "Retour d'information",
+        "value": "Soumettre un problème sur GitHub"
+      }
+    },
+    "form": {
+      "title": "Envoyer un message",
+      "name": "Votre nom",
+      "email": "Adresse e-mail",
+      "subject": "Sujet",
+      "message": "Votre message",
+      "submit": "Envoyer un message"
     }
   }
 }

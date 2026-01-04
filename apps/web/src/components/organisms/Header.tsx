@@ -30,28 +30,27 @@ export function Header() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)
     }
-
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const navLinks = [
-    { href: '#features', label: t('features') },
-    { href: '#tech-stack', label: t('techStack') },
-    { href: '#quick-start', label: t('quickStart') },
+    { href: '/features', label: t('features') },
+    { href: '/pricing', label: t('pricing') },
+    { href: '/about', label: t('about') },
+    { href: '/contact', label: t('contact') },
   ]
 
   return (
     <header
       className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
         scrolled
-          ? 'border-slate-300 dark:border-slate-700 bg-white/10 dark:bg-slate-900/10 shadow-md'
-          : 'border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80'
+          ? 'border-border bg-background/60 shadow-md'
+          : 'border-border/50 bg-background/80'
       } backdrop-blur-xs`}
     >
       <div className='px-4'>
         <div className='flex h-16 items-center justify-between'>
-          {/* Logo */}
           <Link href='/' className='flex items-center space-x-2 cursor-pointer'>
             <Image
               src='/favicon.png'
@@ -60,30 +59,26 @@ export function Header() {
               height={32}
               className='rounded-lg'
             />
-            <span className='font-bold text-xl text-slate-900 dark:text-white'>
-              Telos
-            </span>
+            <span className='font-bold text-xl text-foreground'>Telos</span>
           </Link>
 
-          {/* 桌面导航 */}
           <NavigationMenu className='hidden md:flex items-center gap-3'>
             <NavigationMenuList>
-              {navLinks.map(link => {
-                return (
-                  <NavigationMenuItem key={link.href}>
-                    <NavigationMenuLink
+              {navLinks.map(link => (
+                <NavigationMenuItem key={link.href}>
+                  <NavigationMenuLink asChild>
+                    <Link
                       href={link.href}
-                      className='hover:text-white dark:hover:text-white transition-colors duration-200'
+                      className='hover:text-primary transition-colors duration-200'
                     >
                       {link.label}
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                )
-              })}
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
             </NavigationMenuList>
           </NavigationMenu>
 
-          {/* 桌面端操作按钮 */}
           <div className='hidden md:flex items-center space-x-2'>
             <a
               href='https://github.com/indulgeback/telos'
@@ -100,7 +95,6 @@ export function Header() {
             <UserAvatar />
           </div>
 
-          {/* 移动端菜单 */}
           <div className='md:hidden flex items-center'>
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
@@ -108,31 +102,23 @@ export function Header() {
                   <Menu className='h-6 w-6' />
                 </Button>
               </SheetTrigger>
-
               <SheetContent side='right' className='p-0 w-72'>
                 <SheetHeader>
                   <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>
-                    <p>
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Quisquam, quos.
-                    </p>
-                  </SheetDescription>
+                  <SheetDescription>Navigate through Telos</SheetDescription>
                 </SheetHeader>
                 <div className='flex flex-col h-full'>
                   <nav className='flex-1 flex flex-col p-4 space-y-2'>
-                    {navLinks.map(link => {
-                      return (
-                        <a
-                          key={link.href}
-                          href={link.href}
-                          className={`block py-2 px-4 rounded-md  hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200`}
-                          onClick={() => setOpen(false)}
-                        >
-                          {link.label}
-                        </a>
-                      )
-                    })}
+                    {navLinks.map(link => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className='block py-2 px-4 rounded-md hover:bg-muted transition-colors duration-200'
+                        onClick={() => setOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
                   </nav>
                   <SheetFooter>
                     <div className='flex flex-col space-y-2 w-full'>

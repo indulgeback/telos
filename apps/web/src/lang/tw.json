@@ -81,17 +81,28 @@
     "cta": {
       "getStarted": "立即體驗",
       "learnMore": "了解詳情",
-      "viewDocs": "查看文件"
+      "viewDocs": "查看文件",
+      "title": "準備好開始了嗎？",
+      "description": "立即體驗 Telos 智能工作流編排平台，提升您的自動化效率"
     },
     "gsap": {
       "animation": "炫酷的入場動畫由 GSAP 驅動！"
+    },
+    "stats": {
+      "languages": "支援語言",
+      "services": "微服務",
+      "uptime": "可用性",
+      "latency": "響應延遲"
     }
   },
   "Header": {
     "home": "首頁",
-    "features": "核心特性",
+    "features": "功能特性",
     "techStack": "技術棧",
-    "quickStart": "快速上手"
+    "quickStart": "快速上手",
+    "pricing": "定價",
+    "about": "關於我們",
+    "contact": "聯繫我們"
   },
   "Auth": {
     "signIn": {
@@ -119,6 +130,206 @@
       "oauthAccountNotLinked": "該郵箱已與其他帳戶關聯，請使用其他登錄方式",
       "unknownError": "發生未知錯誤，請重試",
       "contactSupport": "如果問題持續存在，請聯繫技術支援"
+    }
+  },
+  "FeaturesPage": {
+    "hero": {
+      "title": "為現代工作流程打造的強大功能",
+      "subtitle": "構建、部署和擴展智慧自動化所需的一切"
+    },
+    "core": {
+      "title": "核心功能",
+      "subtitle": "採用現代技術構建，追求極致性能",
+      "frontend": {
+        "title": "現代化前端",
+        "desc": "Next.js 15 配合 App Router、React 19 和 Shadcn UI，提供流暢的使用者體驗"
+      },
+      "backend": {
+        "title": "Go 微服務",
+        "desc": "基於 Gin/Echo 框架的高性能後端，原生支持高並發"
+      },
+      "communication": {
+        "title": "類型安全 API",
+        "desc": "tRPC 和 gRPC 實現端到端類型安全和高效通信"
+      },
+      "i18n": {
+        "title": "18  語言支持",
+        "desc": "基於 next-intl 的完整國際化支持，面向全球用戶"
+      },
+      "deployment": {
+        "title": "容器化就緒",
+        "desc": "支持 Docker 和 Kubernetes，內建 CI/CD 流水線"
+      },
+      "monorepo": {
+        "title": "Monorepo 架構",
+        "desc": "使用 pnpm workspaces 統一管理代碼庫"
+      }
+    },
+    "advanced": {
+      "title": "高級能力",
+      "subtitle": "面向複雜工作流程的企業級功能",
+      "security": {
+        "title": "企業級安全",
+        "desc": "JWT 認證、基於角色的訪問控制和安全 API 網關"
+      },
+      "ai": {
+        "title": "AI 集成",
+        "desc": "內建 AI 代理支援和智能工作流程編排"
+      },
+      "data": {
+        "title": "數據管理",
+        "desc": "PostgreSQL 持久化、Redis 快取和即時同步"
+      },
+      "workflow": {
+        "title": "可視化工作流程建構器",
+        "desc": "基於 React Flow 的拖曳式工作流設計器"
+      }
+    },
+    "cta": {
+      "title": "準備好開始構建了嗎？",
+      "description": "立即開始構建智能工作流",
+      "primary": "立即開始",
+      "secondary": "查看文件"
+    }
+  },
+  "PricingPage": {
+    "hero": {
+      "title": "簡單透明的定價",
+      "subtitle": "選擇適合您需求的方案"
+    },
+    "plans": {
+      "free": {
+        "name": "開源版",
+        "price": "免費",
+        "description": "適合個人專案和學習使用",
+        "features": {
+          "0": "無限工作流",
+          "1": "社區支持",
+          "2": "基礎整合",
+          "3": "自托管部署"
+        },
+        "cta": "立即開始"
+      },
+      "pro": {
+        "name": "專業版",
+        "price": "¥199",
+        "period": "/月",
+        "description": "適合團隊和成長型企業",
+        "features": {
+          "0": "包含免費版所有功能",
+          "1": "優先支持",
+          "2": "高級分析",
+          "3": "團隊協作",
+          "4": "自訂整合"
+        },
+        "cta": "開始免費試用"
+      },
+      "enterprise": {
+        "name": "企業版",
+        "price": "定製",
+        "description": "適合有定制需求的大型組織",
+        "features": {
+          "0": "包含專業版所有功能",
+          "1": "專屬支持",
+          "2": "SLA 保障",
+          "3": "私有化部署",
+          "4": "定制開發"
+        },
+        "cta": "聯繫銷售"
+      }
+    },
+    "faq": {
+      "title": "常見問題",
+      "subtitle": "關於定價的一切疑問",
+      "items": {
+        "0": {
+          "question": "Telos 真的免費嗎？",
+          "answer": "是的！Telos 是開源免費的，您可以免費自托管使用。"
+        },
+        "1": {
+          "question": "專業版包含什麼？",
+          "answer": "專業版包含優先支援、高級分析、團隊協作功能和自訂整合。"
+        },
+        "2": {
+          "question": "可以隨時更換方案嗎？",
+          "answer": "當然可以！您可以隨時升級或降級您的方案。"
+        },
+        "3": {
+          "question": "支持退款嗎？",
+          "answer": "是的，所有付費方案都支持 30 天無理由退款。"
+        }
+      }
+    }
+  },
+  "AboutPage": {
+    "hero": {
+      "title": "關於 Telos",
+      "subtitle": "構建智慧工作流程自動化的未來"
+    },
+    "mission": {
+      "title": "我們的使命",
+      "content": "Telos 是一個開源的智慧工作流編排平台，專為企業級自動化場景設計。我們相信強大的自動化工具應該對每個人都觸手可及，無論是個人開發者還是大型組織。"
+    },
+    "stats": {
+      "founded": "創立年份",
+      "languages": "支援語言",
+      "services": "微服務數量",
+      "openSource": "開源"
+    },
+    "testimonials": {
+      "0": {
+        "quote": "Telos 徹底改變了我們處理工作流自動化的方式。可視化構建器非常直觀。",
+        "author": "陳明",
+        "role": "高級開發工程師",
+        "company": "科技公司"
+      },
+      "1": {
+        "quote": "微服務架構讓擴展變得簡單。我們已經在多個區域部署了它。",
+        "author": "金小雅",
+        "role": "DevOps 負責人",
+        "company": "雲服務公司"
+      },
+      "2": {
+        "quote": "終於有一個功能不打折扣的開源解決方案了。強烈推薦！",
+        "author": "張偉",
+        "role": "首席技術官",
+        "company": "創業公司"
+      },
+      "title": "用戶評價",
+      "subtitle": "聽聽使用 Telos 的開發者怎麼說"
+    },
+    "cta": {
+      "title": "加入社區",
+      "description": "參與 Telos 貢獻，共同塑造工作流自動化的未來",
+      "primary": "立即開始",
+      "secondary": "在 GitHub 上查看"
+    }
+  },
+  "ContactPage": {
+    "hero": {
+      "title": "聯繫我們",
+      "subtitle": "我們很樂意聽取您的意見"
+    },
+    "methods": {
+      "title": "聯絡方式",
+      "email": {
+        "title": "郵箱"
+      },
+      "github": {
+        "title": "GitHub"
+      },
+      "issues": {
+        "title": "問題反饋",
+        "value": "提交 GitHub 問題"
+      }
+    },
+    "form": {
+      "title": "發送訊息",
+      "name": "您的姓名",
+      "email": "電子郵箱地址",
+      "subject": "主題",
+      "message": "您的消息",
+      "submit": "發送訊息"
     }
   }
 }
