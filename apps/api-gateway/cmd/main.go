@@ -69,6 +69,12 @@ func main() {
 			StripPrefix: false,
 			Timeout:     10,
 		},
+		{
+			Path:        "/api/agent",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     30,
+		},
 	}
 	proxyManager.LoadRoutes(routes)
 

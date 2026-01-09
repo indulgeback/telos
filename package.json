@@ -13,7 +13,8 @@
     "auth-service:dev": "make -C services/auth-service dev",
     "user-service:dev": "make -C services/user-service dev",
     "workflow-service:dev": "make -C services/workflow-service dev",
-    "install:go": "echo 'Installing Go dependencies...' && go mod tidy -C apps/api-gateway && go mod tidy -C apps/registry && go mod tidy -C services/auth-service && go mod tidy -C services/user-service && go mod tidy -C services/workflow-service && go mod tidy -C pkg/tlog && echo 'All Go dependencies installed successfully!'",
+    "agent-service:dev": "make -C services/agent-service dev",
+    "install:go": "echo 'Installing Go dependencies...' && go mod tidy -C apps/api-gateway && go mod tidy -C apps/registry && go mod tidy -C services/auth-service && go mod tidy -C services/user-service && go mod tidy -C services/workflow-service && go mod tidy -C services/agent-service && go mod tidy -C pkg/tlog && echo 'All Go dependencies installed successfully!'",
     "install:all": "pnpm install && npm run install:go",
     "stat:front": "npx cloc --include-lang=JavaScript,TypeScript,SCSS,CSS --exclude-dir='node_modules,dist,build,.next,vendor' .",
     "stat:back": "npx cloc --include-lang=go --exclude-dir='node_modules,dist,build,.next,vendor' ."
