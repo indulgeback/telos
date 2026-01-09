@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/indulgeback/telos/pkg/netutil v0.0.0-00010101000000-000000000000
 	github.com/indulgeback/telos/pkg/tlog v0.0.0-20240328145136-8c6a5b7e9a4b
 	github.com/spf13/viper v1.20.1
 )
@@ -54,3 +55,4 @@ require (
 )
 
 replace github.com/indulgeback/telos/pkg/tlog => ../../pkg/tlog
+replace github.com/indulgeback/telos/pkg/netutil => ../../pkg/netutil

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/indulgeback/telos/pkg/netutil"
 	"github.com/indulgeback/telos/pkg/tlog"
 	"github.com/indulgeback/telos/services/workflow-service/internal/config"
 	"github.com/indulgeback/telos/services/workflow-service/internal/controller"
@@ -72,8 +73,10 @@ func main() {
 	tlog.Info("工作流服务启动中...")
 	tlog.Info("配置加载成功", "port", cfg.Port, "service_name", cfg.ServiceName)
 
-	// 注册到服务注册中心
-	registerToRegistry(cfg.ServiceName, "192.168.7.108", cfg.Port, cfg.RegistryURL)
+	// 注册到服务注册中心（使用动态检测的IP地址）
+	serviceAddr := netutil.GetServiceAddress()
+	tlog.Info("检测到服务地址", "address", serviceAddr)
+	registerToRegistry(cfg.ServiceName, serviceAddr, cfg.Port, cfg.RegistryURL)
 
 	// 设置路由
 	r := gin.Default()

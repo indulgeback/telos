@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
+	github.com/indulgeback/telos/pkg/netutil v0.0.0-00010101000000-000000000000
 	github.com/indulgeback/telos/pkg/tlog v0.0.0-00010101000000-000000000000
 	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.20.1
@@ -63,3 +64,4 @@ require (
 )
 
 replace github.com/indulgeback/telos/pkg/tlog => ../../pkg/tlog
+replace github.com/indulgeback/telos/pkg/netutil => ../../pkg/netutil
