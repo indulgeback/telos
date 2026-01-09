@@ -78,6 +78,12 @@
       "database": "Iniciar el servicio de base de datos",
       "commands": "Comandos de operación comunes"
     },
+    "stats": {
+      "languages": "Idiomas compatibles",
+      "services": "Microservicios",
+      "uptime": "Disponibilidad",
+      "latency": "Retraso en la respuesta"
+    },
     "cta": {
       "getStarted": "Pruébalo ahora",
       "learnMore": "Aprende más",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "¡Animaciones de admisión geniales impulsadas por GSAP!"
-    },
-    "stats": {
-      "languages": "Idiomas compatibles",
-      "services": "Microservicios",
-      "uptime": "Disponibilidad",
-      "latency": "Retraso en la respuesta"
     }
   },
   "Header": {
     "home": "Hogar",
     "features": "Características funcionales",
-    "techStack": "Pila de tecnología",
-    "quickStart": "Comience rápidamente",
     "pricing": "Fijación de precios",
     "about": "Sobre nosotros",
-    "contact": "Contáctanos"
+    "contact": "Contáctanos",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menú",
+    "mobileMenuDesc": "Explorar Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Bienvenido",
-      "subtitle": "Inicie sesión en la plataforma de flujo de trabajo inteligente de Telos",
-      "socialLoginRemoved": "Las funciones de inicio de sesión social han sido eliminadas",
-      "signInWithEmail": "Enviar enlace de inicio de sesión (próximamente)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "Dirección de correo electrónico",
-      "or": "o",
-      "noAccount": "¿Aún no tienes una cuenta?",
-      "signUp": "Regístrese ahora",
-      "loginFailed": "Error de inicio de sesión",
-      "tryAgain": "Volver a iniciar sesión",
-      "backToHome": "Volver a la página de inicio"
-    },
-    "error": {
-      "title": "Errores de autenticación",
-      "subtitle": "Se ha producido un error durante el inicio de sesión",
-      "oauthSignin": "El servicio de inicio de sesión de terceros no está disponible temporalmente, inténtelo de nuevo más tarde",
-      "oauthCallback": "Si la devolución de llamada de inicio de sesión falla, inténtelo de nuevo",
-      "oauthCreateAccount": "Si la creación de la cuenta falló, póngase en contacto con su administrador",
-      "accessDenied": "El acceso está denegado, verifique sus permisos",
-      "verification": "Si la verificación falla, vuelva a iniciar sesión",
-      "oauthAccountNotLinked": "Esta dirección de correo electrónico ya está vinculada a otra cuenta, utilice un método de inicio de sesión diferente",
-      "unknownError": "Se produjo un error desconocido, inténtelo de nuevo",
-      "contactSupport": "Si el problema persiste, póngase en contacto con el soporte técnico"
-    }
+  "UserMenu": {
+    "signIn": "Iniciar sesión",
+    "unknownUser": "Usuario desconocido",
+    "profile": "Perfil personal",
+    "settings": "Configuración",
+    "signOut": "Cerrar sesión",
+    "dashboard": "Tablero de instrumentos"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Tema",
       "message": "Su mensaje",
       "submit": "Enviar mensaje"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bienvenido",
+      "subtitle": "Inicie sesión en la plataforma de flujo de trabajo inteligente de Telos",
+      "noAccount": "¿Aún no tienes una cuenta?",
+      "signUp": "Regístrese ahora",
+      "loginFailed": "Error de inicio de sesión",
+      "github": "Iniciar sesión con GitHub"
+    },
+    "error": {
+      "title": "Errores de autenticación",
+      "subtitle": "Se ha producido un error durante el inicio de sesión",
+      "oauthSignin": "El servicio de inicio de sesión de terceros no está disponible temporalmente, inténtelo de nuevo más tarde",
+      "oauthCallback": "Si la devolución de llamada de inicio de sesión falla, inténtelo de nuevo",
+      "oauthCreateAccount": "Si la creación de la cuenta falló, póngase en contacto con su administrador",
+      "accessDenied": "El acceso está denegado, verifique sus permisos",
+      "verification": "Si la verificación falla, vuelva a iniciar sesión",
+      "oauthAccountNotLinked": "Esta dirección de correo electrónico ya está vinculada a otra cuenta, utilice un método de inicio de sesión diferente",
+      "unknownError": "Se produjo un error desconocido, inténtelo de nuevo",
+      "contactSupport": "Si el problema persiste, póngase en contacto con el soporte técnico"
     }
   }
 }

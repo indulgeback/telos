@@ -78,6 +78,12 @@
       "database": "Start databasetjenesten",
       "commands": "Vanlige operasjonskommandoer"
     },
+    "stats": {
+      "languages": "Støttede språk",
+      "services": "mikrotjenester",
+      "uptime": "Brukervennlighet",
+      "latency": "Responsforsinkelse"
+    },
     "cta": {
       "getStarted": "Prøv det nå",
       "learnMore": "Få mer informasjon",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Kul inngangsanimasjon drevet av GSAP!"
-    },
-    "stats": {
-      "languages": "Støttede språk",
-      "services": "mikrotjenester",
-      "uptime": "Brukervennlighet",
-      "latency": "Responsforsinkelse"
     }
   },
   "Header": {
     "home": "Hjem",
     "features": "Funksjonsfunksjoner",
-    "techStack": "Teknisk stabel",
-    "quickStart": "Kom raskt i gang",
     "pricing": "Prissetting",
     "about": "Om oss",
-    "contact": "Kontakt oss"
+    "contact": "Kontakt oss",
+    "github": "GitHub",
+    "mobileMenuTitle": "Meny",
+    "mobileMenuDesc": "Bla gjennom Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Velkommen tilbake",
-      "subtitle": "Logg inn på Telos Smart Workflow Platform",
-      "socialLoginRemoved": "Sosiale påloggingsfunksjoner er fjernet",
-      "signInWithEmail": "Send påloggingslenke (kommer snart)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "E-postadresse",
-      "or": "eller",
-      "noAccount": "Har du ikke en konto ennå?",
-      "signUp": "Registrer deg nå",
-      "loginFailed": "Pålogging mislyktes",
-      "tryAgain": "Logg inn igjen",
-      "backToHome": "Tilbake til startsiden"
-    },
-    "error": {
-      "title": "Feil ved godkjenning",
-      "subtitle": "Det oppstod en feil under pålogging",
-      "oauthSignin": "Tredjeparts påloggingstjeneste er midlertidig utilgjengelig, prøv igjen senere",
-      "oauthCallback": "Hvis påloggingstilbakeringingen mislykkes, prøv igjen",
-      "oauthCreateAccount": "Hvis kontoopprettingen mislyktes, kontakter du administratoren din",
-      "accessDenied": "Tilgang nektes, vennligst sjekk tillatelsene dine",
-      "verification": "Hvis verifiseringen mislykkes, vennligst logg på igjen",
-      "oauthAccountNotLinked": "Denne e-postadressen er allerede knyttet til en annen konto, vennligst bruk en annen påloggingsmetode",
-      "unknownError": "Det oppstod en ukjent feil, prøv igjen",
-      "contactSupport": "Hvis problemet vedvarer, kontakt teknisk støtte"
-    }
+  "UserMenu": {
+    "signIn": "Logg inn",
+    "unknownUser": "Ukjent bruker",
+    "profile": "Profil",
+    "settings": "Innstillinger",
+    "signOut": "Logg ut",
+    "dashboard": "dashbord"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Tema",
       "message": "Din melding",
       "submit": "Send melding"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Velkommen tilbake",
+      "subtitle": "Logg inn på Telos Smart Workflow Platform",
+      "noAccount": "Har du ikke en konto ennå?",
+      "signUp": "Registrer deg nå",
+      "loginFailed": "Pålogging mislyktes",
+      "github": "Logg inn med GitHub"
+    },
+    "error": {
+      "title": "Feil ved godkjenning",
+      "subtitle": "Det oppstod en feil under pålogging",
+      "oauthSignin": "Tredjeparts påloggingstjeneste er midlertidig utilgjengelig, prøv igjen senere",
+      "oauthCallback": "Hvis påloggingstilbakeringingen mislykkes, prøv igjen",
+      "oauthCreateAccount": "Hvis kontoopprettingen mislyktes, kontakter du administratoren din",
+      "accessDenied": "Tilgang nektes, vennligst sjekk tillatelsene dine",
+      "verification": "Hvis verifiseringen mislykkes, vennligst logg på igjen",
+      "oauthAccountNotLinked": "Denne e-postadressen er allerede knyttet til en annen konto, vennligst bruk en annen påloggingsmetode",
+      "unknownError": "Det oppstod en ukjent feil, prøv igjen",
+      "contactSupport": "Hvis problemet vedvarer, kontakt teknisk støtte"
     }
   }
 }

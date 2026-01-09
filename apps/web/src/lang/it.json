@@ -78,6 +78,12 @@
       "database": "Avviare il servizio di database",
       "commands": "Comandi operativi comuni"
     },
+    "stats": {
+      "languages": "Lingue supportate",
+      "services": "Microservizi",
+      "uptime": "Disponibilità",
+      "latency": "Ritardo di risposta"
+    },
     "cta": {
       "getStarted": "Provalo ora",
       "learnMore": "Ulteriori informazioni",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Fantastiche animazioni di ammissione alimentate da GSAP!"
-    },
-    "stats": {
-      "languages": "Lingue supportate",
-      "services": "Microservizi",
-      "uptime": "Disponibilità",
-      "latency": "Ritardo di risposta"
     }
   },
   "Header": {
     "home": "Casa",
     "features": "Caratteristiche funzionali",
-    "techStack": "Stack tecnologico",
-    "quickStart": "Inizia rapidamente",
     "pricing": "Prezzo",
     "about": "Chi siamo",
-    "contact": "Contattaci"
+    "contact": "Contattaci",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Sfoglia Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Bentornato",
-      "subtitle": "Accedi alla piattaforma Telos Smart Workflow",
-      "socialLoginRemoved": "Le funzionalità di accesso social sono state rimosse",
-      "signInWithEmail": "Invia il link di accesso (disponibile a breve)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "Indirizzo email",
-      "or": "o",
-      "noAccount": "Non hai ancora un account?",
-      "signUp": "Registrati ora",
-      "loginFailed": "Accesso non riuscito",
-      "tryAgain": "Accedi di nuovo",
-      "backToHome": "Torna alla home"
-    },
-    "error": {
-      "title": "Errori di autenticazione",
-      "subtitle": "Si è verificato un errore durante l'accesso",
-      "oauthSignin": "Il servizio di accesso di terze parti non è temporaneamente disponibile, riprova più tardi",
-      "oauthCallback": "Se la richiamata di accesso non riesce, riprova",
-      "oauthCreateAccount": "Se la creazione dell'account non è riuscita, contatta l'amministratore",
-      "accessDenied": "L'accesso è negato, controlla le tue autorizzazioni",
-      "verification": "Se la verifica non riesce, accedi nuovamente",
-      "oauthAccountNotLinked": "Questo indirizzo e-mail è già collegato a un altro account, si prega di utilizzare un metodo di accesso diverso",
-      "unknownError": "Si è verificato un errore sconosciuto, riprova",
-      "contactSupport": "Se il problema persiste, contattare l'assistenza tecnica"
-    }
+  "UserMenu": {
+    "signIn": "Accedi",
+    "unknownUser": "Utente sconosciuto",
+    "profile": "Profilo personale",
+    "settings": "Impostazioni",
+    "signOut": "Disconnettersi",
+    "dashboard": "Cruscotto"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Tema",
       "message": "Il tuo messaggio",
       "submit": "Invia messaggio"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bentornato",
+      "subtitle": "Accedi alla piattaforma Telos Smart Workflow",
+      "noAccount": "Non hai ancora un account?",
+      "signUp": "Registrati ora",
+      "loginFailed": "Accesso non riuscito",
+      "github": "Accedi con GitHub"
+    },
+    "error": {
+      "title": "Errori di autenticazione",
+      "subtitle": "Si è verificato un errore durante l'accesso",
+      "oauthSignin": "Il servizio di accesso di terze parti non è temporaneamente disponibile, riprova più tardi",
+      "oauthCallback": "Se la richiamata di accesso non riesce, riprova",
+      "oauthCreateAccount": "Se la creazione dell'account non è riuscita, contatta l'amministratore",
+      "accessDenied": "L'accesso è negato, controlla le tue autorizzazioni",
+      "verification": "Se la verifica non riesce, accedi nuovamente",
+      "oauthAccountNotLinked": "Questo indirizzo e-mail è già collegato a un altro account, si prega di utilizzare un metodo di accesso diverso",
+      "unknownError": "Si è verificato un errore sconosciuto, riprova",
+      "contactSupport": "Se il problema persiste, contattare l'assistenza tecnica"
     }
   }
 }

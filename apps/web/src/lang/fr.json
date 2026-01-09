@@ -78,6 +78,12 @@
       "database": "Démarrer le service de base de données",
       "commands": "Commandes d’opération courantes"
     },
+    "stats": {
+      "languages": "Langues prises en charge",
+      "services": "Microservices",
+      "uptime": "Disponibilité",
+      "latency": "Délai de réponse"
+    },
     "cta": {
       "getStarted": "Essayez-le maintenant",
       "learnMore": "Pour en savoir plus",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Des animations d’admission sympas alimentées par GSAP !"
-    },
-    "stats": {
-      "languages": "Langues prises en charge",
-      "services": "Microservices",
-      "uptime": "Disponibilité",
-      "latency": "Délai de réponse"
     }
   },
   "Header": {
     "home": "Domicile",
     "features": "Fonctionnalités",
-    "techStack": "Pile technologique",
-    "quickStart": "Démarrez rapidement",
     "pricing": "Tarification",
     "about": "À propos de nous",
-    "contact": "Contactez-nous"
+    "contact": "Contactez-nous",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Parcourir Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Bienvenue",
-      "subtitle": "Connectez-vous à la plateforme Telos Smart Workflow",
-      "socialLoginRemoved": "Les fonctionnalités de connexion sociale ont été supprimées",
-      "signInWithEmail": "Envoyer le lien de connexion (à venir)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "Adresse courriel",
-      "or": "ou",
-      "noAccount": "Vous n’avez pas encore de compte ?",
-      "signUp": "Inscrivez-vous maintenant",
-      "loginFailed": "Échec de la connexion",
-      "tryAgain": "Se reconnecter",
-      "backToHome": "Retour à l’accueil"
-    },
-    "error": {
-      "title": "Erreurs d’authentification",
-      "subtitle": "Une erreur s’est produite lors de la connexion",
-      "oauthSignin": "Le service de connexion tiers est temporairement indisponible, veuillez réessayer plus tard",
-      "oauthCallback": "Si le rappel de connexion échoue, veuillez réessayer",
-      "oauthCreateAccount": "Si la création du compte a échoué, contactez votre administrateur",
-      "accessDenied": "L’accès est refusé, veuillez vérifier vos autorisations",
-      "verification": "Si la vérification échoue, veuillez vous connecter à nouveau",
-      "oauthAccountNotLinked": "Cette adresse e-mail est déjà liée à un autre compte, veuillez utiliser une autre méthode de connexion",
-      "unknownError": "Une erreur inconnue s’est produite, veuillez réessayer",
-      "contactSupport": "Si le problème persiste, contactez le support technique"
-    }
+  "UserMenu": {
+    "signIn": "Connexion",
+    "unknownUser": "Utilisateur inconnu",
+    "profile": "Profil personnel",
+    "settings": "Paramètres",
+    "signOut": "Se déconnecter",
+    "dashboard": "Tableau de bord"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Sujet",
       "message": "Votre message",
       "submit": "Envoyer un message"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bienvenue",
+      "subtitle": "Connectez-vous à la plateforme Telos Smart Workflow",
+      "noAccount": "Vous n’avez pas encore de compte ?",
+      "signUp": "Inscrivez-vous maintenant",
+      "loginFailed": "Échec de la connexion",
+      "github": "Se connecter avec GitHub"
+    },
+    "error": {
+      "title": "Erreurs d’authentification",
+      "subtitle": "Une erreur s’est produite lors de la connexion",
+      "oauthSignin": "Le service de connexion tiers est temporairement indisponible, veuillez réessayer plus tard",
+      "oauthCallback": "Si le rappel de connexion échoue, veuillez réessayer",
+      "oauthCreateAccount": "Si la création du compte a échoué, contactez votre administrateur",
+      "accessDenied": "L’accès est refusé, veuillez vérifier vos autorisations",
+      "verification": "Si la vérification échoue, veuillez vous connecter à nouveau",
+      "oauthAccountNotLinked": "Cette adresse e-mail est déjà liée à un autre compte, veuillez utiliser une autre méthode de connexion",
+      "unknownError": "Une erreur inconnue s’est produite, veuillez réessayer",
+      "contactSupport": "Si le problème persiste, contactez le support technique"
     }
   }
 }

@@ -78,6 +78,12 @@
       "database": "Start the database service",
       "commands": "Common operation commands"
     },
+    "stats": {
+      "languages": "Supported Languages",
+      "services": "Microservices",
+      "uptime": "Usability",
+      "latency": "Response delay"
+    },
     "cta": {
       "getStarted": "Try it now",
       "learnMore": "Learn more",
@@ -87,12 +93,6 @@
     },
     "gsap": {
       "animation": "Cool admission animations powered by GSAP!"
-    },
-    "stats": {
-      "languages": "Supported Languages",
-      "services": "Microservices",
-      "uptime": "Usability",
-      "latency": "Response delay"
     }
   },
   "Header": {
@@ -100,35 +100,18 @@
     "features": "Features",
     "pricing": "Pricing",
     "about": "About Us",
-    "contact": "Contact Us"
+    "contact": "Contact Us",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Browse Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Welcome back",
-      "subtitle": "Log in to the Telos Smart Workflow Platform",
-      "socialLoginRemoved": "Social login features have been removed",
-      "signInWithEmail": "Send login link (coming soon)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "Email address",
-      "or": "or",
-      "noAccount": "Don't have an account yet?",
-      "signUp": "Register now",
-      "loginFailed": "Login failed",
-      "tryAgain": "Log back in",
-      "backToHome": "Back to home"
-    },
-    "error": {
-      "title": "Authentication errors",
-      "subtitle": "An error occurred during login",
-      "oauthSignin": "The third-party login service is temporarily unavailable, please try again later",
-      "oauthCallback": "If the login callback fails, please try again",
-      "oauthCreateAccount": "If the account creation failed, contact your administrator",
-      "accessDenied": "Access is denied, please check your permissions",
-      "verification": "If the verification fails, please log in again",
-      "oauthAccountNotLinked": "This email address is already linked to another account, please use a different login method",
-      "unknownError": "An unknown error occurred, please try again",
-      "contactSupport": "If the problem persists, contact technical support"
-    }
+  "UserMenu": {
+    "signIn": "Login",
+    "unknownUser": "Unknown User",
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Log Out",
+    "dashboard": "Dashboard"
   },
   "FeaturesPage": {
     "hero": {
@@ -328,6 +311,28 @@
       "subject": "Theme",
       "message": "Your message",
       "submit": "Send Message"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Welcome back",
+      "subtitle": "Log in to the Telos Smart Workflow Platform",
+      "noAccount": "Don't have an account yet?",
+      "signUp": "Register now",
+      "loginFailed": "Login failed",
+      "github": "Sign in with GitHub"
+    },
+    "error": {
+      "title": "Authentication errors",
+      "subtitle": "An error occurred during login",
+      "oauthSignin": "The third-party login service is temporarily unavailable, please try again later",
+      "oauthCallback": "If the login callback fails, please try again",
+      "oauthCreateAccount": "If the account creation failed, contact your administrator",
+      "accessDenied": "Access is denied, please check your permissions",
+      "verification": "If the verification fails, please log in again",
+      "oauthAccountNotLinked": "This email address is already linked to another account, please use a different login method",
+      "unknownError": "An unknown error occurred, please try again",
+      "contactSupport": "If the problem persists, contact technical support"
     }
   }
 }

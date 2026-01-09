@@ -78,6 +78,12 @@
       "database": "Start de databaseservice",
       "commands": "Veelvoorkomende bedieningsopdrachten"
     },
+    "stats": {
+      "languages": "Ondersteunde talen",
+      "services": "microservices",
+      "uptime": "Beschikbaarheid",
+      "latency": "Reactievertraging"
+    },
     "cta": {
       "getStarted": "Probeer het nu",
       "learnMore": "Meer informatie",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Coole toegangsanimaties mogelijk gemaakt door GSAP!"
-    },
-    "stats": {
-      "languages": "Ondersteunde talen",
-      "services": "microservices",
-      "uptime": "Beschikbaarheid",
-      "latency": "Reactievertraging"
     }
   },
   "Header": {
     "home": "Thuis",
     "features": "Functies",
-    "techStack": "Technische stapel",
-    "quickStart": "Snel aan de slag",
     "pricing": "Prijsstelling",
     "about": "Over ons",
-    "contact": "Neem contact met ons op"
+    "contact": "Neem contact met ons op",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Bekijk Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Setup voortzetten",
-      "subtitle": "Log in op het Telos Smart Workflow Platform",
-      "socialLoginRemoved": "Sociale inlogfuncties zijn verwijderd",
-      "signInWithEmail": "Inloglink verzenden (binnenkort beschikbaar)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "E-mailadres",
-      "or": "of",
-      "noAccount": "Heb je nog geen account?",
-      "signUp": "Registreer nu",
-      "loginFailed": "Inloggen mislukt",
-      "tryAgain": "Log opnieuw in",
-      "backToHome": "Terug naar home"
-    },
-    "error": {
-      "title": "Authenticatie fouten",
-      "subtitle": "Er is een fout opgetreden tijdens het inloggen",
-      "oauthSignin": "De inlogservice van derden is tijdelijk niet beschikbaar, probeer het later opnieuw",
-      "oauthCallback": "Als het terugbellen van het inloggen mislukt, probeer het dan opnieuw",
-      "oauthCreateAccount": "Als het maken van het account is mislukt, neemt u contact op met uw beheerder",
-      "accessDenied": "Toegang is geweigerd, controleer uw toestemmingen",
-      "verification": "Als de verificatie mislukt, log dan opnieuw in",
-      "oauthAccountNotLinked": "Dit e-mailadres is al gekoppeld aan een ander account, gebruik een andere inlogmethode",
-      "unknownError": "Er is een onbekende fout opgetreden, probeer het opnieuw",
-      "contactSupport": "Als het probleem zich blijft voordoen, neem dan contact op met de technische ondersteuning"
-    }
+  "UserMenu": {
+    "signIn": "Inloggen",
+    "unknownUser": "Onbekende gebruiker",
+    "profile": "Profiel",
+    "settings": "Instellingen",
+    "signOut": "Uitloggen",
+    "dashboard": "dashboard"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Onderwerp",
       "message": "Uw bericht",
       "submit": "Bericht verzenden"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Setup voortzetten",
+      "subtitle": "Log in op het Telos Smart Workflow Platform",
+      "noAccount": "Heb je nog geen account?",
+      "signUp": "Registreer nu",
+      "loginFailed": "Inloggen mislukt",
+      "github": "Inloggen met GitHub"
+    },
+    "error": {
+      "title": "Authenticatie fouten",
+      "subtitle": "Er is een fout opgetreden tijdens het inloggen",
+      "oauthSignin": "De inlogservice van derden is tijdelijk niet beschikbaar, probeer het later opnieuw",
+      "oauthCallback": "Als het terugbellen van het inloggen mislukt, probeer het dan opnieuw",
+      "oauthCreateAccount": "Als het maken van het account is mislukt, neemt u contact op met uw beheerder",
+      "accessDenied": "Toegang is geweigerd, controleer uw toestemmingen",
+      "verification": "Als de verificatie mislukt, log dan opnieuw in",
+      "oauthAccountNotLinked": "Dit e-mailadres is al gekoppeld aan een ander account, gebruik een andere inlogmethode",
+      "unknownError": "Er is een onbekende fout opgetreden, probeer het opnieuw",
+      "contactSupport": "Als het probleem zich blijft voordoen, neem dan contact op met de technische ondersteuning"
     }
   }
 }

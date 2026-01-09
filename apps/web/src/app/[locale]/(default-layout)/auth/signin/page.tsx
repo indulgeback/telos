@@ -11,10 +11,8 @@ import {
   CardHeader,
   CardTitle,
   Button,
-  Input,
-  Label,
 } from '@/components/atoms'
-import { Mail, Loader2, AlertCircle } from 'lucide-react'
+import { Loader2, AlertCircle } from 'lucide-react'
 import { CustomLink } from '@/components/molecules'
 
 export default function SignInPage() {
@@ -28,7 +26,6 @@ export default function SignInPage() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
-  const [email, setEmail] = useState('')
 
   // 如果用户已经登录，直接跳转到目标页面
   useEffect(() => {
@@ -47,28 +44,6 @@ export default function SignInPage() {
     } finally {
       setIsLoading(false)
       setLoadingProvider(null)
-    }
-  }
-
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    try {
-      const result = await signIn('email', {
-        email,
-        callbackUrl,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        console.error('邮箱登录失败:', result.error)
-      } else if (result?.ok) {
-        router.push(callbackUrl)
-      }
-    } catch (error) {
-      console.error('邮箱登录失败:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -108,55 +83,17 @@ export default function SignInPage() {
           )}
 
           {/* GitHub 登录按钮 */}
-          <div className='space-y-2'>
-            <p className='text-center text-sm text-muted-foreground'>
-              <Button
-                type='button'
-                className='w-full'
-                onClick={() => handleSignIn('github')}
-              >
-                {isLoading && loadingProvider === 'github' && (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                )}
-                Github
-              </Button>
-            </p>
-          </div>
-
-          {/* Google 登录按钮 */}
-          <div className='space-y-2'>
-            <p className='text-center text-sm text-muted-foreground'>
-              <Button
-                type='button'
-                className='w-full'
-                onClick={() => handleSignIn('google')}
-              >
-                {isLoading && loadingProvider === 'google' && (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                )}
-                Google
-              </Button>
-            </p>
-          </div>
-
-          {/* 邮箱登录表单 - 暂时禁用，需要配置邮箱提供者 */}
-          <div className='space-y-4 opacity-50'>
-            <div className='space-y-2'>
-              <Label htmlFor='email'>{t('emailLabel')}</Label>
-              <Input
-                id='email'
-                type='email'
-                placeholder={t('emailPlaceholder')}
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                disabled
-              />
-            </div>
-            <Button type='button' className='w-full' disabled>
-              <Mail className='mr-2 h-4 w-4' />
-              {t('signInWithEmail')}
-            </Button>
-          </div>
+          <Button
+            type='button'
+            className='w-full'
+            onClick={() => handleSignIn('github')}
+            disabled={isLoading}
+          >
+            {isLoading && loadingProvider === 'github' && (
+              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+            )}
+            {t('github')}
+          </Button>
 
           <p className='text-center text-sm text-muted-foreground'>
             {t('noAccount')}{' '}

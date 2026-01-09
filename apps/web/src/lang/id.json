@@ -78,6 +78,12 @@
       "database": "Mulai layanan database",
       "commands": "Perintah operasi umum"
     },
+    "stats": {
+      "languages": "Bahasa yang Didukung",
+      "services": "Layanan mikro",
+      "uptime": "Ketersediaan",
+      "latency": "Waktu respons"
+    },
     "cta": {
       "getStarted": "Coba sekarang",
       "learnMore": "Pelajari lebih lanjut",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Animasi penerimaan keren yang didukung oleh GSAP!"
-    },
-    "stats": {
-      "languages": "Bahasa yang Didukung",
-      "services": "Layanan mikro",
-      "uptime": "Ketersediaan",
-      "latency": "Waktu respons"
     }
   },
   "Header": {
     "home": "Rumah",
     "features": "Fitur dan Fungsi",
-    "techStack": "Tumpukan teknologi",
-    "quickStart": "Mulai dengan cepat",
     "pricing": "Penetapan harga",
     "about": "Tentang Kami",
-    "contact": "Hubungi Kami"
+    "contact": "Hubungi Kami",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Jelajahi Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Selamat datang kembali",
-      "subtitle": "Masuk ke Platform Alur Kerja Cerdas Telos",
-      "socialLoginRemoved": "Fitur login sosial telah dihapus",
-      "signInWithEmail": "Kirim tautan login (segera hadir)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "Alamat email",
-      "or": "atau",
-      "noAccount": "Belum punya akun?",
-      "signUp": "Daftar sekarang",
-      "loginFailed": "Login gagal",
-      "tryAgain": "Masuk kembali",
-      "backToHome": "Kembali ke rumah"
-    },
-    "error": {
-      "title": "Kesalahan autentikasi",
-      "subtitle": "Terjadi kesalahan saat login",
-      "oauthSignin": "Layanan login pihak ketiga tidak tersedia untuk sementara, silakan coba lagi nanti",
-      "oauthCallback": "Jika panggilan balik login gagal, silakan coba lagi",
-      "oauthCreateAccount": "Jika pembuatan akun gagal, hubungi administrator Anda",
-      "accessDenied": "Akses ditolak, silakan periksa izin Anda",
-      "verification": "Jika verifikasi gagal, silakan masuk lagi",
-      "oauthAccountNotLinked": "Alamat email ini sudah ditautkan ke akun lain, silakan gunakan metode login yang berbeda",
-      "unknownError": "Terjadi kesalahan yang tidak diketahui, silakan coba lagi",
-      "contactSupport": "Jika masalah berlanjut, hubungi dukungan teknis"
-    }
+  "UserMenu": {
+    "signIn": "Masuk",
+    "unknownUser": "Pengguna Tidak Dikenal",
+    "profile": "Profil pribadi",
+    "settings": "Pengaturan",
+    "signOut": "Keluar",
+    "dashboard": "Dashboard"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Tema",
       "message": "Pesan Anda",
       "submit": "Kirim pesan"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Selamat datang kembali",
+      "subtitle": "Masuk ke Platform Alur Kerja Cerdas Telos",
+      "noAccount": "Belum punya akun?",
+      "signUp": "Daftar sekarang",
+      "loginFailed": "Login gagal",
+      "github": "Masuk dengan GitHub"
+    },
+    "error": {
+      "title": "Kesalahan autentikasi",
+      "subtitle": "Terjadi kesalahan saat login",
+      "oauthSignin": "Layanan login pihak ketiga tidak tersedia untuk sementara, silakan coba lagi nanti",
+      "oauthCallback": "Jika panggilan balik login gagal, silakan coba lagi",
+      "oauthCreateAccount": "Jika pembuatan akun gagal, hubungi administrator Anda",
+      "accessDenied": "Akses ditolak, silakan periksa izin Anda",
+      "verification": "Jika verifikasi gagal, silakan masuk lagi",
+      "oauthAccountNotLinked": "Alamat email ini sudah ditautkan ke akun lain, silakan gunakan metode login yang berbeda",
+      "unknownError": "Terjadi kesalahan yang tidak diketahui, silakan coba lagi",
+      "contactSupport": "Jika masalah berlanjut, hubungi dukungan teknis"
     }
   }
 }

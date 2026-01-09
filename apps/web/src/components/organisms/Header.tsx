@@ -87,7 +87,7 @@ export function Header() {
             >
               <Button variant='outline' size='sm'>
                 <Github className='h-4 w-4 mr-2' />
-                GitHub
+                {t('github')}
               </Button>
             </a>
             <ThemeToggle />
@@ -104,8 +104,8 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side='right' className='p-0 w-72'>
                 <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
-                  <SheetDescription>Navigate through Telos</SheetDescription>
+                  <SheetTitle>{t('mobileMenuTitle')}</SheetTitle>
+                  <SheetDescription>{t('mobileMenuDesc')}</SheetDescription>
                 </SheetHeader>
                 <div className='flex flex-col h-full'>
                   <nav className='flex-1 flex flex-col p-4 space-y-2'>
@@ -130,7 +130,7 @@ export function Header() {
                       >
                         <Button variant='outline' size='sm' className='w-full'>
                           <Github className='h-4 w-4 mr-2' />
-                          GitHub
+                          {t('github')}
                         </Button>
                       </a>
                       <div className='flex space-x-2'>

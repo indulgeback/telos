@@ -100,7 +100,18 @@
     "features": "功能特性",
     "pricing": "定价",
     "about": "关于我们",
-    "contact": "联系我们"
+    "contact": "联系我们",
+    "github": "GitHub",
+    "mobileMenuTitle": "菜单",
+    "mobileMenuDesc": "浏览 Telos"
+  },
+  "UserMenu": {
+    "signIn": "登录",
+    "unknownUser": "未知用户",
+    "profile": "个人资料",
+    "settings": "设置",
+    "signOut": "登出",
+    "dashboard": "仪表板"
   },
   "FeaturesPage": {
     "hero": {
@@ -242,8 +253,6 @@
       "openSource": "开源"
     },
     "testimonials": {
-      "title": "用户评价",
-      "subtitle": "听听使用 Telos 的开发者怎么说",
       "0": {
         "quote": "Telos 彻底改变了我们处理工作流自动化的方式。可视化构建器非常直观。",
         "author": "陈明",
@@ -261,7 +270,9 @@
         "author": "张伟",
         "role": "CTO",
         "company": "创业公司"
-      }
+      },
+      "title": "用户评价",
+      "subtitle": "听听使用 Telos 的开发者怎么说"
     },
     "cta": {
       "title": "加入社区",
@@ -301,16 +312,10 @@
     "signIn": {
       "title": "欢迎回来",
       "subtitle": "登录到 Telos 智能工作流平台",
-      "socialLoginRemoved": "社交登录功能已移除",
-      "signInWithEmail": "发送登录链接（即将推出）",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "邮箱地址",
-      "or": "或者",
       "noAccount": "还没有账户？",
       "signUp": "立即注册",
       "loginFailed": "登录失败",
-      "tryAgain": "重新登录",
-      "backToHome": "返回首页"
+      "github": "使用 GitHub 登录"
     },
     "error": {
       "title": "认证错误",

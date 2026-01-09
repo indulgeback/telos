@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 import {
   Avatar,
   AvatarFallback,
@@ -19,6 +20,7 @@ import { CustomLink } from './CustomLink'
 
 export function UserAvatar() {
   const { data: session, status } = useSession()
+  const t = useTranslations('UserMenu')
 
   if (status === 'loading') {
     return <Skeleton className='h-8 w-8 rounded-full' />
@@ -27,7 +29,7 @@ export function UserAvatar() {
   if (status === 'unauthenticated' || !session?.user) {
     return (
       <Button asChild variant='default' size='sm'>
-        <CustomLink href='/auth/signin'>登录</CustomLink>
+        <CustomLink href='/auth/signin'>{t('signIn')}</CustomLink>
       </Button>
     )
   }
@@ -61,7 +63,7 @@ export function UserAvatar() {
         <DropdownMenuLabel className='font-normal'>
           <div className='flex flex-col space-y-1'>
             <p className='text-sm font-medium leading-none'>
-              {user.name || '未知用户'}
+              {user.name || t('unknownUser')}
             </p>
             <p className='text-xs leading-none text-muted-foreground'>
               {user.email}
@@ -72,13 +74,13 @@ export function UserAvatar() {
         <DropdownMenuItem asChild>
           <CustomLink href='/profile' className='cursor-pointer'>
             <User className='mr-2 h-4 w-4' />
-            个人资料
+            {t('profile')}
           </CustomLink>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <CustomLink href='/settings' className='cursor-pointer'>
             <Settings className='mr-2 h-4 w-4' />
-            设置
+            {t('settings')}
           </CustomLink>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -87,7 +89,7 @@ export function UserAvatar() {
           onClick={handleSignOut}
         >
           <LogOut className='mr-2 h-4 w-4' />
-          登出
+          {t('signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

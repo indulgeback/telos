@@ -78,6 +78,12 @@
       "database": "啟動資料庫服務",
       "commands": "常用操作命令"
     },
+    "stats": {
+      "languages": "支援語言",
+      "services": "微服務",
+      "uptime": "可用性",
+      "latency": "響應延遲"
+    },
     "cta": {
       "getStarted": "立即體驗",
       "learnMore": "了解詳情",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "炫酷的入場動畫由 GSAP 驅動！"
-    },
-    "stats": {
-      "languages": "支援語言",
-      "services": "微服務",
-      "uptime": "可用性",
-      "latency": "響應延遲"
     }
   },
   "Header": {
     "home": "首頁",
     "features": "功能特性",
-    "techStack": "技術棧",
-    "quickStart": "快速上手",
     "pricing": "定價",
     "about": "關於我們",
-    "contact": "聯繫我們"
+    "contact": "聯繫我們",
+    "github": "GitHub",
+    "mobileMenuTitle": "選單",
+    "mobileMenuDesc": "瀏覽 Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "歡迎回來",
-      "subtitle": "登錄到 Telos 智慧工作流平臺",
-      "socialLoginRemoved": "社交登錄功能已移除",
-      "signInWithEmail": "傳送登入連結（即將推出）",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "郵箱位址",
-      "or": "或者",
-      "noAccount": "還沒有帳戶？",
-      "signUp": "立即註冊",
-      "loginFailed": "登錄失敗",
-      "tryAgain": "重新登錄",
-      "backToHome": "返回首頁"
-    },
-    "error": {
-      "title": "認證錯誤",
-      "subtitle": "登錄過程中發生了錯誤",
-      "oauthSignin": "第三方登錄服務暫時不可用，請稍後重試",
-      "oauthCallback": "登錄回調處理失敗，請重新嘗試",
-      "oauthCreateAccount": "創建帳戶失敗，請聯繫管理員",
-      "accessDenied": "訪問被拒絕，請檢查您的許可權",
-      "verification": "驗證失敗，請重新登錄",
-      "oauthAccountNotLinked": "該郵箱已與其他帳戶關聯，請使用其他登錄方式",
-      "unknownError": "發生未知錯誤，請重試",
-      "contactSupport": "如果問題持續存在，請聯繫技術支援"
-    }
+  "UserMenu": {
+    "signIn": "登入",
+    "unknownUser": "未知使用者",
+    "profile": "個人資料",
+    "settings": "設定",
+    "signOut": "登出",
+    "dashboard": "儀表板"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "主題",
       "message": "您的消息",
       "submit": "發送訊息"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "歡迎回來",
+      "subtitle": "登錄到 Telos 智慧工作流平臺",
+      "noAccount": "還沒有帳戶？",
+      "signUp": "立即註冊",
+      "loginFailed": "登錄失敗",
+      "github": "使用 GitHub 登入"
+    },
+    "error": {
+      "title": "認證錯誤",
+      "subtitle": "登錄過程中發生了錯誤",
+      "oauthSignin": "第三方登錄服務暫時不可用，請稍後重試",
+      "oauthCallback": "登錄回調處理失敗，請重新嘗試",
+      "oauthCreateAccount": "創建帳戶失敗，請聯繫管理員",
+      "accessDenied": "訪問被拒絕，請檢查您的許可權",
+      "verification": "驗證失敗，請重新登錄",
+      "oauthAccountNotLinked": "該郵箱已與其他帳戶關聯，請使用其他登錄方式",
+      "unknownError": "發生未知錯誤，請重試",
+      "contactSupport": "如果問題持續存在，請聯繫技術支援"
     }
   }
 }

@@ -78,6 +78,12 @@
       "database": "Veritabanı hizmetini başlatma",
       "commands": "Ortak işlem komutları"
     },
+    "stats": {
+      "languages": "Desteklenen diller",
+      "services": "Mikro hizmet",
+      "uptime": "Kullanılabilirlik",
+      "latency": "Tepki gecikmesi"
+    },
     "cta": {
       "getStarted": "Şimdi Deneyin",
       "learnMore": "Daha fazla bilgi edinin",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "GSAP tarafından desteklenen harika giriş animasyonları!"
-    },
-    "stats": {
-      "languages": "Desteklenen diller",
-      "services": "Mikro hizmet",
-      "uptime": "Kullanılabilirlik",
-      "latency": "Tepki gecikmesi"
     }
   },
   "Header": {
     "home": "Ev",
     "features": "Özellikler",
-    "techStack": "Teknoloji yığını",
-    "quickStart": "Hızlı bir başlangıç yapın",
     "pricing": "Fiyatlandırma",
     "about": "Hakkımızda",
-    "contact": "Bize Ulaşın"
+    "contact": "Bize Ulaşın",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menü",
+    "mobileMenuDesc": "Telos'u gez"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Tekrar hoş geldiniz",
-      "subtitle": "Telos Akıllı İş Akışı Platformu'na giriş yapın",
-      "socialLoginRemoved": "Sosyal giriş özellikleri kaldırıldı",
-      "signInWithEmail": "Giriş bağlantısı gönder (çok yakında)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "E-posta adresi",
-      "or": "veya",
-      "noAccount": "Henüz bir üyeliğniz yok mu?",
-      "signUp": "Şimdi kaydolun",
-      "loginFailed": "Oturum açma başarısız oldu",
-      "tryAgain": "Tekrar giriş yap",
-      "backToHome": "Eve dönüş"
-    },
-    "error": {
-      "title": "Kimlik doğrulama hataları",
-      "subtitle": "Oturum açma sırasında bir hata oluştu",
-      "oauthSignin": "Üçüncü taraf oturum açma hizmeti geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin",
-      "oauthCallback": "Oturum açma geri araması başarısız olursa, lütfen tekrar deneyin",
-      "oauthCreateAccount": "Hesap oluşturma işlemi başarısız olursa yöneticinizle iletişime geçin",
-      "accessDenied": "Erişim reddedildi, lütfen izinlerinizi kontrol edin",
-      "verification": "Doğrulama başarısız olursa, lütfen tekrar giriş yapın",
-      "oauthAccountNotLinked": "Bu e-posta adresi zaten başka bir hesaba bağlı, lütfen farklı bir giriş yöntemi kullanın",
-      "unknownError": "Bilinmeyen bir hata oluştu, lütfen tekrar deneyin",
-      "contactSupport": "Sorun devam ederse teknik desteğe başvurun"
-    }
+  "UserMenu": {
+    "signIn": "Giriş yap",
+    "unknownUser": "Bilinmeyen kullanıcı",
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "signOut": "Çıkış Yap",
+    "dashboard": "gösterge paneli"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "konu",
       "message": "Mesajınız",
       "submit": "Mesaj gönder"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Tekrar hoş geldiniz",
+      "subtitle": "Telos Akıllı İş Akışı Platformu'na giriş yapın",
+      "noAccount": "Henüz bir üyeliğniz yok mu?",
+      "signUp": "Şimdi kaydolun",
+      "loginFailed": "Oturum açma başarısız oldu",
+      "github": "GitHub ile giriş yap"
+    },
+    "error": {
+      "title": "Kimlik doğrulama hataları",
+      "subtitle": "Oturum açma sırasında bir hata oluştu",
+      "oauthSignin": "Üçüncü taraf oturum açma hizmeti geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin",
+      "oauthCallback": "Oturum açma geri araması başarısız olursa, lütfen tekrar deneyin",
+      "oauthCreateAccount": "Hesap oluşturma işlemi başarısız olursa yöneticinizle iletişime geçin",
+      "accessDenied": "Erişim reddedildi, lütfen izinlerinizi kontrol edin",
+      "verification": "Doğrulama başarısız olursa, lütfen tekrar giriş yapın",
+      "oauthAccountNotLinked": "Bu e-posta adresi zaten başka bir hesaba bağlı, lütfen farklı bir giriş yöntemi kullanın",
+      "unknownError": "Bilinmeyen bir hata oluştu, lütfen tekrar deneyin",
+      "contactSupport": "Sorun devam ederse teknik desteğe başvurun"
     }
   }
 }

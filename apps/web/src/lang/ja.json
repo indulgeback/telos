@@ -78,6 +78,12 @@
       "database": "データベースサービスを起動する",
       "commands": "常用操作命令"
     },
+    "stats": {
+      "languages": "対応言語",
+      "services": "マイクロサービス",
+      "uptime": "可用性",
+      "latency": "応答遅延"
+    },
     "cta": {
       "getStarted": "今すぐ体験する",
       "learnMore": "詳細を理解する",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "クールな入場アニメーションは GSAP が駆動しています！"
-    },
-    "stats": {
-      "languages": "対応言語",
-      "services": "マイクロサービス",
-      "uptime": "可用性",
-      "latency": "応答遅延"
     }
   },
   "Header": {
     "home": "ホームページ",
     "features": "機能特性",
-    "techStack": "技術スタック",
-    "quickStart": "迅速に習得する",
     "pricing": "価格設定",
     "about": "私たちについて",
-    "contact": "お問い合わせ"
+    "contact": "お問い合わせ",
+    "github": "ギットハブ",
+    "mobileMenuTitle": "メニュー",
+    "mobileMenuDesc": "Telos を閲覧"
   },
-  "Auth": {
-    "signIn": {
-      "title": "お帰りなさい",
-      "subtitle": "Telosスマートワークフロープラットフォームにログインする",
-      "socialLoginRemoved": "ソーシャルログイン機能は削除されました",
-      "signInWithEmail": "ログインリンクを送信します（近日中に提供予定）",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "メールアドレス",
-      "or": "または",
-      "noAccount": "まだアカウントをお持ちではありませんか？",
-      "signUp": "今すぐ登録する",
-      "loginFailed": "ログイン失敗",
-      "tryAgain": "再ログイン",
-      "backToHome": "ホームに戻る"
-    },
-    "error": {
-      "title": "認証エラー",
-      "subtitle": "ログイン中にエラーが発生しました",
-      "oauthSignin": "サードパーティのログインサービスは一時的に利用できません。後でもう一度お試しください。",
-      "oauthCallback": "ログインコールバック処理に失敗しました。もう一度お試しください。",
-      "oauthCreateAccount": "アカウントの作成に失敗しました。管理者に連絡してください。",
-      "accessDenied": "アクセスが拒否されました。権限を確認してください。",
-      "verification": "検証に失敗しました。再度ログインしてください。",
-      "oauthAccountNotLinked": "このメールアドレスは他のアカウントに関連付けられていますので、別のログイン方法を使用してください。",
-      "unknownError": "不明なエラーが発生しました。もう一度お試しください。",
-      "contactSupport": "問題が引き続き発生する場合は、テクニカルサポートにお問い合わせください。"
-    }
+  "UserMenu": {
+    "signIn": "ログイン",
+    "unknownUser": "未知のユーザー",
+    "profile": "プロフィール",
+    "settings": "設定",
+    "signOut": "ログアウト",
+    "dashboard": "ダッシュボード"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "テーマ",
       "message": "あなたのメッセージ",
       "submit": "メッセージを送信"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "お帰りなさい",
+      "subtitle": "Telosスマートワークフロープラットフォームにログインする",
+      "noAccount": "まだアカウントをお持ちではありませんか？",
+      "signUp": "今すぐ登録する",
+      "loginFailed": "ログイン失敗",
+      "github": "GitHubでログイン"
+    },
+    "error": {
+      "title": "認証エラー",
+      "subtitle": "ログイン中にエラーが発生しました",
+      "oauthSignin": "サードパーティのログインサービスは一時的に利用できません。後でもう一度お試しください。",
+      "oauthCallback": "ログインコールバック処理に失敗しました。もう一度お試しください。",
+      "oauthCreateAccount": "アカウントの作成に失敗しました。管理者に連絡してください。",
+      "accessDenied": "アクセスが拒否されました。権限を確認してください。",
+      "verification": "検証に失敗しました。再度ログインしてください。",
+      "oauthAccountNotLinked": "このメールアドレスは他のアカウントに関連付けられていますので、別のログイン方法を使用してください。",
+      "unknownError": "不明なエラーが発生しました。もう一度お試しください。",
+      "contactSupport": "問題が引き続き発生する場合は、テクニカルサポートにお問い合わせください。"
     }
   }
 }

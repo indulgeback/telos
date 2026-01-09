@@ -78,6 +78,12 @@
       "database": "Iniciar o serviço de banco de dados",
       "commands": "Comandos de operação comuns"
     },
+    "stats": {
+      "languages": "Idiomas suportados",
+      "services": "Microsserviços",
+      "uptime": "Disponibilidade",
+      "latency": "Atraso na resposta"
+    },
     "cta": {
       "getStarted": "Experimente agora",
       "learnMore": "Saiba Mais",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Animações de admissão legais alimentadas por GSAP!"
-    },
-    "stats": {
-      "languages": "Idiomas suportados",
-      "services": "Microsserviços",
-      "uptime": "Disponibilidade",
-      "latency": "Atraso na resposta"
     }
   },
   "Header": {
     "home": "Casa",
     "features": "Características e funções",
-    "techStack": "Pilha de tecnologia",
-    "quickStart": "Comece rapidamente",
     "pricing": "Precificação",
     "about": "Sobre nós",
-    "contact": "Fale conosco"
+    "contact": "Fale conosco",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Navegar no Telos"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Bem-vindo de volta",
-      "subtitle": "Faça login na plataforma de fluxo de trabalho inteligente Telos",
-      "socialLoginRemoved": "Os recursos de login social foram removidos",
-      "signInWithEmail": "Enviar link de login (em breve)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "Endereço eletrônico",
-      "or": "ou",
-      "noAccount": "Ainda não tem uma conta?",
-      "signUp": "Registre-se agora",
-      "loginFailed": "Falha no login",
-      "tryAgain": "Faça login novamente",
-      "backToHome": "Voltar para casa"
-    },
-    "error": {
-      "title": "Erros de autenticação",
-      "subtitle": "Ocorreu um erro durante o login",
-      "oauthSignin": "O serviço de login de terceiros está temporariamente indisponível, tente novamente mais tarde",
-      "oauthCallback": "Se o retorno de chamada de login falhar, tente novamente",
-      "oauthCreateAccount": "Se a criação da conta falhar, entre em contato com o administrador",
-      "accessDenied": "O acesso foi negado, verifique suas permissões",
-      "verification": "Se a verificação falhar, faça login novamente",
-      "oauthAccountNotLinked": "Este endereço de e-mail já está vinculado a outra conta, use um método de login diferente",
-      "unknownError": "Ocorreu um erro desconhecido, tente novamente",
-      "contactSupport": "Se o problema persistir, entre em contato com o suporte técnico"
-    }
+  "UserMenu": {
+    "signIn": "Entrar",
+    "unknownUser": "Usuário desconhecido",
+    "profile": "Perfil pessoal",
+    "settings": "Configurações",
+    "signOut": "Sair",
+    "dashboard": "Painel de instrumentos"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Tema",
       "message": "Sua mensagem",
       "submit": "Enviar mensagem"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Bem-vindo de volta",
+      "subtitle": "Faça login na plataforma de fluxo de trabalho inteligente Telos",
+      "noAccount": "Ainda não tem uma conta?",
+      "signUp": "Registre-se agora",
+      "loginFailed": "Falha no login",
+      "github": "Entrar com GitHub"
+    },
+    "error": {
+      "title": "Erros de autenticação",
+      "subtitle": "Ocorreu um erro durante o login",
+      "oauthSignin": "O serviço de login de terceiros está temporariamente indisponível, tente novamente mais tarde",
+      "oauthCallback": "Se o retorno de chamada de login falhar, tente novamente",
+      "oauthCreateAccount": "Se a criação da conta falhar, entre em contato com o administrador",
+      "accessDenied": "O acesso foi negado, verifique suas permissões",
+      "verification": "Se a verificação falhar, faça login novamente",
+      "oauthAccountNotLinked": "Este endereço de e-mail já está vinculado a outra conta, use um método de login diferente",
+      "unknownError": "Ocorreu um erro desconhecido, tente novamente",
+      "contactSupport": "Se o problema persistir, entre em contato com o suporte técnico"
     }
   }
 }

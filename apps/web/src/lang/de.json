@@ -78,6 +78,12 @@
       "database": "Starten des Datenbankdiensts",
       "commands": "Allgemeine Bedienungsbefehle"
     },
+    "stats": {
+      "languages": "Unterstützte Sprachen",
+      "services": "Mikroservice",
+      "uptime": "Verfügbarkeit",
+      "latency": "Reaktionsverzögerung"
+    },
     "cta": {
       "getStarted": "Probieren Sie es jetzt aus",
       "learnMore": "Weitere Informationen",
@@ -87,50 +93,25 @@
     },
     "gsap": {
       "animation": "Coole Einlassanimationen powered by GSAP!"
-    },
-    "stats": {
-      "languages": "Unterstützte Sprachen",
-      "services": "Mikroservice",
-      "uptime": "Verfügbarkeit",
-      "latency": "Reaktionsverzögerung"
     }
   },
   "Header": {
     "home": "Heim",
     "features": "Funktionale Merkmale",
-    "techStack": "Tech-Stack",
-    "quickStart": "Schneller Einstieg",
     "pricing": "Preisgestaltung",
     "about": "Über uns",
-    "contact": "Kontaktieren Sie uns"
+    "contact": "Kontaktieren Sie uns",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menü",
+    "mobileMenuDesc": "Telos durchsuchen"
   },
-  "Auth": {
-    "signIn": {
-      "title": "Willkommen zurück",
-      "subtitle": "Melden Sie sich bei der Telos Smart Workflow Platform an",
-      "socialLoginRemoved": "Social-Login-Funktionen wurden entfernt",
-      "signInWithEmail": "Login-Link senden (in Kürze)",
-      "emailPlaceholder": "your@email.com",
-      "emailLabel": "E-Mail-Adresse",
-      "or": "oder",
-      "noAccount": "Sie haben noch kein Konto?",
-      "signUp": "Jetzt anmelden",
-      "loginFailed": "Anmeldung fehlgeschlagen",
-      "tryAgain": "Melden Sie sich wieder an",
-      "backToHome": "Zurück zur Startseite"
-    },
-    "error": {
-      "title": "Fehler bei der Authentifizierung",
-      "subtitle": "Bei der Anmeldung ist ein Fehler aufgetreten",
-      "oauthSignin": "Der Login-Dienst des Drittanbieters ist vorübergehend nicht verfügbar, bitte versuchen Sie es später erneut",
-      "oauthCallback": "Wenn der Anmelderückruf fehlschlägt, versuchen Sie es bitte erneut",
-      "oauthCreateAccount": "Wenn die Kontoerstellung fehlgeschlagen ist, wenden Sie sich an Ihren Administrator.",
-      "accessDenied": "Der Zugriff wird verweigert, bitte überprüfen Sie Ihre Berechtigungen",
-      "verification": "Sollte die Verifizierung fehlschlagen, loggen Sie sich bitte erneut ein",
-      "oauthAccountNotLinked": "Diese E-Mail-Adresse ist bereits mit einem anderen Konto verknüpft, bitte verwenden Sie eine andere Anmeldemethode",
-      "unknownError": "Ein unbekannter Fehler ist aufgetreten, bitte versuchen Sie es erneut",
-      "contactSupport": "Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support"
-    }
+  "UserMenu": {
+    "signIn": "Anmelden",
+    "unknownUser": "Unbekannter Benutzer",
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "signOut": "Abmelden",
+    "dashboard": "Armaturenbrett"
   },
   "FeaturesPage": {
     "hero": {
@@ -330,6 +311,28 @@
       "subject": "Thema",
       "message": "Ihre Nachricht",
       "submit": "Nachricht senden"
+    }
+  },
+  "Auth": {
+    "signIn": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melden Sie sich bei der Telos Smart Workflow Platform an",
+      "noAccount": "Sie haben noch kein Konto?",
+      "signUp": "Jetzt anmelden",
+      "loginFailed": "Anmeldung fehlgeschlagen",
+      "github": "Mit GitHub anmelden"
+    },
+    "error": {
+      "title": "Fehler bei der Authentifizierung",
+      "subtitle": "Bei der Anmeldung ist ein Fehler aufgetreten",
+      "oauthSignin": "Der Login-Dienst des Drittanbieters ist vorübergehend nicht verfügbar, bitte versuchen Sie es später erneut",
+      "oauthCallback": "Wenn der Anmelderückruf fehlschlägt, versuchen Sie es bitte erneut",
+      "oauthCreateAccount": "Wenn die Kontoerstellung fehlgeschlagen ist, wenden Sie sich an Ihren Administrator.",
+      "accessDenied": "Der Zugriff wird verweigert, bitte überprüfen Sie Ihre Berechtigungen",
+      "verification": "Sollte die Verifizierung fehlschlagen, loggen Sie sich bitte erneut ein",
+      "oauthAccountNotLinked": "Diese E-Mail-Adresse ist bereits mit einem anderen Konto verknüpft, bitte verwenden Sie eine andere Anmeldemethode",
+      "unknownError": "Ein unbekannter Fehler ist aufgetreten, bitte versuchen Sie es erneut",
+      "contactSupport": "Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support"
     }
   }
 }
