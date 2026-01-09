@@ -65,7 +65,7 @@ func (r *RegistryServiceDiscovery) startAutoRefresh() {
 func (r *RegistryServiceDiscovery) refreshAllServices() {
 	// 这里可以维护一个服务名列表，或每次刷新时动态获取
 	// 简单实现：假设有一组常用服务名
-	serviceNames := []string{"user-service", "auth-service", "workflow-service"}
+	serviceNames := []string{"user-service", "auth-service", "workflow-service", "agent-service"}
 	for _, name := range serviceNames {
 		instances := r.FetchInstances(name)
 		r.cacheLock.Lock()
