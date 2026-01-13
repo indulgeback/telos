@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Startseite",
+    "workflows": "Arbeitsablauf",
+    "chat": "KI-Assistent",
+    "dashboard": "Armaturenbrett"
+  },
+  "Chat": {
+    "title": "KI-Assistent",
+    "subtitle": "Jederzeit zu Ihren Diensten",
+    "clearConversation": "Chat leeren",
+    "emptyState": {
+      "title": "Wie kann ich Ihnen helfen?",
+      "description": "Wählen Sie eine vorgeschlagene Frage, um zu beginnen, oder geben Sie direkt Ihre Frage ein"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Neues Projekt starten",
+        "prompt": "Hilf mir, den Tech-Stack und die Architektur für ein neues Projekt zu planen"
+      },
+      "debugCode": {
+        "label": "Code debuggen",
+        "prompt": "Hilf mir, das Problem in diesem Code zu analysieren"
+      },
+      "writeDocs": {
+        "label": "Dokumentation schreiben",
+        "prompt": "Hilf mir, eine Benutzerdokumentation für diese Funktion zu erstellen"
+      },
+      "creativeIdeas": {
+        "label": "kreative Inspiration",
+        "prompt": "Gib mir einige Vorschläge zur Produktinnovation"
+      }
+    },
+    "input": {
+      "placeholder": "Geben Sie Ihre Frage ein... (Shift + Enter für Zeilenumbruch)"
+    },
+    "actions": {
+      "copy": "Kopieren",
+      "copied": "Kopiert"
+    },
+    "error": {
+      "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
+    },
+    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen."
+  },
+  "Dashboard": {
+    "welcome": "Willkommen zurück, {name}!",
+    "welcomeFallback": "Benutzer",
+    "subtitle": "Dies ist Ihr Workflow-Management-Dashboard",
+    "stats": {
+      "activeWorkflows": "Aktiver Arbeitsablauf",
+      "totalExecutions": "Gesamtanzahl der Ausführungen",
+      "successRate": "Erfolgschance",
+      "avgExecutionTime": "Durchschnittliche Ausführungszeit",
+      "comparedToLastWeek": "Im Vergleich zur letzten Woche",
+      "comparedToLastMonth": "Im Vergleich zum Vormonat"
+    },
+    "quickActions": {
+      "title": "Schnelloperation",
+      "description": "Gängige Workflow-Management-Operationen",
+      "createWorkflow": "Neuen Arbeitsablauf erstellen",
+      "viewWorkflows": "Alle Workflows anzeigen",
+      "manageSettings": "Verwaltungseinstellungen"
+    },
+    "recentActivity": {
+      "title": "Neueste Aktivitäten",
+      "description": "Ihre jüngsten Arbeitsablauf-Ausführungsaufzeichnungen",
+      "viewAllHistory": "Alle Historie anzeigen"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Daten-Synchronisierungs-Workflow",
+      "emailNotificationWorkflow": "E-Mail-Benachrichtigungs-Workflow",
+      "reportGenerationWorkflow": "Berichtserstellungs-Workflow",
+      "executionSuccess": "Ausführung erfolgreich",
+      "executionRunning": "In Ausführung",
+      "timeAgo": {
+        "minutes": "vor {n} Minuten",
+        "hours": "vor {n} Stunden"
+      }
+    },
+    "gettingStarted": {
+      "title": "Mit Telos beginnen",
+      "description": "Schnellstartanleitung, die Ihnen hilft, die Funktionen der Plattform voll auszuschöpfen",
+      "step1": {
+        "title": "1. Workflow erstellen",
+        "description": "Erstellen Sie Ihren ersten automatisierten Arbeitsablauf mit dem visuellen Editor"
+      },
+      "step2": {
+        "title": "2. Trigger konfigurieren",
+        "description": "Legen Sie die Auslösebedingungen und den Ausführungsplan für den Workflow fest"
+      },
+      "step3": {
+        "title": "3. Überwachung der Durchführung",
+        "description": "Echtzeitüberwachung des Status und der Leistungskennzahlen von Workflows"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Workflow-Management",
+    "subtitle": "Verwalten und überwachen Sie Ihre automatisierten Arbeitsabläufe",
+    "createWorkflow": "Workflow erstellen",
+    "stats": {
+      "total": "Gesamtarbeitsablauf",
+      "running": "In Betrieb",
+      "paused": "Pausiert",
+      "totalExecutions": "Gesamtanzahl der Ausführungen"
+    },
+    "status": {
+      "active": "In Betrieb",
+      "paused": "Pausiert",
+      "running": "In Ausführung",
+      "unknown": "Unbekannt"
+    },
+    "list": {
+      "title": "Workflow-Liste",
+      "lastRun": "Zuletzt ausgeführt:",
+      "executions": "Ausführungsanzahl:",
+      "minutesAgo": "vor Minuten",
+      "hoursAgo": "vor Stunden",
+      "daysAgo": "vor Tagen"
+    },
+    "emptyState": {
+      "title": "Es gibt noch keinen Arbeitsablauf",
+      "description": "Erstellen Sie Ihren ersten Workflow, um Ihre Geschäftsprozesse zu automatisieren",
+      "createButton": "Workflow erstellen"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Daten-Synchronisierungs-Workflow",
+        "description": "Datenbankdaten automatisch mit externen Systemen synchronisieren"
+      },
+      "emailNotification": {
+        "name": "E-Mail-Benachrichtigungs-Workflow",
+        "description": "Regelmäßige Berichts-E-Mails an Teammitglieder senden"
+      },
+      "reportGeneration": {
+        "name": "Berichtserstellungs-Workflow",
+        "description": "Tägliche Geschäftsberichte erstellen und archivieren"
+      },
+      "backup": {
+        "name": "Backup-Workflow",
+        "description": "Regelmäßige Sicherung wichtiger Daten in der Cloud"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Licht-Modus",

@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Hjem",
+    "workflows": "arbeidsflyt",
+    "chat": "AI-assistent",
+    "dashboard": "dashbord"
+  },
+  "Chat": {
+    "title": "AI-assistent",
+    "subtitle": "Alltid til tjeneste",
+    "clearConversation": "Tøm samtalen",
+    "emptyState": {
+      "title": "Hva kan jeg hjelpe deg med?",
+      "description": "Velg et foreslått spørsmål for å starte, eller skriv direkte inn spørsmålet ditt"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Start et nytt prosjekt",
+        "prompt": "Hjelp meg med å planlegge teknologistacken og arkitekturen for et nytt prosjekt"
+      },
+      "debugCode": {
+        "label": "Feilsøke kode",
+        "prompt": "Hjelp meg med å analysere problemet i denne koden"
+      },
+      "writeDocs": {
+        "label": "Skrive dokumenter",
+        "prompt": "Hjelp meg med å skrive brukerdokumentasjon for denne funksjonen"
+      },
+      "creativeIdeas": {
+        "label": "Kreativ inspirasjon",
+        "prompt": "Gi meg noen forslag til produktinnovasjon"
+      }
+    },
+    "input": {
+      "placeholder": "Skriv inn spørsmålet ditt... (Shift + Enter for linjeskift)"
+    },
+    "actions": {
+      "copy": "Kopier",
+      "copied": "Kopiert"
+    },
+    "error": {
+      "message": "Beklager, det oppstod en feil. Vennligst prøv igjen senere."
+    },
+    "disclaimer": "AI-assistenten kan gjøre feil, vennligst verifiser viktig informasjon"
+  },
+  "Dashboard": {
+    "welcome": "Velkommen tilbake, {name}!",
+    "welcomeFallback": "bruker",
+    "subtitle": "Dette er dashbordet for arbeidsflytstyring",
+    "stats": {
+      "activeWorkflows": "Aktiv arbeidsflyt",
+      "totalExecutions": "Totalt antall utførelser",
+      "successRate": "suksessrate",
+      "avgExecutionTime": "Gjennomsnittlig kjøretid",
+      "comparedToLastWeek": "Sammenlignet med forrige uke",
+      "comparedToLastMonth": "Sammenlignet med forrige måned"
+    },
+    "quickActions": {
+      "title": "Rask handling",
+      "description": "Vanlige arbeidsflytadministrasjonsoperasjoner",
+      "createWorkflow": "Opprett ny arbeidsflyt",
+      "viewWorkflows": "Se alle arbeidsflyter",
+      "manageSettings": "Administrasjonsinnstillinger"
+    },
+    "recentActivity": {
+      "title": "Siste aktiviteter",
+      "description": "Dine nylige arbeidsflytutførelseslogger",
+      "viewAllHistory": "Se hele historikken"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Datasynkroniseringsarbeidsflyt",
+      "emailNotificationWorkflow": "E-postvarsling arbeidsflyt",
+      "reportGenerationWorkflow": "Rapportgenererings arbeidsflyt",
+      "executionSuccess": "Utført med suksess",
+      "executionRunning": "Utføres",
+      "timeAgo": {
+        "minutes": "{n} minutter siden",
+        "hours": "{n} timer siden"
+      }
+    },
+    "gettingStarted": {
+      "title": "Kom i gang med Telos",
+      "description": "Rask startguide som hjelper deg å få mest mulig ut av plattformens funksjoner",
+      "step1": {
+        "title": "1. Opprett arbeidsflyt",
+        "description": "Opprett din første automatiseringsflyt med den visuelle redigereren"
+      },
+      "step2": {
+        "title": "2. Konfigurer utløser",
+        "description": "Sett opp utløsningsbetingelser og tidsplan for arbeidsflyt"
+      },
+      "step3": {
+        "title": "3. Overvåke gjennomføring",
+        "description": "Sanntidsovervåking av arbeidsflytens utførelsesstatus og ytelsesindikatorer"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Arbeidsflytstyring",
+    "subtitle": "Administrer og overvåk arbeidsflytene dine for automatisering",
+    "createWorkflow": "Opprett arbeidsflyt",
+    "stats": {
+      "total": "Total arbeidsflyt",
+      "running": "I gang",
+      "paused": "Satt på pause",
+      "totalExecutions": "Totalt antall utførelser"
+    },
+    "status": {
+      "active": "I gang",
+      "paused": "Satt på pause",
+      "running": "Utføres",
+      "unknown": "Ukjent"
+    },
+    "list": {
+      "title": "Arbeidsflytliste",
+      "lastRun": "Siste kjøring:",
+      "executions": "Antall utførelser:",
+      "minutesAgo": "minutter siden",
+      "hoursAgo": "timer siden",
+      "daysAgo": "dager siden"
+    },
+    "emptyState": {
+      "title": "Ingen arbeidsflyt ennå",
+      "description": "Opprett din første arbeidsflyt for å begynne å automatisere forretningsprosessene dine",
+      "createButton": "Opprett arbeidsflyt"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Datasynkroniseringsarbeidsflyt",
+        "description": "Automatisk synkronisering av databaseinformasjon til eksterne systemer"
+      },
+      "emailNotification": {
+        "name": "E-postvarsling arbeidsflyt",
+        "description": "Send regelmessige rapporter til teammedlemmer"
+      },
+      "reportGeneration": {
+        "name": "Rapportgenereringsarbeidsflyt",
+        "description": "Generer daglige forretningsrapporter og arkiver dem"
+      },
+      "backup": {
+        "name": "Sikkerhetskopieringsarbeidsflyt",
+        "description": "Sikkerhetskopier viktige data til skyen regelmessig"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Lys modus",

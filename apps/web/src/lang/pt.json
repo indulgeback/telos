@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Página inicial",
+    "workflows": "Fluxo de trabalho",
+    "chat": "Assistente de IA",
+    "dashboard": "Painel de instrumentos"
+  },
+  "Chat": {
+    "title": "Assistente de IA",
+    "subtitle": "Sempre à sua disposição",
+    "clearConversation": "Limpar conversa",
+    "emptyState": {
+      "title": "Posso ajudá-lo com alguma coisa?",
+      "description": "Escolha uma pergunta sugerida para começar ou digite sua pergunta diretamente"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Iniciar novo projeto",
+        "prompt": "Me ajude a planejar a pilha de tecnologia e a arquitetura de um novo projeto"
+      },
+      "debugCode": {
+        "label": "Depurar código",
+        "prompt": "Me ajude a analisar qual é o problema deste código"
+      },
+      "writeDocs": {
+        "label": "Escrever documentação",
+        "prompt": "Ajude-me a escrever a documentação do usuário para esta funcionalidade"
+      },
+      "creativeIdeas": {
+        "label": "Inspiração Criativa",
+        "prompt": "Me dê algumas sugestões sobre inovação de produtos"
+      }
+    },
+    "input": {
+      "placeholder": "Digite sua pergunta... (Shift + Enter para nova linha)"
+    },
+    "actions": {
+      "copy": "Copiar",
+      "copied": "Copiado"
+    },
+    "error": {
+      "message": "Desculpe, ocorreu um erro. Por favor, tente novamente mais tarde."
+    },
+    "disclaimer": "O assistente de IA pode cometer erros, verifique informações importantes"
+  },
+  "Dashboard": {
+    "welcome": "Bem-vindo de volta, {name}!",
+    "welcomeFallback": "Usuário",
+    "subtitle": "Este é o seu painel de gerenciamento de fluxo de trabalho",
+    "stats": {
+      "activeWorkflows": "Fluxo de trabalho ativo",
+      "totalExecutions": "Número total de execuções",
+      "successRate": "Taxa de sucesso",
+      "avgExecutionTime": "Tempo médio de execução",
+      "comparedToLastWeek": "em comparação à semana passada",
+      "comparedToLastMonth": "em relação ao mês anterior"
+    },
+    "quickActions": {
+      "title": "Operação rápida",
+      "description": "Operações comuns de gerenciamento de fluxo de trabalho",
+      "createWorkflow": "Criar novo fluxo de trabalho",
+      "viewWorkflows": "Ver todos os fluxos de trabalho",
+      "manageSettings": "Configurações de gerenciamento"
+    },
+    "recentActivity": {
+      "title": "Atividades recentes",
+      "description": "Seu registro recente de execuções de fluxo de trabalho",
+      "viewAllHistory": "Ver todo o histórico"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Fluxo de trabalho de sincronização de dados",
+      "emailNotificationWorkflow": "Fluxo de trabalho de notificação por e-mail",
+      "reportGenerationWorkflow": "Fluxo de trabalho de geração de relatórios",
+      "executionSuccess": "Executado com sucesso",
+      "executionRunning": "Em execução",
+      "timeAgo": {
+        "minutes": "há {n} minutos",
+        "hours": "há {n} horas"
+      }
+    },
+    "gettingStarted": {
+      "title": "Comece a usar Telos",
+      "description": "Guia rápido de início, ajudando você a aproveitar ao máximo os recursos da plataforma",
+      "step1": {
+        "title": "1. Criar fluxo de trabalho",
+        "description": "Crie seu primeiro fluxo de trabalho automatizado usando o editor visual"
+      },
+      "step2": {
+        "title": "2. Configurar o gatilho",
+        "description": "Definir condições de acionamento e cronograma de execução do fluxo de trabalho"
+      },
+      "step3": {
+        "title": "3. Monitoramento da Execução",
+        "description": "Monitoramento em tempo real do status de execução e dos indicadores de desempenho do fluxo de trabalho"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Gestão de fluxo de trabalho",
+    "subtitle": "Gerencie e monitore seus fluxos de trabalho automatizados",
+    "createWorkflow": "Criar fluxo de trabalho",
+    "stats": {
+      "total": "Fluxo de trabalho geral",
+      "running": "Em execução",
+      "paused": "Pausado",
+      "totalExecutions": "Número total de execuções"
+    },
+    "status": {
+      "active": "Em execução",
+      "paused": "Pausado",
+      "running": "Em execução",
+      "unknown": "Desconhecido"
+    },
+    "list": {
+      "title": "Lista de Fluxos de Trabalho",
+      "lastRun": "Última execução:",
+      "executions": "Número de execuções:",
+      "minutesAgo": "minutos atrás",
+      "hoursAgo": "horas atrás",
+      "daysAgo": "dias atrás"
+    },
+    "emptyState": {
+      "title": "Ainda não há fluxo de trabalho",
+      "description": "Crie seu primeiro fluxo de trabalho para começar a automatizar seus processos de negócios",
+      "createButton": "Criar fluxo de trabalho"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Fluxo de trabalho de sincronização de dados",
+        "description": "Sincronizar automaticamente os dados do banco de dados com sistemas externos"
+      },
+      "emailNotification": {
+        "name": "Fluxo de trabalho de notificação por e-mail",
+        "description": "Enviar e-mails de relatórios periódicos para os membros da equipe"
+      },
+      "reportGeneration": {
+        "name": "Fluxo de trabalho de geração de relatórios",
+        "description": "Gerar relatórios diários de negócios e arquivá-los"
+      },
+      "backup": {
+        "name": "Fluxo de trabalho de backup",
+        "description": "Faça backup regular de dados importantes na nuvem"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Modo de luz",

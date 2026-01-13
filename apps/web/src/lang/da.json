@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Hjem",
+    "workflows": "arbejdsgang",
+    "chat": "AI-assistent",
+    "dashboard": "instrumentbræt"
+  },
+  "Chat": {
+    "title": "AI-assistent",
+    "subtitle": "Altid til din service",
+    "clearConversation": "Ryd samtalen",
+    "emptyState": {
+      "title": "Hvordan kan jeg hjælpe dig?",
+      "description": "Vælg et foreslået spørgsmål for at starte, eller indtast dit spørgsmål direkte"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Start et nyt projekt",
+        "prompt": "Hjælp mig med at planlægge tech-stacken og arkitekturen for et nyt projekt"
+      },
+      "debugCode": {
+        "label": "Fejlsøge kode",
+        "prompt": "Hjælp mig med at analysere problemet i denne kode"
+      },
+      "writeDocs": {
+        "label": "Skriv dokumentation",
+        "prompt": "Hjælp mig med at skrive brugerdokumentation for denne funktion"
+      },
+      "creativeIdeas": {
+        "label": "Kreativ inspiration",
+        "prompt": "Giv mig nogle forslag til produktinnovation"
+      }
+    },
+    "input": {
+      "placeholder": "Indtast dit spørgsmål... (Shift + Enter for ny linje)"
+    },
+    "actions": {
+      "copy": "Kopiér",
+      "copied": "Kopieret"
+    },
+    "error": {
+      "message": "Beklager, der opstod en fejl. Prøv igen senere."
+    },
+    "disclaimer": "AI-assistenten kan begå fejl, kontroller venligst vigtige oplysninger"
+  },
+  "Dashboard": {
+    "welcome": "Velkommen tilbage, {name}!",
+    "welcomeFallback": "bruger",
+    "subtitle": "Dette er dit workflow-administrationsdashboard",
+    "stats": {
+      "activeWorkflows": "Aktiv arbejdsproces",
+      "totalExecutions": "Samlet antal udførelser",
+      "successRate": "Succesrate",
+      "avgExecutionTime": "Gennemsnitlig udførelsestid",
+      "comparedToLastWeek": "Sammenlignet med sidste uge",
+      "comparedToLastMonth": "Sammenlignet med sidste måned"
+    },
+    "quickActions": {
+      "title": "Hurtig handling",
+      "description": "Almindelige workflow-administrationshandlinger",
+      "createWorkflow": "Opret ny arbejdsproces",
+      "viewWorkflows": "Se alle arbejdsgange",
+      "manageSettings": "Administrationsindstillinger"
+    },
+    "recentActivity": {
+      "title": "Seneste aktiviteter",
+      "description": "Dine seneste arbejdsgangsudførselsoptegnelser",
+      "viewAllHistory": "Se hele historikken"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Datasynkroniseringsarbejdsgang",
+      "emailNotificationWorkflow": "E-mail underretningsworkflow",
+      "reportGenerationWorkflow": "Rapportgenereringsworkflow",
+      "executionSuccess": "Udført med succes",
+      "executionRunning": "I gang",
+      "timeAgo": {
+        "minutes": "{n} minutter siden",
+        "hours": "{n} timer siden"
+      }
+    },
+    "gettingStarted": {
+      "title": "Kom i gang med Telos",
+      "description": "Hurtigstartsguide, der hjælper dig med at udnytte platformens funktioner fuldt ud",
+      "step1": {
+        "title": "1. Opret arbejdsgang",
+        "description": "Opret din første automatiserede arbejdsgang med en visuel editor"
+      },
+      "step2": {
+        "title": "2. Konfigurer udløser",
+        "description": "Indstil udløsningsbetingelser og eksekveringsplan for workflowet"
+      },
+      "step3": {
+        "title": "3. Overvågning af udførelse",
+        "description": "Overvåg arbejdsflowets udførelsestilstand og ydeevne i realtid"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Workflowstyring",
+    "subtitle": "Administrer og overvåg dine automatiserede arbejdsprocesser",
+    "createWorkflow": "Opret arbejdsflow",
+    "stats": {
+      "total": "Samlet arbejdsproces",
+      "running": "I gang",
+      "paused": "Sat på pause",
+      "totalExecutions": "Samlet antal udførelser"
+    },
+    "status": {
+      "active": "I gang",
+      "paused": "Sat på pause",
+      "running": "I gang",
+      "unknown": "ukendt"
+    },
+    "list": {
+      "title": "Workflow-liste",
+      "lastRun": "Sidste kørsel:",
+      "executions": "Udførelsesantal:",
+      "minutesAgo": "for minutter siden",
+      "hoursAgo": "timer siden",
+      "daysAgo": "dage siden"
+    },
+    "emptyState": {
+      "title": "Ingen arbejdsproces endnu",
+      "description": "Opret din første arbejdsgang for at begynde at automatisere dine forretningsprocesser",
+      "createButton": "Opret arbejdsflow"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Datasynkroniseringsarbejdsgang",
+        "description": "Automatisk synkronisering af databaseoplysninger til eksterne systemer"
+      },
+      "emailNotification": {
+        "name": "E-mail underretningsworkflow",
+        "description": "Send regelmæssige rapportmails til teammedlemmer"
+      },
+      "reportGeneration": {
+        "name": "Rapportgenereringsworkflow",
+        "description": "Generer daglige forretningsrapporter og arkiver dem"
+      },
+      "backup": {
+        "name": "Backup-arbejdsgang",
+        "description": "Sikkerhedskopier vigtige data regelmæssigt til cloud-lagring"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Lys tilstand",

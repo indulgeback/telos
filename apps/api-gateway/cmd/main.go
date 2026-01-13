@@ -73,7 +73,7 @@ func main() {
 			Path:        "/api/agent",
 			ServiceName: "agent-service",
 			StripPrefix: false,
-			Timeout:     30,
+			Timeout:     60,
 		},
 	}
 	proxyManager.LoadRoutes(routes)
@@ -101,12 +101,13 @@ func main() {
 	// apiGroup.Use(echo.WrapMiddleware(apimiddleware.AuthMiddleware(cfg)))
 
 	// 所有API请求由代理管理器处理
-	apiGroup.Any("/*", echo.WrapHandler(proxyManager))
+	// 使用自定义 EchoHandler 来支持流式响应（SSE）
+	apiGroup.Any("/*", proxyManager.EchoHandler)
 
 	// 启动服务器
 	port := cfg.Port
 	if port == "" {
-		port = "8080"
+		port = "8890"
 	}
 	addr := ":" + port
 

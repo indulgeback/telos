@@ -71,9 +71,9 @@ services:
       dockerfile: apps/api-gateway/Dockerfile
     container_name: telos-api-gateway
     ports:
-      - "8080:8080"
+      - "8890:8890"
     environment:
-      - PORT=8080
+      - PORT=8890
       - REGISTRY_URL=http://registry:8090
       - NODE_ENV=production
     depends_on:
@@ -89,7 +89,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:8080/health",
+          "http://localhost:8890/ping",
         ]
       interval: 30s
       timeout: 10s
@@ -228,26 +228,13 @@ services:
       - "8895:8895"
     environment:
       - PORT=8895
-      - SERVICE_NAME=agent-service
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=Telos
-      - DB_USER=telos
-      - DB_PASSWORD=telos123
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-      - REGISTRY_URL=http://registry:8090
-      - LLM_PROVIDER=deepseek
-      - LLM_MODEL=deepseek-chat
+      - ENV=production
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
       - LOG_LEVEL=info
-      - LOG_FORMAT=color
-      - LOG_OUTPUT=stdout
+      - LOG_FORMAT=json
+      - REGISTRY_URL=http://registry:8090
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
       registry:
         condition: service_healthy
     networks:
@@ -276,7 +263,7 @@ services:
       - "8800:8800"
     environment:
       - PORT=8800
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_API_URL=http://localhost:8890
       - NODE_ENV=production
       # 注意：生产环境中应该使用环境变量或密钥管理
       - AUTH_SECRET=your-auth-secret-here

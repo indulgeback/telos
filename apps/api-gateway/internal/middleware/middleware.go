@@ -122,20 +122,33 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 
 			// 检查是否允许该来源
 			allowed := false
+			allowAll := false
 			for _, allowedOrigin := range allowedOrigins {
-				if allowedOrigin == "*" || allowedOrigin == origin {
+				if allowedOrigin == "*" {
+					allowed = true
+					allowAll = true
+					break
+				}
+				if allowedOrigin == origin {
 					allowed = true
 					break
 				}
 			}
 
 			if allowed {
-				w.Header().Set("Access-Control-Allow-Origin", origin)
+				if allowAll {
+					// 通配符时使用 *，不设置 credentials（避免浏览器冲突）
+					w.Header().Set("Access-Control-Allow-Origin", "*")
+				} else {
+					// 具体来源时可以设置 credentials
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					w.Header().Set("Access-Control-Allow-Credentials", "true")
+				}
 			}
 
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-Request-ID")
+			w.Header().Set("Access-Control-Expose-Headers", "X-Request-ID, Content-Type")
 
 			// 处理预检请求
 			if r.Method == "OPTIONS" {
@@ -196,6 +209,21 @@ type responseWriter struct {
 func (rw *responseWriter) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
+}
+
+// Flush 实现 http.Flusher 接口，支持 SSE 流式响应
+func (rw *responseWriter) Flush() {
+	if flusher, ok := rw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// Hijack 实现 http.Hijacker 接口，支持 WebSocket
+func (rw *responseWriter) Hijack() (c any, rw2 any, err error) {
+	if hijacker, ok := rw.ResponseWriter.(http.Hijacker); ok {
+		return hijacker.Hijack()
+	}
+	return nil, nil, http.ErrNotSupported
 }
 
 // rateLimiter 简单的限流器实现

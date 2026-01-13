@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Startpagina",
+    "workflows": "workflow",
+    "chat": "AI-assistent",
+    "dashboard": "dashboard"
+  },
+  "Chat": {
+    "title": "AI-assistent",
+    "subtitle": "Altijd tot uw dienst",
+    "clearConversation": "Gesprek leegmaken",
+    "emptyState": {
+      "title": "Kan ik u ergens mee helpen?",
+      "description": "Kies een voorgesteld probleem om mee te beginnen, of typ gewoon uw vraag in"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Nieuw project starten",
+        "prompt": "Help me bij het plannen van de tech stack en architectuur voor een nieuw project"
+      },
+      "debugCode": {
+        "label": "Code debuggen",
+        "prompt": "Help me het probleem in deze code analyseren"
+      },
+      "writeDocs": {
+        "label": "Documentatie schrijven",
+        "prompt": "Help me met het schrijven van gebruikersdocumentatie voor deze functie"
+      },
+      "creativeIdeas": {
+        "label": "Creatieve inspiratie",
+        "prompt": "Geef me wat advies over productinnovatie"
+      }
+    },
+    "input": {
+      "placeholder": "Voer uw vraag in... (Shift + Enter voor een nieuwe regel)"
+    },
+    "actions": {
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd"
+    },
+    "error": {
+      "message": "Sorry, er is een fout opgetreden. Probeer het later opnieuw."
+    },
+    "disclaimer": "AI-assistenten kunnen fouten maken, controleer belangrijke informatie."
+  },
+  "Dashboard": {
+    "welcome": "Welkom terug, {name}!",
+    "welcomeFallback": "Gebruiker",
+    "subtitle": "Dit is uw workflowbeheerdashboard",
+    "stats": {
+      "activeWorkflows": "Actieve workflow",
+      "totalExecutions": "Totale uitvoeringsaantallen",
+      "successRate": "slagskans",
+      "avgExecutionTime": "Gemiddelde uitvoeringstijd",
+      "comparedToLastWeek": "In vergelijking met vorige week",
+      "comparedToLastMonth": "Vergeleken met vorige maand"
+    },
+    "quickActions": {
+      "title": "Snelle bediening",
+      "description": "Veelgebruikte workflowbeheerbewerkingen",
+      "createWorkflow": "Nieuwe workflow aanmaken",
+      "viewWorkflows": "Alle workflows bekijken",
+      "manageSettings": "Beheerinstellingen"
+    },
+    "recentActivity": {
+      "title": "Recente activiteiten",
+      "description": "Uw recente workflow-uitvoeringsgeschiedenis",
+      "viewAllHistory": "Bekijk alle geschiedenis"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Gegevenensynchronisatiestroom",
+      "emailNotificationWorkflow": "E-mailmeldingsworkflow",
+      "reportGenerationWorkflow": "Rapportagegeneratieworkflow",
+      "executionSuccess": "Uitvoering geslaagd",
+      "executionRunning": "Bezig met uitvoeren",
+      "timeAgo": {
+        "minutes": "{n} minuten geleden",
+        "hours": "{n} uur geleden"
+      }
+    },
+    "gettingStarted": {
+      "title": "Begin met Telos",
+      "description": "Snelle startgids om u te helpen het platform optimaal te benutten",
+      "step1": {
+        "title": "1. Workflow maken",
+        "description": "Maak uw eerste geautomatiseerde workflow met de visuele editor"
+      },
+      "step2": {
+        "title": "2. Trigger configureren",
+        "description": "Stel de triggervoorwaarden en het uitvoeringsschema van de workflow in"
+      },
+      "step3": {
+        "title": "3. Toezicht op de uitvoering",
+        "description": "Realtime toezicht op de uitvoering van workflows en prestatie-indicatoren"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Workflowbeheer",
+    "subtitle": "Beheer en controleer uw geautomatiseerde workflows",
+    "createWorkflow": "Workflow maken",
+    "stats": {
+      "total": "Algemene workflow",
+      "running": "Bezig met uitvoeren",
+      "paused": "Pauze",
+      "totalExecutions": "Totale uitvoeringsaantallen"
+    },
+    "status": {
+      "active": "Bezig met uitvoeren",
+      "paused": "Pauze",
+      "running": "Bezig met uitvoeren",
+      "unknown": "Onbekend"
+    },
+    "list": {
+      "title": "Workflowlijst",
+      "lastRun": "Laatste uitvoering:",
+      "executions": "Aantal uitvoeringen:",
+      "minutesAgo": "minuten geleden",
+      "hoursAgo": "uur geleden",
+      "daysAgo": "dagen geleden"
+    },
+    "emptyState": {
+      "title": "Nog geen workflow",
+      "description": "Maak uw eerste workflow om uw bedrijfsprocessen te automatiseren",
+      "createButton": "Workflow maken"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Gegevenensynchronisatiestroom",
+        "description": "Automatisch databasegegevens synchroniseren met externe systemen"
+      },
+      "emailNotification": {
+        "name": "E-mailmeldingsworkflow",
+        "description": "Stuur periodieke rapport-e-mails naar teamleden"
+      },
+      "reportGeneration": {
+        "name": "Rapportagegeneratieworkflow",
+        "description": "Dagelijkse bedrijfsrapporten genereren en archiveren"
+      },
+      "backup": {
+        "name": "Back-upworkflow",
+        "description": "Maak regelmatig een back-up van belangrijke gegevens naar cloudopslag"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Lichte modus",

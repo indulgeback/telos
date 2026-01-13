@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Beranda",
+    "workflows": "Alur kerja",
+    "chat": "Asisten AI",
+    "dashboard": "Dashboard"
+  },
+  "Chat": {
+    "title": "Asisten AI",
+    "subtitle": "Siap melayani Anda kapan saja",
+    "clearConversation": "Bersihkan percakapan",
+    "emptyState": {
+      "title": "Ada yang bisa saya bantu?",
+      "description": "Pilih salah satu pertanyaan yang disarankan untuk memulai, atau langsung masukkan pertanyaan Anda"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Memulai proyek baru",
+        "prompt": "Tolong bantu saya merencanakan stack teknologi dan arsitektur untuk proyek baru"
+      },
+      "debugCode": {
+        "label": "Men-debug kode",
+        "prompt": "Tolong bantu saya menganalisis masalah dalam potongan kode ini"
+      },
+      "writeDocs": {
+        "label": "Menulis dokumen",
+        "prompt": "Tolong bantu saya menulis dokumentasi pengguna untuk fitur ini"
+      },
+      "creativeIdeas": {
+        "label": "Inspirasi kreatif",
+        "prompt": "Berikan saya beberapa saran tentang inovasi produk"
+      }
+    },
+    "input": {
+      "placeholder": "Masukkan pertanyaan Anda... (Shift + Enter untuk baris baru)"
+    },
+    "actions": {
+      "copy": "Salin",
+      "copied": "Telah disalin"
+    },
+    "error": {
+      "message": "Maaf, terjadi beberapa kesalahan. Silakan coba lagi nanti."
+    },
+    "disclaimer": "Asisten AI mungkin membuat kesalahan, harap verifikasi informasi penting"
+  },
+  "Dashboard": {
+    "welcome": "Selamat datang kembali, {name}!",
+    "welcomeFallback": "Pengguna",
+    "subtitle": "Ini adalah dasbor manajemen alur kerja Anda",
+    "stats": {
+      "activeWorkflows": "Alur kerja aktif",
+      "totalExecutions": "Jumlah total eksekusi",
+      "successRate": "Tingkat keberhasilan",
+      "avgExecutionTime": "Waktu eksekusi rata-rata",
+      "comparedToLastWeek": "Dibandingkan dengan minggu lalu",
+      "comparedToLastMonth": "Dibandingkan bulan lalu"
+    },
+    "quickActions": {
+      "title": "Operasi cepat",
+      "description": "Operasi manajemen alur kerja yang umum digunakan",
+      "createWorkflow": "Buat alur kerja baru",
+      "viewWorkflows": "Lihat semua alur kerja",
+      "manageSettings": "Pengaturan Manajemen"
+    },
+    "recentActivity": {
+      "title": "Aktivitas terbaru",
+      "description": "Riwayat eksekusi alur kerja Anda baru-baru ini",
+      "viewAllHistory": "Lihat semua riwayat"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Alur Kerja Sinkronisasi Data",
+      "emailNotificationWorkflow": "Alur Kerja Pemberitahuan Email",
+      "reportGenerationWorkflow": "Alur kerja pembuatan laporan",
+      "executionSuccess": "Eksekusi berhasil",
+      "executionRunning": "Sedang dijalankan",
+      "timeAgo": {
+        "minutes": "{n} menit yang lalu",
+        "hours": "{n} jam yang lalu"
+      }
+    },
+    "gettingStarted": {
+      "title": "Mulai menggunakan Telos",
+      "description": "Panduan cepat untuk membantu Anda memanfaatkan fungsi platform secara maksimal",
+      "step1": {
+        "title": "1. Buat alur kerja",
+        "description": "Buat alur kerja otomatisasi pertama Anda menggunakan editor visual"
+      },
+      "step2": {
+        "title": "2. Mengonfigurasi pemicu",
+        "description": "Mengatur kondisi pemicu dan jadwal eksekusi alur kerja"
+      },
+      "step3": {
+        "title": "3. Pemantauan Pelaksanaan",
+        "description": "Memantau status eksekusi alur kerja dan indikator kinerja secara real-time"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Manajemen alur kerja",
+    "subtitle": "Kelola dan pantau alur kerja otomatis Anda",
+    "createWorkflow": "Buat alur kerja",
+    "stats": {
+      "total": "Alur kerja keseluruhan",
+      "running": "Sedang berjalan",
+      "paused": "Telah dijeda",
+      "totalExecutions": "Jumlah total eksekusi"
+    },
+    "status": {
+      "active": "Sedang berjalan",
+      "paused": "Telah dijeda",
+      "running": "Sedang dijalankan",
+      "unknown": "Tidak diketahui"
+    },
+    "list": {
+      "title": "Daftar alur kerja",
+      "lastRun": "Terakhir dijalankan:",
+      "executions": "Jumlah eksekusi:",
+      "minutesAgo": "menit yang lalu",
+      "hoursAgo": "jam yang lalu",
+      "daysAgo": "hari yang lalu"
+    },
+    "emptyState": {
+      "title": "Belum ada alur kerja",
+      "description": "Buat alur kerja pertama Anda untuk mulai mengotomatiskan proses bisnis Anda",
+      "createButton": "Buat alur kerja"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Alur Kerja Sinkronisasi Data",
+        "description": "Menyinkronkan data database secara otomatis ke sistem eksternal"
+      },
+      "emailNotification": {
+        "name": "Alur Kerja Pemberitahuan Email",
+        "description": "Kirim email laporan rutin kepada anggota tim"
+      },
+      "reportGeneration": {
+        "name": "Alur kerja pembuatan laporan",
+        "description": "Membuat laporan bisnis harian dan mengarsipkannya"
+      },
+      "backup": {
+        "name": "Alur Kerja Cadangan",
+        "description": "Rutin mencadangkan data penting ke penyimpanan cloud"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Mode cahaya",

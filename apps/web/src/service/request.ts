@@ -1,5 +1,6 @@
 // API 基础配置
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8890'
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8890'
 
 // 请求配置接口
 export interface RequestConfig extends RequestInit {

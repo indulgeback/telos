@@ -1,6 +1,7 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 import { CustomLink } from '@/components/molecules'
 import {
   Card,
@@ -25,6 +26,7 @@ import {
 import { redirect } from 'next/navigation'
 
 export default function DashboardPage() {
+  const t = useTranslations('Dashboard')
   const { data: session, status } = useSession()
 
   if (status === 'loading') {
@@ -61,9 +63,11 @@ export default function DashboardPage() {
       <div className='flex items-center justify-between'>
         <div className='space-y-1'>
           <h1 className='text-3xl font-bold'>
-            欢迎回来，{user.name?.split(' ')[0] || '用户'}！
+            {t('welcome', {
+              name: user.name?.split(' ')[0] || t('welcomeFallback'),
+            })}
           </h1>
-          <p className='text-muted-foreground'>这是您的工作流管理仪表板</p>
+          <p className='text-muted-foreground'>{t('subtitle')}</p>
         </div>
         <div className='flex items-center gap-4'>
           <Avatar className='h-10 w-10'>
@@ -77,45 +81,61 @@ export default function DashboardPage() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>活跃工作流</CardTitle>
+            <CardTitle className='text-sm font-medium'>
+              {t('stats.activeWorkflows')}
+            </CardTitle>
             <Activity className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>12</div>
-            <p className='text-xs text-muted-foreground'>+2 较上周</p>
+            <p className='text-xs text-muted-foreground'>
+              +2 {t('stats.comparedToLastWeek')}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>总执行次数</CardTitle>
+            <CardTitle className='text-sm font-medium'>
+              {t('stats.totalExecutions')}
+            </CardTitle>
             <TrendingUp className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>1,234</div>
-            <p className='text-xs text-muted-foreground'>+15% 较上月</p>
+            <p className='text-xs text-muted-foreground'>
+              +15% {t('stats.comparedToLastMonth')}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>成功率</CardTitle>
+            <CardTitle className='text-sm font-medium'>
+              {t('stats.successRate')}
+            </CardTitle>
             <Workflow className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>98.5%</div>
-            <p className='text-xs text-muted-foreground'>+0.5% 较上周</p>
+            <p className='text-xs text-muted-foreground'>
+              +0.5% {t('stats.comparedToLastWeek')}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>平均执行时间</CardTitle>
+            <CardTitle className='text-sm font-medium'>
+              {t('stats.avgExecutionTime')}
+            </CardTitle>
             <Clock className='h-4 w-4 text-muted-foreground' />
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>2.3s</div>
-            <p className='text-xs text-muted-foreground'>-0.2s 较上周</p>
+            <p className='text-xs text-muted-foreground'>
+              -0.2s {t('stats.comparedToLastWeek')}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -124,26 +144,26 @@ export default function DashboardPage() {
       <div className='grid md:grid-cols-2 gap-6'>
         <Card>
           <CardHeader>
-            <CardTitle>快速操作</CardTitle>
-            <CardDescription>常用的工作流管理操作</CardDescription>
+            <CardTitle>{t('quickActions.title')}</CardTitle>
+            <CardDescription>{t('quickActions.description')}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <Button asChild className='w-full justify-start'>
               <CustomLink href='/workflows/new'>
                 <Plus className='mr-2 h-4 w-4' />
-                创建新工作流
+                {t('quickActions.createWorkflow')}
               </CustomLink>
             </Button>
             <Button asChild variant='outline' className='w-full justify-start'>
               <CustomLink href='/workflows'>
                 <Workflow className='mr-2 h-4 w-4' />
-                查看所有工作流
+                {t('quickActions.viewWorkflows')}
               </CustomLink>
             </Button>
             <Button asChild variant='outline' className='w-full justify-start'>
               <CustomLink href='/settings'>
                 <Users className='mr-2 h-4 w-4' />
-                管理设置
+                {t('quickActions.manageSettings')}
               </CustomLink>
             </Button>
           </CardContent>
@@ -151,16 +171,19 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>最近活动</CardTitle>
-            <CardDescription>您最近的工作流执行记录</CardDescription>
+            <CardTitle>{t('recentActivity.title')}</CardTitle>
+            <CardDescription>{t('recentActivity.description')}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
             <div className='space-y-3'>
               <div className='flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800'>
                 <div className='space-y-1'>
-                  <p className='text-sm font-medium'>数据同步工作流</p>
+                  <p className='text-sm font-medium'>
+                    {t('activityItems.dataSyncWorkflow')}
+                  </p>
                   <p className='text-xs text-muted-foreground'>
-                    2 分钟前执行成功
+                    {t('activityItems.timeAgo.minutes', { n: 2 })}{' '}
+                    {t('activityItems.executionSuccess')}
                   </p>
                 </div>
                 <div className='h-2 w-2 bg-green-500 rounded-full'></div>
@@ -168,9 +191,12 @@ export default function DashboardPage() {
 
               <div className='flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800'>
                 <div className='space-y-1'>
-                  <p className='text-sm font-medium'>邮件通知工作流</p>
+                  <p className='text-sm font-medium'>
+                    {t('activityItems.emailNotificationWorkflow')}
+                  </p>
                   <p className='text-xs text-muted-foreground'>
-                    15 分钟前执行成功
+                    {t('activityItems.timeAgo.minutes', { n: 15 })}{' '}
+                    {t('activityItems.executionSuccess')}
                   </p>
                 </div>
                 <div className='h-2 w-2 bg-blue-500 rounded-full'></div>
@@ -178,9 +204,12 @@ export default function DashboardPage() {
 
               <div className='flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800'>
                 <div className='space-y-1'>
-                  <p className='text-sm font-medium'>报表生成工作流</p>
+                  <p className='text-sm font-medium'>
+                    {t('activityItems.reportGenerationWorkflow')}
+                  </p>
                   <p className='text-xs text-muted-foreground'>
-                    1 小时前执行中
+                    {t('activityItems.timeAgo.hours', { n: 1 })}{' '}
+                    {t('activityItems.executionRunning')}
                   </p>
                 </div>
                 <div className='h-2 w-2 bg-orange-500 rounded-full animate-pulse'></div>
@@ -189,7 +218,7 @@ export default function DashboardPage() {
 
             <Button asChild variant='ghost' className='w-full'>
               <CustomLink href='/workflows/history'>
-                查看全部历史
+                {t('recentActivity.viewAllHistory')}
                 <ArrowRight className='ml-2 h-4 w-4' />
               </CustomLink>
             </Button>
@@ -200,29 +229,27 @@ export default function DashboardPage() {
       {/* Getting Started */}
       <Card>
         <CardHeader>
-          <CardTitle>开始使用 Telos</CardTitle>
-          <CardDescription>
-            快速上手指南，帮助您充分利用平台功能
-          </CardDescription>
+          <CardTitle>{t('gettingStarted.title')}</CardTitle>
+          <CardDescription>{t('gettingStarted.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className='grid md:grid-cols-3 gap-4'>
             <div className='space-y-2'>
-              <h4 className='font-medium'>1. 创建工作流</h4>
+              <h4 className='font-medium'>{t('gettingStarted.step1.title')}</h4>
               <p className='text-sm text-muted-foreground'>
-                使用可视化编辑器创建您的第一个自动化工作流
+                {t('gettingStarted.step1.description')}
               </p>
             </div>
             <div className='space-y-2'>
-              <h4 className='font-medium'>2. 配置触发器</h4>
+              <h4 className='font-medium'>{t('gettingStarted.step2.title')}</h4>
               <p className='text-sm text-muted-foreground'>
-                设置工作流的触发条件和执行计划
+                {t('gettingStarted.step2.description')}
               </p>
             </div>
             <div className='space-y-2'>
-              <h4 className='font-medium'>3. 监控执行</h4>
+              <h4 className='font-medium'>{t('gettingStarted.step3.title')}</h4>
               <p className='text-sm text-muted-foreground'>
-                实时监控工作流执行状态和性能指标
+                {t('gettingStarted.step3.description')}
               </p>
             </div>
           </div>

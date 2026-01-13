@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Strona główna",
+    "workflows": "przepływ pracy",
+    "chat": "Asystent AI",
+    "dashboard": "Deska rozdzielcza"
+  },
+  "Chat": {
+    "title": "Asystent AI",
+    "subtitle": "Zawsze do Twojej dyspozycji",
+    "clearConversation": "Wyczyść rozmowę",
+    "emptyState": {
+      "title": "W czym mogę pomóc?",
+      "description": "Wybierz sugerowane pytanie, aby rozpocząć, lub wpisz swoje pytanie bezpośrednio"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Rozpocznij nowy projekt",
+        "prompt": "Pomóż mi zaplanować stos technologiczny i architekturę nowego projektu"
+      },
+      "debugCode": {
+        "label": "Debugowanie kodu",
+        "prompt": "Pomóż mi przeanalizować, gdzie jest problem w tym kodzie"
+      },
+      "writeDocs": {
+        "label": "Tworzenie dokumentacji",
+        "prompt": "Pomóż mi napisać dokumentację użytkownika dla tej funkcji"
+      },
+      "creativeIdeas": {
+        "label": "Inspiracja twórcza",
+        "prompt": "Daj mi kilka sugestii dotyczących innowacji produktowych"
+      }
+    },
+    "input": {
+      "placeholder": "Wpisz swoje pytanie... (Shift + Enter, aby przejść do nowej linii)"
+    },
+    "actions": {
+      "copy": "Kopiuj",
+      "copied": "Skopiowano"
+    },
+    "error": {
+      "message": "Przepraszamy, wystąpił błąd. Proszę spróbować później."
+    },
+    "disclaimer": "Asystent AI może popełniać błędy, proszę weryfikować ważne informacje"
+  },
+  "Dashboard": {
+    "welcome": "Witamy z powrotem, {name}!",
+    "welcomeFallback": "Użytkownik",
+    "subtitle": "To jest Twój pulpit zarządzania przepływem pracy",
+    "stats": {
+      "activeWorkflows": "Aktywny przepływ pracy",
+      "totalExecutions": "Łączna liczba wykonania",
+      "successRate": "wskaźnik sukcesu",
+      "avgExecutionTime": "Średni czas wykonania",
+      "comparedToLastWeek": "w porównaniu z zeszłym tygodniem",
+      "comparedToLastMonth": "w porównaniu z poprzednim miesiącem"
+    },
+    "quickActions": {
+      "title": "Szybkie operacje",
+      "description": "Typowe operacje zarządzania przepływem pracy",
+      "createWorkflow": "Utwórz nowy przepływ pracy",
+      "viewWorkflows": "Zobacz wszystkie przepływy pracy",
+      "manageSettings": "Ustawienia zarządzania"
+    },
+    "recentActivity": {
+      "title": "Ostatnie aktywności",
+      "description": "Ostatnie rekordy wykonywania przepływów pracy",
+      "viewAllHistory": "Zobacz całą historię"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Przepływ pracy synchronizacji danych",
+      "emailNotificationWorkflow": "Powiadomienie e-mail w przepływie pracy",
+      "reportGenerationWorkflow": "Przepływ pracy generowania raportów",
+      "executionSuccess": "Wykonano pomyślnie",
+      "executionRunning": "W trakcie wykonywania",
+      "timeAgo": {
+        "minutes": "{n} minut temu",
+        "hours": "{n} godzin temu"
+      }
+    },
+    "gettingStarted": {
+      "title": "Rozpocznij korzystanie z Telos",
+      "description": "Szybki przewodnik, który pomoże Ci w pełni wykorzystać funkcje platformy",
+      "step1": {
+        "title": "1. Utwórz przepływ pracy",
+        "description": "Utwórz swój pierwszy zautomatyzowany workflow za pomocą edytora wizualnego"
+      },
+      "step2": {
+        "title": "2. Konfiguracja wyzwalacza",
+        "description": "Ustaw warunki wyzwalania i harmonogram wykonywania przepływu pracy"
+      },
+      "step3": {
+        "title": "3. Monitorowanie wykonania",
+        "description": "Monitorowanie w czasie rzeczywistym stanu wykonywania przepływu pracy i wskaźników wydajności"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Zarządzanie przepływem pracy",
+    "subtitle": "Zarządzaj i monitoruj swoje zautomatyzowane przepływy pracy",
+    "createWorkflow": "Utwórz przepływ pracy",
+    "stats": {
+      "total": "Cały przepływ pracy",
+      "running": "W trakcie działania",
+      "paused": "Wstrzymano",
+      "totalExecutions": "Łączna liczba wykonanych operacji"
+    },
+    "status": {
+      "active": "W trakcie działania",
+      "paused": "Wstrzymano",
+      "running": "W trakcie wykonywania",
+      "unknown": "Nieznany"
+    },
+    "list": {
+      "title": "Lista przepływów pracy",
+      "lastRun": "Ostatnie uruchomienie:",
+      "executions": "Liczba wykonanych operacji:",
+      "minutesAgo": "minut temu",
+      "hoursAgo": "godzin temu",
+      "daysAgo": "dni temu"
+    },
+    "emptyState": {
+      "title": "Nie ma jeszcze przepływu pracy",
+      "description": "Utwórz swój pierwszy przepływ pracy, aby zacząć automatyzować procesy biznesowe",
+      "createButton": "Utwórz przepływ pracy"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Proces synchronizacji danych",
+        "description": "Automatyczna synchronizacja danych z bazy danych do systemów zewnętrznych"
+      },
+      "emailNotification": {
+        "name": "Powiadomienie e-mail w przepływie pracy",
+        "description": "Wysyłaj regularne raporty e-mailem do członków zespołu"
+      },
+      "reportGeneration": {
+        "name": "Przepływ pracy generowania raportów",
+        "description": "Generować codzienne raporty biznesowe i archiwizować"
+      },
+      "backup": {
+        "name": "Tworzenie kopii zapasowej przepływu pracy",
+        "description": "Regularnie twórz kopie zapasowe ważnych danych w chmurze"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Tryb światła",

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   UserAvatar,
   ThemeToggle,
@@ -11,14 +12,16 @@ import {
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
-const navigation = [
-  { name: '首页', href: '/' },
-  { name: '工作流', href: '/workflows' },
-  { name: '仪表板', href: '/dashboard' },
-]
-
 export function Navbar() {
+  const t = useTranslations('Navbar')
   const pathname = usePathname()
+
+  const navigation = [
+    { name: t('home'), href: '/' },
+    { name: t('workflows'), href: '/workflows' },
+    { name: t('chat'), href: '/chat' },
+    { name: t('dashboard'), href: '/dashboard' },
+  ]
 
   return (
     <nav className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>

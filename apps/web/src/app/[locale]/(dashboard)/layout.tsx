@@ -19,9 +19,9 @@ export default async function DashboardLayout({ children, params }: Iprops) {
   }
 
   return (
-    <div className='min-h-screen bg-background'>
+    <div className='flex h-screen flex-col bg-background'>
       <Navbar />
-      <main>{children}</main>
+      <main className='flex-1 overflow-hidden'>{children}</main>
     </div>
   )
 }

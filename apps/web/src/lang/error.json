@@ -1,0 +1,20 @@
+[
+  {
+    "lang": "tw",
+    "key": "Dashboard.gettingStarted.description",
+    "value": "快速上手指南，帮助您充分利用平台功能",
+    "error": "Cannot read properties of undefined (reading 'body')"
+  },
+  {
+    "lang": "tr",
+    "key": "Chat.actions.copy",
+    "value": "复制",
+    "error": "Cannot read properties of undefined (reading 'body')"
+  },
+  {
+    "lang": "tr",
+    "key": "Workflows.sampleData.backup.description",
+    "value": "定期备份重要数据到云存储",
+    "error": "Cannot read properties of undefined (reading 'body')"
+  }
+]

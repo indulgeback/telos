@@ -3,6 +3,8 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
 	"github.com/indulgeback/telos/pkg/tlog"
+	"github.com/labstack/echo/v4"
 )
 
 // RouteConfig 路由配置
@@ -34,6 +37,130 @@ func NewProxyManager(discovery service.ServiceDiscovery) *ProxyManager {
 		discovery: discovery,
 		proxies:   make(map[string]*httputil.ReverseProxy),
 	}
+}
+
+// EchoHandler 返回一个 Echo handler，使用原始 ResponseWriter 支持流式响应
+func (pm *ProxyManager) EchoHandler(c echo.Context) error {
+	// 判断是否为流式请求路径
+	if isStreamPath(c.Request().URL.Path) {
+		return pm.StreamProxy(c)
+	}
+	// 非流式请求使用标准代理
+	pm.ServeHTTP(c.Response().Writer, c.Request())
+	return nil
+}
+
+// isStreamPath 判断是否为流式响应路径
+func isStreamPath(path string) bool {
+	streamPaths := []string{
+		"/api/agent",
+	}
+	for _, sp := range streamPaths {
+		if strings.HasPrefix(path, sp) {
+			return true
+		}
+	}
+	return false
+}
+
+// StreamProxy 流式代理处理器（SSE）
+// 使用 io.Copy 将后端流式数据实时传输到前端，避免 httputil.ReverseProxy 的 Flush 问题
+func (pm *ProxyManager) StreamProxy(c echo.Context) error {
+	// 1. 查找匹配的路由
+	route := pm.findRoute(c.Request().URL.Path)
+	if route == nil {
+		tlog.Warn("未找到匹配路由", "path", c.Request().URL.Path)
+		return echo.NewHTTPError(http.StatusNotFound, "未找到匹配的服务路由")
+	}
+
+	// 2. 服务发现
+	target, err := pm.discovery.Discover(route.ServiceName)
+	if err != nil {
+		tlog.Error("服务发现失败", "service", route.ServiceName, "error", err)
+		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("服务 %s 不可用", route.ServiceName))
+	}
+
+	// 3. 构建目标 URL，处理 StripPrefix
+	if !strings.HasPrefix(target, "http://") && !strings.HasPrefix(target, "https://") {
+		target = "http://" + target
+	}
+
+	// 处理路径前缀
+	requestPath := c.Request().URL.Path
+	if route.StripPrefix {
+		requestPath = strings.TrimPrefix(requestPath, route.Path)
+		if !strings.HasPrefix(requestPath, "/") {
+			requestPath = "/" + requestPath
+		}
+	}
+	targetURL := target + requestPath
+
+	tlog.Info("[API Gateway] 流式代理请求",
+		"method", c.Request().Method,
+		"path", c.Request().URL.Path,
+		"target", targetURL,
+		"strip_prefix", route.StripPrefix,
+	)
+
+	// 4. 创建转发请求
+	req, err := http.NewRequestWithContext(c.Request().Context(), c.Request().Method, targetURL, c.Request().Body)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "创建转发请求失败")
+	}
+
+	// 复制请求头
+	for name, values := range c.Request().Header {
+		for _, value := range values {
+			req.Header.Add(name, value)
+		}
+	}
+	// 更新 Host 头
+	req.Host = ""
+	req.Header.Set("X-Forwarded-Host", c.Request().Host)
+	req.Header.Set("X-Forwarded-Proto", getScheme(c.Request()))
+
+	// 5. 发起请求
+	client := &http.Client{
+		Timeout: 0, // 流式响应不设置超时
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		tlog.Error("[API Gateway] 流式代理请求失败", "error", err)
+		return echo.NewHTTPError(http.StatusBadGateway, "后端服务请求失败")
+	}
+	defer resp.Body.Close()
+
+	// 6. 复制后端响应头到前端（包括关键的 AI SDK 协议头）
+	for name, values := range resp.Header {
+		// 跳过 Content-Encoding 和 Transfer-Encoding，让 Go 自动处理
+		if strings.EqualFold(name, "Content-Encoding") || strings.EqualFold(name, "Transfer-Encoding") {
+			continue
+		}
+		for _, value := range values {
+			c.Response().Header().Add(name, value)
+		}
+	}
+	// 确保关键响应头存在
+	c.Response().Header().Set("Cache-Control", "no-cache")
+	c.Response().Header().Set("Connection", "keep-alive")
+	c.Response().Header().Set("X-Accel-Buffering", "no")
+
+	tlog.Debug("[API Gateway] 流式代理响应头", "content_type", resp.Header.Get("Content-Type"))
+
+	// 7. 写入状态码
+	c.Response().WriteHeader(resp.StatusCode)
+
+	// 8. 使用 io.Copy 将后端流实时拷贝到前端响应
+	// 当前端断开连接时，Request.Context() 会取消，client.Do 会自动检测并断开与后端的连接
+	written, err := io.Copy(c.Response().Writer, resp.Body)
+	if err != nil {
+		// 连接可能已经断开（用户关闭页面），这是正常情况
+		tlog.Debug("[API Gateway] 流式传输结束", "written", written, "error", err)
+		return nil
+	}
+
+	tlog.Info("[API Gateway] 流式传输完成", "bytes", written)
+	return nil
 }
 
 // LoadRoutes 加载路由配置
@@ -83,6 +210,17 @@ func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Header.Set("X-Forwarded-Host", r.Host)
 	r.Header.Set("X-Forwarded-Proto", getScheme(r))
 
+	// 记录请求详情（特别是 /api/agent 路径）
+	if r.URL.Path == "/api/agent" {
+		tlog.Info("[API Gateway] 转发聊天请求",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"service", route.ServiceName,
+			"target", target,
+			"content_type", r.Header.Get("Content-Type"),
+		)
+	}
+
 	// 转发请求
 	proxy.ServeHTTP(w, r)
 }
@@ -123,10 +261,30 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-	// 设置超时
+	// 设置响应修改器（用于调试和确保响应头正确转发）
+	proxy.ModifyResponse = func(resp *http.Response) error {
+		// 记录响应状态和关键响应头
+		tlog.Debug("代理响应",
+			"status", resp.Status,
+			"content_type", resp.Header.Get("Content-Type"),
+		)
+		return nil
+	}
+
+	// 设置超时（流式响应需要完整的超时配置，而不是仅 ResponseHeaderTimeout）
 	if route.Timeout > 0 {
 		proxy.Transport = &http.Transport{
-			ResponseHeaderTimeout: time.Duration(route.Timeout) * time.Second,
+			// 对于流式响应，不使用 ResponseHeaderTimeout，因为它可能会中断正在进行的流
+			// 使用 DialContext 超时来控制连接建立
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second, // 连接超时
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			// 设置较大的空闲超时以支持长连接
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			// 不设置 ResponseHeaderTimeout，允许流式响应持续进行
 		}
 	}
 

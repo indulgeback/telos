@@ -40,7 +40,7 @@ func LoadConfig() *Config {
 	}
 
 	if cfg.Port == "" {
-		cfg.Port = "8080"
+		cfg.Port = "8890"
 	}
 	if cfg.RegistryServiceURL == "" {
 		cfg.RegistryServiceURL = "http://localhost:8080"
@@ -66,7 +66,7 @@ func LoadConfig() *Config {
 
 	corsOrigins := viper.GetString("CORS_ORIGINS")
 	if corsOrigins == "" {
-		corsOrigins = "http://localhost:3000"
+		corsOrigins = "*"
 	}
 	cfg.CORSOrigins = strings.Split(corsOrigins, ",")
 	for i, origin := range cfg.CORSOrigins {

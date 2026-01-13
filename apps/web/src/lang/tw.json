@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "首頁",
+    "workflows": "工作流程",
+    "chat": "AI 助手",
+    "dashboard": "儀表板"
+  },
+  "Chat": {
+    "title": "AI 助手",
+    "subtitle": "隨時為您服務",
+    "clearConversation": "清空對話",
+    "emptyState": {
+      "title": "有什麼可以幫到您？",
+      "description": "選擇一個建議問題開始，或者直接輸入您的問題"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "開始新項目",
+        "prompt": "幫我規劃一個新專案的技術棧和架構"
+      },
+      "debugCode": {
+        "label": "調試代碼",
+        "prompt": "幫我分析這段程式碼的問題所在"
+      },
+      "writeDocs": {
+        "label": "編寫文件",
+        "prompt": "幫我為這個功能編寫使用者文件"
+      },
+      "creativeIdeas": {
+        "label": "創意靈感",
+        "prompt": "給我一些關於產品創新的建議"
+      }
+    },
+    "input": {
+      "placeholder": "輸入您的問題... (Shift + Enter 換行)"
+    },
+    "actions": {
+      "copy": "複製",
+      "copied": "已複製"
+    },
+    "error": {
+      "message": "抱歉，發生了一些錯誤。請稍後再試。"
+    },
+    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊"
+  },
+  "Dashboard": {
+    "welcome": "歡迎回來，{name}！",
+    "welcomeFallback": "用戶",
+    "subtitle": "這是您的工作流程管理儀表板",
+    "stats": {
+      "activeWorkflows": "活躍工作流",
+      "totalExecutions": "總執行次數",
+      "successRate": "成功率",
+      "avgExecutionTime": "平均執行時間",
+      "comparedToLastWeek": "較上週",
+      "comparedToLastMonth": "較上月"
+    },
+    "quickActions": {
+      "title": "快速操作",
+      "description": "常用的工作流程管理操作",
+      "createWorkflow": "創建新工作流程",
+      "viewWorkflows": "查看所有工作流程",
+      "manageSettings": "管理設定"
+    },
+    "recentActivity": {
+      "title": "最近活動",
+      "description": "您最近的工作流程執行記錄",
+      "viewAllHistory": "查看全部歷史"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "數據同步工作流",
+      "emailNotificationWorkflow": "郵件通知工作流程",
+      "reportGenerationWorkflow": "報表生成工作流",
+      "executionSuccess": "執行成功",
+      "executionRunning": "執行中",
+      "timeAgo": {
+        "minutes": "{n} 分鐘前",
+        "hours": "{n} 小時前"
+      }
+    },
+    "gettingStarted": {
+      "title": "開始使用 Telos",
+      "description": "快速上手指南，帮助您充分利用平台功能",
+      "step1": {
+        "title": "1. 創建工作流程",
+        "description": "使用可視化編輯器創建您的第一個自動化工作流程"
+      },
+      "step2": {
+        "title": "2. 配置觸發器",
+        "description": "設定工作流程的觸發條件和執行計畫"
+      },
+      "step3": {
+        "title": "3. 監控執行",
+        "description": "即時監控工作流程執行狀態和性能指標"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "工作流程管理",
+    "subtitle": "管理和監控您的自動化工作流",
+    "createWorkflow": "建立工作流程",
+    "stats": {
+      "total": "總工作流程",
+      "running": "運行中",
+      "paused": "已暫停",
+      "totalExecutions": "總執行次數"
+    },
+    "status": {
+      "active": "運行中",
+      "paused": "已暫停",
+      "running": "執行中",
+      "unknown": "未知"
+    },
+    "list": {
+      "title": "工作流程列表",
+      "lastRun": "最後運行:",
+      "executions": "執行次數:",
+      "minutesAgo": "分鐘前",
+      "hoursAgo": "小時前",
+      "daysAgo": "天前"
+    },
+    "emptyState": {
+      "title": "還沒有工作流程",
+      "description": "建立您的第一個工作流程以開始自動化您的業務流程",
+      "createButton": "建立工作流程"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "數據同步工作流",
+        "description": "自動同步資料庫資料到外部系統"
+      },
+      "emailNotification": {
+        "name": "郵件通知工作流程",
+        "description": "發送定期報告郵件給團隊成員"
+      },
+      "reportGeneration": {
+        "name": "報表生成工作流",
+        "description": "生成每日業務報表並存檔"
+      },
+      "backup": {
+        "name": "備份工作流",
+        "description": "定期備份重要資料到雲端存儲"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "淺色模式",

@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Home",
+    "workflows": "Workflow",
+    "chat": "AI Assistant",
+    "dashboard": "Dashboard"
+  },
+  "Chat": {
+    "title": "AI Assistant",
+    "subtitle": "Always at your service",
+    "clearConversation": "Clear conversation",
+    "emptyState": {
+      "title": "How can I help you?",
+      "description": "Choose a suggested question to start, or simply type your question"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Start a new project",
+        "prompt": "Help me plan the tech stack and architecture for a new project"
+      },
+      "debugCode": {
+        "label": "Debug code",
+        "prompt": "Help me analyze the problem with this piece of code"
+      },
+      "writeDocs": {
+        "label": "Write documentation",
+        "prompt": "Help me write user documentation for this feature"
+      },
+      "creativeIdeas": {
+        "label": "Creative Inspiration",
+        "prompt": "Give me some advice on product innovation"
+      }
+    },
+    "input": {
+      "placeholder": "Enter your question... (Shift + Enter for a new line)"
+    },
+    "actions": {
+      "copy": "Copy",
+      "copied": "Copied"
+    },
+    "error": {
+      "message": "Sorry, something went wrong. Please try again later."
+    },
+    "disclaimer": "AI assistants may make mistakes, please verify important information."
+  },
+  "Dashboard": {
+    "welcome": "Welcome back, {name}!",
+    "welcomeFallback": "User",
+    "subtitle": "This is your workflow management dashboard",
+    "stats": {
+      "activeWorkflows": "Active Workflow",
+      "totalExecutions": "Total number of executions",
+      "successRate": "Success rate",
+      "avgExecutionTime": "Average Execution Time",
+      "comparedToLastWeek": "Compared to last week",
+      "comparedToLastMonth": "Compared to last month"
+    },
+    "quickActions": {
+      "title": "Quick Action",
+      "description": "Common Workflow Management Operations",
+      "createWorkflow": "Create New Workflow",
+      "viewWorkflows": "View all workflows",
+      "manageSettings": "Management Settings"
+    },
+    "recentActivity": {
+      "title": "Recent Activities",
+      "description": "Your recent workflow execution records",
+      "viewAllHistory": "View all history"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Data Synchronization Workflow",
+      "emailNotificationWorkflow": "Email Notification Workflow",
+      "reportGenerationWorkflow": "Report Generation Workflow",
+      "executionSuccess": "Execution Successful",
+      "executionRunning": "In Progress",
+      "timeAgo": {
+        "minutes": "{n} minutes ago",
+        "hours": "{n} hours ago"
+      }
+    },
+    "gettingStarted": {
+      "title": "Get Started with Telos",
+      "description": "Quick Start Guide to Help You Make the Most of the Platform's Features",
+      "step1": {
+        "title": "1. Create a workflow",
+        "description": "Create your first automated workflow using the visual editor"
+      },
+      "step2": {
+        "title": "2. Configure the trigger",
+        "description": "Set the trigger conditions and execution schedule for the workflow"
+      },
+      "step3": {
+        "title": "3. Monitoring Execution",
+        "description": "Real-time monitoring of workflow execution status and performance metrics"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "Workflow Management",
+    "subtitle": "Manage and monitor your automated workflows",
+    "createWorkflow": "Create Workflow",
+    "stats": {
+      "total": "Overall Workflow",
+      "running": "Running",
+      "paused": "Paused",
+      "totalExecutions": "Total number of executions"
+    },
+    "status": {
+      "active": "Running",
+      "paused": "Paused",
+      "running": "In Progress",
+      "unknown": "Unknown"
+    },
+    "list": {
+      "title": "Workflow List",
+      "lastRun": "Final run:",
+      "executions": "Number of executions:",
+      "minutesAgo": "minutes ago",
+      "hoursAgo": "hours ago",
+      "daysAgo": "days ago"
+    },
+    "emptyState": {
+      "title": "No workflow yet",
+      "description": "Create your first workflow to start automating your business processes",
+      "createButton": "Create Workflow"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Data Synchronization Workflow",
+        "description": "Automatically sync database data to external systems"
+      },
+      "emailNotification": {
+        "name": "Email Notification Workflow",
+        "description": "Send periodic report emails to team members"
+      },
+      "reportGeneration": {
+        "name": "Report Generation Workflow",
+        "description": "Generate daily business reports and archive them"
+      },
+      "backup": {
+        "name": "Backup Workflow",
+        "description": "Regularly back up important data to cloud storage"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Light mode",

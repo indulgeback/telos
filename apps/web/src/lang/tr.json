@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "Ana Sayfa",
+    "workflows": "İş akışı",
+    "chat": "Yapay Zeka Asistanı",
+    "dashboard": "Gösterge paneli"
+  },
+  "Chat": {
+    "title": "Yapay Zeka Asistanı",
+    "subtitle": "Her zaman hizmetinizde",
+    "clearConversation": "Sohbeti temizle",
+    "emptyState": {
+      "title": "Size nasıl yardımcı olabilirim?",
+      "description": "Önerilen bir soruyu seçerek başlayın veya sorunuzu doğrudan yazın"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "Yeni proje başlat",
+        "prompt": "Bana yeni bir proje için teknoloji yığını ve mimarisini planlamada yardımcı ol."
+      },
+      "debugCode": {
+        "label": "Kod hata ayıklama",
+        "prompt": "Bu kod parçasındaki sorunu analiz etmeme yardım et"
+      },
+      "writeDocs": {
+        "label": "Belge hazırlamak",
+        "prompt": "Bu özellik için kullanıcı belgesi hazırlamama yardım et"
+      },
+      "creativeIdeas": {
+        "label": "Yaratıcı ilham",
+        "prompt": "Bana ürün inovasyonu hakkında bazı öneriler ver."
+      }
+    },
+    "input": {
+      "placeholder": "Sorunuzu girin... (Satır atlamak için Shift + Enter)"
+    },
+    "actions": {
+      "copy": "复制",
+      "copied": "Kopyalandı"
+    },
+    "error": {
+      "message": "Üzgünüz, bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+    },
+    "disclaimer": "AI asistanı hatalar yapabilir, lütfen önemli bilgileri doğrulayın"
+  },
+  "Dashboard": {
+    "welcome": "Hoş geldin, {name}!",
+    "welcomeFallback": "Kullanıcı",
+    "subtitle": "Bu sizin iş akışı yönetim panonuz",
+    "stats": {
+      "activeWorkflows": "Aktif İş Akışı",
+      "totalExecutions": "Toplam yürütme sayısı",
+      "successRate": "Başarı oranı",
+      "avgExecutionTime": "Ortalama yürütme süresi",
+      "comparedToLastWeek": "Geçen haftaya göre",
+      "comparedToLastMonth": "Geçen aya göre"
+    },
+    "quickActions": {
+      "title": "Hızlı işlem",
+      "description": "Yaygın iş akışı yönetimi işlemleri",
+      "createWorkflow": "Yeni iş akışı oluştur",
+      "viewWorkflows": "Tüm iş akışlarını görüntüle",
+      "manageSettings": "Yönetim Ayarları"
+    },
+    "recentActivity": {
+      "title": "Son Etkinlikler",
+      "description": "Son iş akışı yürütme kayıtlarınız",
+      "viewAllHistory": "Tüm geçmişi görüntüle"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "Veri Senkronizasyonu İş Akışı",
+      "emailNotificationWorkflow": "E-posta bildirim iş akışı",
+      "reportGenerationWorkflow": "Rapor oluşturma iş akışı",
+      "executionSuccess": "Başarıyla tamamlandı",
+      "executionRunning": "Yürütülüyor",
+      "timeAgo": {
+        "minutes": "{n} dakika önce",
+        "hours": "{n} saat önce"
+      }
+    },
+    "gettingStarted": {
+      "title": "Telos'u kullanmaya başla",
+      "description": "Hızlı Başlangıç Kılavuzu, platform özelliklerinden en iyi şekilde yararlanmanıza yardımcı olur",
+      "step1": {
+        "title": "1. İş akışı oluştur",
+        "description": "Görsel düzenleyiciyi kullanarak ilk otomatik iş akışınızı oluşturun"
+      },
+      "step2": {
+        "title": "2. Tetikleyiciyi yapılandır",
+        "description": "İş akışı tetikleme koşullarını ve yürütme planını ayarlayın"
+      },
+      "step3": {
+        "title": "3. Yürütmenin İzlenmesi",
+        "description": "İş akışı yürütme durumu ve performans göstergelerini gerçek zamanlı izleme"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "İş akışı yönetimi",
+    "subtitle": "Otomatik iş akışlarınızı yönetin ve izleyin",
+    "createWorkflow": "İş akışı oluştur",
+    "stats": {
+      "total": "Genel İş Akışı",
+      "running": "Çalışıyor",
+      "paused": "Duraklatıldı",
+      "totalExecutions": "Toplam yürütme sayısı"
+    },
+    "status": {
+      "active": "Çalışıyor",
+      "paused": "Duraklatıldı",
+      "running": "Yürütülüyor",
+      "unknown": "Bilinmeyen"
+    },
+    "list": {
+      "title": "İş akışı listesi",
+      "lastRun": "Son çalıştırma:",
+      "executions": "Yürütme Sayısı:",
+      "minutesAgo": "dakika önce",
+      "hoursAgo": "saat önce",
+      "daysAgo": "günler önce"
+    },
+    "emptyState": {
+      "title": "Henüz bir iş akışı yok",
+      "description": "İş süreçlerinizi otomatikleştirmeye başlamak için ilk iş akışınızı oluşturun",
+      "createButton": "İş akışı oluştur"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "Veri senkronizasyon iş akışı",
+        "description": "Veritabanı verilerini dış sistemi otomatik olarak senkronize et"
+      },
+      "emailNotification": {
+        "name": "E-posta bildirim iş akışı",
+        "description": "Takım üyelerine düzenli rapor e-postası göndermek"
+      },
+      "reportGeneration": {
+        "name": "Rapor oluşturma iş akışı",
+        "description": "Günlük iş raporları oluştur ve arşivle"
+      },
+      "backup": {
+        "name": "Yedekleme İş Akışı",
+        "description": "定期备份重要数据到云存储"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "Işık modu",

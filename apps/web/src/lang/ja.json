@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "ホームページ",
+    "workflows": "ワークフロー",
+    "chat": "AIアシスタント",
+    "dashboard": "ダッシュボード"
+  },
+  "Chat": {
+    "title": "AIアシスタント",
+    "subtitle": "いつでもご利用いただけます",
+    "clearConversation": "会話をクリア",
+    "emptyState": {
+      "title": "何かお手伝いできることはありますか？",
+      "description": "おすすめの質問を選んで始めるか、直接質問を入力してください"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "新しいプロジェクトを始める",
+        "prompt": "新しいプロジェクトの技術スタックとアーキテクチャを計画するのを手伝ってください"
+      },
+      "debugCode": {
+        "label": "コードをデバッグする",
+        "prompt": "このコードの問題点を分析するのを手伝ってください"
+      },
+      "writeDocs": {
+        "label": "文書を作成する",
+        "prompt": "この機能のユーザーマニュアルを作成するのを手伝ってください"
+      },
+      "creativeIdeas": {
+        "label": "創造的なひらめき",
+        "prompt": "製品イノベーションについてのアドバイスを教えてください"
+      }
+    },
+    "input": {
+      "placeholder": "質問を入力してください…（Shift + Enter で改行）"
+    },
+    "actions": {
+      "copy": "コピー",
+      "copied": "コピーしました"
+    },
+    "error": {
+      "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
+    },
+    "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください"
+  },
+  "Dashboard": {
+    "welcome": "お帰りなさい、{name}！",
+    "welcomeFallback": "ユーザー",
+    "subtitle": "こちらはあなたのワークフローマネジメントダッシュボードです",
+    "stats": {
+      "activeWorkflows": "アクティブなワークフロー",
+      "totalExecutions": "総実行回数",
+      "successRate": "成功率",
+      "avgExecutionTime": "平均実行時間",
+      "comparedToLastWeek": "先週に比べて",
+      "comparedToLastMonth": "先月比"
+    },
+    "quickActions": {
+      "title": "クイック操作",
+      "description": "よく使われるワークフロー管理操作",
+      "createWorkflow": "新しいワークフローを作成",
+      "viewWorkflows": "すべてのワークフローを表示",
+      "manageSettings": "管理設定"
+    },
+    "recentActivity": {
+      "title": "最近の活動",
+      "description": "最近のワークフロー実行記録",
+      "viewAllHistory": "すべての履歴を表示"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "データ同期ワークフロー",
+      "emailNotificationWorkflow": "メール通知ワークフロー",
+      "reportGenerationWorkflow": "レポート生成ワークフロー",
+      "executionSuccess": "実行成功",
+      "executionRunning": "実行中",
+      "timeAgo": {
+        "minutes": "{n} 分前",
+        "hours": "{n} 時間前"
+      }
+    },
+    "gettingStarted": {
+      "title": "Telosを使い始める",
+      "description": "クイックスタートガイド - プラットフォームの機能を最大限に活用するために",
+      "step1": {
+        "title": "1. ワークフローを作成する",
+        "description": "ビジュアルエディターを使って、最初の自動化ワークフローを作成する"
+      },
+      "step2": {
+        "title": "2. トリガーを配置する",
+        "description": "ワークフローのトリガー条件と実行スケジュールを設定する"
+      },
+      "step3": {
+        "title": "3. 実行の監視",
+        "description": "ワークフローの実行状況とパフォーマンス指標をリアルタイムで監視する"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "ワークフロー管理",
+    "subtitle": "自動化ワークフローを管理および監視する",
+    "createWorkflow": "ワークフローを作成する",
+    "stats": {
+      "total": "総ワークフロー",
+      "running": "実行中",
+      "paused": "一時停止中",
+      "totalExecutions": "総実行回数"
+    },
+    "status": {
+      "active": "実行中",
+      "paused": "一時停止中",
+      "running": "実行中",
+      "unknown": "未知"
+    },
+    "list": {
+      "title": "ワークフロー一覧",
+      "lastRun": "最終実行:",
+      "executions": "実行回数:",
+      "minutesAgo": "分前",
+      "hoursAgo": "時間前",
+      "daysAgo": "日前"
+    },
+    "emptyState": {
+      "title": "まだワークフローがありません",
+      "description": "最初のワークフローを作成して、ビジネスプロセスの自動化を始めましょう",
+      "createButton": "ワークフローを作成する"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "データ同期ワークフロー",
+        "description": "データベースのデータを外部システムに自動同期する"
+      },
+      "emailNotification": {
+        "name": "メール通知ワークフロー",
+        "description": "定期レポートをチームメンバーに送信する"
+      },
+      "reportGeneration": {
+        "name": "レポート生成ワークフロー",
+        "description": "毎日の業務報告を作成して保存する"
+      },
+      "backup": {
+        "name": "バックアップワークフロー",
+        "description": "重要なデータを定期的にクラウドストレージにバックアップする"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "ライトモード",

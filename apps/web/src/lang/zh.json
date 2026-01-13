@@ -1,4 +1,148 @@
 {
+  "Navbar": {
+    "home": "首页",
+    "workflows": "工作流",
+    "chat": "AI 助手",
+    "dashboard": "仪表板"
+  },
+  "Chat": {
+    "title": "AI 助手",
+    "subtitle": "随时为您服务",
+    "clearConversation": "清空对话",
+    "emptyState": {
+      "title": "有什么可以帮到您？",
+      "description": "选择一个建议问题开始，或者直接输入您的问题"
+    },
+    "suggestions": {
+      "newProject": {
+        "label": "开始新项目",
+        "prompt": "帮我规划一个新项目的技术栈和架构"
+      },
+      "debugCode": {
+        "label": "调试代码",
+        "prompt": "帮我分析这段代码的问题所在"
+      },
+      "writeDocs": {
+        "label": "编写文档",
+        "prompt": "帮我为这个功能编写用户文档"
+      },
+      "creativeIdeas": {
+        "label": "创意灵感",
+        "prompt": "给我一些关于产品创新的建议"
+      }
+    },
+    "input": {
+      "placeholder": "输入您的问题... (Shift + Enter 换行)"
+    },
+    "actions": {
+      "copy": "复制",
+      "copied": "已复制"
+    },
+    "error": {
+      "message": "抱歉，发生了一些错误。请稍后再试。"
+    },
+    "disclaimer": "AI 助手可能会产生错误，请核实重要信息"
+  },
+  "Dashboard": {
+    "welcome": "欢迎回来，{name}！",
+    "welcomeFallback": "用户",
+    "subtitle": "这是您的工作流管理仪表板",
+    "stats": {
+      "activeWorkflows": "活跃工作流",
+      "totalExecutions": "总执行次数",
+      "successRate": "成功率",
+      "avgExecutionTime": "平均执行时间",
+      "comparedToLastWeek": "较上周",
+      "comparedToLastMonth": "较上月"
+    },
+    "quickActions": {
+      "title": "快速操作",
+      "description": "常用的工作流管理操作",
+      "createWorkflow": "创建新工作流",
+      "viewWorkflows": "查看所有工作流",
+      "manageSettings": "管理设置"
+    },
+    "recentActivity": {
+      "title": "最近活动",
+      "description": "您最近的工作流执行记录",
+      "viewAllHistory": "查看全部历史"
+    },
+    "activityItems": {
+      "dataSyncWorkflow": "数据同步工作流",
+      "emailNotificationWorkflow": "邮件通知工作流",
+      "reportGenerationWorkflow": "报表生成工作流",
+      "executionSuccess": "执行成功",
+      "executionRunning": "执行中",
+      "timeAgo": {
+        "minutes": "{n} 分钟前",
+        "hours": "{n} 小时前"
+      }
+    },
+    "gettingStarted": {
+      "title": "开始使用 Telos",
+      "description": "快速上手指南，帮助您充分利用平台功能",
+      "step1": {
+        "title": "1. 创建工作流",
+        "description": "使用可视化编辑器创建您的第一个自动化工作流"
+      },
+      "step2": {
+        "title": "2. 配置触发器",
+        "description": "设置工作流的触发条件和执行计划"
+      },
+      "step3": {
+        "title": "3. 监控执行",
+        "description": "实时监控工作流执行状态和性能指标"
+      }
+    }
+  },
+  "Workflows": {
+    "title": "工作流管理",
+    "subtitle": "管理和监控您的自动化工作流",
+    "createWorkflow": "创建工作流",
+    "stats": {
+      "total": "总工作流",
+      "running": "运行中",
+      "paused": "已暂停",
+      "totalExecutions": "总执行次数"
+    },
+    "status": {
+      "active": "运行中",
+      "paused": "已暂停",
+      "running": "执行中",
+      "unknown": "未知"
+    },
+    "list": {
+      "title": "工作流列表",
+      "lastRun": "最后运行:",
+      "executions": "执行次数:",
+      "minutesAgo": "分钟前",
+      "hoursAgo": "小时前",
+      "daysAgo": "天前"
+    },
+    "emptyState": {
+      "title": "还没有工作流",
+      "description": "创建您的第一个工作流来开始自动化您的业务流程",
+      "createButton": "创建工作流"
+    },
+    "sampleData": {
+      "dataSync": {
+        "name": "数据同步工作流",
+        "description": "自动同步数据库数据到外部系统"
+      },
+      "emailNotification": {
+        "name": "邮件通知工作流",
+        "description": "发送定期报告邮件给团队成员"
+      },
+      "reportGeneration": {
+        "name": "报表生成工作流",
+        "description": "生成每日业务报表并存档"
+      },
+      "backup": {
+        "name": "备份工作流",
+        "description": "定期备份重要数据到云存储"
+      }
+    }
+  },
   "Common": {
     "theme": {
       "light": "浅色模式",

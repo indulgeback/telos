@@ -12,9 +12,9 @@ root = "."
   follow_symlink = true
   full_bin = ""
   include_dir = []
-  include_ext = ["go"]  # 修复：移除点号
+  include_ext = ["go"]
   kill_delay = "100ms"
-  log = "air-build.log"  # 添加日志文件
+  log = "air-build.log"
   send_interrupt = true
   stop_on_error = true
 

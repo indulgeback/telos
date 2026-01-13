@@ -38,10 +38,11 @@ export default function SignInPage() {
     setIsLoading(true)
     setLoadingProvider(provider)
     try {
-      await signIn(provider)
+      // signIn 会触发页面跳转，所以不需要重置loading状态
+      await signIn(provider, { callbackUrl })
     } catch (error) {
       console.error(`${provider} 登录失败:`, error)
-    } finally {
+      // 只有发生错误时才重置loading状态
       setIsLoading(false)
       setLoadingProvider(null)
     }
