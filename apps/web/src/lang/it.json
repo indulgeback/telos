@@ -3,7 +3,8 @@
     "home": "Homepage",
     "workflows": "Flusso di lavoro",
     "chat": "Assistente AI",
-    "dashboard": "Cruscotto"
+    "dashboard": "Cruscotto",
+    "agents": "Agente intelligente"
   },
   "Chat": {
     "title": "Assistente AI",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Inserisci la tua domanda... (Shift + Invio per andare a capo)"
+      "placeholder": "Inserisci la tua domanda... (Shift + Invio per andare a capo)",
+      "sendAriaLabel": "Invia messaggio"
     },
     "actions": {
       "copy": "Copia",
-      "copied": "Copiato"
+      "copied": "Copiato",
+      "retry": "Riprova"
     },
     "error": {
       "message": "Spiacenti, si è verificato un errore. Per favore riprova più tardi."
@@ -80,7 +83,7 @@
     },
     "gettingStarted": {
       "title": "Inizia a usare Telos",
-      "description": "Guida rapida per iniziare, per aiutarti a sfruttare al meglio le funzionalità della piattaforma",
+      "description": "Guida rapida per iniziare, per aiutarti a sfruttare al massimo le funzionalità della piattaforma",
       "step1": {
         "title": "1. Creare un flusso di lavoro",
         "description": "Crea il tuo primo flusso di lavoro automatizzato utilizzando l'editor visuale"
@@ -157,6 +160,11 @@
     "title": "Telos: Piattaforma intelligente di orchestrazione dei processi degli agenti",
     "subtitle": "Una piattaforma moderna e altamente scalabile per l'orchestrazione intelligente del flusso di lavoro",
     "description": "Supporta la pianificazione e la gestione automatizzate delle attività, adotta la separazione front-end e back-end e l'architettura dei microservizi ed è progettato per scenari di automazione a livello aziendale.",
+    "badge": "Orchestrazione dei flussi di lavoro intelligenti",
+    "github": "GitHub",
+    "dashboard": "Entra nella dashboard",
+    "viewWorkflows": "Visualizza flusso di lavoro",
+    "techStackSupport": "Supporto dello stack tecnologico",
     "flowSection": {
       "trigger": "Trigger per l'invio dei moduli",
       "triggerDesc": "Quando viene inviato il modulo \"Crea utente\"",
@@ -185,6 +193,13 @@
       "communication": "Supporta tRPC/gRPC per una comunicazione da servizio a servizio efficiente e indipendente dai tipi.",
       "monorepo": "Gestione unificata di Monorepo per la collaborazione centralizzata tra dipendenze e team.",
       "deployment": "L'intero processo è containerizzato e dispone di supporto CI/CD integrato per garantire la consegna continua."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Servizi micro Go",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Gestione unificata",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Architettura tecnica"
@@ -478,5 +493,58 @@
       "unknownError": "Si è verificato un errore sconosciuto, riprova",
       "contactSupport": "Se il problema persiste, contattare l'assistenza tecnica"
     }
+  },
+  "Agent": {
+    "title": "Gestione Agente",
+    "subtitle": "Crea e gestisci il tuo agente AI",
+    "create": "Crea agente",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "cancel": "Annulla",
+    "confirm": "Confermare",
+    "deleting": "Eliminazione in corso...",
+    "default": "Predefinito",
+    "types": {
+      "public": "Pubblico",
+      "private": "Privato",
+      "system": "sistema"
+    },
+    "form": {
+      "description": "Compila le informazioni dell'agente",
+      "name": "Nome dell'agente",
+      "namePlaceholder": "Per esempio: assistente di codice",
+      "descriptionLabel": "Descrizione",
+      "descriptionPlaceholder": "Descrivi il ruolo e le capacità di questo agente...",
+      "typeLabel": "Tipo",
+      "typePrivate": "Privato",
+      "typePrivateDesc": "Solo visibile a me",
+      "typePublic": "Pubblico",
+      "typePublicDesc": "Disponibile a tutti",
+      "required": "Si prega di compilare tutti i campi obbligatori"
+    },
+    "selector": {
+      "label": "Seleziona Agente",
+      "selectAgent": "Seleziona Agente",
+      "loading": "Caricamento in corso...",
+      "searchPlaceholder": "Cerca agente...",
+      "noResults": "Nessun agente corrispondente trovato",
+      "noAgents": "Nessun agente disponibile"
+    },
+    "messages": {
+      "createSuccess": "Agente creato con successo",
+      "createError": "Creazione dell'agente fallita",
+      "deleteSuccess": "Agente eliminato con successo",
+      "deleteError": "Eliminazione dell'agente non riuscita",
+      "deleteConfirm": {
+        "title": "Conferma eliminazione",
+        "description": "Una volta eliminato non potrà essere recuperato. Sei sicuro di voler eliminare questo Agent?"
+      }
+    },
+    "empty": {
+      "title": "Ancora nessun agente",
+      "description": "Crea il tuo primo agente AI e inizia a usarlo"
+    },
+    "created": "Creato nel",
+    "systemAgentReadOnly": "L'agente di sistema non può essere modificato"
   }
 }

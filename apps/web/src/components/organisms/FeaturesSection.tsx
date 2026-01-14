@@ -15,27 +15,27 @@ export function FeaturesSection() {
     {
       icon: <Code2 className='h-6 w-6' />,
       title: t('features.frontend'),
-      description: 'Next.js 15 + Shadcn UI',
+      description: t('featureDescriptions.frontend'),
     },
     {
       icon: <Server className='h-6 w-6' />,
       title: t('features.backend'),
-      description: 'Go Microservices',
+      description: t('featureDescriptions.backend'),
     },
     {
       icon: <Zap className='h-6 w-6' />,
       title: t('features.communication'),
-      description: 'tRPC/gRPC',
+      description: t('featureDescriptions.communication'),
     },
     {
       icon: <Globe className='h-6 w-6' />,
       title: t('features.monorepo'),
-      description: 'Unified Management',
+      description: t('featureDescriptions.monorepo'),
     },
     {
       icon: <Cloud className='h-6 w-6' />,
       title: t('features.deployment'),
-      description: 'Docker + K8s',
+      description: t('featureDescriptions.deployment'),
     },
   ]
 

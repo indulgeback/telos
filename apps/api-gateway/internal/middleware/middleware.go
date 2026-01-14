@@ -137,8 +137,16 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 
 			if allowed {
 				if allowAll {
-					// 通配符时使用 *，不设置 credentials（避免浏览器冲突）
-					w.Header().Set("Access-Control-Allow-Origin", "*")
+					// 通配符时，如果有具体的 origin，则使用具体 origin 并设置 credentials
+					// 这允许 credentials 模式工作
+					if origin != "" {
+						w.Header().Set("Access-Control-Allow-Origin", origin)
+						w.Header().Set("Access-Control-Allow-Credentials", "true")
+						w.Header().Set("Vary", "Origin")
+					} else {
+						// 没有 origin 头（如同源请求或非浏览器请求），使用 *
+						w.Header().Set("Access-Control-Allow-Origin", "*")
+					}
 				} else {
 					// 具体来源时可以设置 credentials
 					w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -147,7 +155,7 @@ func CORSMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 			}
 
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-Request-ID")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-Request-ID, X-Agent-ID")
 			w.Header().Set("Access-Control-Expose-Headers", "X-Request-ID, Content-Type")
 
 			// 处理预检请求

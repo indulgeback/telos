@@ -153,7 +153,7 @@ export function HeroSection() {
         >
           <Badge variant='secondary' className='mb-4 font-body'>
             <Zap className='h-4 w-4 mr-2' />
-            Intelligent Workflow Orchestration
+            {t('badge')}
           </Badge>
         </motion.div>
 
@@ -198,7 +198,7 @@ export function HeroSection() {
             <>
               <CustomLink href='/dashboard'>
                 <Button size='lg' className='group font-body font-semibold'>
-                  进入仪表板
+                  {t('dashboard')}
                   <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
                 </Button>
               </CustomLink>
@@ -208,7 +208,7 @@ export function HeroSection() {
                   size='lg'
                   className='font-body font-medium'
                 >
-                  查看工作流
+                  {t('viewWorkflows')}
                 </Button>
               </CustomLink>
             </>
@@ -230,7 +230,7 @@ export function HeroSection() {
                   className='font-body font-medium'
                 >
                   <Github className='mr-2 h-4 w-4' />
-                  GitHub
+                  {t('github')}
                 </Button>
               </CustomLink>
             </>

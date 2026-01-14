@@ -64,4 +64,5 @@ require (
 )
 
 replace github.com/indulgeback/telos/pkg/tlog => ../../pkg/tlog
+
 replace github.com/indulgeback/telos/pkg/netutil => ../../pkg/netutil

@@ -3,7 +3,8 @@
     "home": "ホームページ",
     "workflows": "ワークフロー",
     "chat": "AIアシスタント",
-    "dashboard": "ダッシュボード"
+    "dashboard": "ダッシュボード",
+    "agents": "エージェント"
   },
   "Chat": {
     "title": "AIアシスタント",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "質問を入力してください…（Shift + Enter で改行）"
+      "placeholder": "質問を入力してください…（Shift + Enter で改行）",
+      "sendAriaLabel": "メッセージを送信"
     },
     "actions": {
       "copy": "コピー",
-      "copied": "コピーしました"
+      "copied": "コピーしました",
+      "retry": "再試行"
     },
     "error": {
       "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
@@ -157,6 +160,11 @@
     "title": "Telos：インテリジェントエージェントプロセスオーケストレーションプラットフォーム",
     "subtitle": "スマートワークフロー編成志向の現代的で高可用性のプラットフォーム",
     "description": "自動化タスクのスケジューリングと管理をサポートし、フロントエンドとバックエンドの分離およびマイクロサービスアーキテクチャを採用し、企業レベルの自動化シナリオ専用に設計されています。",
+    "badge": "スマートワークフローオーケストレーション",
+    "github": "ギットハブ",
+    "dashboard": "ダッシュボードに入る",
+    "viewWorkflows": "ワークフローを確認",
+    "techStackSupport": "技術スタックのサポート",
     "flowSection": {
       "trigger": "フォームの送信がトリガーされる",
       "triggerDesc": "'ユーザー作成' フォームが送信された時",
@@ -185,6 +193,13 @@
       "communication": "tRPC/gRPCをサポートし、型安全で効率的なサービス間通信を実現します。",
       "monorepo": "一元的Monorepo管理により、依存関係の集中とチーム協力が容易になります。",
       "deployment": "全プロセスがコンテナ化されており、CI/CDのサポートが内蔵されていて、継続的なデリバリーを保障します。"
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go マイクロサービス",
+      "communication": "tRPC/gRPC",
+      "monorepo": "一元管理",
+      "deployment": "Docker と K8s"
     },
     "architecture": {
       "title": "技術アーキテクチャ"
@@ -478,5 +493,58 @@
       "unknownError": "不明なエラーが発生しました。もう一度お試しください。",
       "contactSupport": "問題が引き続き発生する場合は、テクニカルサポートにお問い合わせください。"
     }
+  },
+  "Agent": {
+    "title": "エージェント管理",
+    "subtitle": "あなたのAIエージェントを作成して管理する",
+    "create": "エージェントを作成",
+    "edit": "編集",
+    "delete": "削除",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "deleting": "削除中…",
+    "default": "デフォルト",
+    "types": {
+      "public": "公開",
+      "private": "私有",
+      "system": "システム"
+    },
+    "form": {
+      "description": "エージェント情報を入力する",
+      "name": "エージェント名",
+      "namePlaceholder": "例えば：コードアシスタント",
+      "descriptionLabel": "説明",
+      "descriptionPlaceholder": "このエージェントの役割と能力を説明する...",
+      "typeLabel": "タイプ",
+      "typePrivate": "私有",
+      "typePrivateDesc": "自分のみが見える",
+      "typePublic": "公開",
+      "typePublicDesc": "すべての人が利用可能",
+      "required": "すべての必須項目を入力してください"
+    },
+    "selector": {
+      "label": "エージェントを選択",
+      "selectAgent": "エージェントを選択",
+      "loading": "読み込み中...",
+      "searchPlaceholder": "エージェントを検索...",
+      "noResults": "一致するエージェントが見つかりませんでした",
+      "noAgents": "利用可能なエージェントはありません"
+    },
+    "messages": {
+      "createSuccess": "エージェントの作成に成功しました",
+      "createError": "エージェントの作成に失敗しました",
+      "deleteSuccess": "エージェントの削除に成功しました",
+      "deleteError": "エージェントの削除に失敗しました",
+      "deleteConfirm": {
+        "title": "削除を確認",
+        "description": "削除すると復元できません。このエージェントを削除してもよろしいですか？"
+      }
+    },
+    "empty": {
+      "title": "まだエージェントがいません",
+      "description": "あなたの最初のAIエージェントを作成して始めましょう"
+    },
+    "created": "作成日",
+    "systemAgentReadOnly": "システムエージェントは編集できません"
   }
 }

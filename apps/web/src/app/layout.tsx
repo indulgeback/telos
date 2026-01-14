@@ -11,11 +11,7 @@ import '@/styles/globals.css'
 import NextTopLoader from 'nextjs-toploader'
 import { headers } from 'next/headers'
 import appConfig from '@/appConfig'
-import {
-  ThemeProvider,
-  SessionProvider,
-  LenisProvider,
-} from '@/components/providers'
+import { ThemeProvider, SessionProvider } from '@/components/providers'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -100,7 +96,7 @@ export default async function RootLayout({ children }: Iprops) {
             enableSystem
             disableTransitionOnChange
           >
-            <LenisProvider>{children}</LenisProvider>
+            {children}
           </ThemeProvider>
         </SessionProvider>
       </body>

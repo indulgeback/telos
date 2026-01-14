@@ -3,7 +3,8 @@
     "home": "Beranda",
     "workflows": "Alur kerja",
     "chat": "Asisten AI",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "agents": "agen cerdas"
   },
   "Chat": {
     "title": "Asisten AI",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Masukkan pertanyaan Anda... (Shift + Enter untuk baris baru)"
+      "placeholder": "Masukkan pertanyaan Anda... (Shift + Enter untuk baris baru)",
+      "sendAriaLabel": "Kirim pesan"
     },
     "actions": {
       "copy": "Salin",
-      "copied": "Telah disalin"
+      "copied": "Telah disalin",
+      "retry": "Coba lagi"
     },
     "error": {
       "message": "Maaf, terjadi beberapa kesalahan. Silakan coba lagi nanti."
@@ -157,6 +160,11 @@
     "title": "Telos: Platform Orkestrasi Proses Agen Cerdas",
     "subtitle": "Platform modern yang sangat dapat diskalakan untuk orkestrasi alur kerja cerdas",
     "description": "Ini mendukung penjadwalan dan manajemen tugas otomatis, mengadopsi pemisahan front-end dan back-end dan arsitektur layanan mikro, dan dirancang untuk skenario otomatisasi tingkat perusahaan.",
+    "badge": "Orkestrasi alur kerja cerdas",
+    "github": "GitHub",
+    "dashboard": "Masuk ke dasbor",
+    "viewWorkflows": "Lihat alur kerja",
+    "techStackSupport": "Dukungan tumpukan teknologi",
     "flowSection": {
       "trigger": "Pemicu pengiriman formulir",
       "triggerDesc": "Saat formulir 'Buat pengguna' dikirimkan",
@@ -185,6 +193,13 @@
       "communication": "Mendukung tRPC/gRPC untuk komunikasi layanan-ke-layanan yang aman dan efisien.",
       "monorepo": "Manajemen Monorepo terpadu untuk sentralisasi dependensi dan kolaborasi tim yang mudah.",
       "deployment": "Seluruh proses dalam kontainer dan memiliki dukungan CI/CD bawaan untuk memastikan pengiriman berkelanjutan."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go Layanan Mikro",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Manajemen terpadu",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Arsitektur teknis"
@@ -478,5 +493,58 @@
       "unknownError": "Terjadi kesalahan yang tidak diketahui, silakan coba lagi",
       "contactSupport": "Jika masalah berlanjut, hubungi dukungan teknis"
     }
+  },
+  "Agent": {
+    "title": "Manajemen Agen",
+    "subtitle": "Buat dan kelola Agen AI Anda",
+    "create": "Buat Agen",
+    "edit": "Sunting",
+    "delete": "Hapus",
+    "cancel": "Batal",
+    "confirm": "Konfirmasi",
+    "deleting": "Sedang menghapus...",
+    "default": "default",
+    "types": {
+      "public": "Publik",
+      "private": "Pribadi",
+      "system": "sistem"
+    },
+    "form": {
+      "description": "Isi informasi Agen",
+      "name": "Nama Agen",
+      "namePlaceholder": "Contohnya: Asisten Kode",
+      "descriptionLabel": "Deskripsi",
+      "descriptionPlaceholder": "Deskripsikan peran dan kemampuan Agen ini...",
+      "typeLabel": "Jenis",
+      "typePrivate": "Pribadi",
+      "typePrivateDesc": "Hanya dapat dilihat oleh diri sendiri",
+      "typePublic": "Publik",
+      "typePublicDesc": "Tersedia untuk semua orang",
+      "required": "Silakan isi semua kolom yang wajib diisi"
+    },
+    "selector": {
+      "label": "Pilih Agen",
+      "selectAgent": "Pilih Agen",
+      "loading": "Sedang memuat...",
+      "searchPlaceholder": "Mencari Agen...",
+      "noResults": "Agent yang cocok tidak ditemukan",
+      "noAgents": "Tidak ada Agen yang tersedia"
+    },
+    "messages": {
+      "createSuccess": "Agen berhasil dibuat",
+      "createError": "Gagal membuat Agen",
+      "deleteSuccess": "Agen berhasil dihapus",
+      "deleteError": "Gagal menghapus Agen",
+      "deleteConfirm": {
+        "title": "Konfirmasi hapus",
+        "description": "Setelah dihapus, tidak dapat dipulihkan. Apakah Anda yakin ingin menghapus Agen ini?"
+      }
+    },
+    "empty": {
+      "title": "Belum ada Agen",
+      "description": "Buat Agen AI Pertama Anda untuk Memulai"
+    },
+    "created": "Dibuat pada",
+    "systemAgentReadOnly": "Agen sistem tidak dapat diedit"
   }
 }

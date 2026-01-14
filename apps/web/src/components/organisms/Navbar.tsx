@@ -21,6 +21,7 @@ export function Navbar() {
     { name: t('workflows'), href: '/workflows' },
     { name: t('chat'), href: '/chat' },
     { name: t('dashboard'), href: '/dashboard' },
+    { name: t('agents'), href: '/agents' },
   ]
 
   return (

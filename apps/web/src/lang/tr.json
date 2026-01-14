@@ -3,7 +3,8 @@
     "home": "Ana Sayfa",
     "workflows": "İş akışı",
     "chat": "Yapay Zeka Asistanı",
-    "dashboard": "Gösterge paneli"
+    "dashboard": "Gösterge paneli",
+    "agents": "Ajan"
   },
   "Chat": {
     "title": "Yapay Zeka Asistanı",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Sorunuzu girin... (Satır atlamak için Shift + Enter)"
+      "placeholder": "Sorunuzu girin... (Satır atlamak için Shift + Enter)",
+      "sendAriaLabel": "Mesaj gönder"
     },
     "actions": {
-      "copy": "复制",
-      "copied": "Kopyalandı"
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "retry": "Tekrar dene"
     },
     "error": {
       "message": "Üzgünüz, bir hata oluştu. Lütfen daha sonra tekrar deneyin."
@@ -139,7 +142,7 @@
       },
       "backup": {
         "name": "Yedekleme İş Akışı",
-        "description": "定期备份重要数据到云存储"
+        "description": "Önemli verileri düzenli olarak bulut depolamaya yedekleyin"
       }
     }
   },
@@ -157,6 +160,11 @@
     "title": "Telos: Akıllı Ajan Süreç Orkestrasyon Platformu",
     "subtitle": "Akıllı iş akışı orkestrasyonu için modern, yüksek düzeyde ölçeklenebilir bir platform",
     "description": "Otomatik görev zamanlama ve yönetimini destekler, ön uç ve arka uç ayrımını ve mikro hizmet mimarisini benimser ve kurumsal düzeyde otomasyon senaryoları için tasarlanmıştır.",
+    "badge": "Akıllı iş akışı düzenleme",
+    "github": "GitHub",
+    "dashboard": "Gösterge tablosuna gir",
+    "viewWorkflows": "İş akışını görüntüle",
+    "techStackSupport": "Teknoloji yığını desteği",
     "flowSection": {
       "trigger": "Form gönderme tetikleyicileri",
       "triggerDesc": "'Kullanıcı Oluştur' formunun gönderilmesi sırasında",
@@ -185,6 +193,13 @@
       "communication": "tRPC/gRPC, tür açısından güvenli ve verimli hizmetten hizmete iletişim için desteklenir.",
       "monorepo": "Kolay bağımlılık merkezileştirme ve ekip işbirliği için birleşik Monorepo yönetimi.",
       "deployment": "Tüm süreç kapsayıcılıdır ve sürekli teslimatı sağlamak için yerleşik CI/CD desteğine sahiptir."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go mikro hizmetleri",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Birleştirilmiş yönetim",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Teknik mimari"
@@ -478,5 +493,58 @@
       "unknownError": "Bilinmeyen bir hata oluştu, lütfen tekrar deneyin",
       "contactSupport": "Sorun devam ederse teknik desteğe başvurun"
     }
+  },
+  "Agent": {
+    "title": "Ajan Yönetimi",
+    "subtitle": "AI Ajanınızı Oluşturun ve Yönetin",
+    "create": "Ajan Oluştur",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "cancel": "İptal",
+    "confirm": "Onayla",
+    "deleting": "Siliniyor...",
+    "default": "Varsayılan",
+    "types": {
+      "public": "açık",
+      "private": "Özel",
+      "system": "sistem"
+    },
+    "form": {
+      "description": "Agent bilgilerini doldurun",
+      "name": "Ajan Adı",
+      "namePlaceholder": "Örneğin: Kod Asistanı",
+      "descriptionLabel": "Tanımlamak",
+      "descriptionPlaceholder": "Bu ajanın rolünü ve yeteneklerini tanımlayın...",
+      "typeLabel": "Tür",
+      "typePrivate": "özel",
+      "typePrivateDesc": "Sadece kendine görünür",
+      "typePublic": "açık",
+      "typePublicDesc": "Herkes tarafından kullanılabilir",
+      "required": "Lütfen tüm gerekli alanları doldurun"
+    },
+    "selector": {
+      "label": "Ajan Seç",
+      "selectAgent": "Ajan Seç",
+      "loading": "Yükleniyor...",
+      "searchPlaceholder": "Agent Ara...",
+      "noResults": "Eşleşen ajan bulunamadı",
+      "noAgents": "Mevcut agent yok"
+    },
+    "messages": {
+      "createSuccess": "Agent başarıyla oluşturuldu",
+      "createError": "Agent oluşturma başarısız",
+      "deleteSuccess": "Agent başarıyla silindi",
+      "deleteError": "Agent silme başarısız",
+      "deleteConfirm": {
+        "title": "Silmeyi onayla",
+        "description": "Silindikten sonra geri alınamaz, bu Temsilciyi silmek istediğinizden emin misiniz?"
+      }
+    },
+    "empty": {
+      "title": "Henüz bir temsilci yok",
+      "description": "İlk AI Ajanınızı Oluşturun ve Kullanıma Başlayın"
+    },
+    "created": "Kuruldu",
+    "systemAgentReadOnly": "Sistem Ajanı düzenlenemez"
   }
 }

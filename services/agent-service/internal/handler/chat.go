@@ -13,12 +13,14 @@ import (
 // ChatHandler 聊天处理器
 type ChatHandler struct {
 	chatService *service.ChatService
+	agentService service.AgentService
 }
 
 // NewChatHandler 创建聊天处理器
-func NewChatHandler(chatService *service.ChatService) *ChatHandler {
+func NewChatHandler(chatService *service.ChatService, agentService service.AgentService) *ChatHandler {
 	return &ChatHandler{
-		chatService: chatService,
+		chatService:  chatService,
+		agentService: agentService,
 	}
 }
 
@@ -50,17 +52,39 @@ func (h *ChatHandler) HandleChat(c echo.Context) error {
 
 	tlog.Info("接收聊天请求", "message", req.Message, "request_id", requestID, "client_ip", clientIP)
 
-	// 设置 SSE 响应头
-	c.Response().Header().Set("Content-Type", "text/event-stream")
-	c.Response().Header().Set("Cache-Control", "no-cache")
-	c.Response().Header().Set("Connection", "keep-alive")
-	c.Response().Header().Set("X-Accel-Buffering", "no")
-	c.Response().WriteHeader(http.StatusOK)
+	// 获取指定的 Agent ID
+	agentID := c.Request().Header.Get("X-Agent-ID")
 
-	// 构建消息历史（当前只有用户消息）
-	messages := []service.Message{
-		{Role: "user", Content: req.Message},
+	// 构建消息历史
+	messages := []service.Message{}
+
+	// 如果指定了 Agent，获取并使用其 system prompt
+	if agentID != "" {
+		agent, err := h.agentService.GetAgentForChat(c.Request().Context(), agentID)
+		if err != nil {
+			tlog.Warn("获取 Agent 失败，使用默认", "agent_id", agentID, "error", err.Error())
+		} else {
+			messages = append(messages, service.Message{
+				Role:    "system",
+				Content: agent.SystemPrompt,
+			})
+			tlog.Info("使用指定 Agent", "agent_id", agentID, "agent_name", agent.Name, "request_id", requestID)
+		}
 	}
+
+	// 如果没有 system prompt，添加默认的
+	if len(messages) == 0 {
+		messages = append(messages, service.Message{
+			Role:    "system",
+			Content: "你是一个友好、专业的 AI 助手，可以帮助用户解答各种问题。",
+		})
+	}
+
+	// 添加用户消息
+	messages = append(messages, service.Message{
+		Role:    "user",
+		Content: req.Message,
+	})
 
 	// 调用流式聊天
 	ctx := c.Request().Context()

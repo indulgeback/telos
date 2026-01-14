@@ -3,7 +3,8 @@
     "home": "Startseite",
     "workflows": "Arbeitsablauf",
     "chat": "KI-Assistent",
-    "dashboard": "Armaturenbrett"
+    "dashboard": "Armaturenbrett",
+    "agents": "Agent"
   },
   "Chat": {
     "title": "KI-Assistent",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Geben Sie Ihre Frage ein... (Shift + Enter für Zeilenumbruch)"
+      "placeholder": "Geben Sie Ihre Frage ein... (Shift + Enter für Zeilenumbruch)",
+      "sendAriaLabel": "Nachricht senden"
     },
     "actions": {
       "copy": "Kopieren",
-      "copied": "Kopiert"
+      "copied": "Kopiert",
+      "retry": "Erneut versuchen"
     },
     "error": {
       "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
@@ -157,6 +160,11 @@
     "title": "Telos: Intelligente Plattform für die Orchestrierung von Agentenprozessen",
     "subtitle": "Eine moderne, hochskalierbare Plattform für intelligente Workflow-Orchestrierung",
     "description": "Es unterstützt die automatische Aufgabenplanung und -verwaltung, verwendet die Front-End- und Back-End-Trennung sowie die Microservice-Architektur und ist für Automatisierungsszenarien auf Unternehmensebene konzipiert.",
+    "badge": "Intelligente Workflow-Orchestrierung",
+    "github": "GitHub",
+    "dashboard": "Zum Dashboard wechseln",
+    "viewWorkflows": "Workflow anzeigen",
+    "techStackSupport": "Technologiestapel-Unterstützung",
     "flowSection": {
       "trigger": "Auslöser für die Formularübermittlung",
       "triggerDesc": "Zum Zeitpunkt der Übermittlung des Formulars \"Benutzer erstellen\"",
@@ -185,6 +193,13 @@
       "communication": "tRPC/gRPC wird für eine typsichere und effiziente Service-to-Service-Kommunikation unterstützt.",
       "monorepo": "Einheitliches Monorepo-Management für einfache Abhängigkeitszentralisierung und Teamzusammenarbeit.",
       "deployment": "Der gesamte Prozess ist containerisiert und verfügt über eine integrierte CI/CD-Unterstützung, um eine kontinuierliche Bereitstellung zu gewährleisten."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go-Mikroservice",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Zentrale Verwaltung",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Technische Architektur"
@@ -478,5 +493,58 @@
       "unknownError": "Ein unbekannter Fehler ist aufgetreten, bitte versuchen Sie es erneut",
       "contactSupport": "Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support"
     }
+  },
+  "Agent": {
+    "title": "Agentenverwaltung",
+    "subtitle": "Erstellen und Verwalten Ihres KI-Agenten",
+    "create": "Agent erstellen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "deleting": "Löschen...",
+    "default": "Standard",
+    "types": {
+      "public": "öffentlich",
+      "private": "Privat",
+      "system": "System"
+    },
+    "form": {
+      "description": "Agenteninformationen ausfüllen",
+      "name": "Agentenname",
+      "namePlaceholder": "Zum Beispiel: Code-Assistent",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Beschreiben Sie die Rolle und Fähigkeiten dieses Agenten...",
+      "typeLabel": "Typ",
+      "typePrivate": "Privat",
+      "typePrivateDesc": "Nur für mich sichtbar",
+      "typePublic": "öffentlich",
+      "typePublicDesc": "Für alle verfügbar",
+      "required": "Bitte füllen Sie alle Pflichtfelder aus"
+    },
+    "selector": {
+      "label": "Agent auswählen",
+      "selectAgent": "Agent auswählen",
+      "loading": "Lädt...",
+      "searchPlaceholder": "Agent suchen...",
+      "noResults": "Kein passender Agent gefunden",
+      "noAgents": "Keine verfügbaren Agenten"
+    },
+    "messages": {
+      "createSuccess": "Agent erfolgreich erstellt",
+      "createError": "Agent erstellen fehlgeschlagen",
+      "deleteSuccess": "Agent erfolgreich gelöscht",
+      "deleteError": "Agent löschen fehlgeschlagen",
+      "deleteConfirm": {
+        "title": "Löschen bestätigen",
+        "description": "Nach dem Löschen kann nicht wiederhergestellt werden. Möchten Sie diesen Agenten wirklich löschen?"
+      }
+    },
+    "empty": {
+      "title": "Noch kein Agent",
+      "description": "Erstellen Sie Ihren ersten KI-Agenten und legen Sie los"
+    },
+    "created": "Gegründet in",
+    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden"
   }
 }

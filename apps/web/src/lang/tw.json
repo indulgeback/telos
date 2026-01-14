@@ -3,7 +3,8 @@
     "home": "首頁",
     "workflows": "工作流程",
     "chat": "AI 助手",
-    "dashboard": "儀表板"
+    "dashboard": "儀表板",
+    "agents": "智慧型代理"
   },
   "Chat": {
     "title": "AI 助手",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "輸入您的問題... (Shift + Enter 換行)"
+      "placeholder": "輸入您的問題... (Shift + Enter 換行)",
+      "sendAriaLabel": "發送訊息"
     },
     "actions": {
       "copy": "複製",
-      "copied": "已複製"
+      "copied": "已複製",
+      "retry": "重試"
     },
     "error": {
       "message": "抱歉，發生了一些錯誤。請稍後再試。"
@@ -80,7 +83,7 @@
     },
     "gettingStarted": {
       "title": "開始使用 Telos",
-      "description": "快速上手指南，帮助您充分利用平台功能",
+      "description": "快速上手指南，幫助您充分利用平台功能",
       "step1": {
         "title": "1. 創建工作流程",
         "description": "使用可視化編輯器創建您的第一個自動化工作流程"
@@ -157,6 +160,11 @@
     "title": "Telos：智慧 Agent 流程編排平臺",
     "subtitle": "面向智慧工作流編排的現代化高可擴展平臺",
     "description": "支援自動化任務調度與管理，採用前後端分離與微服務架構，專為企業級自動化場景設計。",
+    "badge": "智慧工作流程編排",
+    "github": "GitHub",
+    "dashboard": "進入儀表板",
+    "viewWorkflows": "查看工作流程",
+    "techStackSupport": "技術棧支持",
     "flowSection": {
       "trigger": "表單提交觸發",
       "triggerDesc": "在 『創建使用者』 表單提交時",
@@ -185,6 +193,13 @@
       "communication": "支援 tRPC/gRPC，實現類型安全且高效的服務間通信。",
       "monorepo": "統一的Monorepo管理，便於依賴集中與團隊協作。",
       "deployment": "全流程容器化，內建 CI/CD 支援，保障持續交付。"
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go 微服務",
+      "communication": "tRPC/gRPC",
+      "monorepo": "統一管理",
+      "deployment": "Docker 和 K8s"
     },
     "architecture": {
       "title": "技術架構"
@@ -478,5 +493,58 @@
       "unknownError": "發生未知錯誤，請重試",
       "contactSupport": "如果問題持續存在，請聯繫技術支援"
     }
+  },
+  "Agent": {
+    "title": "Agent 管理",
+    "subtitle": "創建和管理您的 AI Agent",
+    "create": "建立 Agent",
+    "edit": "編輯",
+    "delete": "刪除",
+    "cancel": "取消",
+    "confirm": "確認",
+    "deleting": "刪除中...",
+    "default": "默認",
+    "types": {
+      "public": "公開",
+      "private": "私有",
+      "system": "系統"
+    },
+    "form": {
+      "description": "填寫 Agent 資訊",
+      "name": "Agent 名稱",
+      "namePlaceholder": "例如：程式碼助手",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "描述這個 Agent 的角色和能力...",
+      "typeLabel": "類型",
+      "typePrivate": "私有",
+      "typePrivateDesc": "僅自己可見",
+      "typePublic": "公開",
+      "typePublicDesc": "所有人可用",
+      "required": "請填寫所有必填欄位"
+    },
+    "selector": {
+      "label": "選擇 Agent",
+      "selectAgent": "選擇 Agent",
+      "loading": "加載中...",
+      "searchPlaceholder": "搜尋 Agent...",
+      "noResults": "未找到匹配的 Agent",
+      "noAgents": "暫無可用 Agent"
+    },
+    "messages": {
+      "createSuccess": "Agent 創建成功",
+      "createError": "創建 Agent 失敗",
+      "deleteSuccess": "Agent 刪除成功",
+      "deleteError": "刪除 Agent 失敗",
+      "deleteConfirm": {
+        "title": "確認刪除",
+        "description": "刪除後無法恢復，確定要刪除這個 Agent 嗎？"
+      }
+    },
+    "empty": {
+      "title": "還沒有 Agent",
+      "description": "建立您的第一個 AI 代理程式開始使用"
+    },
+    "created": "創建於",
+    "systemAgentReadOnly": "系統 Agent 不可編輯"
   }
 }

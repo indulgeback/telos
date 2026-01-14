@@ -150,13 +150,32 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 	// 7. 写入状态码
 	c.Response().WriteHeader(resp.StatusCode)
 
-	// 8. 使用 io.Copy 将后端流实时拷贝到前端响应
-	// 当前端断开连接时，Request.Context() 会取消，client.Do 会自动检测并断开与后端的连接
-	written, err := io.Copy(c.Response().Writer, resp.Body)
-	if err != nil {
-		// 连接可能已经断开（用户关闭页面），这是正常情况
-		tlog.Debug("[API Gateway] 流式传输结束", "written", written, "error", err)
-		return nil
+	// 8. 流式拷贝：使用小缓冲区边读边写，每次写入后立即 flush
+	// 不使用 io.Copy，因为它使用 32KB 缓冲区，会导致 SSE 延迟
+	buffer := make([]byte, 256) // 小缓冲区，确保低延迟
+	written := int64(0)
+	flusher, ok := c.Response().Writer.(http.Flusher)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "不支持流式响应")
+	}
+
+	for {
+		n, err := resp.Body.Read(buffer)
+		if n > 0 {
+			if _, writeErr := c.Response().Writer.Write(buffer[:n]); writeErr != nil {
+				tlog.Debug("[API Gateway] 写入响应失败", "error", writeErr)
+				return nil
+			}
+			flusher.Flush() // 立即 flush，确保数据实时发送
+			written += int64(n)
+		}
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			tlog.Debug("[API Gateway] 流式传输结束", "written", written, "error", err)
+			return nil
+		}
 	}
 
 	tlog.Info("[API Gateway] 流式传输完成", "bytes", written)

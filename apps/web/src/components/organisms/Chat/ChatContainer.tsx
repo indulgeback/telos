@@ -2,13 +2,16 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Button } from '@/components/atoms'
-import { Send, Sparkles, User, Bot, Copy, Check } from 'lucide-react'
-import { Card } from '@/components/atoms/card'
-import { Textarea } from '@/components/atoms/textarea'
-import { Avatar } from '@/components/atoms/avatar'
-import { cn } from '@/lib/utils'
-import { agentService } from '@/service/agent'
+import {
+  ChatInput,
+  ChatMessage,
+  SuggestionPromptButton,
+  type SuggestionPrompt,
+} from '@/components/atoms'
+import { Sparkles, Bot } from 'lucide-react'
+import { agentService, type Agent } from '@/service/agent'
 import { useTranslations } from 'next-intl'
+import { AgentSelector } from './AgentSelector'
 
 export interface Message {
   id: string
@@ -23,11 +26,13 @@ export function ChatContainer() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
+  const [lastUserMessage, setLastUserMessage] = useState<string>('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const suggestionPrompts = useMemo(
-    () => [
+    (): SuggestionPrompt[] => [
       {
         icon: '🚀',
         label: t('suggestions.newProject.label'),
@@ -58,19 +63,25 @@ export function ChatContainer() {
     }
   }, [messages])
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return
+  const handleSend = async (messageContent?: string) => {
+    // Ignore event objects from button clicks
+    const shouldUseMessageContent =
+      messageContent && typeof messageContent === 'string'
+    const contentToSend = (shouldUseMessageContent ? messageContent : input)
+      .toString()
+      .trim()
+    if (!contentToSend || isLoading) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: contentToSend,
       timestamp: new Date(),
     }
 
     setMessages(prev => [...prev, userMessage])
-    const messageContent = input.trim()
-    setInput('')
+    setLastUserMessage(contentToSend)
+    if (!shouldUseMessageContent) setInput('')
     setIsLoading(true)
 
     const assistantMessage: Message = {
@@ -84,7 +95,7 @@ export function ChatContainer() {
 
     try {
       await agentService.chatStream(
-        messageContent,
+        contentToSend,
         chunk => {
           if (chunk.done) {
             setIsLoading(false)
@@ -111,7 +122,8 @@ export function ChatContainer() {
                 : m
             )
           )
-        }
+        },
+        selectedAgent?.id
       )
     } catch (error) {
       console.error('Chat error:', error)
@@ -126,17 +138,15 @@ export function ChatContainer() {
     }
   }
 
+  const handleRetry = () => {
+    if (!lastUserMessage || isLoading) return
+    handleSend(lastUserMessage)
+  }
+
   const handleCopy = (content: string, id: string) => {
     navigator.clipboard.writeText(content)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
   }
 
   return (
@@ -153,18 +163,24 @@ export function ChatContainer() {
               <p className='text-sm text-muted-foreground'>{t('subtitle')}</p>
             </div>
           </div>
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={() => setMessages([])}
-            className='text-muted-foreground'
-          >
-            {t('clearConversation')}
-          </Button>
+          <div className='flex items-center gap-3'>
+            <AgentSelector
+              selectedAgentId={selectedAgent?.id || null}
+              onAgentChange={setSelectedAgent}
+            />
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => setMessages([])}
+              className='text-muted-foreground'
+            >
+              {t('clearConversation')}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Messages Area - 填充剩余空间，内部滚动 */}
+      {/* Messages Area */}
       <div className='flex-1 overflow-y-auto' ref={scrollRef}>
         <div className='mx-auto max-w-3xl px-4 py-8'>
           {messages.length === 0 ? (
@@ -183,144 +199,56 @@ export function ChatContainer() {
 
               <div className='grid grid-cols-2 gap-3 md:grid-cols-4'>
                 {suggestionPrompts.map(suggestion => (
-                  <button
+                  <SuggestionPromptButton
                     key={suggestion.label}
-                    onClick={() => setInput(suggestion.prompt)}
-                    className={cn(
-                      'group flex flex-col items-center rounded-xl border p-4 text-center',
-                      'transition-all hover:border-primary/50 hover:bg-primary/5',
-                      'active:scale-95'
-                    )}
-                  >
-                    <span className='mb-2 text-2xl group-hover:scale-110 transition-transform'>
-                      {suggestion.icon}
-                    </span>
-                    <span className='text-sm font-medium'>
-                      {suggestion.label}
-                    </span>
-                  </button>
+                    suggestion={suggestion}
+                    onClick={setInput}
+                  />
                 ))}
               </div>
             </div>
           ) : (
             <div className='space-y-6'>
-              {messages.map(message => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
-                  {message.role === 'assistant' && (
-                    <Avatar className='size-8 shrink-0 border'>
-                      <div className='flex size-full items-center justify-center bg-primary/10'>
-                        <Bot className='size-4 text-primary' />
-                      </div>
-                    </Avatar>
-                  )}
+              {messages.map(message => {
+                const isLastAssistantMessage =
+                  message.role === 'assistant' &&
+                  message.id === messages[messages.length - 1]?.id
+                const showRetry = isLastAssistantMessage && lastUserMessage
 
-                  <div
-                    className={cn(
-                      'flex max-w-[85%] flex-col gap-2',
-                      message.role === 'user' ? 'items-end' : 'items-start'
-                    )}
-                  >
-                    <Card
-                      className={cn(
-                        'relative px-4 py-3 shadow-sm',
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted/50'
-                      )}
-                    >
-                      <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
-                        {message.content || (
-                          <span className='flex items-center gap-1'>
-                            <span className='inline-block size-2 animate-bounce rounded-full bg-current' />
-                            <span className='inline-block size-2 animate-bounce rounded-full bg-current [animation-delay:0.2s]' />
-                            <span className='inline-block size-2 animate-bounce rounded-full bg-current [animation-delay:0.4s]' />
-                          </span>
-                        )}
-                      </p>
-                    </Card>
-
-                    {message.role === 'assistant' && message.content && (
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        className='h-7 gap-1 px-2 text-xs text-muted-foreground'
-                        onClick={() => handleCopy(message.content, message.id)}
-                      >
-                        {copiedId === message.id ? (
-                          <>
-                            <Check className='size-3' />
-                            {t('actions.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <Copy className='size-3' />
-                            {t('actions.copy')}
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-
-                  {message.role === 'user' && (
-                    <Avatar className='size-8 shrink-0 border'>
-                      <div className='flex size-full items-center justify-center bg-muted'>
-                        <User className='size-4 text-muted-foreground' />
-                      </div>
-                    </Avatar>
-                  )}
-                </div>
-              ))}
-
-              {isLoading && (
-                <div className='flex gap-4'>
-                  <Avatar className='size-8 shrink-0 border'>
-                    <div className='flex size-full items-center justify-center bg-primary/10'>
-                      <Bot className='size-4 text-primary' />
-                    </div>
-                  </Avatar>
-                  <Card className='bg-muted/50 px-4 py-3 shadow-sm'>
-                    <span className='flex items-center gap-1'>
-                      <span className='inline-block size-2 animate-bounce rounded-full bg-current' />
-                      <span className='inline-block size-2 animate-bounce rounded-full bg-current [animation-delay:0.2s]' />
-                      <span className='inline-block size-2 animate-bounce rounded-full bg-current [animation-delay:0.4s]' />
-                    </span>
-                  </Card>
-                </div>
-              )}
+                return (
+                  <ChatMessage
+                    key={message.id}
+                    id={message.id}
+                    role={message.role}
+                    content={message.content}
+                    copiedId={copiedId}
+                    onCopy={handleCopy}
+                    copyLabel={t('actions.copy')}
+                    copiedLabel={t('actions.copied')}
+                    isLoading={isLastAssistantMessage && isLoading}
+                    onRetry={showRetry ? handleRetry : undefined}
+                    retryLabel={t('actions.retry')}
+                  />
+                )
+              })}
             </div>
           )}
         </div>
       </div>
 
-      {/* Input Area - 固定在底部 */}
+      {/* Input Area */}
       <div className='shrink-0 border-t bg-background/80 backdrop-blur-lg'>
         <div className='mx-auto max-w-3xl px-4 py-4'>
-          <div className='flex items-end gap-3 rounded-2xl border bg-background p-2 shadow-sm transition-shadow focus-within:ring-2 focus-within:ring-primary/20'>
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={t('input.placeholder')}
-              className='max-h-32 min-h-[44px] resize-none border-none bg-transparent px-3 py-2.5 text-sm focus-visible:ring-0'
-              rows={1}
-              disabled={isLoading}
-            />
-            <Button
-              onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              size='icon'
-              className='size-10 shrink-0 rounded-xl'
-            >
-              <Send className='size-4' />
-            </Button>
-          </div>
+          <ChatInput
+            ref={textareaRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder={t('input.placeholder')}
+            onSend={handleSend}
+            canSend={input.trim().length > 0}
+            sendDisabled={isLoading}
+            sendAriaLabel={t('input.sendAriaLabel')}
+          />
           <p className='mt-2 text-center text-xs text-muted-foreground'>
             {t('disclaimer')}
           </p>

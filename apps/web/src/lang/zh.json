@@ -3,7 +3,8 @@
     "home": "首页",
     "workflows": "工作流",
     "chat": "AI 助手",
-    "dashboard": "仪表板"
+    "dashboard": "仪表板",
+    "agents": "智能体"
   },
   "Chat": {
     "title": "AI 助手",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "输入您的问题... (Shift + Enter 换行)"
+      "placeholder": "输入您的问题... (Shift + Enter 换行)",
+      "sendAriaLabel": "发送消息"
     },
     "actions": {
       "copy": "复制",
-      "copied": "已复制"
+      "copied": "已复制",
+      "retry": "重试"
     },
     "error": {
       "message": "抱歉，发生了一些错误。请稍后再试。"
@@ -157,6 +160,11 @@
     "title": "Telos：智能 Agent 流程编排平台",
     "subtitle": "面向智能工作流编排的现代化高可扩展平台",
     "description": "支持自动化任务调度与管理，采用前后端分离与微服务架构，专为企业级自动化场景设计。",
+    "badge": "智能工作流编排",
+    "github": "GitHub",
+    "dashboard": "进入仪表板",
+    "viewWorkflows": "查看工作流",
+    "techStackSupport": "技术栈支持",
     "flowSection": {
       "trigger": "表单提交触发",
       "triggerDesc": "在 '创建用户' 表单提交时",
@@ -185,6 +193,13 @@
       "communication": "支持 tRPC/gRPC，实现类型安全且高效的服务间通信。",
       "monorepo": "统一的 Monorepo 管理，便于依赖集中与团队协作。",
       "deployment": "全流程容器化，内建 CI/CD 支持，保障持续交付。"
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 + Shadcn UI",
+      "backend": "Go 微服务",
+      "communication": "tRPC/gRPC",
+      "monorepo": "统一管理",
+      "deployment": "Docker + K8s"
     },
     "architecture": {
       "title": "技术架构"
@@ -473,5 +488,58 @@
       "unknownError": "发生未知错误，请重试",
       "contactSupport": "如果问题持续存在，请联系技术支持"
     }
+  },
+  "Agent": {
+    "title": "Agent 管理",
+    "subtitle": "创建和管理您的 AI Agent",
+    "create": "创建 Agent",
+    "edit": "编辑",
+    "delete": "删除",
+    "cancel": "取消",
+    "confirm": "确认",
+    "deleting": "删除中...",
+    "default": "默认",
+    "types": {
+      "public": "公开",
+      "private": "私有",
+      "system": "系统"
+    },
+    "form": {
+      "description": "填写 Agent 信息",
+      "name": "Agent 名称",
+      "namePlaceholder": "例如：代码助手",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "描述这个 Agent 的角色和能力...",
+      "typeLabel": "类型",
+      "typePrivate": "私有",
+      "typePrivateDesc": "仅自己可见",
+      "typePublic": "公开",
+      "typePublicDesc": "所有人可用",
+      "required": "请填写所有必填字段"
+    },
+    "selector": {
+      "label": "选择 Agent",
+      "selectAgent": "选择 Agent",
+      "loading": "加载中...",
+      "searchPlaceholder": "搜索 Agent...",
+      "noResults": "未找到匹配的 Agent",
+      "noAgents": "暂无可用 Agent"
+    },
+    "messages": {
+      "createSuccess": "Agent 创建成功",
+      "createError": "创建 Agent 失败",
+      "deleteSuccess": "Agent 删除成功",
+      "deleteError": "删除 Agent 失败",
+      "deleteConfirm": {
+        "title": "确认删除",
+        "description": "删除后无法恢复，确定要删除这个 Agent 吗？"
+      }
+    },
+    "empty": {
+      "title": "还没有 Agent",
+      "description": "创建您的第一个 AI Agent 开始使用"
+    },
+    "created": "创建于",
+    "systemAgentReadOnly": "系统 Agent 不可编辑"
   }
 }

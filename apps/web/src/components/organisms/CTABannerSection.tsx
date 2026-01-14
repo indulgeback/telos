@@ -9,17 +9,14 @@ export function CTABannerSection() {
   return (
     <SectionWrapper>
       <CTASection
-        title={t('cta.title') || '准备好开始了吗？'}
-        description={
-          t('cta.description') ||
-          '立即体验 Telos 智能工作流编排平台，提升您的自动化效率'
-        }
+        title={t('cta.title')}
+        description={t('cta.description')}
         primaryAction={{
-          label: t('cta.getStarted') || '立即开始',
+          label: t('cta.getStarted'),
           href: '/auth/signin',
         }}
         secondaryAction={{
-          label: t('cta.viewDocs') || '查看文档',
+          label: t('cta.viewDocs'),
           href: '/docs',
         }}
         variant='gradient'

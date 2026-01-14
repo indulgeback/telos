@@ -7,10 +7,10 @@ export function StatsSection() {
   const t = useTranslations('HomePage')
 
   const stats = [
-    { value: '18+', label: t('stats.languages') || '支持语言' },
-    { value: '5+', label: t('stats.services') || '微服务' },
-    { value: '99.9%', label: t('stats.uptime') || '可用性' },
-    { value: '< 100ms', label: t('stats.latency') || '响应延迟' },
+    { value: '18+', label: t('stats.languages') },
+    { value: '5+', label: t('stats.services') },
+    { value: '99.9%', label: t('stats.uptime') },
+    { value: '< 100ms', label: t('stats.latency') },
   ]
 
   return (

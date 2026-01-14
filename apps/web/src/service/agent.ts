@@ -9,6 +9,36 @@ export interface ChatMessage {
   content: string
 }
 
+// Agent 类型
+export type AgentType = 'public' | 'private' | 'system'
+
+// Agent 接口
+export interface Agent {
+  id: string
+  name: string
+  description: string
+  system_prompt: string
+  type: AgentType
+  owner_id: string
+  owner_name?: string
+  is_default: boolean
+  created_at: string
+  updated_at: string
+}
+
+// 创建 Agent 请求
+export interface CreateAgentRequest {
+  name: string
+  description: string
+  type: 'public' | 'private'
+}
+
+// 更新 Agent 请求
+export interface UpdateAgentRequest {
+  name: string
+  description: string
+}
+
 // SSE 流式数据格式
 export interface StreamChunk {
   content: string
@@ -19,6 +49,13 @@ export interface StreamChunk {
 export type StreamCallback = (chunk: StreamChunk) => void
 export type StreamErrorCallback = (error: Error) => void
 
+// API 响应格式
+export interface AgentApiResponse<T> {
+  code: number
+  message: string
+  data?: T
+}
+
 // Agent 服务类
 export class AgentService {
   private baseURL: string
@@ -28,8 +65,138 @@ export class AgentService {
   }
 
   /**
+   * 获取 Agent 列表
+   */
+  async listAgents(): Promise<Agent[]> {
+    const response = await fetch(`${this.baseURL}/api/agents`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch agents: ${response.statusText}`)
+    }
+
+    const result: AgentApiResponse<Agent[]> = await response.json()
+    if (result.code !== 0) {
+      throw new Error(result.message || 'Failed to fetch agents')
+    }
+
+    return result.data || []
+  }
+
+  /**
+   * 获取单个 Agent
+   */
+  async getAgent(id: string): Promise<Agent> {
+    const response = await fetch(`${this.baseURL}/api/agents/${id}`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch agent: ${response.statusText}`)
+    }
+
+    const result: AgentApiResponse<Agent> = await response.json()
+    if (result.code !== 0) {
+      throw new Error(result.message || 'Failed to fetch agent')
+    }
+
+    return result.data!
+  }
+
+  /**
+   * 获取默认 Agent
+   */
+  async getDefaultAgent(): Promise<Agent> {
+    const response = await fetch(`${this.baseURL}/api/agents/default`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch default agent: ${response.statusText}`)
+    }
+
+    const result: AgentApiResponse<Agent> = await response.json()
+    if (result.code !== 0) {
+      throw new Error(result.message || 'Failed to fetch default agent')
+    }
+
+    return result.data!
+  }
+
+  /**
+   * 创建新 Agent
+   */
+  async createAgent(data: CreateAgentRequest): Promise<Agent> {
+    const response = await fetch(`${this.baseURL}/api/agents`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to create agent: ${response.statusText}`)
+    }
+
+    const result: AgentApiResponse<Agent> = await response.json()
+    if (result.code !== 0) {
+      throw new Error(result.message || 'Failed to create agent')
+    }
+
+    return result.data!
+  }
+
+  /**
+   * 更新 Agent
+   */
+  async updateAgent(id: string, data: UpdateAgentRequest): Promise<Agent> {
+    const response = await fetch(`${this.baseURL}/api/agents/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to update agent: ${response.statusText}`)
+    }
+
+    const result: AgentApiResponse<Agent> = await response.json()
+    if (result.code !== 0) {
+      throw new Error(result.message || 'Failed to update agent')
+    }
+
+    return result.data!
+  }
+
+  /**
+   * 删除 Agent
+   */
+  async deleteAgent(id: string): Promise<void> {
+    const response = await fetch(`${this.baseURL}/api/agents/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete agent: ${response.statusText}`)
+    }
+
+    const result: AgentApiResponse<unknown> = await response.json()
+    if (result.code !== 0) {
+      throw new Error(result.message || 'Failed to delete agent')
+    }
+  }
+
+  /**
    * 发送聊天消息（流式响应）
    * @param message 用户消息
+   * @param agentId 可选的 Agent ID
    * @param onChunk 接收流式数据的回调
    * @param onError 错误回调
    * @returns 清理函数
@@ -37,7 +204,8 @@ export class AgentService {
   async chatStream(
     message: string,
     onChunk: StreamCallback,
-    onError?: StreamErrorCallback
+    onError?: StreamErrorCallback,
+    agentId?: string
   ): Promise<() => void> {
     const url = `${this.baseURL}/api/agent`
     const controller = new AbortController()
@@ -47,6 +215,7 @@ export class AgentService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(agentId && { 'X-Agent-ID': agentId }),
         },
         body: JSON.stringify({ message }),
         signal: controller.signal,
@@ -120,15 +289,17 @@ export class AgentService {
   /**
    * 发送聊天消息（非流式，简单版本）
    * @param message 用户消息
+   * @param agentId 可选的 Agent ID
    * @returns 完整响应
    */
-  async chat(message: string): Promise<{ content: string }> {
+  async chat(message: string, agentId?: string): Promise<{ content: string }> {
     const url = `${this.baseURL}/api/agent`
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(agentId && { 'X-Agent-ID': agentId }),
       },
       body: JSON.stringify({ message }),
       credentials: 'include',

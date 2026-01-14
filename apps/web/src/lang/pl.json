@@ -3,7 +3,8 @@
     "home": "Strona główna",
     "workflows": "przepływ pracy",
     "chat": "Asystent AI",
-    "dashboard": "Deska rozdzielcza"
+    "dashboard": "Deska rozdzielcza",
+    "agents": "agent inteligentny"
   },
   "Chat": {
     "title": "Asystent AI",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Wpisz swoje pytanie... (Shift + Enter, aby przejść do nowej linii)"
+      "placeholder": "Wpisz swoje pytanie... (Shift + Enter, aby przejść do nowej linii)",
+      "sendAriaLabel": "Wyślij wiadomość"
     },
     "actions": {
       "copy": "Kopiuj",
-      "copied": "Skopiowano"
+      "copied": "Skopiowano",
+      "retry": "Spróbuj ponownie"
     },
     "error": {
       "message": "Przepraszamy, wystąpił błąd. Proszę spróbować później."
@@ -157,6 +160,11 @@
     "title": "Telos: Inteligentna platforma orkiestracji procesów agentowych",
     "subtitle": "Nowoczesna, wysoce skalowalna platforma do inteligentnej orkiestracji przepływu pracy",
     "description": "Obsługuje automatyczne planowanie zadań i zarządzanie nimi, przyjmuje separację front-end i back-end oraz architekturę mikrousług i jest przeznaczony do scenariuszy automatyzacji na poziomie przedsiębiorstwa.",
+    "badge": "Inteligentna orkiestracja przepływu pracy",
+    "github": "GitHub",
+    "dashboard": "Przejdź do pulpitu",
+    "viewWorkflows": "Zobacz przepływ pracy",
+    "techStackSupport": "Wsparcie stosu technologicznego",
     "flowSection": {
       "trigger": "Wyzwalacze przesyłania formularzy",
       "triggerDesc": "Po przesłaniu formularza \"Utwórz użytkownika\"",
@@ -185,6 +193,13 @@
       "communication": "Obsługuje tRPC/gRPC w celu zapewnienia bezpiecznej i wydajnej komunikacji między usługami.",
       "monorepo": "Ujednolicone zarządzanie Monorepo dla łatwej centralizacji zależności i współpracy zespołowej.",
       "deployment": "Cały proces jest konteneryzowany i ma wbudowaną obsługę CI/CD, aby zapewnić ciągłe dostarczanie."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Mikroserwisy Go",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Zarządzanie ujednolicone",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Architektura techniczna"
@@ -478,5 +493,58 @@
       "unknownError": "Wystąpił nieznany błąd, spróbuj ponownie",
       "contactSupport": "Jeśli problem będzie się powtarzał, skontaktuj się z pomocą techniczną"
     }
+  },
+  "Agent": {
+    "title": "Zarządzanie agentem",
+    "subtitle": "Twórz i zarządzaj swoim agentem AI",
+    "create": "Utwórz agenta",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "cancel": "Anuluj",
+    "confirm": "Potwierdź",
+    "deleting": "Usuwanie...",
+    "default": "domyślnie",
+    "types": {
+      "public": "opublikować",
+      "private": "prywatny",
+      "system": "system"
+    },
+    "form": {
+      "description": "Wypełnij informacje o agencie",
+      "name": "Nazwa agenta",
+      "namePlaceholder": "Na przykład: Asystent kodu",
+      "descriptionLabel": "opisać",
+      "descriptionPlaceholder": "Opisz rolę i zdolności tego agenta...",
+      "typeLabel": "typ",
+      "typePrivate": "prywatny",
+      "typePrivateDesc": "Tylko widoczne dla mnie",
+      "typePublic": "opublikować",
+      "typePublicDesc": "Dostępne dla wszystkich",
+      "required": "Proszę wypełnić wszystkie wymagane pola"
+    },
+    "selector": {
+      "label": "Wybierz agenta",
+      "selectAgent": "Wybierz agenta",
+      "loading": "Ładowanie...",
+      "searchPlaceholder": "Szukaj agenta...",
+      "noResults": "Nie znaleziono pasującego agenta",
+      "noAgents": "Brak dostępnych agentów"
+    },
+    "messages": {
+      "createSuccess": "Agent został pomyślnie utworzony",
+      "createError": "Nie udało się utworzyć agenta",
+      "deleteSuccess": "Agent został pomyślnie usunięty",
+      "deleteError": "Nie udało się usunąć agenta",
+      "deleteConfirm": {
+        "title": "Potwierdź usunięcie",
+        "description": "Po usunięciu nie można przywrócić. Czy na pewno chcesz usunąć tego agenta?"
+      }
+    },
+    "empty": {
+      "title": "Jeszcze nie ma agenta",
+      "description": "Utwórz swojego pierwszego agenta AI i rozpocznij korzystanie"
+    },
+    "created": "Utworzono w",
+    "systemAgentReadOnly": "Agent systemowy nieedytowalny"
   }
 }

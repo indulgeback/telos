@@ -70,6 +70,12 @@ func main() {
 			Timeout:     10,
 		},
 		{
+			Path:        "/api/agents",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     10,
+		},
+		{
 			Path:        "/api/agent",
 			ServiceName: "agent-service",
 			StripPrefix: false,

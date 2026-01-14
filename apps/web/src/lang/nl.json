@@ -3,7 +3,8 @@
     "home": "Startpagina",
     "workflows": "workflow",
     "chat": "AI-assistent",
-    "dashboard": "dashboard"
+    "dashboard": "dashboard",
+    "agents": "agent"
   },
   "Chat": {
     "title": "AI-assistent",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Voer uw vraag in... (Shift + Enter voor een nieuwe regel)"
+      "placeholder": "Voer uw vraag in... (Shift + Enter voor een nieuwe regel)",
+      "sendAriaLabel": "Bericht verzenden"
     },
     "actions": {
       "copy": "Kopiëren",
-      "copied": "Gekopieerd"
+      "copied": "Gekopieerd",
+      "retry": "Opnieuw proberen"
     },
     "error": {
       "message": "Sorry, er is een fout opgetreden. Probeer het later opnieuw."
@@ -157,6 +160,11 @@
     "title": "Telos: Intelligent platform voor het orkestreren van agentprocessen",
     "subtitle": "Een modern, zeer schaalbaar platform voor intelligente workflow-orkestratie",
     "description": "Het ondersteunt automatische taakplanning en -beheer, maakt gebruik van front-end- en back-endscheiding en microservice-architectuur en is ontworpen voor automatiseringsscenario's op bedrijfsniveau.",
+    "badge": "Slimme workfloworkestratie",
+    "github": "GitHub",
+    "dashboard": "Ga naar het dashboard",
+    "viewWorkflows": "Bekijk workflow",
+    "techStackSupport": "technologiestackondersteuning",
     "flowSection": {
       "trigger": "Triggers voor het indienen van formulieren",
       "triggerDesc": "Wanneer het formulier 'Gebruiker aanmaken' wordt verzonden",
@@ -185,6 +193,13 @@
       "communication": "Ondersteunt tRPC/gRPC voor typeveilige en efficiënte service-to-service communicatie.",
       "monorepo": "Uniform Monorepo-beheer voor eenvoudige centralisatie van afhankelijkheden en teamsamenwerking.",
       "deployment": "Het hele proces is gecontaineriseerd en heeft ingebouwde CI/CD-ondersteuning om continue levering te garanderen."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go microservices",
+      "communication": "tRPC/gRPC",
+      "monorepo": "gecentraliseerd beheer",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Technische architectuur"
@@ -478,5 +493,58 @@
       "unknownError": "Er is een onbekende fout opgetreden, probeer het opnieuw",
       "contactSupport": "Als het probleem zich blijft voordoen, neem dan contact op met de technische ondersteuning"
     }
+  },
+  "Agent": {
+    "title": "Agentbeheer",
+    "subtitle": "Maak en beheer uw AI-agent",
+    "create": "Agent maken",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "deleting": "Bezig met verwijderen...",
+    "default": "standaard",
+    "types": {
+      "public": "openbaar",
+      "private": "Privé",
+      "system": "systeem"
+    },
+    "form": {
+      "description": "Agentinformatie invullen",
+      "name": "Agent Naam",
+      "namePlaceholder": "Bijvoorbeeld: code-assistent",
+      "descriptionLabel": "beschrijving",
+      "descriptionPlaceholder": "Beschrijf de rol en vaardigheden van deze agent...",
+      "typeLabel": "Type",
+      "typePrivate": "Privé",
+      "typePrivateDesc": "Alleen zichtbaar voor mezelf",
+      "typePublic": "openbaar",
+      "typePublicDesc": "Voor iedereen beschikbaar",
+      "required": "Vul alle verplichte velden in"
+    },
+    "selector": {
+      "label": "Agent kiezen",
+      "selectAgent": "Agent kiezen",
+      "loading": "Laden...",
+      "searchPlaceholder": "Zoek agent...",
+      "noResults": "Geen bijpassende agent gevonden",
+      "noAgents": "Geen beschikbare agent"
+    },
+    "messages": {
+      "createSuccess": "Agent succesvol aangemaakt",
+      "createError": "Agent aanmaken mislukt",
+      "deleteSuccess": "Agent succesvol verwijderd",
+      "deleteError": "Agent verwijderen mislukt",
+      "deleteConfirm": {
+        "title": "Bevestigen verwijderen",
+        "description": "Verwijderen kan niet ongedaan worden gemaakt. Weet u zeker dat u deze agent wilt verwijderen?"
+      }
+    },
+    "empty": {
+      "title": "Nog geen agent",
+      "description": "Maak uw eerste AI-agent en begin met gebruiken"
+    },
+    "created": "Opgericht in",
+    "systemAgentReadOnly": "Systeemagent kan niet worden bewerkt"
   }
 }

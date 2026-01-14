@@ -3,7 +3,8 @@
     "home": "Inicio",
     "workflows": "Flujo de trabajo",
     "chat": "Asistente de IA",
-    "dashboard": "Tablero de instrumentos"
+    "dashboard": "Tablero de instrumentos",
+    "agents": "Agente inteligente"
   },
   "Chat": {
     "title": "Asistente de IA",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Escriba su pregunta... (Shift + Enter para salto de línea)"
+      "placeholder": "Escriba su pregunta... (Shift + Enter para salto de línea)",
+      "sendAriaLabel": "Enviar mensaje"
     },
     "actions": {
       "copy": "Copiar",
-      "copied": "Copiado"
+      "copied": "Copiado",
+      "retry": "Reintentar"
     },
     "error": {
       "message": "Lo sentimos, ocurrió un error. Por favor, inténtelo de nuevo más tarde."
@@ -157,6 +160,11 @@
     "title": "Telos: Plataforma Inteligente de Orquestación de Procesos de Agentes",
     "subtitle": "Una plataforma moderna y altamente escalable para la orquestación inteligente del flujo de trabajo",
     "description": "Es compatible con la programación y administración automática de tareas, adopta la separación de front-end y back-end y la arquitectura de microservicios, y está diseñado para escenarios de automatización de nivel empresarial.",
+    "badge": "Orquestación de flujo de trabajo inteligente",
+    "github": "GitHub",
+    "dashboard": "Ingresar al panel",
+    "viewWorkflows": "Ver flujo de trabajo",
+    "techStackSupport": "Soporte de pila tecnológica",
     "flowSection": {
       "trigger": "Activadores de envío de formularios",
       "triggerDesc": "Cuando se envía el formulario \"Crear usuario\"",
@@ -185,6 +193,13 @@
       "communication": "Admite tRPC/gRPC para una comunicación de servicio a servicio eficiente y con seguridad de tipos.",
       "monorepo": "Gestión unificada de Monorepo para facilitar la centralización de dependencias y la colaboración en equipo.",
       "deployment": "Todo el proceso está en contenedores y tiene soporte integrado de CI/CD para garantizar la entrega continua."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Servicios micro en Go",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Gestión unificada",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Arquitectura técnica"
@@ -478,5 +493,58 @@
       "unknownError": "Se produjo un error desconocido, inténtelo de nuevo",
       "contactSupport": "Si el problema persiste, póngase en contacto con el soporte técnico"
     }
+  },
+  "Agent": {
+    "title": "Gestión de agentes",
+    "subtitle": "Crear y administrar su agente de IA",
+    "create": "Crear agente",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "deleting": "Eliminando...",
+    "default": "Predeterminado",
+    "types": {
+      "public": "Público",
+      "private": "Privado",
+      "system": "sistema"
+    },
+    "form": {
+      "description": "Rellenar información del agente",
+      "name": "Nombre del Agente",
+      "namePlaceholder": "Por ejemplo: asistente de código",
+      "descriptionLabel": "descripción",
+      "descriptionPlaceholder": "Describe el papel y las habilidades de este agente...",
+      "typeLabel": "tipo",
+      "typePrivate": "Privado",
+      "typePrivateDesc": "Solo visible para mí",
+      "typePublic": "Público",
+      "typePublicDesc": "Disponible para todos",
+      "required": "Por favor, complete todos los campos obligatorios"
+    },
+    "selector": {
+      "label": "Seleccionar agente",
+      "selectAgent": "Seleccionar agente",
+      "loading": "Cargando...",
+      "searchPlaceholder": "Buscando agente...",
+      "noResults": "No se encontró un agente coincidente",
+      "noAgents": "No hay agentes disponibles"
+    },
+    "messages": {
+      "createSuccess": "Agente creado con éxito",
+      "createError": "Error al crear el agente",
+      "deleteSuccess": "Agente eliminado con éxito",
+      "deleteError": "Error al eliminar el agente",
+      "deleteConfirm": {
+        "title": "Confirmar eliminación",
+        "description": "Una vez eliminado, no se puede recuperar. ¿Está seguro de que desea eliminar este agente?"
+      }
+    },
+    "empty": {
+      "title": "Aún no hay agente",
+      "description": "Cree su primer agente de IA para empezar"
+    },
+    "created": "Creado en",
+    "systemAgentReadOnly": "El agente del sistema no se puede editar"
   }
 }

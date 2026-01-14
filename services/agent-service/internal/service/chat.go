@@ -79,7 +79,7 @@ func (s *ChatService) ChatStream(ctx context.Context, messages []Message) (<-cha
 			return
 		}
 
-		// 读取流式响应
+		// 读取流式响应，发送增量内容
 		for {
 			chunk, err := streamReader.Recv()
 			if err == io.EOF {
@@ -91,6 +91,7 @@ func (s *ChatService) ChatStream(ctx context.Context, messages []Message) (<-cha
 			}
 
 			if chunk.Content != "" {
+				// 发送增量内容
 				contentChan <- chunk.Content
 			}
 		}

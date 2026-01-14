@@ -3,7 +3,8 @@
     "home": "홈",
     "workflows": "워크플로",
     "chat": "AI 도우미",
-    "dashboard": "계기판"
+    "dashboard": "계기판",
+    "agents": "인공지능 에이전트"
   },
   "Chat": {
     "title": "AI 도우미",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "질문을 입력하세요... (Shift + Enter로 줄 바꿈)"
+      "placeholder": "질문을 입력하세요... (Shift + Enter로 줄 바꿈)",
+      "sendAriaLabel": "메시지 보내기"
     },
     "actions": {
       "copy": "복사",
-      "copied": "복사됨"
+      "copied": "복사됨",
+      "retry": "다시 시도"
     },
     "error": {
       "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
@@ -80,7 +83,7 @@
     },
     "gettingStarted": {
       "title": "Telos 사용 시작",
-      "description": "빠르게 시작하는 가이드, 플랫폼 기능을 최대한 활용할 수 있도록 도와드립니다",
+      "description": "빠른 시작 가이드, 플랫폼 기능을 최대한 활용하도록 도와드립니다",
       "step1": {
         "title": "1. 워크플로우 생성",
         "description": "시각적 편집기를 사용하여 첫 번째 자동화 워크플로 만들기"
@@ -157,6 +160,11 @@
     "title": "Telos: Intelligent Agent Process Orchestration 플랫폼",
     "subtitle": "지능형 워크플로 오케스트레이션을 위한 확장성이 뛰어난 최신 플랫폼",
     "description": "자동화된 작업 예약 및 관리를 지원하고, 프론트엔드 및 백엔드 분리와 마이크로서비스 아키텍처를 채택하며, 엔터프라이즈급 자동화 시나리오를 위해 설계되었습니다.",
+    "badge": "지능형 워크플로우 편성",
+    "github": "깃허브",
+    "dashboard": "대시보드로 이동",
+    "viewWorkflows": "워크플로 확인",
+    "techStackSupport": "기술 스택 지원",
     "flowSection": {
       "trigger": "양식 제출 트리거",
       "triggerDesc": "'사용자 만들기' 양식이 제출된 경우",
@@ -185,6 +193,13 @@
       "communication": "형식이 안전하고 효율적인 서비스 간 통신을 위해 tRPC/gRPC를 지원합니다.",
       "monorepo": "간편한 종속성 중앙 집중화 및 팀 협업을 위한 통합 Monorepo 관리.",
       "deployment": "전체 프로세스는 컨테이너화되어 있으며 지속적인 제공을 보장하기 위해 CI/CD 지원이 내장되어 있습니다."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go 마이크로서비스",
+      "communication": "tRPC/gRPC",
+      "monorepo": "통합 관리",
+      "deployment": "도커 K8s"
     },
     "architecture": {
       "title": "기술 아키텍처"
@@ -478,5 +493,58 @@
       "unknownError": "알 수 없는 오류가 발생했습니다. 다시 시도하십시오.",
       "contactSupport": "문제가 지속되면 기술 지원에 문의하십시오."
     }
+  },
+  "Agent": {
+    "title": "에이전트 관리",
+    "subtitle": "AI 에이전트를 생성하고 관리하기",
+    "create": "에이전트 생성",
+    "edit": "편집",
+    "delete": "삭제",
+    "cancel": "취소",
+    "confirm": "확인",
+    "deleting": "삭제 중...",
+    "default": "기본",
+    "types": {
+      "public": "공개",
+      "private": "사유",
+      "system": "시스템"
+    },
+    "form": {
+      "description": "에이전트 정보 입력",
+      "name": "에이전트 이름",
+      "namePlaceholder": "예: 코드 도우미",
+      "descriptionLabel": "설명",
+      "descriptionPlaceholder": "이 에이전트의 역할과 능력을 설명하세요...",
+      "typeLabel": "유형",
+      "typePrivate": "사유",
+      "typePrivateDesc": "본인만 보기",
+      "typePublic": "공개",
+      "typePublicDesc": "모두 이용 가능",
+      "required": "모든 필수 항목을 작성해 주세요"
+    },
+    "selector": {
+      "label": "에이전트 선택",
+      "selectAgent": "에이전트 선택",
+      "loading": "로딩 중...",
+      "searchPlaceholder": "에이전트 검색...",
+      "noResults": "일치하는 에이전트를 찾을 수 없습니다",
+      "noAgents": "사용 가능한 에이전트가 없습니다"
+    },
+    "messages": {
+      "createSuccess": "에이전트 생성 성공",
+      "createError": "에이전트 생성 실패",
+      "deleteSuccess": "에이전트 삭제 성공",
+      "deleteError": "에이전트 삭제 실패",
+      "deleteConfirm": {
+        "title": "삭제 확인",
+        "description": "삭제하면 복구할 수 없습니다. 이 에이전트를 삭제하시겠습니까?"
+      }
+    },
+    "empty": {
+      "title": "아직 에이전트가 없습니다",
+      "description": "첫 번째 AI 에이전트 만들기 시작하기"
+    },
+    "created": "설립일",
+    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다"
   }
 }

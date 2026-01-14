@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { SectionWrapper, LogoCloud } from '@/components/molecules'
 import {
   Code2,
@@ -13,6 +14,8 @@ import {
 } from 'lucide-react'
 
 export function LogoCloudSection() {
+  const t = useTranslations('HomePage')
+
   const logos = [
     { name: 'Next.js', icon: <Code2 className='h-5 w-5' /> },
     { name: 'React', icon: <Zap className='h-5 w-5' /> },
@@ -26,7 +29,7 @@ export function LogoCloudSection() {
 
   return (
     <SectionWrapper variant='card' className='py-12'>
-      <LogoCloud title='技术栈支持' logos={logos} />
+      <LogoCloud title={t('techStackSupport')} logos={logos} />
     </SectionWrapper>
   )
 }

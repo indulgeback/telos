@@ -3,7 +3,8 @@
     "home": "Hjem",
     "workflows": "arbeidsflyt",
     "chat": "AI-assistent",
-    "dashboard": "dashbord"
+    "dashboard": "dashbord",
+    "agents": "agent"
   },
   "Chat": {
     "title": "AI-assistent",
@@ -32,11 +33,13 @@
       }
     },
     "input": {
-      "placeholder": "Skriv inn spørsmålet ditt... (Shift + Enter for linjeskift)"
+      "placeholder": "Skriv inn spørsmålet ditt... (Shift + Enter for linjeskift)",
+      "sendAriaLabel": "Send melding"
     },
     "actions": {
       "copy": "Kopier",
-      "copied": "Kopiert"
+      "copied": "Kopiert",
+      "retry": "Prøv igjen"
     },
     "error": {
       "message": "Beklager, det oppstod en feil. Vennligst prøv igjen senere."
@@ -157,6 +160,11 @@
     "title": "Telos: Intelligent prosessorkestreringsplattform for agenter",
     "subtitle": "En moderne, svært skalerbar plattform for intelligent arbeidsflytorkestrering",
     "description": "Den støtter automatisk oppgaveplanlegging og -administrasjon, tar i bruk front-end- og back-end-separasjon og mikrotjenestearkitektur, og er designet for automatiseringsscenarier på bedriftsnivå.",
+    "badge": "Intelligent arbeidsflytorkestrering",
+    "github": "GitHub",
+    "dashboard": "Gå til dashbordet",
+    "viewWorkflows": "Se arbeidsflyt",
+    "techStackSupport": "Teknologistakkstøtte",
     "flowSection": {
       "trigger": "Utløsere for skjemainnsending",
       "triggerDesc": "Når skjemaet «Opprett bruker» sendes inn",
@@ -185,6 +193,13 @@
       "communication": "Støtter tRPC/gRPC for typesikker og effektiv tjeneste-til-tjeneste-kommunikasjon.",
       "monorepo": "Enhetlig Monorepo-administrasjon for enkel avhengighetssentralisering og teamsamarbeid.",
       "deployment": "Hele prosessen er containerisert og har innebygd CI/CD-støtte for å sikre kontinuerlig levering."
+    },
+    "featureDescriptions": {
+      "frontend": "Next.js 15 Shadcn UI",
+      "backend": "Go mikrotjenester",
+      "communication": "tRPC/gRPC",
+      "monorepo": "Enhetlig administrasjon",
+      "deployment": "Docker K8s"
     },
     "architecture": {
       "title": "Teknisk arkitektur"
@@ -478,5 +493,58 @@
       "unknownError": "Det oppstod en ukjent feil, prøv igjen",
       "contactSupport": "Hvis problemet vedvarer, kontakt teknisk støtte"
     }
+  },
+  "Agent": {
+    "title": "Agentadministrasjon",
+    "subtitle": "Opprett og administrer din AI-agent",
+    "create": "Opprett agent",
+    "edit": "Rediger",
+    "delete": "Slett",
+    "cancel": "Avbryt",
+    "confirm": "Bekreft",
+    "deleting": "Sletter...",
+    "default": "Standard",
+    "types": {
+      "public": "offentlig",
+      "private": "Privat",
+      "system": "system"
+    },
+    "form": {
+      "description": "Fyll ut agentinformasjon",
+      "name": "Agentnavn",
+      "namePlaceholder": "For eksempel: kodehjelper",
+      "descriptionLabel": "beskrivelse",
+      "descriptionPlaceholder": "Beskriv rollen og evnene til denne agenten...",
+      "typeLabel": "Type",
+      "typePrivate": "Privat",
+      "typePrivateDesc": "Kun synlig for meg",
+      "typePublic": "offentlig",
+      "typePublicDesc": "Tilgjengelig for alle",
+      "required": "Vennligst fyll ut alle obligatoriske felt"
+    },
+    "selector": {
+      "label": "Velg agent",
+      "selectAgent": "Velg agent",
+      "loading": "Laster...",
+      "searchPlaceholder": "Søk etter agent...",
+      "noResults": "Ingen samsvarende agent funnet",
+      "noAgents": "Ingen tilgjengelige agenter"
+    },
+    "messages": {
+      "createSuccess": "Agent opprettet",
+      "createError": "Opprettelse av agent mislyktes",
+      "deleteSuccess": "Agent slettet",
+      "deleteError": "Sletting av agent mislyktes",
+      "deleteConfirm": {
+        "title": "Bekreft sletting",
+        "description": "Kan ikke gjenopprettes etter sletting. Er du sikker på at du vil slette denne agenten?"
+      }
+    },
+    "empty": {
+      "title": "Ingen agent ennå",
+      "description": "Opprett din første AI-agent for å komme i gang"
+    },
+    "created": "Opprettet i",
+    "systemAgentReadOnly": "Systemagenten kan ikke redigeres"
   }
 }
