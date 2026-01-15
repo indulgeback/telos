@@ -8,11 +8,11 @@
 //   - 健康检查（HandleHealth）
 //   - 就绪检查（HandleReadiness）
 //   - 服务信息（HandleInfo）
-//   - SSE 流写入器（StreamWriter）
 package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -86,13 +86,13 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 	var req ChatRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		tlog.Warn("聊天请求参数错误", "error", err.Error(), "request_id", requestID, "client_ip", clientIP)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的请求格式"})
+		c.JSON(http.StatusBadRequest, errorResponse(400, "无效的请求格式"))
 		return
 	}
 
 	if req.Message == "" {
 		tlog.Warn("聊天消息为空", "request_id", requestID, "client_ip", clientIP)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "消息不能为空"})
+		c.JSON(http.StatusBadRequest, errorResponse(400, "消息不能为空"))
 		return
 	}
 
@@ -107,19 +107,19 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 	if agentID != "" {
 		agent, err := h.agentService.GetAgentForChat(c.Request.Context(), agentID)
 		if err != nil {
-			tlog.Warn("获取 Agent 失败，使用默认", "agent_id", agentID, "error", err.Error())
-		} else {
-			// 添加系统提示词
-			messages = append(messages, service.Message{
-				Role:    "system",
-				Content: agent.SystemPrompt,
-			})
-			tlog.Info("使用指定 Agent", "agent_id", agentID, "agent_name", agent.Name, "request_id", requestID)
+			// Agent 获取失败时返回错误，不再静默降级
+			tlog.Warn("获取 Agent 失败", "agent_id", agentID, "error", err.Error(), "request_id", requestID)
+			c.JSON(http.StatusNotFound, errorResponse(404, fmt.Sprintf("无法找到指定的 Agent (ID: %s)", agentID)))
+			return
 		}
-	}
-
-	// 如果没有 system prompt，添加默认的
-	if len(messages) == 0 {
+		// 添加系统提示词
+		messages = append(messages, service.Message{
+			Role:    "system",
+			Content: agent.SystemPrompt,
+		})
+		tlog.Info("使用指定 Agent", "agent_id", agentID, "agent_name", agent.Name, "request_id", requestID)
+	} else {
+		// 未指定 Agent 时使用默认 system prompt
 		messages = append(messages, service.Message{
 			Role:    "system",
 			Content: "你是一个友好、专业的 AI 助手，可以帮助用户解答各种问题。",
@@ -147,7 +147,7 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 	flusher, ok := c.Writer.(http.Flusher)
 	if !ok {
 		tlog.Error("不支持流式响应", "request_id", requestID, "client_ip", clientIP)
-		c.Writer.Write([]byte("data: " + toJSON(gin.H{"error": "不支持流式响应"}) + "\n\n"))
+		writeSSEError(c.Writer, flusher, "不支持流式响应", requestID)
 		return
 	}
 
@@ -157,27 +157,28 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 		case content, ok := <-contentChan:
 			if !ok {
 				// 通道已关闭，发送结束标记
-				c.Writer.Write([]byte("data: [DONE]\n\n"))
+				if _, err := c.Writer.Write([]byte("data: [DONE]\n\n")); err != nil {
+					tlog.Warn("发送完成标记失败", "error", err, "request_id", requestID)
+				}
 				flusher.Flush()
 				tlog.Info("聊天流式响应完成", "content_length", contentLength, "request_id", requestID, "client_ip", clientIP)
 				return
 			}
 
-			// 发送增量内容数据块
+			// 发送增量内容数据块，检查写入错误
 			data := gin.H{"content": content}
-			jsonData := toJSON(data)
-			c.Writer.Write([]byte("data: " + jsonData + "\n\n"))
-			flusher.Flush()
+			if !writeSSEData(c.Writer, flusher, data) {
+				// 写入失败，客户端可能已断开
+				tlog.Warn("SSE 写入失败，客户端可能已断开", "request_id", requestID)
+				return
+			}
 			contentLength += len(content)
 
 		case err := <-errChan:
 			if err != nil {
 				// 发送错误信息
 				tlog.Error("聊天流式响应错误", "error", err.Error(), "request_id", requestID, "client_ip", clientIP)
-				errorData := gin.H{"error": err.Error()}
-				jsonData := toJSON(errorData)
-				c.Writer.Write([]byte("data: " + jsonData + "\n\n"))
-				flusher.Flush()
+				writeSSEError(c.Writer, flusher, err.Error(), requestID)
 				return
 			}
 
@@ -189,10 +190,55 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 	}
 }
 
-// toJSON 将对象转换为 JSON 字符串，忽略错误
-func toJSON(v any) string {
-	data, _ := json.Marshal(v)
-	return string(data)
+// ========== SSE 辅助函数 ==========
+
+// writeSSEData 写入 SSE 数据并检查错误
+//
+// 参数：
+//   - w: HTTP Response Writer
+//   - flusher: HTTP Flusher
+//   - data: 要写入的数据
+//
+// 返回：
+//   - bool: 写入成功返回 true，失败返回 false
+func writeSSEData(w http.ResponseWriter, flusher http.Flusher, data any) bool {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		tlog.Error("JSON 序列化失败", "error", err)
+		// 发送一个错误响应给客户端
+		errorJSON, _ := json.Marshal(gin.H{"error": "serialization_failed"})
+		w.Write([]byte("data: " + string(errorJSON) + "\n\n"))
+		flusher.Flush()
+		return false
+	}
+
+	if _, err := w.Write([]byte("data: " + string(jsonData) + "\n\n")); err != nil {
+		tlog.Error("SSE 写入失败", "error", err)
+		return false
+	}
+	flusher.Flush()
+	return true
+}
+
+// writeSSEError 写入 SSE 错误消息
+//
+// 参数：
+//   - w: HTTP Response Writer
+//   - flusher: HTTP Flusher
+//   - errMsg: 错误消息
+//   - requestID: 请求 ID（用于日志）
+func writeSSEError(w http.ResponseWriter, flusher http.Flusher, errMsg string, requestID string) {
+	data := gin.H{"error": errMsg}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		tlog.Error("错误消息 JSON 序列化失败", "error", err, "request_id", requestID)
+		return
+	}
+
+	if _, err := w.Write([]byte("data: " + string(jsonData) + "\n\n")); err != nil {
+		tlog.Error("SSE 错误写入失败", "error", err, "request_id", requestID)
+	}
+	flusher.Flush()
 }
 
 // HandleHealth 健康检查
@@ -235,108 +281,4 @@ func (h *ChatHandler) HandleReadiness(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "ready"})
-}
-
-// ========== SSE 流写入器 ==========
-
-// StreamWriter SSE (Server-Sent Events) 流写入器
-//
-// 提供便捷的方法来写入 SSE 格式的数据。
-type StreamWriter struct {
-	writer   http.ResponseWriter // HTTP 响应写入器
-	flusher  http.Flusher        // HTTP 刷新器
-	encoding string              // 字符编码
-}
-
-// NewStreamWriter 创建 SSE 流写入器
-//
-// 参数：
-//   - w: HTTP Response Writer
-//
-// 返回：
-//   - *StreamWriter: 流写入器实例
-//   - error: 不支持流式响应时返回错误
-func NewStreamWriter(w http.ResponseWriter) (*StreamWriter, error) {
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		return nil, http.ErrNotSupported
-	}
-
-	return &StreamWriter{
-		writer:   w,
-		flusher:  flusher,
-		encoding: "utf-8",
-	}, nil
-}
-
-// Write 写入数据块
-//
-// 写入数据后立即刷新，确保客户端实时接收。
-//
-// 参数：
-//   - data: 待写入的字节数据
-//
-// 返回：
-//   - int: 写入的字节数
-//   - error: 写入失败时返回错误
-func (sw *StreamWriter) Write(data []byte) (int, error) {
-	n, err := sw.writer.Write(data)
-	if sw.flusher != nil {
-		sw.flusher.Flush()
-	}
-	return n, err
-}
-
-// WriteEvent 写入 SSE 事件
-//
-// 写入带有事件名称的 SSE 格式数据。
-//
-// 参数：
-//   - event: 事件名称
-//   - data: 事件数据
-//
-// 返回：
-//   - error: 写入失败时返回错误
-func (sw *StreamWriter) WriteEvent(event, data string) error {
-	_, err := sw.writer.Write([]byte("event: " + event + "\ndata: " + data + "\n\n"))
-	if sw.flusher != nil {
-		sw.flusher.Flush()
-	}
-	return err
-}
-
-// WriteData 写入 SSE 数据
-//
-// 将对象序列化为 JSON 后以 SSE 格式写入。
-//
-// 参数：
-//   - data: 待写入的数据对象（将被序列化为 JSON）
-//
-// 返回：
-//   - error: 序列化或写入失败时返回错误
-func (sw *StreamWriter) WriteData(data interface{}) error {
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	_, err = sw.writer.Write([]byte("data: " + string(jsonData) + "\n\n"))
-	if sw.flusher != nil {
-		sw.flusher.Flush()
-	}
-	return err
-}
-
-// Close 关闭流
-//
-// 发送 SSE 结束标记并刷新。
-//
-// 返回：
-//   - error: 写入失败时返回错误
-func (sw *StreamWriter) Close() error {
-	_, err := sw.writer.Write([]byte("data: [DONE]\n\n"))
-	if sw.flusher != nil {
-		sw.flusher.Flush()
-	}
-	return err
 }

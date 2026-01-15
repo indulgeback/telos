@@ -56,7 +56,11 @@ func registerToRegistry(serviceName, address string, port int, registryURL strin
 	}
 
 	// 发送注册请求到注册中心
-	body, _ := json.Marshal(serviceInfo)
+	body, err := json.Marshal(serviceInfo)
+	if err != nil {
+		tlog.Error("服务注册信息序列化失败", "error", err)
+		return
+	}
 	resp, err := http.Post(registryURL+"/api/register", "application/json", bytes.NewReader(body))
 	if err != nil {
 		tlog.Error("服务注册失败", "error", err, "registry_url", registryURL)
@@ -170,11 +174,23 @@ func main() {
 	// 检查并添加 system_prompt 列（向后兼容旧版本）
 	if !db.Migrator().HasColumn(&model.Agent{}, "system_prompt") {
 		tlog.Info("添加 system_prompt 列...")
-		db.Exec("ALTER TABLE agents ADD COLUMN system_prompt TEXT")
+
+		if err := db.Exec("ALTER TABLE agents ADD COLUMN system_prompt TEXT").Error; err != nil {
+			tlog.Error("添加 system_prompt 列失败", "error", err)
+			return
+		}
+
 		// 更新现有数据
-		db.Exec("UPDATE agents SET system_prompt = '你是一个友好、专业的 AI 助手。' WHERE system_prompt IS NULL OR system_prompt = ''")
+		if err := db.Exec("UPDATE agents SET system_prompt = '你是一个友好、专业的 AI 助手。' WHERE system_prompt IS NULL OR system_prompt = ''").Error; err != nil {
+			tlog.Error("更新 system_prompt 数据失败", "error", err)
+			return
+		}
+
 		// 设置为 NOT NULL
-		db.Exec("ALTER TABLE agents ALTER COLUMN system_prompt SET NOT NULL")
+		if err := db.Exec("ALTER TABLE agents ALTER COLUMN system_prompt SET NOT NULL").Error; err != nil {
+			tlog.Error("设置 system_prompt NOT NULL 约束失败", "error", err)
+			return
+		}
 	}
 
 	// 自动迁移模型（创建表、添加缺失的列等）
