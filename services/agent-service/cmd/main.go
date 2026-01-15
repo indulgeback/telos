@@ -1,3 +1,11 @@
+// Package main 提供 Agent Service 的应用程序入口点
+//
+// Agent Service 是一个 AI Agent 管理和聊天服务，提供以下功能：
+//   - Agent 的 CRUD 管理（创建、读取、更新、删除）
+//   - 基于 DeepSeek 模型的流式聊天服务
+//   - 支持公开、私有和系统三种 Agent 类型
+//   - 服务注册与发现
+//   - 优雅关闭和健康检查
 package main
 
 import (
@@ -21,18 +29,25 @@ import (
 	"github.com/indulgeback/telos/services/agent-service/internal/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/lib/pq"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"     // PostgreSQL 驱动
+	"gorm.io/driver/postgres" // GORM PostgreSQL 方言
+	"gorm.io/gorm"            // GORM ORM
 )
 
-// registerToRegistry 注册到服务注册中心
+// registerToRegistry 将服务注册到服务注册中心
+//
+// 参数：
+//   - serviceName: 服务名称（如 "agent-service"）
+//   - address: 服务监听的 IP 地址
+//   - port: 服务监听的端口号
+//   - registryURL: 注册中心的 URL（为空时跳过注册）
 func registerToRegistry(serviceName, address string, port int, registryURL string) {
 	if registryURL == "" {
 		tlog.Warn("未配置注册中心地址，跳过注册")
 		return
 	}
 
+	// 构建服务注册信息
 	serviceInfo := map[string]any{
 		"name":    serviceName,
 		"address": address,
@@ -41,6 +56,7 @@ func registerToRegistry(serviceName, address string, port int, registryURL strin
 		"meta":    map[string]string{"version": "1.0.0"},
 	}
 
+	// 发送注册请求到注册中心
 	body, _ := json.Marshal(serviceInfo)
 	resp, err := http.Post(registryURL+"/api/register", "application/json", bytes.NewReader(body))
 	if err != nil {
@@ -49,6 +65,7 @@ func registerToRegistry(serviceName, address string, port int, registryURL strin
 	}
 	defer resp.Body.Close()
 
+	// 检查注册响应
 	if resp.StatusCode != 200 {
 		tlog.Error("服务注册响应异常", "status_code", resp.StatusCode, "service", serviceName)
 	} else {
@@ -56,7 +73,17 @@ func registerToRegistry(serviceName, address string, port int, registryURL strin
 	}
 }
 
-// seedDefaultAgent 初始化默认 Agent
+// seedDefaultAgent 初始化系统默认 Agent
+//
+// 该函数检查数据库中是否已存在默认 Agent，如果不存在则创建。
+// 默认 Agent 是系统内置的通用 AI 助手，所有用户都可以使用。
+//
+// 参数：
+//   - db: GORM 数据库实例
+//   - agentService: Agent 服务实例，用于检查默认 Agent 是否存在
+//
+// 返回：
+//   - error: 初始化失败时返回错误
 func seedDefaultAgent(db *gorm.DB, agentService service.AgentService) error {
 	ctx := context.Background()
 
@@ -77,22 +104,39 @@ func seedDefaultAgent(db *gorm.DB, agentService service.AgentService) error {
 	return nil
 }
 
+// main 是 Agent Service 的主入口函数
+//
+// 执行流程：
+//  1. 加载配置（从 .env 文件或环境变量）
+//  2. 初始化日志系统
+//  3. 连接数据库并执行迁移
+//  4. 初始化 Repository 和 Service 层
+//  5. 创建默认 Agent（如不存在）
+//  6. 初始化聊天服务（DeepSeek 模型）
+//  7. 配置 HTTP 路由和中间件
+//  8. 注册到服务注册中心
+//  9. 启动 HTTP 服务器
+//
+// 10. 等待退出信号并优雅关闭
 func main() {
-	// 加载配置
+	// ========== 1. 加载配置 ==========
 	cfg, err := config.LoadConfig(".")
 	if err != nil {
 		fmt.Printf("配置加载失败: %v\n", err)
 		return
 	}
 
-	// 初始化日志
+	// ========== 2. 初始化日志 ==========
 	var logConfig *tlog.Config
 
+	// 根据输出类型选择日志配置
 	if cfg.LogOutput == "file" || cfg.LogOutput == "rotating" {
+		// 生产环境：输出到文件
 		logConfig = tlog.ProductionConfig(cfg.ServiceName, "/var/log/telos")
 		logConfig.Level = cfg.LogLevel
 		logConfig.Format = cfg.LogFormat
 	} else {
+		// 开发环境：输出到控制台
 		logConfig = &tlog.Config{
 			Level:       cfg.LogLevel,
 			Format:      cfg.LogFormat,
@@ -108,12 +152,14 @@ func main() {
 	tlog.Info("Agent Service 启动中...")
 	tlog.Info("配置加载成功", "port", cfg.Port, "service_name", cfg.ServiceName)
 
-	// 连接数据库
+	// ========== 3. 连接数据库 ==========
+	// 构建 PostgreSQL DSN (Data Source Name)
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
 
 	tlog.Info("连接数据库中...", "host", cfg.DBHost, "port", cfg.DBPort, "database", cfg.DBName)
 
+	// 使用 GORM 连接 PostgreSQL
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		tlog.Error("数据库连接失败", "error", err)
@@ -122,7 +168,8 @@ func main() {
 
 	tlog.Info("数据库连接成功")
 
-	// 检查并添加 system_prompt 列（如果不存在）
+	// ========== 4. 数据库迁移 ==========
+	// 检查并添加 system_prompt 列（向后兼容旧版本）
 	if !db.Migrator().HasColumn(&model.Agent{}, "system_prompt") {
 		tlog.Info("添加 system_prompt 列...")
 		db.Exec("ALTER TABLE agents ADD COLUMN system_prompt TEXT")
@@ -132,7 +179,7 @@ func main() {
 		db.Exec("ALTER TABLE agents ALTER COLUMN system_prompt SET NOT NULL")
 	}
 
-	// 自动迁移模型
+	// 自动迁移模型（创建表、添加缺失的列等）
 	tlog.Info("执行数据库迁移...")
 	if err := db.AutoMigrate(&model.Agent{}); err != nil {
 		tlog.Error("数据库迁移失败", "error", err)
@@ -140,18 +187,19 @@ func main() {
 	}
 	tlog.Info("数据库迁移完成")
 
-	// 初始化 Repository
+	// ========== 5. 初始化 Repository 层 ==========
 	agentRepo := repository.NewAgentRepository(db)
 
-	// 初始化 Service
+	// ========== 6. 初始化 Service 层 ==========
 	agentService := service.NewAgentService(agentRepo)
 
-	// 初始化默认 Agent
+	// ========== 7. 初始化默认 Agent ==========
 	if err := seedDefaultAgent(db, agentService); err != nil {
 		tlog.Warn("初始化默认 Agent 失败", "error", err)
 	}
 
-	// 创建聊天服务
+	// ========== 8. 创建聊天服务 ==========
+	// 使用 DeepSeek API 作为底层模型
 	chatService, err := service.NewChatService(service.ModelConfig{
 		APIKey: cfg.DeepSeekAPIKey,
 		Model:  cfg.DeepSeekModel,
@@ -162,36 +210,38 @@ func main() {
 	}
 	tlog.Info("DeepSeek 模型", "model", cfg.DeepSeekModel)
 
-	// 创建 Echo 实例
+	// ========== 9. 创建 HTTP 服务器 ==========
 	e := echo.New()
 	e.HideBanner = true
 
-	// 中间件
-	e.Use(middleware.Recover())
-	e.Use(tlog.EchoMiddleware(tlog.WithService(cfg.ServiceName)))
-	e.Use(tlog.EchoRequestIDMiddleware())
+	// 配置中间件
+	e.Use(middleware.Recover())                                   // 恢复 panic
+	e.Use(tlog.EchoMiddleware(tlog.WithService(cfg.ServiceName))) // 日志记录
+	e.Use(tlog.EchoRequestIDMiddleware())                         // 请求 ID
 
-	// 创建处理器
+	// ========== 10. 创建处理器 ==========
 	chatHandler := handler.NewChatHandler(chatService, agentService)
 	agentHandler := handler.NewAgentHandler(agentService)
 
-	// 路由注册
+	// ========== 11. 注册路由 ==========
+	// 健康检查和服务信息
 	e.GET("/health", chatHandler.HandleHealth)
 	e.GET("/ready", chatHandler.HandleReadiness)
 	e.GET("/info", chatHandler.HandleInfo)
 
-	// 聊天 API
+	// 聊天 API（流式响应）
 	e.POST("/api/agent", chatHandler.HandleChat)
 
-	// Agent 管理 API
+	// Agent 管理 API（CRUD）
 	agentHandler.RegisterRoutes(e)
 
-	// 注册到服务注册中心（使用动态检测的IP地址）
+	// ========== 12. 注册到服务注册中心 ==========
+	// 使用动态检测的 IP 地址（支持 Docker 容器环境）
 	serviceAddr := netutil.GetServiceAddress()
 	tlog.Info("检测到服务地址", "address", serviceAddr)
 	registerToRegistry(cfg.ServiceName, serviceAddr, cfg.Port, cfg.RegistryURL)
 
-	// 启动服务器
+	// ========== 13. 启动 HTTP 服务器 ==========
 	addr := ":" + strconv.Itoa(cfg.Port)
 	tlog.Info("服务器启动", "port", cfg.Port, "address", addr)
 
@@ -200,17 +250,19 @@ func main() {
 		return
 	}
 
-	// 等待退出信号
+	// ========== 14. 优雅关闭 ==========
+	// 等待退出信号（Ctrl+C 或 SIGTERM）
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
 	tlog.Info("正在关闭 Agent Service...")
 
-	// 优雅关闭
+	// 设置关闭超时
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// 关闭 HTTP 服务器
 	if err := e.Shutdown(ctx); err != nil {
 		tlog.Error("服务器关闭失败", "error", err)
 	}
