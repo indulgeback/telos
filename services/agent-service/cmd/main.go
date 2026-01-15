@@ -27,11 +27,10 @@ import (
 	"github.com/indulgeback/telos/services/agent-service/internal/model"
 	"github.com/indulgeback/telos/services/agent-service/internal/repository"
 	"github.com/indulgeback/telos/services/agent-service/internal/service"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/lib/pq"     // PostgreSQL 驱动
-	"gorm.io/driver/postgres" // GORM PostgreSQL 方言
-	"gorm.io/gorm"            // GORM ORM
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"           // PostgreSQL 驱动
+	"gorm.io/driver/postgres"       // GORM PostgreSQL 方言
+	"gorm.io/gorm"                  // GORM ORM
 )
 
 // registerToRegistry 将服务注册到服务注册中心
@@ -57,7 +56,11 @@ func registerToRegistry(serviceName, address string, port int, registryURL strin
 	}
 
 	// 发送注册请求到注册中心
-	body, _ := json.Marshal(serviceInfo)
+	body, err := json.Marshal(serviceInfo)
+	if err != nil {
+		tlog.Error("服务注册信息序列化失败", "error", err)
+		return
+	}
 	resp, err := http.Post(registryURL+"/api/register", "application/json", bytes.NewReader(body))
 	if err != nil {
 		tlog.Error("服务注册失败", "error", err, "registry_url", registryURL)
@@ -116,7 +119,6 @@ func seedDefaultAgent(db *gorm.DB, agentService service.AgentService) error {
 //  7. 配置 HTTP 路由和中间件
 //  8. 注册到服务注册中心
 //  9. 启动 HTTP 服务器
-//
 // 10. 等待退出信号并优雅关闭
 func main() {
 	// ========== 1. 加载配置 ==========
@@ -172,11 +174,23 @@ func main() {
 	// 检查并添加 system_prompt 列（向后兼容旧版本）
 	if !db.Migrator().HasColumn(&model.Agent{}, "system_prompt") {
 		tlog.Info("添加 system_prompt 列...")
-		db.Exec("ALTER TABLE agents ADD COLUMN system_prompt TEXT")
+
+		if err := db.Exec("ALTER TABLE agents ADD COLUMN system_prompt TEXT").Error; err != nil {
+			tlog.Error("添加 system_prompt 列失败", "error", err)
+			return
+		}
+
 		// 更新现有数据
-		db.Exec("UPDATE agents SET system_prompt = '你是一个友好、专业的 AI 助手。' WHERE system_prompt IS NULL OR system_prompt = ''")
+		if err := db.Exec("UPDATE agents SET system_prompt = '你是一个友好、专业的 AI 助手。' WHERE system_prompt IS NULL OR system_prompt = ''").Error; err != nil {
+			tlog.Error("更新 system_prompt 数据失败", "error", err)
+			return
+		}
+
 		// 设置为 NOT NULL
-		db.Exec("ALTER TABLE agents ALTER COLUMN system_prompt SET NOT NULL")
+		if err := db.Exec("ALTER TABLE agents ALTER COLUMN system_prompt SET NOT NULL").Error; err != nil {
+			tlog.Error("设置 system_prompt NOT NULL 约束失败", "error", err)
+			return
+		}
 	}
 
 	// 自动迁移模型（创建表、添加缺失的列等）
@@ -211,13 +225,17 @@ func main() {
 	tlog.Info("DeepSeek 模型", "model", cfg.DeepSeekModel)
 
 	// ========== 9. 创建 HTTP 服务器 ==========
-	e := echo.New()
-	e.HideBanner = true
+	// 设置 Gin 为 release 模式（生产环境）或 debug 模式
+	if cfg.LogOutput == "file" || cfg.LogOutput == "rotating" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	r := gin.New()
 
 	// 配置中间件
-	e.Use(middleware.Recover())                                   // 恢复 panic
-	e.Use(tlog.EchoMiddleware(tlog.WithService(cfg.ServiceName))) // 日志记录
-	e.Use(tlog.EchoRequestIDMiddleware())                         // 请求 ID
+	r.Use(gin.Recovery())                              // 恢复 panic
+	r.Use(tlog.GinMiddleware(tlog.WithService(cfg.ServiceName))) // 日志记录
+	r.Use(tlog.RequestIDMiddleware())                  // 请求 ID
 
 	// ========== 10. 创建处理器 ==========
 	chatHandler := handler.NewChatHandler(chatService, agentService)
@@ -225,15 +243,15 @@ func main() {
 
 	// ========== 11. 注册路由 ==========
 	// 健康检查和服务信息
-	e.GET("/health", chatHandler.HandleHealth)
-	e.GET("/ready", chatHandler.HandleReadiness)
-	e.GET("/info", chatHandler.HandleInfo)
+	r.GET("/health", chatHandler.HandleHealth)
+	r.GET("/ready", chatHandler.HandleReadiness)
+	r.GET("/info", chatHandler.HandleInfo)
 
 	// 聊天 API（流式响应）
-	e.POST("/api/agent", chatHandler.HandleChat)
+	r.POST("/api/agent", chatHandler.HandleChat)
 
 	// Agent 管理 API（CRUD）
-	agentHandler.RegisterRoutes(e)
+	agentHandler.RegisterRoutes(r)
 
 	// ========== 12. 注册到服务注册中心 ==========
 	// 使用动态检测的 IP 地址（支持 Docker 容器环境）
@@ -245,10 +263,18 @@ func main() {
 	addr := ":" + strconv.Itoa(cfg.Port)
 	tlog.Info("服务器启动", "port", cfg.Port, "address", addr)
 
-	if err := e.Start(addr); err != nil && err != http.ErrServerClosed {
-		tlog.Error("服务器启动失败", "error", err, "port", cfg.Port)
-		return
+	// 创建 HTTP 服务器（支持优雅关闭）
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
 	}
+
+	// 在 goroutine 中启动服务器
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			tlog.Error("服务器启动失败", "error", err, "port", cfg.Port)
+		}
+	}()
 
 	// ========== 14. 优雅关闭 ==========
 	// 等待退出信号（Ctrl+C 或 SIGTERM）
@@ -263,7 +289,7 @@ func main() {
 	defer cancel()
 
 	// 关闭 HTTP 服务器
-	if err := e.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(ctx); err != nil {
 		tlog.Error("服务器关闭失败", "error", err)
 	}
 
