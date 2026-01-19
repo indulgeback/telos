@@ -262,7 +262,13 @@
     "contact": "聯繫我們",
     "github": "GitHub",
     "mobileMenuTitle": "選單",
-    "mobileMenuDesc": "瀏覽 Telos"
+    "mobileMenuDesc": "瀏覽 Telos",
+    "workflowTemplates": "工作流程模板",
+    "integrations": "整合中心",
+    "useCases": "用例展示",
+    "showcase": "客戶案例",
+    "roadmap": "產品路線",
+    "comparison": "功能對比"
   },
   "UserMenu": {
     "signIn": "登入",
@@ -546,5 +552,224 @@
     },
     "created": "創建於",
     "systemAgentReadOnly": "系統 Agent 不可編輯"
+  },
+  "WorkflowsPage": {
+    "hero": {
+      "title": "工作流程範本庫",
+      "subtitle": "探索預構建的工作流模板，快速啟動您的自動化之旅"
+    },
+    "search": {
+      "placeholder": "搜尋工作流程模板..."
+    },
+    "categories": {
+      "all": "全部",
+      "automation": "自動化",
+      "integration": "整合",
+      "ai": "AI 驅動",
+      "data": "數據管理",
+      "communication": "通信"
+    },
+    "difficulty": {
+      "label": "難度",
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "高級"
+    },
+    "popular": "熱門",
+    "noResults": "未找到匹配的工作流程範本",
+    "cta": {
+      "title": "需要自訂工作流程？",
+      "description": "查看文件了解如何建立您自己的工作流程",
+      "primary": "查看文件",
+      "secondary": "瀏覽文檔"
+    }
+  },
+  "IntegrationsPage": {
+    "hero": {
+      "title": "整合中心",
+      "subtitle": "連接您喜愛的工具和服務，打造強大自動化工作流"
+    },
+    "search": {
+      "placeholder": "搜索整合..."
+    },
+    "categories": {
+      "popular": "熱門",
+      "communication": "通信",
+      "development": "開發",
+      "data": "數據與存儲",
+      "productivity": "生產力",
+      "ai": "AI 服務",
+      "crm": "客戶關係管理",
+      "other": "其他"
+    },
+    "stats": {
+      "integrations": "整合",
+      "categories": "分類",
+      "uptime": "可用性",
+      "avgSetup": "平均設定"
+    },
+    "noResults": "未找到匹配的整合",
+    "cta": {
+      "title": "未找到您需要的整合？",
+      "description": "查看工作流程範本了解更多使用方式",
+      "primary": "查看工作流範本",
+      "secondary": "查看文件"
+    }
+  },
+  "ComparisonPage": {
+    "hero": {
+      "title": "功能對比",
+      "subtitle": "了解 Telos 與其他工作流自動化平台的區別"
+    },
+    "select": {
+      "title": "選擇要對比的平台"
+    },
+    "table": {
+      "feature": "功能特性"
+    },
+    "legend": {
+      "yes": "支持",
+      "partial": "部分支援",
+      "premium": "付費版",
+      "no": "不支援"
+    },
+    "differentiators": {
+      "title": "Telos 的核心優勢",
+      "description": "選擇 Telos 的三大理由",
+      "ai": {
+        "title": "AI 原生架構",
+        "description": "內置智能決策引擎，讓工作流程自動化更加智能化"
+      },
+      "open": {
+        "title": "完全開源",
+        "description": "程式碼開源，自由定制，不受廠商鎖定"
+      },
+      "self": {
+        "title": "支持自我託管",
+        "description": "私有化部署，數據完全掌控，滿足企業安全要求"
+      }
+    },
+    "verdict": {
+      "title": "快速總結",
+      "telos": {
+        "recommendation": "最佳選擇",
+        "description": "AI 驅動 開源 自託管"
+      },
+      "n8n": {
+        "recommendation": "開源替代",
+        "description": "功能完善但缺乏 AI 能力"
+      },
+      "zapier": {
+        "recommendation": "易用性最佳",
+        "description": "最易用但價格較高"
+      },
+      "make": {
+        "recommendation": "視覺化強",
+        "description": "拖曳體驗好但需付費"
+      }
+    },
+    "cta": {
+      "title": "準備好開始了嗎？",
+      "description": "立即體驗 Telos 強大的工作流程自動化功能",
+      "primary": "查看工作流範本",
+      "secondary": "查看定價"
+    }
+  },
+  "RoadmapPage": {
+    "hero": {
+      "badge": "持續更新中",
+      "title": "產品路線圖",
+      "subtitle": "了解 Telos 的未來發展方向和即將推出功能"
+    },
+    "search": {
+      "placeholder": "搜尋功能..."
+    },
+    "filters": {
+      "quarter": "季度",
+      "category": "類別",
+      "status": "狀態"
+    },
+    "status": {
+      "completed": "已完成",
+      "in-progress": "進行中",
+      "planned": "計劃中",
+      "beta": "測試版"
+    },
+    "noResults": "未找到匹配的功能項",
+    "stats": {
+      "quarters": "規劃季度",
+      "features": "規劃功能",
+      "completed": "已完成",
+      "categories": "功能類別"
+    },
+    "cta": {
+      "title": "有功能建議？",
+      "description": "歡迎提出建議，幫助我們改進產品",
+      "primary": "聯繫我們",
+      "secondary": "查看文件"
+    }
+  },
+  "ShowcasePage": {
+    "hero": {
+      "badge": "客戶案例",
+      "title": "客戶成功案例",
+      "subtitle": "看看其他企業如何使用 Telos 提升工作效率"
+    },
+    "search": {
+      "placeholder": "搜尋案例..."
+    },
+    "stats": {
+      "companies": "合作企業",
+      "satisfaction": "客戶滿意度",
+      "workflows": "運行工作流",
+      "industries": "覆蓋行業"
+    },
+    "detail": {
+      "results": "關鍵成果",
+      "challenges": "面臨的挑戰",
+      "solutions": "解決方案"
+    },
+    "testimonials": {
+      "title": "用戶評價",
+      "description": "聽聽用戶對 Telos 的真實反饋"
+    },
+    "cta": {
+      "title": "想了解 Telos 如何幫助您？",
+      "description": "聯繫我們獲取免費諮詢和演示",
+      "primary": "聯繫我們",
+      "secondary": "查看工作流範本"
+    }
+  },
+  "UseCasesPage": {
+    "hero": {
+      "title": "實際用例",
+      "subtitle": "探索各行各業如何利用 Telos 實現自動化"
+    },
+    "search": {
+      "placeholder": "搜尋用例..."
+    },
+    "filters": {
+      "industry": "行業",
+      "category": "類別"
+    },
+    "categories": {
+      "all": "全部"
+    },
+    "difficulty": {
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "高級"
+    },
+    "details": {
+      "benefits": "主要優勢",
+      "tools": "使用的工具"
+    },
+    "noResults": "未找到匹配的用例",
+    "cta": {
+      "title": "準備開始自動化了嗎？",
+      "description": "從我們的工作流模板庫中選擇一個開始",
+      "primary": "查看工作流範本",
+      "secondary": "聯繫我們"
+    }
   }
 }

@@ -8,25 +8,7 @@ async function translateText(text, _source, target) {
 
 // ====== 配置区 ======
 const baseLang = 'zh' // 基准语言
-const targetLangs = [
-  'es',
-  'en',
-  'de',
-  'fr',
-  'pt',
-  'it',
-  'ja',
-  'th',
-  'pl',
-  'ko',
-  'ru',
-  'da',
-  'nb',
-  'nl',
-  'id',
-  'tw',
-  'tr',
-] // 目标语言包文件名
+const targetLangs = ['en', 'tw', 'ko', 'ja', 'de', 'ru'] // 目标语言包文件名
 const langMap = {
   zh: 'zh-Hans',
   tw: 'zh-Hant',

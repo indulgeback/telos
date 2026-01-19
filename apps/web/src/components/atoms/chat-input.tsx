@@ -5,8 +5,10 @@ import { Button } from './button'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface ChatInputProps
-  extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onSubmit'> {
+interface ChatInputProps extends Omit<
+  TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'onSubmit'
+> {
   onSend: () => void
   canSend: boolean
   sendDisabled?: boolean

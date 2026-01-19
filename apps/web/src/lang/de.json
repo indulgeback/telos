@@ -262,7 +262,13 @@
     "contact": "Kontaktieren Sie uns",
     "github": "GitHub",
     "mobileMenuTitle": "Menü",
-    "mobileMenuDesc": "Telos durchsuchen"
+    "mobileMenuDesc": "Telos durchsuchen",
+    "workflowTemplates": "Workflow-Vorlage",
+    "integrations": "Integrationszentrum",
+    "useCases": "Anwendungsbeispiel",
+    "showcase": "Kundenfall",
+    "roadmap": "Produktlinie",
+    "comparison": "Funktionsvergleich"
   },
   "UserMenu": {
     "signIn": "Anmelden",
@@ -546,5 +552,224 @@
     },
     "created": "Gegründet in",
     "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden"
+  },
+  "WorkflowsPage": {
+    "hero": {
+      "title": "Workflow-Vorlagenbibliothek",
+      "subtitle": "Entdecken Sie vorgefertigte Workflow-Vorlagen und starten Sie Ihre Automatisierungsreise schnell."
+    },
+    "search": {
+      "placeholder": "Workflow-Vorlagen suchen..."
+    },
+    "categories": {
+      "all": "Alle",
+      "automation": "Automatisierung",
+      "integration": "Integration",
+      "ai": "KI-gesteuert",
+      "data": "Datenverwaltung",
+      "communication": "Kommunikation"
+    },
+    "difficulty": {
+      "label": "Schwierigkeit",
+      "beginner": "Anfänger",
+      "intermediate": "Mittelstufe",
+      "advanced": "fortgeschritten"
+    },
+    "popular": "beliebt",
+    "noResults": "Kein passendes Workflow-Vorlage gefunden",
+    "cta": {
+      "title": "Benötigen Sie einen benutzerdefinierten Arbeitsablauf?",
+      "description": "Sehen Sie sich die Dokumentation an, um zu erfahren, wie Sie Ihren eigenen Workflow erstellen.",
+      "primary": "Dokument anzeigen",
+      "secondary": "Dokumente durchsuchen"
+    }
+  },
+  "IntegrationsPage": {
+    "hero": {
+      "title": "Integrationszentrum",
+      "subtitle": "Verbinden Sie Ihre bevorzugten Tools und Dienste, um leistungsstarke automatisierte Workflows zu erstellen"
+    },
+    "search": {
+      "placeholder": "Integration suchen..."
+    },
+    "categories": {
+      "popular": "beliebt",
+      "communication": "Kommunikation",
+      "development": "Entwicklung",
+      "data": "Daten und Speicher",
+      "productivity": "Produktivität",
+      "ai": "KI-Dienstleistungen",
+      "crm": "CRM",
+      "other": "Andere"
+    },
+    "stats": {
+      "integrations": "Integration",
+      "categories": "Kategorisierung",
+      "uptime": "Verfügbarkeit",
+      "avgSetup": "Durchschnittseinstellungen"
+    },
+    "noResults": "Keine passende Integration gefunden",
+    "cta": {
+      "title": "Die von Ihnen benötigte Integration wurde nicht gefunden?",
+      "description": "Sehen Sie sich die Arbeitsablaufvorlagen an, um mehr über die Verwendung zu erfahren",
+      "primary": "Arbeitsablaufvorlagen anzeigen",
+      "secondary": "Dokument anzeigen"
+    }
+  },
+  "ComparisonPage": {
+    "hero": {
+      "title": "Funktionsvergleich",
+      "subtitle": "Verstehen Sie die Unterschiede zwischen Telos und anderen Workflow-Automatisierungsplattformen"
+    },
+    "select": {
+      "title": "Wählen Sie die zu vergleichende Plattform"
+    },
+    "table": {
+      "feature": "Funktionale Merkmale"
+    },
+    "legend": {
+      "yes": "unterstützen",
+      "partial": "Teilweise unterstützt",
+      "premium": "Bezahlte Version",
+      "no": "Nicht unterstützt"
+    },
+    "differentiators": {
+      "title": "Die Kernvorteile von Telos",
+      "description": "Drei Gründe, Telos zu wählen",
+      "ai": {
+        "title": "KI-native Architektur",
+        "description": "Eingebaute intelligente Entscheidungs-Engine, die die Workflow-Automatisierung intelligenter macht"
+      },
+      "open": {
+        "title": "Vollständig Open Source",
+        "description": "Open-Source-Code, frei anpassbar, keine Abhängigkeit vom Hersteller"
+      },
+      "self": {
+        "title": "Selbst-Hosting unterstützen",
+        "description": "Private Bereitstellung, vollständige Datenkontrolle, erfüllt die Sicherheitsanforderungen von Unternehmen"
+      }
+    },
+    "verdict": {
+      "title": "Schnelle Zusammenfassung",
+      "telos": {
+        "recommendation": "Beste Wahl",
+        "description": "KI-gesteuert   Open Source   Selbstgehostet"
+      },
+      "n8n": {
+        "recommendation": "Open-Source-Alternative",
+        "description": "Funktional, aber ohne KI-Fähigkeiten"
+      },
+      "zapier": {
+        "recommendation": "Beste Benutzerfreundlichkeit",
+        "description": "Am einfachsten zu bedienen, aber relativ teuer"
+      },
+      "make": {
+        "recommendation": "Sehr visuell",
+        "description": "Gutes Drag-and-Drop-Erlebnis, aber kostenpflichtig"
+      }
+    },
+    "cta": {
+      "title": "Bist du bereit zu starten?",
+      "description": "Erleben Sie sofort die leistungsstarken Workflow-Automatisierungsfunktionen von Telos",
+      "primary": "Arbeitsablaufvorlagen anzeigen",
+      "secondary": "Preise anzeigen"
+    }
+  },
+  "RoadmapPage": {
+    "hero": {
+      "badge": "Wird kontinuierlich aktualisiert",
+      "title": "Produkt-Roadmap",
+      "subtitle": "Verstehen Sie die zukünftige Entwicklungsrichtung und die bald kommenden Funktionen von Telos"
+    },
+    "search": {
+      "placeholder": "Suchfunktion..."
+    },
+    "filters": {
+      "quarter": "Quartal",
+      "category": "Kategorie",
+      "status": "Status"
+    },
+    "status": {
+      "completed": "Abgeschlossen",
+      "in-progress": "In Bearbeitung",
+      "planned": "Geplant",
+      "beta": "Testversion"
+    },
+    "noResults": "Keine passenden Funktionselemente gefunden",
+    "stats": {
+      "quarters": "Quartalsplanung",
+      "features": "Planungsfunktion",
+      "completed": "Abgeschlossen",
+      "categories": "Funktionskategorie"
+    },
+    "cta": {
+      "title": "Haben Sie Funktionsvorschläge?",
+      "description": "Wir freuen uns über Vorschläge, die uns helfen, unsere Produkte zu verbessern.",
+      "primary": "Kontaktieren Sie uns",
+      "secondary": "Dokument anzeigen"
+    }
+  },
+  "ShowcasePage": {
+    "hero": {
+      "badge": "Kundenfall",
+      "title": "Erfolgsgeschichten von Kunden",
+      "subtitle": "Schauen Sie, wie andere Unternehmen Telos nutzen, um die Arbeitseffizienz zu steigern"
+    },
+    "search": {
+      "placeholder": "Fälle suchen..."
+    },
+    "stats": {
+      "companies": "Kooperationsunternehmen",
+      "satisfaction": "Kundenzufriedenheit",
+      "workflows": "Workflow ausführen",
+      "industries": "branchenübergreifend"
+    },
+    "detail": {
+      "results": "Schlüsselegebnisse",
+      "challenges": "Herausforderungen gegenüber",
+      "solutions": "Lösung"
+    },
+    "testimonials": {
+      "title": "Benutzerbewertung",
+      "description": "Hören Sie echte Rückmeldungen der Benutzer zu Telos"
+    },
+    "cta": {
+      "title": "Möchten Sie wissen, wie Telos Ihnen helfen kann?",
+      "description": "Kontaktieren Sie uns für eine kostenlose Beratung und Demo",
+      "primary": "Kontaktieren Sie uns",
+      "secondary": "Arbeitsablaufvorlagen anzeigen"
+    }
+  },
+  "UseCasesPage": {
+    "hero": {
+      "title": "Praktischer Anwendungsfall",
+      "subtitle": "Erkunden, wie verschiedene Branchen Telos zur Automatisierung nutzen"
+    },
+    "search": {
+      "placeholder": "Suchfall suchen..."
+    },
+    "filters": {
+      "industry": "Industrie",
+      "category": "Kategorie"
+    },
+    "categories": {
+      "all": "Alle"
+    },
+    "difficulty": {
+      "beginner": "Anfänger",
+      "intermediate": "Mittelstufe",
+      "advanced": "fortgeschritten"
+    },
+    "details": {
+      "benefits": "Hauptvorteile",
+      "tools": "Verwendete Werkzeuge"
+    },
+    "noResults": "Kein passender Anwendungsfall gefunden",
+    "cta": {
+      "title": "Bist du bereit, mit der Automatisierung zu beginnen?",
+      "description": "Wählen Sie eine aus unserer Workflow-Vorlagenbibliothek, um zu beginnen",
+      "primary": "Arbeitsablaufvorlagen anzeigen",
+      "secondary": "Kontaktieren Sie uns"
+    }
   }
 }

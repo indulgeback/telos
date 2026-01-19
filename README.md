@@ -48,10 +48,10 @@ telos/
 
 #### Web Application (Next.js)
 
-- **Next.js 15**: App Router with server components and SSR
-- **React 19**: Latest React with concurrent features
-- **TypeScript**: Full application strict type checking
-- **Tailwind CSS 4**: Utility-first CSS framework
+ - **Next.js**: App Router with server components and SSR
+ - **React**: Latest React with concurrent features
+ - **TypeScript**: Full application strict type checking
+ - **Tailwind CSS**: Utility-first CSS framework
 - **Shadcn UI**: Component library built on Radix UI primitives
 - **Next-intl**: Internationalization supporting 18 languages
 - **React Flow**: Visual workflow builder components
@@ -60,17 +60,17 @@ telos/
 
 #### Mobile Application (React Native)
 
-- **React Native 0.80.2**: Cross-platform mobile development
-- **React 19**: Latest React with concurrent features
-- **TypeScript**: Full application strict type checking
+ - **React Native**: Cross-platform mobile development
+ - **React**: Latest React with concurrent features
+ - **TypeScript**: Full application strict type checking
 - **Metro**: JavaScript bundler for React Native
 - **Jest**: Testing framework with React Native testing utilities
 - **ESLint + Prettier**: Code formatting and linting
 
 ### 3.2 Backend Stack
 
-- **Go 1.24.4**: High-performance backend services
-- **Gin**: Web framework for microservice business logic
+ - **Go**: High-performance backend services
+ - **Gin**: Web framework for microservice business logic
 - **Echo**: Lightweight framework for API Gateway and Registry
 - **GORM**: Database ORM operations
 - **Viper**: Configuration management with .env support
