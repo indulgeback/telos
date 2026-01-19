@@ -345,6 +345,13 @@ export default function ShowcasePage() {
                       fill
                       sizes='64px'
                       className='object-cover'
+                      onError={e => {
+                        if (process.env.NODE_ENV === 'development') {
+                          console.warn(
+                            `Avatar image not found: ${selectedStoryData.testimonial.avatar}`
+                          )
+                        }
+                      }}
                     />
                   </div>
                   <div>

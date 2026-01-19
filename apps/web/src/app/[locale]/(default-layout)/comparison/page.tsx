@@ -48,15 +48,24 @@ export default function ComparisonPage() {
   }
 
   const getFeatureValue = (value: string) => {
+    const labelText = getValueText(value)
     switch (value) {
       case 'yes':
-        return <Check className='h-5 w-5 text-green-500' />
+        return (
+          <Check className='h-5 w-5 text-green-500' aria-label={labelText} />
+        )
       case 'partial':
-        return <span className='text-yellow-500'>~</span>
+        return (
+          <span className='text-yellow-500' aria-label={labelText}>
+            ~
+          </span>
+        )
       case 'premium':
-        return <Star className='h-4 w-4 text-yellow-500' />
+        return (
+          <Star className='h-4 w-4 text-yellow-500' aria-label={labelText} />
+        )
       default:
-        return <X className='h-5 w-5 text-gray-400' />
+        return <X className='h-5 w-5 text-gray-400' aria-label={labelText} />
     }
   }
 

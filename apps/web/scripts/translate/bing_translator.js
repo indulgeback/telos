@@ -2,8 +2,13 @@ import AutoTranslator from 'next-auto-translator'
 import { translate } from 'bing-translate-api'
 
 async function translateText(text, _source, target) {
-  const res = await translate(text, null, target)
-  return res.translation
+  try {
+    const res = await translate(text, null, target)
+    return res.translation
+  } catch (error) {
+    console.error(`翻译失败: "${text}" -> ${target}`, error.message)
+    throw error
+  }
 }
 
 // ====== 配置区 ======
@@ -28,4 +33,14 @@ const translator = new AutoTranslator({
   strictKeySync: true,
 })
 
-translator.batchTranslateMultiLang()
+async function runTranslations() {
+  try {
+    await translator.batchTranslateMultiLang()
+    console.log('✓ 翻译完成')
+  } catch (error) {
+    console.error('✗ 翻译失败:', error.message)
+    process.exit(1)
+  }
+}
+
+runTranslations()

@@ -22,15 +22,6 @@ export default function AboutPage() {
     { value: '100%', label: t('stats.openSource') },
   ]
 
-  // Use real testimonials with avatars (first 3)
-  const featuredTestimonials = testimonials.slice(0, 3).map(t => ({
-    quote: t.quote,
-    author: t.name,
-    role: t.role,
-    company: t.company,
-    avatar: `/assets/images/images/avatar/${t.avatar}`,
-  }))
-
   return (
     <main className='pt-20'>
       {/* Hero */}

@@ -44,7 +44,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
           value={value}
           onKeyDown={handleKeyDown}
           className={cn(
-            'max-h-32 min-h-[44px] w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm focus-visible:ring-0',
+            'max-h-32 min-h-11 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm focus-visible:ring-0',
             className
           )}
           rows={1}

@@ -14,7 +14,7 @@ import {
   Search,
   Clock,
   Star,
-  Sparkle,
+  Sparkles,
   MessageSquare,
   Code2,
   Database,
@@ -41,6 +41,7 @@ import {
   Drive,
   Send,
   Trello,
+  DatabaseZap,
 } from 'lucide-react'
 import { Button } from '@/components/atoms/button'
 import { Badge } from '@/components/atoms/badge'
@@ -73,7 +74,7 @@ export default function IntegrationsPage() {
     Globe,
     HardDrive,
     Drive,
-    DatabaseZap: Database,
+    DatabaseZap,
     Trello,
   }
 
@@ -122,14 +123,30 @@ export default function IntegrationsPage() {
     })
 
   const getIntegrationIcon = (logo?: string) => {
-    return logo ? iconMap[logo] || Sparkles : Sparkles
+    if (!logo) return Sparkles
+    if (!iconMap[logo]) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `Icon "${logo}" not found in iconMap, using Sparkles fallback`
+        )
+      }
+      return Sparkles
+    }
+    return iconMap[logo]
   }
 
   const getCategoryIcon = (categoryId: string) => {
     const category = integrationCategories.find(c => c.id === categoryId)
-    return category?.icon
-      ? categoryIconMap[category.icon] || MoreHorizontal
-      : MoreHorizontal
+    if (!category?.icon) return MoreHorizontal
+    if (!categoryIconMap[category.icon]) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `Category icon "${category.icon}" not found, using MoreHorizontal fallback`
+        )
+      }
+      return MoreHorizontal
+    }
+    return categoryIconMap[category.icon]
   }
 
   return (

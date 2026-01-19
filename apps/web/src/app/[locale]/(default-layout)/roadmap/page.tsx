@@ -129,9 +129,13 @@ export default function RoadmapPage() {
   }
 
   const getStatusConfig = (status: string) => {
-    return (
-      statusConfig[status as keyof typeof statusConfig] || statusConfig.planned
-    )
+    if (!(status in statusConfig)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Invalid status "${status}", using "planned" fallback`)
+      }
+      return statusConfig.planned
+    }
+    return statusConfig[status as keyof typeof statusConfig]
   }
 
   // Group items by quarter
