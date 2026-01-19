@@ -257,18 +257,18 @@
   "Header": {
     "home": "집",
     "features": "기능 특징",
-    "pricing": "가격 책정",
-    "about": "회사 소개",
-    "contact": "문의하기",
-    "github": "깃허브",
-    "mobileMenuTitle": "메뉴",
-    "mobileMenuDesc": "Telos 탐색",
     "workflowTemplates": "워크플로 템플릿",
     "integrations": "통합 센터",
     "useCases": "사용 사례 시연",
     "showcase": "고객 사례",
     "roadmap": "제품 로드맵",
-    "comparison": "기능 비교"
+    "comparison": "기능 비교",
+    "pricing": "가격 책정",
+    "about": "회사 소개",
+    "contact": "문의하기",
+    "github": "깃허브",
+    "mobileMenuTitle": "메뉴",
+    "mobileMenuDesc": "Telos 탐색"
   },
   "UserMenu": {
     "signIn": "로그인",
@@ -593,7 +593,6 @@
       "placeholder": "검색 통합..."
     },
     "categories": {
-      "all": "전체",
       "popular": "인기 있는",
       "communication": "통신",
       "development": "개발",
@@ -601,7 +600,8 @@
       "productivity": "생산성",
       "ai": "AI 서비스",
       "crm": "CRM",
-      "other": "기타"
+      "other": "기타",
+      "all": "전체"
     },
     "stats": {
       "integrations": "통합",
@@ -754,7 +754,12 @@
       "category": "카테고리"
     },
     "categories": {
-      "all": "전체"
+      "all": "전체",
+      "automation": "자동화",
+      "integration": "통합",
+      "ai": "인공지능",
+      "data": "데이터",
+      "workflow": "워크플로"
     },
     "difficulty": {
       "beginner": "초급",

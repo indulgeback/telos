@@ -257,18 +257,18 @@
   "Header": {
     "home": "Дом",
     "features": "Функциональные характеристики",
-    "pricing": "Ценообразование",
-    "about": "О нас",
-    "contact": "Свяжитесь с нами",
-    "github": "GitHub",
-    "mobileMenuTitle": "меню",
-    "mobileMenuDesc": "Просмотреть Telos",
     "workflowTemplates": "Шаблон рабочего процесса",
     "integrations": "Центр интеграции",
     "useCases": "Примеры использования",
     "showcase": "Кейсы клиентов",
     "roadmap": "Продуктовая линия",
-    "comparison": "Сравнение функций"
+    "comparison": "Сравнение функций",
+    "pricing": "Ценообразование",
+    "about": "О нас",
+    "contact": "Свяжитесь с нами",
+    "github": "GitHub",
+    "mobileMenuTitle": "меню",
+    "mobileMenuDesc": "Просмотреть Telos"
   },
   "UserMenu": {
     "signIn": "Войти",
@@ -593,7 +593,6 @@
       "placeholder": "Поиск интеграции..."
     },
     "categories": {
-      "all": "Все",
       "popular": "популярный",
       "communication": "Связь",
       "development": "разрабатывать",
@@ -601,7 +600,8 @@
       "productivity": "производительность",
       "ai": "AI сервисы",
       "crm": "CRM",
-      "other": "Другое"
+      "other": "Другое",
+      "all": "всё"
     },
     "stats": {
       "integrations": "интеграция",
@@ -754,7 +754,12 @@
       "category": "категория"
     },
     "categories": {
-      "all": "всё"
+      "all": "всё",
+      "automation": "Автоматизация",
+      "integration": "интеграция",
+      "ai": "ИИ",
+      "data": "данные",
+      "workflow": "Рабочий процесс"
     },
     "difficulty": {
       "beginner": "Начальный",

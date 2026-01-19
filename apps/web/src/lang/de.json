@@ -257,18 +257,18 @@
   "Header": {
     "home": "Heim",
     "features": "Funktionale Merkmale",
-    "pricing": "Preisgestaltung",
-    "about": "Über uns",
-    "contact": "Kontaktieren Sie uns",
-    "github": "GitHub",
-    "mobileMenuTitle": "Menü",
-    "mobileMenuDesc": "Telos durchsuchen",
     "workflowTemplates": "Workflow-Vorlage",
     "integrations": "Integrationszentrum",
     "useCases": "Anwendungsbeispiel",
     "showcase": "Kundenfall",
     "roadmap": "Produktlinie",
-    "comparison": "Funktionsvergleich"
+    "comparison": "Funktionsvergleich",
+    "pricing": "Preisgestaltung",
+    "about": "Über uns",
+    "contact": "Kontaktieren Sie uns",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menü",
+    "mobileMenuDesc": "Telos durchsuchen"
   },
   "UserMenu": {
     "signIn": "Anmelden",
@@ -593,7 +593,6 @@
       "placeholder": "Integration suchen..."
     },
     "categories": {
-      "all": "Alle",
       "popular": "beliebt",
       "communication": "Kommunikation",
       "development": "Entwicklung",
@@ -601,7 +600,8 @@
       "productivity": "Produktivität",
       "ai": "KI-Dienstleistungen",
       "crm": "CRM",
-      "other": "Andere"
+      "other": "Andere",
+      "all": "Alle"
     },
     "stats": {
       "integrations": "Integration",
@@ -754,7 +754,12 @@
       "category": "Kategorie"
     },
     "categories": {
-      "all": "Alle"
+      "all": "Alle",
+      "automation": "Automatisierung",
+      "integration": "Integration",
+      "ai": "KI",
+      "data": "Daten",
+      "workflow": "Arbeitsablauf"
     },
     "difficulty": {
       "beginner": "Anfänger",

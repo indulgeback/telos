@@ -257,18 +257,18 @@
   "Header": {
     "home": "首頁",
     "features": "功能特性",
-    "pricing": "定價",
-    "about": "關於我們",
-    "contact": "聯繫我們",
-    "github": "GitHub",
-    "mobileMenuTitle": "選單",
-    "mobileMenuDesc": "瀏覽 Telos",
     "workflowTemplates": "工作流程模板",
     "integrations": "整合中心",
     "useCases": "用例展示",
     "showcase": "客戶案例",
     "roadmap": "產品路線",
-    "comparison": "功能對比"
+    "comparison": "功能對比",
+    "pricing": "定價",
+    "about": "關於我們",
+    "contact": "聯繫我們",
+    "github": "GitHub",
+    "mobileMenuTitle": "選單",
+    "mobileMenuDesc": "瀏覽 Telos"
   },
   "UserMenu": {
     "signIn": "登入",
@@ -593,7 +593,6 @@
       "placeholder": "搜索整合..."
     },
     "categories": {
-      "all": "全部",
       "popular": "熱門",
       "communication": "通信",
       "development": "開發",
@@ -601,7 +600,8 @@
       "productivity": "生產力",
       "ai": "AI 服務",
       "crm": "客戶關係管理",
-      "other": "其他"
+      "other": "其他",
+      "all": "全部"
     },
     "stats": {
       "integrations": "整合",
@@ -754,7 +754,12 @@
       "category": "類別"
     },
     "categories": {
-      "all": "全部"
+      "all": "全部",
+      "automation": "自動化",
+      "integration": "整合",
+      "ai": "人工智慧",
+      "data": "數據",
+      "workflow": "工作流程"
     },
     "difficulty": {
       "beginner": "初級",

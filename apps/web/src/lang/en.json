@@ -257,18 +257,18 @@
   "Header": {
     "home": "Home",
     "features": "Features",
-    "pricing": "Pricing",
-    "about": "About Us",
-    "contact": "Contact Us",
-    "github": "GitHub",
-    "mobileMenuTitle": "Menu",
-    "mobileMenuDesc": "Browse Telos",
     "workflowTemplates": "Workflow Template",
     "integrations": "Integration Center",
     "useCases": "Use Case Demonstration",
     "showcase": "Customer Case",
     "roadmap": "Product roadmap",
-    "comparison": "Function Comparison"
+    "comparison": "Function Comparison",
+    "pricing": "Pricing",
+    "about": "About Us",
+    "contact": "Contact Us",
+    "github": "GitHub",
+    "mobileMenuTitle": "Menu",
+    "mobileMenuDesc": "Browse Telos"
   },
   "UserMenu": {
     "signIn": "Login",
@@ -593,7 +593,6 @@
       "placeholder": "Searching integration..."
     },
     "categories": {
-      "all": "All",
       "popular": "Popular",
       "communication": "Communication",
       "development": "Development",
@@ -601,7 +600,8 @@
       "productivity": "Productivity",
       "ai": "AI Services",
       "crm": "CRM",
-      "other": "Others"
+      "other": "Others",
+      "all": "All"
     },
     "stats": {
       "integrations": "Integration",
@@ -754,7 +754,12 @@
       "category": "Category"
     },
     "categories": {
-      "all": "All"
+      "all": "All",
+      "automation": "Automation",
+      "integration": "Integration",
+      "ai": "AI",
+      "data": "Data",
+      "workflow": "Workflow"
     },
     "difficulty": {
       "beginner": "Beginner",

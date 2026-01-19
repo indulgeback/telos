@@ -749,7 +749,12 @@
       "category": "类别"
     },
     "categories": {
-      "all": "全部"
+      "all": "全部",
+      "automation": "自动化",
+      "integration": "集成",
+      "ai": "AI",
+      "data": "数据",
+      "workflow": "工作流"
     },
     "difficulty": {
       "beginner": "初级",
