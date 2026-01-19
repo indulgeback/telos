@@ -588,6 +588,7 @@
       "placeholder": "搜索集成..."
     },
     "categories": {
+      "all": "全部",
       "popular": "热门",
       "communication": "通信",
       "development": "开发",

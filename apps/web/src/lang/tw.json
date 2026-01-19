@@ -593,6 +593,7 @@
       "placeholder": "搜索整合..."
     },
     "categories": {
+      "all": "全部",
       "popular": "熱門",
       "communication": "通信",
       "development": "開發",

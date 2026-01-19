@@ -593,6 +593,7 @@
       "placeholder": "Поиск интеграции..."
     },
     "categories": {
+      "all": "Все",
       "popular": "популярный",
       "communication": "Связь",
       "development": "разрабатывать",

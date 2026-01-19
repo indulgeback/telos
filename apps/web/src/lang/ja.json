@@ -593,6 +593,7 @@
       "placeholder": "統合を検索中..."
     },
     "categories": {
+      "all": "すべて",
       "popular": "人気",
       "communication": "通信",
       "development": "開発",

@@ -593,6 +593,7 @@
       "placeholder": "Searching integration..."
     },
     "categories": {
+      "all": "All",
       "popular": "Popular",
       "communication": "Communication",
       "development": "Development",

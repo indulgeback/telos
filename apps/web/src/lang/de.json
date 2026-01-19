@@ -593,6 +593,7 @@
       "placeholder": "Integration suchen..."
     },
     "categories": {
+      "all": "Alle",
       "popular": "beliebt",
       "communication": "Kommunikation",
       "development": "Entwicklung",

@@ -593,6 +593,7 @@
       "placeholder": "검색 통합..."
     },
     "categories": {
+      "all": "전체",
       "popular": "인기 있는",
       "communication": "통신",
       "development": "개발",
