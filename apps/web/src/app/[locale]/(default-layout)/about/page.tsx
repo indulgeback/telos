@@ -10,6 +10,7 @@ import {
   GradientBlob,
   CTASection,
 } from '@/components/molecules'
+import { testimonials } from '@/data'
 
 export default function AboutPage() {
   const t = useTranslations('AboutPage')
@@ -19,27 +20,6 @@ export default function AboutPage() {
     { value: '18+', label: t('stats.languages') },
     { value: '5+', label: t('stats.services') },
     { value: '100%', label: t('stats.openSource') },
-  ]
-
-  const testimonials = [
-    {
-      quote: t('testimonials.0.quote'),
-      author: t('testimonials.0.author'),
-      role: t('testimonials.0.role'),
-      company: t('testimonials.0.company'),
-    },
-    {
-      quote: t('testimonials.1.quote'),
-      author: t('testimonials.1.author'),
-      role: t('testimonials.1.role'),
-      company: t('testimonials.1.company'),
-    },
-    {
-      quote: t('testimonials.2.quote'),
-      author: t('testimonials.2.author'),
-      role: t('testimonials.2.role'),
-      company: t('testimonials.2.company'),
-    },
   ]
 
   return (
@@ -99,7 +79,15 @@ export default function AboutPage() {
         />
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
           {testimonials.map((testimonial, index) => (
-            <TestimonialCard key={index} index={index} {...testimonial} />
+            <TestimonialCard
+              key={index}
+              index={index}
+              quote={testimonial.quote}
+              author={testimonial.name}
+              role={testimonial.role}
+              company={testimonial.company}
+              avatar={`/assets/images/images/avatar/${testimonial.avatar}`}
+            />
           ))}
         </div>
       </SectionWrapper>

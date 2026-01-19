@@ -1,26 +1,7 @@
 const appConfig = {
   appName: 'Telos',
-  baseDomain: process.env.NEXT_PUBLIC_DOMAIN!,
-  locales: [
-    'en',
-    'es',
-    'de',
-    'fr',
-    'pt',
-    'it',
-    'ja',
-    'th',
-    'pl',
-    'ko',
-    'ru',
-    'da',
-    'nb',
-    'nl',
-    'id',
-    'tw',
-    'zh',
-    'tr',
-  ],
+  baseDomain: process.env.NEXT_PUBLIC_DOMAIN || 'http://localhost:8800',
+  locales: ['en', 'zh', 'tw', 'ko', 'ja', 'de', 'ru'],
   defaultLocale: 'en',
   subjectColor: '#22c55e', // 翡翠绿主题色 (hsl 160 65% 45%)
 }

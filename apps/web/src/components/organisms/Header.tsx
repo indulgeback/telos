@@ -36,6 +36,12 @@ export function Header() {
 
   const navLinks = [
     { href: '/features', label: t('features') },
+    { href: '/workflow-templates', label: t('workflowTemplates') },
+    { href: '/integrations', label: t('integrations') },
+    { href: '/real-world-use-cases', label: t('useCases') },
+    { href: '/showcase', label: t('showcase') },
+    { href: '/roadmap', label: t('roadmap') },
+    { href: '/comparison', label: t('comparison') },
     { href: '/pricing', label: t('pricing') },
     { href: '/about', label: t('about') },
     { href: '/contact', label: t('contact') },
