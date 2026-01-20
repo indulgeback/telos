@@ -257,6 +257,12 @@
   "Header": {
     "home": "Home",
     "features": "Features",
+    "workflowTemplates": "Workflow Template",
+    "integrations": "Integration Center",
+    "useCases": "Use Case Demonstration",
+    "showcase": "Customer Case",
+    "roadmap": "Product roadmap",
+    "comparison": "Function Comparison",
     "pricing": "Pricing",
     "about": "About Us",
     "contact": "Contact Us",
@@ -546,5 +552,230 @@
     },
     "created": "Established in",
     "systemAgentReadOnly": "System Agent cannot be edited"
+  },
+  "WorkflowsPage": {
+    "hero": {
+      "title": "Workflow Template Library",
+      "subtitle": "Explore pre-built workflow templates and quickly kickstart your automation journey"
+    },
+    "search": {
+      "placeholder": "Search workflow templates..."
+    },
+    "categories": {
+      "all": "All",
+      "automation": "Automation",
+      "integration": "Integration",
+      "ai": "AI-powered",
+      "data": "Data Management",
+      "communication": "Communication"
+    },
+    "difficulty": {
+      "label": "Difficulty",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "popular": "Popular",
+    "noResults": "No matching workflow template found",
+    "cta": {
+      "title": "Need a custom workflow?",
+      "description": "Check the documentation to learn how to create your own workflow",
+      "primary": "View Document",
+      "secondary": "View Document"
+    }
+  },
+  "IntegrationsPage": {
+    "hero": {
+      "title": "Integration Center",
+      "subtitle": "Connect your favorite tools and services to create powerful automated workflows"
+    },
+    "search": {
+      "placeholder": "Searching integration..."
+    },
+    "categories": {
+      "popular": "Popular",
+      "communication": "Communication",
+      "development": "Development",
+      "data": "Data and Storage",
+      "productivity": "Productivity",
+      "ai": "AI Services",
+      "crm": "CRM",
+      "other": "Others",
+      "all": "All"
+    },
+    "stats": {
+      "integrations": "Integration",
+      "categories": "Category",
+      "uptime": "Usability",
+      "avgSetup": "Average Settings"
+    },
+    "noResults": "No matching integration found",
+    "cta": {
+      "title": "Can't find the integration you need?",
+      "description": "View the workflow template to learn more ways to use it",
+      "primary": "View workflow template",
+      "secondary": "View Document"
+    }
+  },
+  "ComparisonPage": {
+    "hero": {
+      "title": "Function Comparison",
+      "subtitle": "Understand the differences between Telos and other workflow automation platforms"
+    },
+    "select": {
+      "title": "Select the platform to compare"
+    },
+    "table": {
+      "feature": "Features"
+    },
+    "legend": {
+      "yes": "Support",
+      "partial": "Partial support",
+      "premium": "Paid version",
+      "no": "Not supported"
+    },
+    "differentiators": {
+      "title": "The Core Advantages of Telos",
+      "description": "Three Reasons to Choose Telos",
+      "ai": {
+        "title": "AI-native architecture",
+        "description": "Built-in intelligent decision engine makes workflow automation smarter"
+      },
+      "open": {
+        "title": "Completely open source",
+        "description": "Open-source code, freely customizable, not locked to any vendor"
+      },
+      "self": {
+        "title": "Supports self-hosting",
+        "description": "Private deployment, complete control over data, meeting enterprise security requirements"
+      }
+    },
+    "verdict": {
+      "title": "Quick Summary",
+      "telos": {
+        "recommendation": "Best choice",
+        "description": "AI-powered   Open Source   Self-hosted"
+      },
+      "n8n": {
+        "recommendation": "Open-source alternative",
+        "description": "Feature-rich but lacks AI capabilities"
+      },
+      "zapier": {
+        "recommendation": "Best usability",
+        "description": "Easiest to use but relatively expensive"
+      },
+      "make": {
+        "recommendation": "Highly visual",
+        "description": "Good drag-and-drop experience but requires payment"
+      }
+    },
+    "cta": {
+      "title": "Are you ready to get started?",
+      "description": "Experience Telos' powerful workflow automation features now",
+      "primary": "View Workflow Template",
+      "secondary": "View Pricing"
+    }
+  },
+  "RoadmapPage": {
+    "hero": {
+      "badge": "Continuously updating",
+      "title": "Product Roadmap",
+      "subtitle": "Understand Telos' future development direction and upcoming features"
+    },
+    "search": {
+      "placeholder": "Search function..."
+    },
+    "filters": {
+      "quarter": "quarter",
+      "category": "Category",
+      "status": "Status"
+    },
+    "status": {
+      "completed": "Completed",
+      "in-progress": "In progress",
+      "planned": "Planned",
+      "beta": "Beta version"
+    },
+    "noResults": "No matching feature found",
+    "stats": {
+      "quarters": "Quarterly Planning",
+      "features": "Planning Function",
+      "completed": "Completed",
+      "categories": "Function Category"
+    },
+    "cta": {
+      "title": "Have any feature suggestions?",
+      "description": "We welcome your suggestions to help us improve our products.",
+      "primary": "Contact Us",
+      "secondary": "View Document"
+    }
+  },
+  "ShowcasePage": {
+    "hero": {
+      "badge": "Customer Case",
+      "title": "Customer Success Story",
+      "subtitle": "See how other companies use Telos to boost work efficiency"
+    },
+    "search": {
+      "placeholder": "Search cases..."
+    },
+    "stats": {
+      "companies": "Partner Company",
+      "satisfaction": "Customer Satisfaction",
+      "workflows": "Run workflow",
+      "industries": "Cover industries"
+    },
+    "detail": {
+      "results": "Key Achievements",
+      "challenges": "Challenges faced",
+      "solutions": "Solution"
+    },
+    "testimonials": {
+      "title": "User Reviews",
+      "description": "Hear real feedback from users about Telos"
+    },
+    "cta": {
+      "title": "Want to know how Telos can help you?",
+      "description": "Contact us for a free consultation and demo",
+      "primary": "Contact Us",
+      "secondary": "View workflow template"
+    }
+  },
+  "UseCasesPage": {
+    "hero": {
+      "title": "Practical use case",
+      "subtitle": "Exploring how various industries use Telos to achieve automation"
+    },
+    "search": {
+      "placeholder": "Search use case..."
+    },
+    "filters": {
+      "industry": "Industry",
+      "category": "Category"
+    },
+    "categories": {
+      "all": "All",
+      "automation": "Automation",
+      "integration": "Integration",
+      "ai": "AI",
+      "data": "Data",
+      "workflow": "Workflow"
+    },
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "details": {
+      "benefits": "Main Advantages",
+      "tools": "Tools Used"
+    },
+    "noResults": "No matching use case found",
+    "cta": {
+      "title": "Are you ready to start automation?",
+      "description": "Choose one from our workflow template library to get started",
+      "primary": "View Workflow Template",
+      "secondary": "Contact Us"
+    }
   }
 }

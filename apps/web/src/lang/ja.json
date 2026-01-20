@@ -257,6 +257,12 @@
   "Header": {
     "home": "ホームページ",
     "features": "機能特性",
+    "workflowTemplates": "ワークフローテンプレート",
+    "integrations": "統合センター",
+    "useCases": "使用例の表示",
+    "showcase": "お客様の事例",
+    "roadmap": "製品ロードマップ",
+    "comparison": "機能比較",
     "pricing": "価格設定",
     "about": "私たちについて",
     "contact": "お問い合わせ",
@@ -546,5 +552,230 @@
     },
     "created": "作成日",
     "systemAgentReadOnly": "システムエージェントは編集できません"
+  },
+  "WorkflowsPage": {
+    "hero": {
+      "title": "ワークフローテンプレートライブラリ",
+      "subtitle": "あらかじめ作成されたワークフローテンプレートを探索して、あなたの自動化の旅を素早く始めましょう"
+    },
+    "search": {
+      "placeholder": "ワークフローテンプレートを検索..."
+    },
+    "categories": {
+      "all": "全部",
+      "automation": "自動化",
+      "integration": "統合",
+      "ai": "AI駆動",
+      "data": "データ管理",
+      "communication": "通信"
+    },
+    "difficulty": {
+      "label": "難易度",
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "高級"
+    },
+    "popular": "人気",
+    "noResults": "一致するワークフローテンプレートが見つかりませんでした",
+    "cta": {
+      "title": "カスタムワークフローが必要ですか？",
+      "description": "ドキュメントを確認して、独自のワークフローを作成する方法を学びましょう",
+      "primary": "ドキュメントを確認する",
+      "secondary": "ドキュメントを閲覧する"
+    }
+  },
+  "IntegrationsPage": {
+    "hero": {
+      "title": "統合センター",
+      "subtitle": "お気に入りのツールやサービスを接続して、強力な自動化ワークフローを作成しましょう"
+    },
+    "search": {
+      "placeholder": "統合を検索中..."
+    },
+    "categories": {
+      "popular": "人気",
+      "communication": "通信",
+      "development": "開発",
+      "data": "データとストレージ",
+      "productivity": "生産性",
+      "ai": "AIサービス",
+      "crm": "CRM",
+      "other": "その他",
+      "all": "全部"
+    },
+    "stats": {
+      "integrations": "統合",
+      "categories": "分類",
+      "uptime": "可用性",
+      "avgSetup": "平均設定"
+    },
+    "noResults": "一致する統合が見つかりません",
+    "cta": {
+      "title": "必要な統合が見つかりませんか？",
+      "description": "ワークフローテンプレートを確認して、使用方法の詳細を確認する",
+      "primary": "ワークフローテンプレートを表示",
+      "secondary": "ドキュメントを確認する"
+    }
+  },
+  "ComparisonPage": {
+    "hero": {
+      "title": "機能比較",
+      "subtitle": "Telosと他のワークフロー自動化プラットフォームとの違いを理解する"
+    },
+    "select": {
+      "title": "比較するプラットフォームを選択"
+    },
+    "table": {
+      "feature": "機能特性"
+    },
+    "legend": {
+      "yes": "支持する",
+      "partial": "部分的に支持する",
+      "premium": "有料版",
+      "no": "サポートされていません"
+    },
+    "differentiators": {
+      "title": "Telos のコアメリット",
+      "description": "Telosを選ぶ3つの理由",
+      "ai": {
+        "title": "AI ネイティブアーキテクチャ",
+        "description": "内蔵されたスマート意思決定エンジンにより、ワークフローの自動化がよりスマートになります"
+      },
+      "open": {
+        "title": "完全オープンソース",
+        "description": "コードはオープンソースで、自由にカスタマイズでき、ベンダーに依存しません"
+      },
+      "self": {
+        "title": "セルフホスティングをサポート",
+        "description": "プライベート展開、データを完全に管理し、企業のセキュリティ要件を満たす"
+      }
+    },
+    "verdict": {
+      "title": "クイックサマリー",
+      "telos": {
+        "recommendation": "ベストな選択",
+        "description": "AI駆動 オープンソース 自己ホスティング"
+      },
+      "n8n": {
+        "recommendation": "オープンソースの代替",
+        "description": "機能は充実しているが、AI能力に欠ける"
+      },
+      "zapier": {
+        "recommendation": "使いやすさが最適",
+        "description": "最も使いやすいが、価格は高めです"
+      },
+      "make": {
+        "recommendation": "視覚化が強い",
+        "description": "ドラッグ体験は良いが、料金が必要"
+      }
+    },
+    "cta": {
+      "title": "準備はできましたか？",
+      "description": "今すぐ Telos の強力なワークフロー自動化機能を体験してください",
+      "primary": "ワークフローテンプレートを表示",
+      "secondary": "料金を見る"
+    }
+  },
+  "RoadmapPage": {
+    "hero": {
+      "badge": "随時更新中",
+      "title": "製品ロードマップ",
+      "subtitle": "Telos の今後の発展方向と間もなくリリースされる機能を理解する"
+    },
+    "search": {
+      "placeholder": "検索機能..."
+    },
+    "filters": {
+      "quarter": "四半期",
+      "category": "カテゴリー",
+      "status": "状態"
+    },
+    "status": {
+      "completed": "完了しました",
+      "in-progress": "進行中",
+      "planned": "予定中",
+      "beta": "ベータ版"
+    },
+    "noResults": "一致する機能項目が見つかりませんでした",
+    "stats": {
+      "quarters": "四半期の計画",
+      "features": "計画機能",
+      "completed": "完了しました",
+      "categories": "機能カテゴリ"
+    },
+    "cta": {
+      "title": "機能の提案がありますか？",
+      "description": "ご意見をお寄せいただき、製品改善の参考にしてください",
+      "primary": "お問い合わせ",
+      "secondary": "ドキュメントを確認する"
+    }
+  },
+  "ShowcasePage": {
+    "hero": {
+      "badge": "お客様の事例",
+      "title": "お客様の成功事例",
+      "subtitle": "他の企業がどのようにTelosを使って仕事の効率を上げているか見てみましょう"
+    },
+    "search": {
+      "placeholder": "ケースを検索..."
+    },
+    "stats": {
+      "companies": "提携企業",
+      "satisfaction": "顧客満足度",
+      "workflows": "ワークフローを実行する",
+      "industries": "業界をカバーする"
+    },
+    "detail": {
+      "results": "主要な成果",
+      "challenges": "直面する課題",
+      "solutions": "解決策"
+    },
+    "testimonials": {
+      "title": "ユーザー評価",
+      "description": "Telosに対するユーザーの本当のフィードバックを聞く"
+    },
+    "cta": {
+      "title": "Telosがどのようにあなたを助けるか知りたいですか？",
+      "description": "お問い合わせで無料相談とデモをご利用ください",
+      "primary": "お問い合わせ",
+      "secondary": "ワークフローテンプレートを表示"
+    }
+  },
+  "UseCasesPage": {
+    "hero": {
+      "title": "実用的なユースケース",
+      "subtitle": "各業界がどのように Telos を活用して自動化を実現しているかを探る"
+    },
+    "search": {
+      "placeholder": "検索例..."
+    },
+    "filters": {
+      "industry": "業界",
+      "category": "カテゴリー"
+    },
+    "categories": {
+      "all": "全部",
+      "automation": "自動化",
+      "integration": "統合",
+      "ai": "人工知能",
+      "data": "データ",
+      "workflow": "ワークフロー"
+    },
+    "difficulty": {
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "高級"
+    },
+    "details": {
+      "benefits": "主な利点",
+      "tools": "使用したツール"
+    },
+    "noResults": "一致するユースケースが見つかりませんでした",
+    "cta": {
+      "title": "自動化を始める準備はできましたか？",
+      "description": "ワークフローテンプレートライブラリから1つ選んで開始する",
+      "primary": "ワークフローテンプレートを表示",
+      "secondary": "お問い合わせ"
+    }
   }
 }

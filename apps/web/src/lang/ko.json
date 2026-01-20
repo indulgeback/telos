@@ -257,6 +257,12 @@
   "Header": {
     "home": "집",
     "features": "기능 특징",
+    "workflowTemplates": "워크플로 템플릿",
+    "integrations": "통합 센터",
+    "useCases": "사용 사례 시연",
+    "showcase": "고객 사례",
+    "roadmap": "제품 로드맵",
+    "comparison": "기능 비교",
     "pricing": "가격 책정",
     "about": "회사 소개",
     "contact": "문의하기",
@@ -546,5 +552,230 @@
     },
     "created": "설립일",
     "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다"
+  },
+  "WorkflowsPage": {
+    "hero": {
+      "title": "워크플로 템플릿 라이브러리",
+      "subtitle": "사전 구축된 워크플로 템플릿을 탐색하여 자동화 여정을 빠르게 시작하세요"
+    },
+    "search": {
+      "placeholder": "워크플로 템플릿 검색..."
+    },
+    "categories": {
+      "all": "전체",
+      "automation": "자동화",
+      "integration": "통합",
+      "ai": "AI 구동",
+      "data": "데이터 관리",
+      "communication": "통신"
+    },
+    "difficulty": {
+      "label": "난이도",
+      "beginner": "초급",
+      "intermediate": "중급",
+      "advanced": "고급"
+    },
+    "popular": "인기 있는",
+    "noResults": "일치하는 워크플로 템플릿을 찾을 수 없습니다",
+    "cta": {
+      "title": "맞춤 워크플로우가 필요하신가요?",
+      "description": "문서를 참조하여 나만의 워크플로를 만드는 방법 알아보기",
+      "primary": "문서 보기",
+      "secondary": "문서 보기"
+    }
+  },
+  "IntegrationsPage": {
+    "hero": {
+      "title": "통합 센터",
+      "subtitle": "좋아하는 도구와 서비스를 연결하여 강력한 자동화 워크플로를 만들어보세요"
+    },
+    "search": {
+      "placeholder": "검색 통합..."
+    },
+    "categories": {
+      "popular": "인기 있는",
+      "communication": "통신",
+      "development": "개발",
+      "data": "데이터 및 저장",
+      "productivity": "생산성",
+      "ai": "AI 서비스",
+      "crm": "CRM",
+      "other": "기타",
+      "all": "전체"
+    },
+    "stats": {
+      "integrations": "통합",
+      "categories": "분류",
+      "uptime": "가용성",
+      "avgSetup": "평균 설정"
+    },
+    "noResults": "일치하는 통합을 찾을 수 없습니다",
+    "cta": {
+      "title": "원하는 통합을 찾지 못하셨나요?",
+      "description": "워크플로 템플릿을 확인하여 더 많은 사용 방법을 알아보세요",
+      "primary": "워크플로 템플릿 보기",
+      "secondary": "문서 보기"
+    }
+  },
+  "ComparisonPage": {
+    "hero": {
+      "title": "기능 비교",
+      "subtitle": "Telos와 다른 워크플로 자동화 플랫폼의 차이점 이해하기"
+    },
+    "select": {
+      "title": "비교할 플랫폼 선택"
+    },
+    "table": {
+      "feature": "기능 특징"
+    },
+    "legend": {
+      "yes": "지지하다",
+      "partial": "부분 지원",
+      "premium": "유료 버전",
+      "no": "지원하지 않음"
+    },
+    "differentiators": {
+      "title": "Telos의 핵심 강점",
+      "description": "Telos를 선택해야 하는 세 가지 이유",
+      "ai": {
+        "title": "AI 네이티브 아키텍처",
+        "description": "내장된 스마트 의사결정 엔진으로 워크플로우 자동화를 더욱 스마트하게"
+      },
+      "open": {
+        "title": "완전 오픈 소스",
+        "description": "코드 오픈소스, 자유롭게 커스터마이징 가능, 벤더 종속 없음"
+      },
+      "self": {
+        "title": "셀프 호스팅 지원",
+        "description": "개인화 배포, 데이터 완전 제어, 기업 보안 요구사항 충족"
+      }
+    },
+    "verdict": {
+      "title": "빠른 요약",
+      "telos": {
+        "recommendation": "최고의 선택",
+        "description": "AI 기반 오픈소스 셀프호스팅"
+      },
+      "n8n": {
+        "recommendation": "오픈 소스 대체",
+        "description": "기능은 완벽하지만 AI 능력은 부족하다"
+      },
+      "zapier": {
+        "recommendation": "사용 편의성 최고",
+        "description": "가장 사용하기 쉽지만 가격이 좀 비쌉니다"
+      },
+      "make": {
+        "recommendation": "시각화가 강하다",
+        "description": "드래그 앤 드롭 경험은 좋지만 요금이 필요합니다"
+      }
+    },
+    "cta": {
+      "title": "준비됐나요?",
+      "description": "지금 바로 Telos의 강력한 워크플로 자동화 기능을 체험하세요",
+      "primary": "워크플로 템플릿 보기",
+      "secondary": "가격 보기"
+    }
+  },
+  "RoadmapPage": {
+    "hero": {
+      "badge": "지속적으로 업데이트 중",
+      "title": "제품 로드맵",
+      "subtitle": "Telos의 향후 발전 방향과 곧 출시될 기능 알아보기"
+    },
+    "search": {
+      "placeholder": "검색 기능..."
+    },
+    "filters": {
+      "quarter": "분기",
+      "category": "카테고리",
+      "status": "상태"
+    },
+    "status": {
+      "completed": "완료됨",
+      "in-progress": "진행 중",
+      "planned": "계획 중",
+      "beta": "테스트 버전"
+    },
+    "noResults": "일치하는 기능 항목을 찾을 수 없습니다",
+    "stats": {
+      "quarters": "분기 계획",
+      "features": "계획 기능",
+      "completed": "완료",
+      "categories": "기능 범주"
+    },
+    "cta": {
+      "title": "기능에 대한 제안이 있나요?",
+      "description": "제안을 주시면 저희 제품 개선에 도움이 됩니다",
+      "primary": "문의하기",
+      "secondary": "문서 보기"
+    }
+  },
+  "ShowcasePage": {
+    "hero": {
+      "badge": "고객 사례",
+      "title": "고객 성공 사례",
+      "subtitle": "다른 기업들이 Telos를 활용해 업무 효율을 높이는 방법 살펴보기"
+    },
+    "search": {
+      "placeholder": "사례 검색..."
+    },
+    "stats": {
+      "companies": "협력 기업",
+      "satisfaction": "고객 만족도",
+      "workflows": "워크플로 실행",
+      "industries": "업종을 포괄하다"
+    },
+    "detail": {
+      "results": "핵심 성과",
+      "challenges": "직면한 도전",
+      "solutions": "해결책"
+    },
+    "testimonials": {
+      "title": "사용자 평가",
+      "description": "사용자들이 Telos에 대해 실제로 남긴 피드백을 들어보세요"
+    },
+    "cta": {
+      "title": "Telos가 어떻게 도움이 되는지 알고 싶으신가요?",
+      "description": "무료 상담 및 데모를 받으려면 문의하세요",
+      "primary": "문의하기",
+      "secondary": "워크플로 템플릿 보기"
+    }
+  },
+  "UseCasesPage": {
+    "hero": {
+      "title": "실제 사례",
+      "subtitle": "다양한 산업이 Telos를 활용해 자동화를 구현하는 방법 탐구"
+    },
+    "search": {
+      "placeholder": "검색 사례..."
+    },
+    "filters": {
+      "industry": "산업",
+      "category": "카테고리"
+    },
+    "categories": {
+      "all": "전체",
+      "automation": "자동화",
+      "integration": "통합",
+      "ai": "인공지능",
+      "data": "데이터",
+      "workflow": "워크플로"
+    },
+    "difficulty": {
+      "beginner": "초급",
+      "intermediate": "중급",
+      "advanced": "고급"
+    },
+    "details": {
+      "benefits": "주요 장점",
+      "tools": "사용된 도구"
+    },
+    "noResults": "일치하는 사례를 찾을 수 없습니다",
+    "cta": {
+      "title": "자동화를 시작할 준비가 되셨나요?",
+      "description": "우리의 워크플로 템플릿 라이브러리에서 하나를 선택하여 시작하세요",
+      "primary": "워크플로 템플릿 보기",
+      "secondary": "문의하기"
+    }
   }
 }
