@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 import {
   HoverCard,
