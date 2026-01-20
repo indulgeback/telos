@@ -387,8 +387,8 @@ export default function ShowcasePage() {
       <SectionWrapper>
         <SectionTitle
           title={t('testimonials.title')}
-          description={t('testimonials.description')}
-          variant='center'
+          subtitle={t('testimonials.description')}
+          align='center'
         />
         <div className='grid md:grid-cols-3 gap-6'>
           {testimonials.slice(0, 3).map((testimonial, index) => (

@@ -288,8 +288,8 @@ export default function ComparisonPage() {
       <SectionWrapper>
         <SectionTitle
           title={t('differentiators.title')}
-          description={t('differentiators.description')}
-          variant='center'
+          subtitle={t('differentiators.description')}
+          align='center'
         />
         <div className='grid md:grid-cols-3 gap-6 mt-8'>
           {[
