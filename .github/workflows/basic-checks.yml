@@ -23,8 +23,8 @@ jobs:
       - name: 📦 设置 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
-          cache: "pnpm"
+          node-version: '22'
+          cache: 'pnpm'
 
       - name: 📦 安装依赖
         run: |
@@ -34,10 +34,10 @@ jobs:
       - name: 🔍 检查 Web 应用
         run: |
           cd apps/web
-          echo "🔍 运行 ESLint..."
-          pnpm lint
           echo "🎨 检查代码格式..."
           pnpm format:check
+          echo "🔍 运行 ESLint..."
+          pnpm lint
           echo "🏗️ 构建测试..."
           pnpm build
           echo "✅ Web 应用检查完成"
@@ -52,7 +52,7 @@ jobs:
       - name: 📦 设置 Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.24.4"
+          go-version: '1.24.4'
 
       - name: 🔍 检查 Go 服务
         run: |

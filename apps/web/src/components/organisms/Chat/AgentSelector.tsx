@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Button,
@@ -28,7 +28,7 @@ export function AgentSelector({
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
 
-  const loadAgents = async () => {
+  const loadAgents = useCallback(async () => {
     setLoading(true)
     try {
       const data = await agentService.listAgents()
@@ -43,11 +43,11 @@ export function AgentSelector({
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedAgentId, onAgentChange])
 
   useEffect(() => {
     loadAgents()
-  }, [])
+  }, [loadAgents])
 
   const selectedAgent = agents.find(a => a.id === selectedAgentId)
 
