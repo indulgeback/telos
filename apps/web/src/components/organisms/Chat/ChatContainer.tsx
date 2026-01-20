@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import type { RefObject } from 'react'
 import { Button } from '@/components/atoms'
 import {
   ChatInput,
@@ -9,8 +9,6 @@ import {
   type SuggestionPrompt,
 } from '@/components/atoms'
 import { Sparkles, Bot } from 'lucide-react'
-import { agentService, type Agent } from '@/service/agent'
-import { useTranslations } from 'next-intl'
 import { AgentSelector } from './AgentSelector'
 
 export interface Message {
@@ -20,137 +18,71 @@ export interface Message {
   timestamp: Date
 }
 
-export function ChatContainer() {
-  const t = useTranslations('Chat')
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-  const [lastUserMessage, setLastUserMessage] = useState<string>('')
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+export interface ChatContainerProps {
+  // State
+  messages: Message[]
+  input: string
+  isLoading: boolean
+  copiedId: string | null
+  selectedAgentId: string | null
+  suggestionPrompts: SuggestionPrompt[]
+  lastUserMessage: string
+  // Refs
+  scrollRef: RefObject<HTMLDivElement | null>
+  textareaRef: RefObject<HTMLTextAreaElement | null>
+  // Callbacks
+  onInputChange: (value: string) => void
+  onSend: (messageContent?: string) => void
+  onRetry: () => void
+  onCopy: (content: string, id: string) => void
+  onClear: () => void
+  onAgentChange: (agent: any) => void
+  // Text
+  title: string
+  subtitle: string
+  clearConversationLabel: string
+  inputPlaceholder: string
+  sendAriaLabel: string
+  disclaimer: string
+  emptyStateTitle: string
+  emptyStateDescription: string
+  copyLabel: string
+  copiedLabel: string
+  retryLabel: string
+  errorMessage: string
+}
 
-  const suggestionPrompts = useMemo(
-    (): SuggestionPrompt[] => [
-      {
-        icon: '🚀',
-        label: t('suggestions.newProject.label'),
-        prompt: t('suggestions.newProject.prompt'),
-      },
-      {
-        icon: '🐛',
-        label: t('suggestions.debugCode.label'),
-        prompt: t('suggestions.debugCode.prompt'),
-      },
-      {
-        icon: '📝',
-        label: t('suggestions.writeDocs.label'),
-        prompt: t('suggestions.writeDocs.prompt'),
-      },
-      {
-        icon: '💡',
-        label: t('suggestions.creativeIdeas.label'),
-        prompt: t('suggestions.creativeIdeas.prompt'),
-      },
-    ],
-    [t]
-  )
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages])
-
-  const handleSend = async (messageContent?: string) => {
-    // Ignore event objects from button clicks
-    const shouldUseMessageContent =
-      messageContent && typeof messageContent === 'string'
-    const contentToSend = (shouldUseMessageContent ? messageContent : input)
-      .toString()
-      .trim()
-    if (!contentToSend || isLoading) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: contentToSend,
-      timestamp: new Date(),
-    }
-
-    setMessages(prev => [...prev, userMessage])
-    setLastUserMessage(contentToSend)
-    if (!shouldUseMessageContent) setInput('')
-    setIsLoading(true)
-
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-    }
-
-    setMessages(prev => [...prev, assistantMessage])
-
-    try {
-      await agentService.chatStream(
-        contentToSend,
-        chunk => {
-          if (chunk.done) {
-            setIsLoading(false)
-            textareaRef.current?.focus()
-            return
-          }
-          if (chunk.content) {
-            setMessages(prev =>
-              prev.map(m =>
-                m.id === assistantMessage.id
-                  ? { ...m, content: m.content + chunk.content }
-                  : m
-              )
-            )
-          }
-        },
-        error => {
-          console.error('Chat error:', error)
-          setIsLoading(false)
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === assistantMessage.id && !m.content
-                ? { ...m, content: t('error.message') }
-                : m
-            )
-          )
-        },
-        selectedAgent?.id
-      )
-    } catch (error) {
-      console.error('Chat error:', error)
-      setIsLoading(false)
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === assistantMessage.id && !m.content
-            ? { ...m, content: t('error.message') }
-            : m
-        )
-      )
-    }
-  }
-
-  const handleRetry = () => {
-    if (!lastUserMessage || isLoading) return
-    handleSend(lastUserMessage)
-  }
-
-  const handleCopy = (content: string, id: string) => {
-    navigator.clipboard.writeText(content)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
-
+export function ChatContainer({
+  messages,
+  input,
+  isLoading,
+  copiedId,
+  selectedAgentId,
+  suggestionPrompts,
+  lastUserMessage,
+  scrollRef,
+  textareaRef,
+  onInputChange,
+  onSend,
+  onRetry,
+  onCopy,
+  onClear,
+  onAgentChange,
+  title,
+  subtitle,
+  clearConversationLabel,
+  inputPlaceholder,
+  sendAriaLabel,
+  disclaimer,
+  emptyStateTitle,
+  emptyStateDescription,
+  copyLabel,
+  copiedLabel,
+  retryLabel,
+  errorMessage,
+}: ChatContainerProps) {
   return (
-    <div className='flex h-full w-full flex-col overflow-hidden bg-gradient-to-br from-background via-background to-muted/20'>
+    <div className='flex h-full w-full flex-col overflow-hidden bg-linear-to-br from-background via-background to-muted/20'>
       {/* Header */}
       <div className='shrink-0 border-b bg-background/80 backdrop-blur-lg'>
         <div className='flex items-center justify-between px-6 py-4'>
@@ -159,22 +91,22 @@ export function ChatContainer() {
               <Sparkles className='size-5 text-primary' />
             </div>
             <div>
-              <h1 className='font-semibold'>{t('title')}</h1>
-              <p className='text-sm text-muted-foreground'>{t('subtitle')}</p>
+              <h1 className='font-semibold'>{title}</h1>
+              <p className='text-sm text-muted-foreground'>{subtitle}</p>
             </div>
           </div>
           <div className='flex items-center gap-3'>
             <AgentSelector
-              selectedAgentId={selectedAgent?.id || null}
-              onAgentChange={setSelectedAgent}
+              selectedAgentId={selectedAgentId}
+              onAgentChange={onAgentChange}
             />
             <Button
               variant='ghost'
               size='sm'
-              onClick={() => setMessages([])}
+              onClick={onClear}
               className='text-muted-foreground'
             >
-              {t('clearConversation')}
+              {clearConversationLabel}
             </Button>
           </div>
         </div>
@@ -186,15 +118,11 @@ export function ChatContainer() {
           {messages.length === 0 ? (
             <div className='flex min-h-full flex-col items-center justify-center'>
               <div className='mb-8 text-center'>
-                <div className='mb-4 inline-flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5'>
+                <div className='mb-4 inline-flex size-20 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5'>
                   <Bot className='size-10 text-primary' />
                 </div>
-                <h2 className='mb-2 text-2xl font-bold'>
-                  {t('emptyState.title')}
-                </h2>
-                <p className='text-muted-foreground'>
-                  {t('emptyState.description')}
-                </p>
+                <h2 className='mb-2 text-2xl font-bold'>{emptyStateTitle}</h2>
+                <p className='text-muted-foreground'>{emptyStateDescription}</p>
               </div>
 
               <div className='grid grid-cols-2 gap-3 md:grid-cols-4'>
@@ -202,7 +130,7 @@ export function ChatContainer() {
                   <SuggestionPromptButton
                     key={suggestion.label}
                     suggestion={suggestion}
-                    onClick={setInput}
+                    onClick={onInputChange}
                   />
                 ))}
               </div>
@@ -222,12 +150,12 @@ export function ChatContainer() {
                     role={message.role}
                     content={message.content}
                     copiedId={copiedId}
-                    onCopy={handleCopy}
-                    copyLabel={t('actions.copy')}
-                    copiedLabel={t('actions.copied')}
+                    onCopy={onCopy}
+                    copyLabel={copyLabel}
+                    copiedLabel={copiedLabel}
                     isLoading={isLastAssistantMessage && isLoading}
-                    onRetry={showRetry ? handleRetry : undefined}
-                    retryLabel={t('actions.retry')}
+                    onRetry={showRetry ? onRetry : undefined}
+                    retryLabel={retryLabel}
                   />
                 )
               })}
@@ -242,15 +170,15 @@ export function ChatContainer() {
           <ChatInput
             ref={textareaRef}
             value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder={t('input.placeholder')}
-            onSend={handleSend}
+            onChange={e => onInputChange(e.target.value)}
+            placeholder={inputPlaceholder}
+            onSend={onSend}
             canSend={input.trim().length > 0}
             sendDisabled={isLoading}
-            sendAriaLabel={t('input.sendAriaLabel')}
+            sendAriaLabel={sendAriaLabel}
           />
           <p className='mt-2 text-center text-xs text-muted-foreground'>
-            {t('disclaimer')}
+            {disclaimer}
           </p>
         </div>
       </div>
