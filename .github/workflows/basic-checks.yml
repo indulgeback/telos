@@ -34,10 +34,10 @@ jobs:
       - name: 🔍 检查 Web 应用
         run: |
           cd apps/web
-          echo "🎨 检查代码格式..."
-          pnpm format:check
           echo "🔍 运行 ESLint..."
           pnpm lint
+          echo "🎨 检查代码格式..."
+          pnpm format:check
           echo "🏗️ 构建测试..."
           pnpm build
           echo "✅ Web 应用检查完成"
