@@ -10,6 +10,7 @@ import {
 } from '@/components/atoms'
 import { Sparkles, Bot } from 'lucide-react'
 import { AgentSelector } from './AgentSelector'
+import type { Agent } from '@/service/agent'
 
 export interface Message {
   id: string
@@ -36,7 +37,7 @@ export interface ChatContainerProps {
   onRetry: () => void
   onCopy: (content: string, id: string) => void
   onClear: () => void
-  onAgentChange: (agent: any) => void
+  onAgentChange: (agent: Agent | null) => void
   // Text
   title: string
   subtitle: string
