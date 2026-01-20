@@ -48,28 +48,31 @@ type AgentService interface {
 
 // agentService 是 AgentService 接口的具体实现
 type agentService struct {
-	agentRepo repository.AgentRepository
+	agentRepo   repository.AgentRepository
+	chatService *ChatService
 }
 
 // NewAgentService 创建 AgentService 实例
 //
 // 参数：
 //   - agentRepo: Agent 仓储实例，用于数据访问
+//   - chatService: 聊天服务实例，用于生成系统提示词
 //
 // 返回：
 //   - AgentService: 服务接口实例
-func NewAgentService(agentRepo repository.AgentRepository) AgentService {
+func NewAgentService(agentRepo repository.AgentRepository, chatService *ChatService) AgentService {
 	return &agentService{
-		agentRepo: agentRepo,
+		agentRepo:   agentRepo,
+		chatService: chatService,
 	}
 }
 
 // CreateAgent 创建新 Agent
 //
 // 业务逻辑：
-//   1. 生成 UUID 作为 Agent ID
-//   2. 根据类型生成对应的系统提示词
-//   3. 保存到数据库
+//  1. 生成 UUID 作为 Agent ID
+//  2. 根据类型生成对应的系统提示词
+//  3. 保存到数据库
 //
 // 参数：
 //   - ctx: 请求上下文
@@ -83,12 +86,19 @@ func NewAgentService(agentRepo repository.AgentRepository) AgentService {
 //   - *model.Agent: 创建的 Agent 实体
 //   - error: 创建失败时返回错误
 func (s *agentService) CreateAgent(ctx context.Context, userID, userName, name, description string, agentType model.AgentType) (*model.Agent, error) {
+	// 使用 LLM 生成更专业的系统提示词
+	systemPrompt, err := s.generateSystemPromptWithLLM(ctx, name, description, agentType)
+	if err != nil {
+		// 如果 LLM 生成失败，回退到模板生成
+		systemPrompt = s.buildSystemPrompt(name, description, agentType)
+	}
+
 	// 构建新 Agent
 	agent := &model.Agent{
 		ID:           uuid.New().String(), // 生成唯一 ID
 		Name:         name,
 		Description:  description,
-		SystemPrompt: s.buildSystemPrompt(name, description, agentType), // 根据类型生成提示词
+		SystemPrompt: systemPrompt,
 		Type:         agentType,
 		OwnerID:      userID,
 		OwnerName:    userName,
@@ -373,4 +383,60 @@ func (s *agentService) buildDefaultPrompt(name, description string) string {
 - 保持专业和礼貌
 - 提供有价值的回答
 - 必要时请求更多信息`, name, description)
+}
+
+// generateSystemPromptWithLLM 使用 LLM 生成系统提示词
+//
+// 通过调用 AI 模型，根据用户提供的名称和描述，生成更专业、更完整的系统提示词。
+// 这样可以避免简单的模板拼接，让 AI 根据具体需求生成更合适的提示词。
+//
+// 参数：
+//   - ctx: 请求上下文
+//   - name: Agent 名称
+//   - description: Agent 描述
+//   - agentType: Agent 类型
+//
+// 返回：
+//   - string: LLM 生成的系统提示词
+//   - error: LLM 调用失败时返回错误
+func (s *agentService) generateSystemPromptWithLLM(ctx context.Context, name, description string, agentType model.AgentType) (string, error) {
+	// 构建 Agent 类型的中文描述
+	agentTypeDesc := "私有智能体"
+	switch agentType {
+	case model.AgentTypeSystem:
+		agentTypeDesc = "系统内置智能体"
+	case model.AgentTypePublic:
+		agentTypeDesc = "公开智能体"
+	case model.AgentTypePrivate:
+		agentTypeDesc = "私有智能体"
+	}
+
+	// 构建用于生成系统提示词的提示词
+	promptForPrompt := fmt.Sprintf(`你是一个专业的 AI 提示词工程师。请根据以下信息，为一个 AI Agent 生成高质量的系统提示词（System Prompt）。
+
+Agent 信息：
+- 名称：%s
+- 描述：%s
+- 类型：%s
+
+要求：
+1. 生成的系统提示词要结构清晰、内容专业
+2. 应包含：角色设定、核心能力、行为准则、回答风格等部分
+3. 使用 Markdown 格式组织
+4. 直接输出生成的系统提示词，不要有任何额外说明
+5. 使用描述使用的语言编写
+
+请生成系统提示词：`, name, description, agentTypeDesc)
+
+	// 调用 LLM 生成
+	messages := []Message{
+		{Role: "user", Content: promptForPrompt},
+	}
+
+	generatedPrompt, err := s.chatService.Chat(ctx, messages)
+	if err != nil {
+		return "", fmt.Errorf("LLM 生成系统提示词失败: %w", err)
+	}
+
+	return generatedPrompt, nil
 }

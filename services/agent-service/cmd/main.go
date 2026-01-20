@@ -204,16 +204,9 @@ func main() {
 	// ========== 5. 初始化 Repository 层 ==========
 	agentRepo := repository.NewAgentRepository(db)
 
-	// ========== 6. 初始化 Service 层 ==========
-	agentService := service.NewAgentService(agentRepo)
-
-	// ========== 7. 初始化默认 Agent ==========
-	if err := seedDefaultAgent(db, agentService); err != nil {
-		tlog.Warn("初始化默认 Agent 失败", "error", err)
-	}
-
-	// ========== 8. 创建聊天服务 ==========
+	// ========== 6. 创建聊天服务 ==========
 	// 使用 DeepSeek API 作为底层模型
+	// 需要在 AgentService 之前创建，因为 AgentService 需要用它生成系统提示词
 	chatService, err := service.NewChatService(service.ModelConfig{
 		APIKey: cfg.DeepSeekAPIKey,
 		Model:  cfg.DeepSeekModel,
@@ -223,6 +216,15 @@ func main() {
 		return
 	}
 	tlog.Info("DeepSeek 模型", "model", cfg.DeepSeekModel)
+
+	// ========== 7. 初始化 Service 层 ==========
+	// agentService 需要 chatService 来生成系统提示词
+	agentService := service.NewAgentService(agentRepo, chatService)
+
+	// ========== 8. 初始化默认 Agent ==========
+	if err := seedDefaultAgent(db, agentService); err != nil {
+		tlog.Warn("初始化默认 Agent 失败", "error", err)
+	}
 
 	// ========== 9. 创建 HTTP 服务器 ==========
 	// 设置 Gin 为 release 模式（生产环境）或 debug 模式
