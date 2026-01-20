@@ -86,6 +86,9 @@ func NewAgentService(agentRepo repository.AgentRepository, chatService *ChatServ
 //   - *model.Agent: 创建的 Agent 实体
 //   - error: 创建失败时返回错误
 func (s *agentService) CreateAgent(ctx context.Context, userID, userName, name, description string, agentType model.AgentType) (*model.Agent, error) {
+	// TODO [FEAT-001]: 改为异步生成提示词，先返回模板生成的 Agent，后台 goroutine 调用 LLM 优化
+	// See: /AGENTS.md - TODO / Future Features
+
 	// 使用 LLM 生成更专业的系统提示词
 	systemPrompt, err := s.generateSystemPromptWithLLM(ctx, name, description, agentType)
 	if err != nil {
