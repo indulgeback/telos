@@ -81,7 +81,9 @@ export class UserService {
   ): Promise<ApiResponse<BackendUser>> {
     return requestService.patch<ApiResponse<BackendUser>>(
       `/api/users/${userId}/status`,
-      { isActive }
+      {
+        isActive,
+      }
     )
   }
 

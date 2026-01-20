@@ -33,6 +33,23 @@ const nextConfig: NextConfig = {
             options: {
               icon: true,
               svgo: true,
+              svgoConfig: {
+                plugins: [
+                  {
+                    name: 'preset-default',
+                    params: {
+                      overrides: {
+                        // 保留 viewBox 属性，确保 SVG 缩放正确
+                        removeViewBox: false,
+                        // 禁用 cleanupIds，避免 ID 被压缩成相同的短名称
+                        cleanupIds: false,
+                      },
+                    },
+                  },
+                  // 为每个 SVG 的 ID 添加基于文件名的唯一前缀
+                  'prefixIds',
+                ],
+              },
               dimensions: false,
             },
           },
