@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { authClient } from '@/lib/auth-client'
 import { useTranslations } from 'next-intl'
 import { CustomLink } from '@/components/molecules'
 import {
@@ -27,9 +27,9 @@ import { redirect } from 'next/navigation'
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard')
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = authClient.useSession()
 
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className='container mx-auto py-8'>
         <div className='space-y-6'>
@@ -42,7 +42,7 @@ export default function DashboardPage() {
     )
   }
 
-  if (status === 'unauthenticated') {
+  if (!session) {
     redirect('/auth/signin')
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { authClient } from '@/lib/auth-client'
 import { useTranslations } from 'next-intl'
 import {
   Card,
@@ -26,13 +26,13 @@ import { redirect } from 'next/navigation'
 import { useState } from 'react'
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = authClient.useSession()
 
   const [notifications, setNotifications] = useState(true)
   const [darkMode, setDarkMode] = useState(false)
   const [emailUpdates, setEmailUpdates] = useState(true)
 
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className='container mx-auto py-8'>
         <div className='max-w-2xl mx-auto space-y-6'>
@@ -45,7 +45,7 @@ export default function SettingsPage() {
     )
   }
 
-  if (status === 'unauthenticated') {
+  if (!session) {
     redirect('/auth/signin')
   }
 

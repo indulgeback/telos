@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { authClient } from '@/lib/auth-client'
 import { useTranslations } from 'next-intl'
 import {
   Avatar,
@@ -19,14 +19,14 @@ import { User, Settings, LogOut } from 'lucide-react'
 import { CustomLink } from './CustomLink'
 
 export function UserAvatar() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = authClient.useSession()
   const t = useTranslations('UserMenu')
 
-  if (status === 'loading') {
+  if (isPending) {
     return <Skeleton className='h-8 w-8 rounded-full' />
   }
 
-  if (status === 'unauthenticated' || !session?.user) {
+  if (!session) {
     return (
       <Button asChild variant='default' size='sm'>
         <CustomLink href='/auth/signin'>{t('signIn')}</CustomLink>
@@ -45,8 +45,9 @@ export function UserAvatar() {
 
   const handleSignOut = async () => {
     console.log('开始登出流程')
-    await signOut({ callbackUrl: '/' })
+    await authClient.signOut()
     console.log('登出流程完成')
+    window.location.href = '/'
   }
 
   return (

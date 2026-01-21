@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { authClient } from '@/lib/auth-client'
 import { motion } from 'motion/react'
 import { Badge, Button } from '@/components/atoms'
 import { Zap, ArrowRight, Github } from 'lucide-react'
@@ -9,7 +9,7 @@ import { CustomLink, GradientBlob, Flow } from '@/components/molecules'
 import type { Node, Edge } from '@xyflow/react'
 
 export function HeroSection() {
-  const { data: session } = useSession()
+  const { data: session } = authClient.useSession()
   const t = useTranslations('HomePage')
   const tFlow = useTranslations('HomePage.flowSection')
 

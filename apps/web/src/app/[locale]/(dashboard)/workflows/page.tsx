@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { authClient } from '@/lib/auth-client'
 import { useTranslations } from 'next-intl'
 import { useState, useMemo } from 'react'
 import {
@@ -27,7 +27,7 @@ import { redirect } from 'next/navigation'
 
 export default function WorkflowsPage() {
   const t = useTranslations('Workflows')
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = authClient.useSession()
 
   // 模拟工作流数据
   const workflows = useMemo(
@@ -72,7 +72,7 @@ export default function WorkflowsPage() {
     [t]
   )
 
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className='container mx-auto py-8'>
         <div className='space-y-6'>
@@ -85,7 +85,7 @@ export default function WorkflowsPage() {
     )
   }
 
-  if (status === 'unauthenticated') {
+  if (!session) {
     redirect('/auth/signin')
   }
 

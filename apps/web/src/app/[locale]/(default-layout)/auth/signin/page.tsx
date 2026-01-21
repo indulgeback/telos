@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn, useSession } from 'next-auth/react'
+import { authClient } from '@/lib/auth-client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
@@ -18,8 +18,7 @@ import { CustomLink } from '@/components/molecules'
 export default function SignInPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { data: session, status } = useSession()
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const { data: session, isPending } = authClient.useSession()
   const error = searchParams.get('error')
   const t = useTranslations('Auth.signIn')
   const tError = useTranslations('Auth.error')
@@ -29,27 +28,28 @@ export default function SignInPage() {
 
   // 如果用户已经登录，直接跳转到目标页面
   useEffect(() => {
-    if (status === 'authenticated' && session) {
-      router.push(callbackUrl)
+    if (session && !isPending) {
+      router.push('/')
     }
-  }, [status, session, callbackUrl, router])
+  }, [session, isPending, router])
 
   const handleSignIn = async (provider: string) => {
     setIsLoading(true)
     setLoadingProvider(provider)
     try {
-      // signIn 会触发页面跳转，所以不需要重置loading状态
-      await signIn(provider, { callbackUrl })
+      // Better-Auth social signIn
+      await authClient.signIn.social({
+        provider: provider as 'github',
+      })
     } catch (error) {
       console.error(`${provider} 登录失败:`, error)
-      // 只有发生错误时才重置loading状态
       setIsLoading(false)
       setLoadingProvider(null)
     }
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4'>
+    <div className='min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4'>
       <Card className='w-full max-w-md'>
         <CardHeader className='text-center'>
           <CardTitle className='text-2xl font-bold'>{t('title')}</CardTitle>
