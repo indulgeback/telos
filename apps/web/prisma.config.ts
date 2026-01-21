@@ -7,8 +7,6 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url:
-      env('DATABASE_URL') ||
-      'postgresql://LeviLiu:12345678@localhost:5432/Telos',
+    url: env('DATABASE_URL'),
   },
 })

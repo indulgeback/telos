@@ -26,12 +26,14 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
 
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+
   // 如果用户已经登录，直接跳转到目标页面
   useEffect(() => {
     if (session && !isPending) {
-      router.push('/')
+      router.push(callbackUrl)
     }
-  }, [session, isPending, router])
+  }, [session, isPending, callbackUrl, router])
 
   const handleSignIn = async (provider: string) => {
     setIsLoading(true)
@@ -40,6 +42,7 @@ export default function SignInPage() {
       // Better-Auth social signIn
       await authClient.signIn.social({
         provider: provider as 'github',
+        callbackURL: callbackUrl,
       })
     } catch (error) {
       console.error(`${provider} 登录失败:`, error)
