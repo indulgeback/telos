@@ -30,9 +30,6 @@ jobs:
         run: |
           cd apps/web
           pnpm install --frozen-lockfile
-        env:
-          DATABASE_URL: "postgresql://test:test@localhost:5432/test"
-          BETTER_AUTH_SECRET: "test-secret-for-ci-only"
 
       - name: 🔍 检查 Web 应用
         run: |
