@@ -1,9 +1,10 @@
 'use client'
 
-import { forwardRef, TextareaHTMLAttributes } from 'react'
+import { forwardRef, TextareaHTMLAttributes, useState } from 'react'
 import { Button } from './button'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import React from 'react'
 
 interface ChatInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   onSend: () => void
@@ -25,6 +26,8 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     },
     ref
   ) => {
+    const [isFocused, setIsFocused] = useState(false)
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
@@ -34,14 +37,29 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
       }
     }
 
+    const handleFocus = () => {
+      setIsFocused(true)
+    }
+
+    const handleBlur = () => {
+      setIsFocused(false)
+    }
+
     return (
-      <div className='flex items-end gap-3 rounded-2xl border bg-background p-2 shadow-sm transition-shadow focus-within:ring-2 focus-within:ring-primary/20'>
+      <div
+        className={cn(
+          'flex items-end gap-3 rounded-2xl border bg-background p-2 shadow-sm transition-shadow',
+          isFocused ? 'border-primary/50 shadow-2xl' : 'ring-0'
+        )}
+      >
         <textarea
           ref={ref}
           value={value}
           onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           className={cn(
-            'max-h-32 min-h-11 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm focus-visible:ring-0',
+            'max-h-32 min-h-11 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm outline-none',
             className
           )}
           rows={1}

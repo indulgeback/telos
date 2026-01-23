@@ -10,13 +10,15 @@ import {
 } from '@/components/atoms'
 import { Sparkles, Bot } from 'lucide-react'
 import { AgentSelector } from './AgentSelector'
-import type { Agent } from '@/service/agent'
+import { Agent, type ToolCall } from '@/service/agent'
 
 export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  // 工具调用列表
+  toolCalls?: ToolCall[]
 }
 
 export interface ChatContainerProps {
@@ -157,6 +159,7 @@ export function ChatContainer({
                     isLoading={isLastAssistantMessage && isLoading}
                     onRetry={showRetry ? onRetry : undefined}
                     retryLabel={retryLabel}
+                    toolCalls={message.toolCalls}
                   />
                 )
               })}

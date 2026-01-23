@@ -107,6 +107,111 @@ func seedDefaultAgent(db *gorm.DB, agentService service.AgentService) error {
 	return nil
 }
 
+// seedPredefinedTools 初始化预置工具
+//
+// 该函数检查数据库中是否已存在预置工具（Jina Reader、Jina Search），
+// 如果不存在则创建。这些工具是开箱即用的常用工具。
+//
+// 参数：
+//   - db: GORM 数据库实例
+func seedPredefinedTools(db *gorm.DB) error {
+	// 定义预置工具
+	predefinedTools := []*model.Tool{
+		{
+			ID:          "jina-reader",
+			Name:        "web_reader",
+			Type:        model.ToolTypeInvokable,
+			DisplayName: "Jina 网页阅读器",
+			Description: "从任意 URL 读取并提取 LLM 友好的内容，自动处理分页、广告等干扰内容",
+			Category:    "web",
+			Endpoint: model.EndpointConfig{
+				URLTemplate: "https://r.jina.ai/{url}",
+				Method:      "GET",
+				Headers: map[string]string{
+					"X-With-Generated-Alt":   "true",
+					"X-With-Links-Summary":   "true",
+					"X-With-Images-Summary":  "true",
+				},
+				Auth: &model.AuthConfig{
+					Type:     model.AuthTypeBearer,
+					TokenEnv: "JINA_READER_API_TOKEN",
+				},
+				Timeout: 30,
+			},
+			Parameters: model.ParametersDef{
+				Type: "object",
+				Properties: map[string]*model.ParameterDef{
+					"url": {
+						Type:        "string",
+						Description: "要读取的网页 URL",
+						Required:    true,
+					},
+				},
+				Required: []string{"url"},
+			},
+			ResponseTransform: model.ResponseTransform{
+				Extract: "$",
+				Format:  "text",
+			},
+			Enabled: true,
+		},
+		{
+			ID:          "jina-search",
+			Name:        "web_search",
+			Type:        model.ToolTypeInvokable,
+			DisplayName: "Jina 网页搜索",
+			Description: "搜索互联网并获取结果的内容摘要，返回相关的网页链接和内容预览",
+			Category:    "web",
+			Endpoint: model.EndpointConfig{
+				URLTemplate: "https://s.jina.ai/?q={query}",
+				Method:      "GET",
+				Headers: map[string]string{
+					"Accept": "application/json",
+				},
+				Auth: &model.AuthConfig{
+					Type:     model.AuthTypeBearer,
+					TokenEnv: "JINA_SEARCH_API_TOKEN",
+				},
+				Timeout: 30,
+			},
+			Parameters: model.ParametersDef{
+				Type: "object",
+				Properties: map[string]*model.ParameterDef{
+					"query": {
+						Type:        "string",
+						Description: "搜索查询内容",
+						Required:    true,
+					},
+				},
+				Required: []string{"query"},
+			},
+			ResponseTransform: model.ResponseTransform{
+				Extract: "$",
+				Format:  "json",
+			},
+			Enabled: true,
+		},
+	}
+
+	for _, tool := range predefinedTools {
+		// 检查工具是否已存在
+		var existingTool model.Tool
+		err := db.Where("id = ?", tool.ID).First(&existingTool).Error
+		if err == nil {
+			tlog.Info("预置工具已存在，跳过", "tool_id", tool.ID, "tool_name", tool.Name)
+			continue
+		}
+
+		// 创建工具
+		if err := db.Create(tool).Error; err != nil {
+			return fmt.Errorf("创建预置工具 %s 失败: %w", tool.ID, err)
+		}
+		tlog.Info("预置工具创建成功", "tool_id", tool.ID, "tool_name", tool.Name, "display_name", tool.DisplayName)
+	}
+
+	return nil
+}
+
 // main 是 Agent Service 的主入口函数
 //
 // 执行流程：
@@ -195,7 +300,12 @@ func main() {
 
 	// 自动迁移模型（创建表、添加缺失的列等）
 	tlog.Info("执行数据库迁移...")
-	if err := db.AutoMigrate(&model.Agent{}); err != nil {
+	if err := db.AutoMigrate(
+		&model.Agent{},
+		&model.Tool{},
+		&model.AgentTool{},
+		&model.ToolExecution{},
+	); err != nil {
 		tlog.Error("数据库迁移失败", "error", err)
 		return
 	}
@@ -203,6 +313,11 @@ func main() {
 
 	// ========== 5. 初始化 Repository 层 ==========
 	agentRepo := repository.NewAgentRepository(db)
+
+	// 工具相关 Repository
+	toolRepo := repository.NewToolRepository(db)
+	agentToolRepo := repository.NewAgentToolRepository(db)
+	toolExecutionRepo := repository.NewToolExecutionRepository(db)
 
 	// ========== 6. 创建聊天服务 ==========
 	// 使用 DeepSeek API 作为底层模型
@@ -221,9 +336,33 @@ func main() {
 	// agentService 需要 chatService 来生成系统提示词
 	agentService := service.NewAgentService(agentRepo, chatService)
 
+	// 工具服务 - 管理工具定义和 Agent 工具关联
+	toolService := service.NewToolService(toolRepo, agentToolRepo, toolExecutionRepo)
+
+	// 带工具支持的聊天服务 - 支持 Agent 调用外部工具
+	chatServiceWithTools, err := service.NewChatServiceWithTools(service.ModelConfig{
+		APIKey: cfg.DeepSeekAPIKey,
+		Model:  cfg.DeepSeekModel,
+	}, toolService)
+	if err != nil {
+		tlog.Warn("创建带工具的聊天服务失败，工具功能将不可用", "error", err)
+		// 使用不带工具的服务
+		chatServiceWithTools, _ = service.NewChatService(service.ModelConfig{
+			APIKey: cfg.DeepSeekAPIKey,
+			Model:  cfg.DeepSeekModel,
+		})
+	} else {
+		tlog.Info("工具聊天服务已启用")
+	}
+
 	// ========== 8. 初始化默认 Agent ==========
 	if err := seedDefaultAgent(db, agentService); err != nil {
 		tlog.Warn("初始化默认 Agent 失败", "error", err)
+	}
+
+	// ========== 8.1 初始化预置工具 ==========
+	if err := seedPredefinedTools(db); err != nil {
+		tlog.Warn("初始化预置工具失败", "error", err)
 	}
 
 	// ========== 9. 创建 HTTP 服务器 ==========
@@ -240,8 +379,10 @@ func main() {
 	r.Use(tlog.RequestIDMiddleware())                  // 请求 ID
 
 	// ========== 10. 创建处理器 ==========
-	chatHandler := handler.NewChatHandler(chatService, agentService)
+	// 使用带工具支持的聊天服务
+	chatHandler := handler.NewChatHandler(chatServiceWithTools, agentService)
 	agentHandler := handler.NewAgentHandler(agentService)
+	toolHandler := handler.NewToolHandler(toolService)
 
 	// ========== 11. 注册路由 ==========
 	// 健康检查和服务信息
@@ -254,6 +395,28 @@ func main() {
 
 	// Agent 管理 API（CRUD）
 	agentHandler.RegisterRoutes(r)
+
+	// 工具管理 API
+	api := r.Group("/api")
+	{
+		// 工具管理
+		tools := api.Group("/tools")
+		{
+			tools.GET("", toolHandler.ListTools)
+			tools.GET("/:id", toolHandler.GetTool)
+			tools.POST("", toolHandler.CreateTool)
+			tools.PUT("/:id", toolHandler.UpdateTool)
+			tools.DELETE("/:id", toolHandler.DeleteTool)
+		}
+
+		// Agent 工具关联
+		agents := api.Group("/agents/:id")
+		{
+			agents.GET("/tools", toolHandler.GetAgentTools)
+			agents.PUT("/tools", toolHandler.SetAgentTools)
+			agents.PATCH("/tools/:tool_id/toggle", toolHandler.ToggleAgentTool)
+		}
+	}
 
 	// ========== 12. 注册到服务注册中心 ==========
 	// 使用动态检测的 IP 地址（支持 Docker 容器环境）

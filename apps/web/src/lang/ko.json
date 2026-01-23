@@ -4,7 +4,8 @@
     "workflows": "워크플로",
     "chat": "AI 도우미",
     "dashboard": "계기판",
-    "agents": "인공지능 에이전트"
+    "agents": "인공지능 에이전트",
+    "tools": "도구"
   },
   "Chat": {
     "title": "AI 도우미",
@@ -551,7 +552,8 @@
       "description": "첫 번째 AI 에이전트 만들기 시작하기"
     },
     "created": "설립일",
-    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다"
+    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다",
+    "configureTools": "구성 도구"
   },
   "WorkflowsPage": {
     "hero": {
@@ -593,6 +595,7 @@
       "placeholder": "검색 통합..."
     },
     "categories": {
+      "all": "전체",
       "popular": "인기 있는",
       "communication": "통신",
       "development": "개발",
@@ -600,8 +603,7 @@
       "productivity": "생산성",
       "ai": "AI 서비스",
       "crm": "CRM",
-      "other": "기타",
-      "all": "전체"
+      "other": "기타"
     },
     "stats": {
       "integrations": "통합",
@@ -777,5 +779,119 @@
       "primary": "워크플로 템플릿 보기",
       "secondary": "문의하기"
     }
+  },
+  "Tool": {
+    "title": "도구 관리",
+    "subtitle": "AI 에이전트를 관리하고 구성하는 도구 플러그인",
+    "create": "도구 만들기",
+    "edit": "편집",
+    "delete": "삭제",
+    "cancel": "취소",
+    "save": "저장",
+    "previous": "이전 단계",
+    "next": "다음 단계",
+    "creating": "생성 중...",
+    "saving": "저장 중...",
+    "enabled": "활성화됨",
+    "disabled": "비활성화됨",
+    "confirmDelete": "이 도구를 삭제하시겠습니까?",
+    "searchPlaceholder": "검색 도구...",
+    "allCategories": "전체 분류",
+    "categories": {
+      "web": "웹페이지",
+      "api": "API",
+      "database": "데이터베이스",
+      "custom": "사용자 정의",
+      "test": "테스트"
+    },
+    "authTypes": {
+      "none": "인증 없음",
+      "bearer": "베어러 토큰",
+      "api_key": "API 키",
+      "basic": "기본 인증"
+    },
+    "fields": {
+      "id": "도구 ID",
+      "idHint": "고유 식별자이며, 소문자, 숫자 및 하이픈만 포함할 수 있습니다.",
+      "idCannotChange": "ID는 생성 후 수정할 수 없습니다",
+      "name": "도구 이름",
+      "nameHint": "코드 호출에 사용되는 식별자, 예: my_tool",
+      "displayName": "표시 이름",
+      "displayNamePlaceholder": "예: 나의 도구",
+      "description": "설명",
+      "descriptionPlaceholder": "이 도구의 기능과 용도를 설명하다...",
+      "category": "분류",
+      "type": "유형",
+      "enabled": "활성화 상태",
+      "url": "API 주소",
+      "urlHint": "{param}을 매개변수 자리 표시자로 사용합니다. 예: https://api.example.com/{id}",
+      "method": "요청 방법",
+      "headers": "요청 헤더",
+      "add": "추가",
+      "authType": "인증 유형",
+      "tokenEnv": "토큰 환경 변수",
+      "tokenEnvHint": "환경 변수 이름, 예: MY_API_TOKEN",
+      "timeout": "타임아웃 시간(초)",
+      "parameters": "매개변수",
+      "paramName": "매개 변수 이름",
+      "paramType": "매개변수 유형",
+      "paramDesc": "매개변수 설명",
+      "paramDescPlaceholder": "이 매개변수를 설명합니다...",
+      "required": "필수",
+      "extractPath": "데이터 추출 경로",
+      "extractHint": "JSONPath를 사용하여 응답에서 데이터를 추출하기, 예: $.data.items",
+      "responseFormat": "응답 형식"
+    },
+    "createModal": {
+      "title": "새 도구 만들기",
+      "step1Desc": "도구의 기본 정보를 작성하세요",
+      "step2Desc": "API 엔드포인트 및 인증 구성",
+      "step3Desc": "매개변수 및 응답 처리 정의",
+      "basicInfo": "기본 정보",
+      "endpoint": "API 엔드포인트",
+      "parameters": "파라미터 설정",
+      "response": "응답 처리"
+    },
+    "editModal": {
+      "title": "편집 도구",
+      "description": "도구 설정 정보 수정"
+    },
+    "configureModal": {
+      "title": "구성 도구",
+      "description": "에이전트 \"{name}\"에 도구 추가 또는 제거",
+      "searchTools": "검색 도구...",
+      "totalTools": "총 {count}개의 도구",
+      "selected": "{count}개 선택됨",
+      "toolCategories": "도구 분류",
+      "noToolsFound": "일치하는 도구를 찾을 수 없습니다"
+    },
+    "validation": {
+      "idRequired": "도구 ID를 입력하세요",
+      "nameRequired": "도구 이름을 입력하세요",
+      "displayNameRequired": "표시 이름을 입력하세요",
+      "urlRequired": "API 주소를 입력하세요"
+    },
+    "messages": {
+      "created": "도구 생성 성공",
+      "createFailed": "도구 생성 실패",
+      "updated": "도구 업데이트 성공",
+      "updateFailed": "업데이트 도구 실패",
+      "deleted": "도구가 성공적으로 삭제되었습니다",
+      "deleteFailed": "도구 삭제 실패",
+      "enabled": "도구가 활성화되었습니다",
+      "disabled": "도구가 비활성화되었습니다",
+      "toggleFailed": "상태 전환 실패",
+      "toolsConfigured": "도구 구성이 업데이트되었습니다",
+      "configureFailed": "구성 도구 실패"
+    },
+    "empty": {
+      "title": "현재 도구 없음",
+      "description": "첫 번째 도구 플러그인 만들기",
+      "noResults": "일치하는 도구를 찾을 수 없습니다",
+      "tryDifferentFilter": "다른 필터 조건을 사용해 보세요"
+    },
+    "noParameters": "이 도구에는 매개변수가 정의되어 있지 않습니다",
+    "endpoint": "API 엔드포인트",
+    "parameters": "매개변수"
   }
 }

@@ -81,6 +81,13 @@ func main() {
 			StripPrefix: false,
 			Timeout:     60,
 		},
+		{
+			// 工具管理 API - 列表、创建、详情、更新、删除
+			Path:        "/api/tools",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     10,
+		},
 	}
 	proxyManager.LoadRoutes(routes)
 

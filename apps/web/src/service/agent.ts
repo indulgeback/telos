@@ -3,10 +3,34 @@ import { API_BASE_URL } from './request'
 // 消息类型
 export type MessageRole = 'user' | 'assistant' | 'system'
 
+// 工具调用状态
+export type ToolCallStatus = 'pending' | 'running' | 'success' | 'error'
+
+// 工具调用信息
+export interface ToolCall {
+  id: string
+  name: string
+  displayName: string
+  status: ToolCallStatus
+  input?: Record<string, any>
+  output?: any
+  error?: string
+  timestamp: Date
+}
+
 // 聊天消息接口
 export interface ChatMessage {
   role: MessageRole
   content: string
+}
+
+// SSE 流式数据格式
+export interface StreamChunk {
+  content: string
+  done?: boolean
+  // 工具调用事件
+  type?: 'content' | 'tool_call_start' | 'tool_call_end' | 'tool_call_error'
+  toolCall?: ToolCall
 }
 
 // Agent 类型

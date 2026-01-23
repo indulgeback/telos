@@ -4,7 +4,8 @@
     "workflows": "Workflow",
     "chat": "AI Assistant",
     "dashboard": "Dashboard",
-    "agents": "Agent"
+    "agents": "Agent",
+    "tools": "Tool"
   },
   "Chat": {
     "title": "AI Assistant",
@@ -502,7 +503,7 @@
   },
   "Agent": {
     "title": "Agent Management",
-    "subtitle": "Create and manage your AI Agent",
+    "subtitle": "Create and manage your AI Agents",
     "create": "Create Agent",
     "edit": "Edit",
     "delete": "Delete",
@@ -516,14 +517,14 @@
       "system": "System"
     },
     "form": {
-      "description": "Fill in Agent Information",
+      "description": "Fill in Agent information",
       "name": "Agent Name",
-      "namePlaceholder": "For example: Code Assistant",
+      "namePlaceholder": "e.g.: Code Assistant",
       "descriptionLabel": "Description",
-      "descriptionPlaceholder": "Describe the role and capabilities of this agent...",
+      "descriptionPlaceholder": "Describe the role and capabilities of this Agent...",
       "typeLabel": "Type",
       "typePrivate": "Private",
-      "typePrivateDesc": "Visible to only me",
+      "typePrivateDesc": "Only visible to you",
       "typePublic": "Public",
       "typePublicDesc": "Available to everyone",
       "required": "Please fill in all required fields"
@@ -532,26 +533,27 @@
       "label": "Select Agent",
       "selectAgent": "Select Agent",
       "loading": "Loading...",
-      "searchPlaceholder": "Searching Agent...",
-      "noResults": "No matching agent found",
-      "noAgents": "No available agent"
+      "searchPlaceholder": "Search agents...",
+      "noResults": "No matching agents found",
+      "noAgents": "No available agents"
     },
     "messages": {
       "createSuccess": "Agent created successfully",
-      "createError": "Failed to create agent",
+      "createError": "Failed to create Agent",
       "deleteSuccess": "Agent deleted successfully",
       "deleteError": "Failed to delete Agent",
       "deleteConfirm": {
-        "title": "Confirm deletion",
-        "description": "Once deleted, it cannot be recovered. Are you sure you want to delete this agent?"
+        "title": "Confirm Delete",
+        "description": "This cannot be undone. Are you sure you want to delete this Agent?"
       }
     },
     "empty": {
-      "title": "No Agent Yet",
-      "description": "Create Your First AI Agent to Get Started"
+      "title": "No agents yet",
+      "description": "Create your first AI Agent to get started"
     },
-    "created": "Established in",
-    "systemAgentReadOnly": "System Agent cannot be edited"
+    "created": "Created at",
+    "systemAgentReadOnly": "System agents cannot be edited",
+    "configureTools": "Configuration Tool"
   },
   "WorkflowsPage": {
     "hero": {
@@ -593,6 +595,7 @@
       "placeholder": "Searching integration..."
     },
     "categories": {
+      "all": "All",
       "popular": "Popular",
       "communication": "Communication",
       "development": "Development",
@@ -600,8 +603,7 @@
       "productivity": "Productivity",
       "ai": "AI Services",
       "crm": "CRM",
-      "other": "Others",
-      "all": "All"
+      "other": "Others"
     },
     "stats": {
       "integrations": "Integration",
@@ -777,5 +779,119 @@
       "primary": "View Workflow Template",
       "secondary": "Contact Us"
     }
+  },
+  "Tool": {
+    "title": "Tool Management",
+    "subtitle": "Tools and plugins for managing and configuring AI agents",
+    "create": "Create Tool",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "previous": "Previous",
+    "next": "Next step",
+    "creating": "Creating...",
+    "saving": "Saving...",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "confirmDelete": "Are you sure you want to delete this tool?",
+    "searchPlaceholder": "Search tools...",
+    "allCategories": "All Categories",
+    "categories": {
+      "web": "Webpage",
+      "api": "API",
+      "database": "Database",
+      "custom": "Custom",
+      "test": "Test"
+    },
+    "authTypes": {
+      "none": "Unverified",
+      "bearer": "Bearer Token",
+      "api_key": "API Key",
+      "basic": "Basic Authentication"
+    },
+    "fields": {
+      "id": "Tool ID",
+      "idHint": "A unique identifier, which can only contain lowercase letters, numbers, and hyphens",
+      "idCannotChange": "ID cannot be modified after creation",
+      "name": "Tool Name",
+      "nameHint": "Identifier used for code calls, such as: my_tool",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "For example: my tools",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the functions and uses of this tool...",
+      "category": "Category",
+      "type": "Type",
+      "enabled": "Enabled",
+      "url": "API Address",
+      "urlHint": "Use {param} as a parameter placeholder, for example: https://api.example.com/{id}",
+      "method": "Request Method",
+      "headers": "Request Header",
+      "add": "Add",
+      "authType": "Authentication Type",
+      "tokenEnv": "Token environment variable",
+      "tokenEnvHint": "Environment variable name, e.g., MY_API_TOKEN",
+      "timeout": "Timeout (seconds)",
+      "parameters": "Parameter",
+      "paramName": "Parameter Name",
+      "paramType": "Parameter Type",
+      "paramDesc": "Parameter Description",
+      "paramDescPlaceholder": "Describe this parameter...",
+      "required": "Required",
+      "extractPath": "Data extraction path",
+      "extractHint": "Use JSONPath to extract data from the response, for example: $.data.items",
+      "responseFormat": "Response Format"
+    },
+    "createModal": {
+      "title": "Create New Tool",
+      "step1Desc": "Fill in the basic information of the tool",
+      "step2Desc": "Configure API endpoints and authentication",
+      "step3Desc": "Define parameters and response handling",
+      "basicInfo": "Basic Information",
+      "endpoint": "API Endpoint",
+      "parameters": "Parameter Configuration",
+      "response": "Response Handling"
+    },
+    "editModal": {
+      "title": "Editing Tool",
+      "description": "Modify the tool's configuration information"
+    },
+    "configureModal": {
+      "title": "Configuration Tool",
+      "description": "Add or remove tools for Agent \"{name}\"",
+      "searchTools": "Search tools...",
+      "totalTools": "{count} tools in total",
+      "selected": "{count} selected",
+      "toolCategories": "Tool Classification",
+      "noToolsFound": "No matching tool found"
+    },
+    "validation": {
+      "idRequired": "Please enter the tool ID",
+      "nameRequired": "Please enter the tool name",
+      "displayNameRequired": "Please enter a display name",
+      "urlRequired": "Please enter the API address"
+    },
+    "messages": {
+      "created": "Tool created successfully",
+      "createFailed": "Failed to create tool",
+      "updated": "Tool updated successfully",
+      "updateFailed": "Failed to update the tool",
+      "deleted": "Tool deleted successfully",
+      "deleteFailed": "Failed to delete tool",
+      "enabled": "The tool is enabled",
+      "disabled": "The tool is disabled",
+      "toggleFailed": "Failed to switch status",
+      "toolsConfigured": "Tool configuration has been updated",
+      "configureFailed": "Configuration tool failed"
+    },
+    "empty": {
+      "title": "No tools available",
+      "description": "Create Your First Tool Plugin",
+      "noResults": "No matching tool found",
+      "tryDifferentFilter": "Try using different filter criteria"
+    },
+    "noParameters": "This tool does not have defined parameters",
+    "endpoint": "API Endpoint",
+    "parameters": "Parameter"
   }
 }

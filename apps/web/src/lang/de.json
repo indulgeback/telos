@@ -4,7 +4,8 @@
     "workflows": "Arbeitsablauf",
     "chat": "KI-Assistent",
     "dashboard": "Armaturenbrett",
-    "agents": "Agent"
+    "agents": "Agent",
+    "tools": "Werkzeug"
   },
   "Chat": {
     "title": "KI-Assistent",
@@ -551,7 +552,8 @@
       "description": "Erstellen Sie Ihren ersten KI-Agenten und legen Sie los"
     },
     "created": "Gegründet in",
-    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden"
+    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden",
+    "configureTools": "Konfigurationstool"
   },
   "WorkflowsPage": {
     "hero": {
@@ -593,6 +595,7 @@
       "placeholder": "Integration suchen..."
     },
     "categories": {
+      "all": "Alle",
       "popular": "beliebt",
       "communication": "Kommunikation",
       "development": "Entwicklung",
@@ -600,8 +603,7 @@
       "productivity": "Produktivität",
       "ai": "KI-Dienstleistungen",
       "crm": "CRM",
-      "other": "Andere",
-      "all": "Alle"
+      "other": "Andere"
     },
     "stats": {
       "integrations": "Integration",
@@ -777,5 +779,119 @@
       "primary": "Arbeitsablaufvorlagen anzeigen",
       "secondary": "Kontaktieren Sie uns"
     }
+  },
+  "Tool": {
+    "title": "Werkzeugverwaltung",
+    "subtitle": "Werkzeug-Plugin zur Verwaltung und Konfiguration von AI-Agenten",
+    "create": "Werkzeug erstellen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "previous": "Zurück",
+    "next": "Nächster Schritt",
+    "creating": "Wird erstellt...",
+    "saving": "Speichern...",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "confirmDelete": "Möchten Sie dieses Werkzeug wirklich löschen?",
+    "searchPlaceholder": "Suchwerkzeug...",
+    "allCategories": "Alle Kategorien",
+    "categories": {
+      "web": "Webseite",
+      "api": "API",
+      "database": "Datenbank",
+      "custom": "Benutzerdefiniert",
+      "test": "Test"
+    },
+    "authTypes": {
+      "none": "Keine Authentifizierung",
+      "bearer": "Bearer-Token",
+      "api_key": "API-Schlüssel",
+      "basic": "Basis-Authentifizierung"
+    },
+    "fields": {
+      "id": "Werkzeug-ID",
+      "idHint": "Eindeutiger Bezeichner, darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten",
+      "idCannotChange": "ID kann nach der Erstellung nicht geändert werden",
+      "name": "Werkzeugname",
+      "nameHint": "Kennzeichen zur Code-Aufruf, z. B.: my_tool",
+      "displayName": "Anzeigename",
+      "displayNamePlaceholder": "Zum Beispiel: mein Werkzeug",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Beschreiben Sie die Funktionen und Anwendungen dieses Werkzeugs...",
+      "category": "Kategorisierung",
+      "type": "Typ",
+      "enabled": "Aktiviert",
+      "url": "API-Adresse",
+      "urlHint": "Verwenden Sie {param} als Parameterplatzhalter, zum Beispiel: https://api.example.com/{id}",
+      "method": "Anfragemethode",
+      "headers": "Anforderungsheader",
+      "add": "Hinzufügen",
+      "authType": "Zertifizierungstyp",
+      "tokenEnv": "Token-Umgebungsvariable",
+      "tokenEnvHint": "Name der Umgebungsvariablen, z. B.: MY_API_TOKEN",
+      "timeout": "Timeoutdauer (Sekunden)",
+      "parameters": "Parameter",
+      "paramName": "Parametername",
+      "paramType": "Parameterart",
+      "paramDesc": "Parameterbeschreibung",
+      "paramDescPlaceholder": "Beschreiben Sie diesen Parameter...",
+      "required": "Pflichtfeld",
+      "extractPath": "Datenextraktionspfad",
+      "extractHint": "Verwenden Sie JSONPath, um Daten aus der Antwort zu extrahieren, zum Beispiel: $.data.items",
+      "responseFormat": "Antwortformat"
+    },
+    "createModal": {
+      "title": "Neues Werkzeug erstellen",
+      "step1Desc": "Geben Sie die grundlegenden Informationen des Tools ein",
+      "step2Desc": "API-Endpunkte und Authentifizierung konfigurieren",
+      "step3Desc": "Definition von Parametern und Antwortverarbeitung",
+      "basicInfo": "Grundinformationen",
+      "endpoint": "API-Endpunkt",
+      "parameters": "Parameterkonfiguration",
+      "response": "Antwortverarbeitung"
+    },
+    "editModal": {
+      "title": "Bearbeitungswerkzeuge",
+      "description": "Konfigurationsinformationen des Bearbeitungswerkzeugs ändern"
+    },
+    "configureModal": {
+      "title": "Konfigurationstool",
+      "description": "Werkzeuge für Agent \"{name}\" hinzufügen oder entfernen",
+      "searchTools": "Suchwerkzeuge...",
+      "totalTools": "Insgesamt {count} Werkzeuge",
+      "selected": "{count} ausgewählt",
+      "toolCategories": "Werkzeugkategorie",
+      "noToolsFound": "Kein passendes Werkzeug gefunden"
+    },
+    "validation": {
+      "idRequired": "Bitte geben Sie die Werkzeug-ID ein",
+      "nameRequired": "Bitte geben Sie den Namen des Werkzeugs ein",
+      "displayNameRequired": "Bitte geben Sie einen Anzeigenamen ein",
+      "urlRequired": "Bitte geben Sie die API-Adresse ein"
+    },
+    "messages": {
+      "created": "Werkzeug erfolgreich erstellt",
+      "createFailed": "Werkzeugerstellung fehlgeschlagen",
+      "updated": "Werkzeug erfolgreich aktualisiert",
+      "updateFailed": "Aktualisierungswerkzeug fehlgeschlagen",
+      "deleted": "Werkzeug erfolgreich entfernt",
+      "deleteFailed": "Löschen des Werkzeugs fehlgeschlagen",
+      "enabled": "Das Werkzeug ist aktiviert",
+      "disabled": "Das Werkzeug ist deaktiviert",
+      "toggleFailed": "Statuswechsel fehlgeschlagen",
+      "toolsConfigured": "Die Werkzeugkonfiguration wurde aktualisiert",
+      "configureFailed": "Konfigurationstool fehlgeschlagen"
+    },
+    "empty": {
+      "title": "Keine Werkzeuge verfügbar",
+      "description": "Erstellen Sie Ihr erstes Werkzeug-Plugin",
+      "noResults": "Kein passendes Werkzeug gefunden",
+      "tryDifferentFilter": "Versuchen Sie, andere Filterkriterien zu verwenden"
+    },
+    "noParameters": "Dieses Werkzeug hat keine definierten Parameter",
+    "endpoint": "API-Endpunkt",
+    "parameters": "Parameter"
   }
 }

@@ -4,7 +4,8 @@
     "workflows": "工作流程",
     "chat": "AI 助手",
     "dashboard": "儀表板",
-    "agents": "智慧型代理"
+    "agents": "智慧型代理",
+    "tools": "工具"
   },
   "Chat": {
     "title": "AI 助手",
@@ -551,7 +552,8 @@
       "description": "建立您的第一個 AI 代理程式開始使用"
     },
     "created": "創建於",
-    "systemAgentReadOnly": "系統 Agent 不可編輯"
+    "systemAgentReadOnly": "系統 Agent 不可編輯",
+    "configureTools": "配置工具"
   },
   "WorkflowsPage": {
     "hero": {
@@ -593,6 +595,7 @@
       "placeholder": "搜索整合..."
     },
     "categories": {
+      "all": "全部",
       "popular": "熱門",
       "communication": "通信",
       "development": "開發",
@@ -600,8 +603,7 @@
       "productivity": "生產力",
       "ai": "AI 服務",
       "crm": "客戶關係管理",
-      "other": "其他",
-      "all": "全部"
+      "other": "其他"
     },
     "stats": {
       "integrations": "整合",
@@ -777,5 +779,119 @@
       "primary": "查看工作流範本",
       "secondary": "聯繫我們"
     }
+  },
+  "Tool": {
+    "title": "工具管理",
+    "subtitle": "管理和配置 AI Agent 的工具外掛",
+    "create": "建立工具",
+    "edit": "編輯",
+    "delete": "刪除",
+    "cancel": "取消",
+    "save": "保存",
+    "previous": "上一步",
+    "next": "下一步",
+    "creating": "創建中...",
+    "saving": "保存中...",
+    "enabled": "已啟用",
+    "disabled": "已禁用",
+    "confirmDelete": "確認刪除此工具？",
+    "searchPlaceholder": "搜尋工具...",
+    "allCategories": "全部分類",
+    "categories": {
+      "web": "網頁",
+      "api": "API",
+      "database": "資料庫",
+      "custom": "自定義",
+      "test": "測試"
+    },
+    "authTypes": {
+      "none": "無認證",
+      "bearer": "持有者憑證",
+      "api_key": "API 金鑰",
+      "basic": "基本驗證"
+    },
+    "fields": {
+      "id": "工具 ID",
+      "idHint": "唯一標識符，只能包含小寫字母、數字和連字符",
+      "idCannotChange": "ID 建立後不可修改",
+      "name": "工具名稱",
+      "nameHint": "用於程式碼調用的識別符，如: my_tool",
+      "displayName": "顯示名稱",
+      "displayNamePlaceholder": "例如：我的工具",
+      "description": "描述",
+      "descriptionPlaceholder": "描述這個工具的功能和用途...",
+      "category": "分類",
+      "type": "類型",
+      "enabled": "啟用狀態",
+      "url": "API 位址",
+      "urlHint": "使用 {param} 作為參數占位符，如：https://api.example.com/{id}",
+      "method": "請求方法",
+      "headers": "請求頭",
+      "add": "添加",
+      "authType": "認證類型",
+      "tokenEnv": "Token 環境變數",
+      "tokenEnvHint": "環境變數名稱，如：MY_API_TOKEN",
+      "timeout": "逾時時間（秒）",
+      "parameters": "參數",
+      "paramName": "參數名",
+      "paramType": "參數類型",
+      "paramDesc": "參數描述",
+      "paramDescPlaceholder": "描述此參數...",
+      "required": "必填",
+      "extractPath": "數據提取路徑",
+      "extractHint": "使用 JSONPath 提取響應中的資料，如：$.data.items",
+      "responseFormat": "響應格式"
+    },
+    "createModal": {
+      "title": "創建新工具",
+      "step1Desc": "填寫工具的基本資訊",
+      "step2Desc": "配置 API 端點和認證",
+      "step3Desc": "定義參數和響應處理",
+      "basicInfo": "基本資訊",
+      "endpoint": "API 端點",
+      "parameters": "參數配置",
+      "response": "響應處理"
+    },
+    "editModal": {
+      "title": "編輯工具",
+      "description": "修改工具的配置信息"
+    },
+    "configureModal": {
+      "title": "配置工具",
+      "description": "為 Agent \"{name}\" 添加或移除工具",
+      "searchTools": "搜尋工具...",
+      "totalTools": "共 {count} 個工具",
+      "selected": "已選擇 {count} 個",
+      "toolCategories": "工具分類",
+      "noToolsFound": "未找到匹配的工具"
+    },
+    "validation": {
+      "idRequired": "請輸入工具 ID",
+      "nameRequired": "請輸入工具名稱",
+      "displayNameRequired": "請輸入顯示名稱",
+      "urlRequired": "請輸入 API 地址"
+    },
+    "messages": {
+      "created": "工具創建成功",
+      "createFailed": "建立工具失敗",
+      "updated": "工具更新成功",
+      "updateFailed": "更新工具失敗",
+      "deleted": "工具刪除成功",
+      "deleteFailed": "刪除工具失敗",
+      "enabled": "工具已啟用",
+      "disabled": "工具已禁用",
+      "toggleFailed": "切換狀態失敗",
+      "toolsConfigured": "工具配置已更新",
+      "configureFailed": "配置工具失敗"
+    },
+    "empty": {
+      "title": "暫無工具",
+      "description": "創建您的第一個工具插件",
+      "noResults": "未找到匹配的工具",
+      "tryDifferentFilter": "嘗試使用不同的篩選條件"
+    },
+    "noParameters": "此工具沒有定義參數",
+    "endpoint": "API 端點",
+    "parameters": "參數"
   }
 }

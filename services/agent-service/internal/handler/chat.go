@@ -98,45 +98,43 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 
 	tlog.Info("接收聊天请求", "message", req.Message, "request_id", requestID, "client_ip", clientIP)
 
-	// ========== 3. 获取指定的 Agent ==========
+	// ========== 3. 调用流式聊天 ==========
+	ctx := c.Request.Context()
+
+	var contentChan <-chan string
+	var errChan <-chan error
+
+	// 获取指定的 Agent ID
 	agentID := c.GetHeader("X-Agent-ID")
 
-	messages := []service.Message{}
-
-	// 如果指定了 Agent，获取并使用其 system prompt
+	// 如果指定了 Agent，使用带工具的聊天
 	if agentID != "" {
-		agent, err := h.agentService.GetAgentForChat(c.Request.Context(), agentID)
+		// 获取 Agent 的系统提示词
+		agent, err := h.agentService.GetAgentForChat(ctx, agentID)
 		if err != nil {
-			// Agent 获取失败时返回错误，不再静默降级
 			tlog.Warn("获取 Agent 失败", "agent_id", agentID, "error", err.Error(), "request_id", requestID)
 			c.JSON(http.StatusNotFound, errorResponse(404, fmt.Sprintf("无法找到指定的 Agent (ID: %s)", agentID)))
 			return
 		}
-		// 添加系统提示词
-		messages = append(messages, service.Message{
-			Role:    "system",
-			Content: agent.SystemPrompt,
-		})
-		tlog.Info("使用指定 Agent", "agent_id", agentID, "agent_name", agent.Name, "request_id", requestID)
+
+		toolReq := service.ChatRequestWithTools{
+			AgentID:      agentID,
+			UserID:       "", // TODO: 从 session 中获取用户 ID
+			Message:      req.Message,
+			SystemPrompt: agent.SystemPrompt,
+		}
+		contentChan, errChan = h.chatService.ChatStreamWithTools(ctx, toolReq)
+		tlog.Info("使用带工具的聊天", "agent_id", agentID, "agent_name", agent.Name, "request_id", requestID)
 	} else {
-		// 未指定 Agent 时使用默认 system prompt
-		messages = append(messages, service.Message{
-			Role:    "system",
-			Content: "你是一个友好、专业的 AI 助手，可以帮助用户解答各种问题。",
-		})
+		// 未指定 Agent 时使用普通聊天，构建默认消息
+		messages := []service.Message{
+			{Role: "system", Content: "你是一个友好、专业的 AI 助手，可以帮助用户qqqd解答各种问题。"},
+			{Role: "user", Content: req.Message},
+		}
+		contentChan, errChan = h.chatService.ChatStream(ctx, messages)
 	}
 
-	// ========== 4. 添加用户消息 ==========
-	messages = append(messages, service.Message{
-		Role:    "user",
-		Content: req.Message,
-	})
-
-	// ========== 5. 调用流式聊天 ==========
-	ctx := c.Request.Context()
-	contentChan, errChan := h.chatService.ChatStream(ctx, messages)
-
-	// ========== 6. 发送流式响应 ==========
+	// ========== 4. 发送流式响应 ==========
 	// 设置 SSE 响应头
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")

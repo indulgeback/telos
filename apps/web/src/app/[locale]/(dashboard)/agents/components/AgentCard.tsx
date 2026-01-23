@@ -20,10 +20,19 @@ import {
   Badge,
 } from '@/components/atoms'
 import { agentService, type Agent } from '@/service/agent'
-import { Edit2, Trash2, Sparkles, Lock, Globe, Bot } from 'lucide-react'
+import {
+  Edit2,
+  Trash2,
+  Sparkles,
+  Lock,
+  Globe,
+  Bot,
+  Settings,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
+import { ConfigureToolsModal } from './ConfigureToolsModal'
 
 interface AgentCardProps {
   agent: Agent
@@ -33,6 +42,7 @@ interface AgentCardProps {
 export function AgentCard({ agent, onUpdate }: AgentCardProps) {
   const t = useTranslations('Agent')
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showToolsModal, setShowToolsModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -134,6 +144,15 @@ export function AgentCard({ agent, onUpdate }: AgentCardProps) {
 
           {/* Actions */}
           <div className='flex gap-2 pt-2 border-t'>
+            <Button
+              variant='outline'
+              size='sm'
+              className='flex-1 gap-1'
+              onClick={() => setShowToolsModal(true)}
+            >
+              <Settings className='size-3' />
+              {t('configureTools')}
+            </Button>
             {canEdit && (
               <Button
                 variant='outline'
@@ -167,6 +186,19 @@ export function AgentCard({ agent, onUpdate }: AgentCardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Configure Tools Modal */}
+      {showToolsModal && (
+        <ConfigureToolsModal
+          agentId={agent.id}
+          agentName={agent.name}
+          onClose={() => setShowToolsModal(false)}
+          onSuccess={() => {
+            onUpdate()
+            setShowToolsModal(false)
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

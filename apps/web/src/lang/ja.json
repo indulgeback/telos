@@ -4,7 +4,8 @@
     "workflows": "ワークフロー",
     "chat": "AIアシスタント",
     "dashboard": "ダッシュボード",
-    "agents": "エージェント"
+    "agents": "エージェント",
+    "tools": "工具"
   },
   "Chat": {
     "title": "AIアシスタント",
@@ -551,7 +552,8 @@
       "description": "あなたの最初のAIエージェントを作成して始めましょう"
     },
     "created": "作成日",
-    "systemAgentReadOnly": "システムエージェントは編集できません"
+    "systemAgentReadOnly": "システムエージェントは編集できません",
+    "configureTools": "配置ツール"
   },
   "WorkflowsPage": {
     "hero": {
@@ -593,6 +595,7 @@
       "placeholder": "統合を検索中..."
     },
     "categories": {
+      "all": "全部",
       "popular": "人気",
       "communication": "通信",
       "development": "開発",
@@ -600,8 +603,7 @@
       "productivity": "生産性",
       "ai": "AIサービス",
       "crm": "CRM",
-      "other": "その他",
-      "all": "全部"
+      "other": "その他"
     },
     "stats": {
       "integrations": "統合",
@@ -777,5 +779,119 @@
       "primary": "ワークフローテンプレートを表示",
       "secondary": "お問い合わせ"
     }
+  },
+  "Tool": {
+    "title": "工具管理",
+    "subtitle": "AIエージェントを管理・設定するためのツールプラグイン",
+    "create": "ツールを作成",
+    "edit": "編集",
+    "delete": "削除",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "previous": "前のステップ",
+    "next": "次のステップ",
+    "creating": "作成中…",
+    "saving": "保存中…",
+    "enabled": "有効になっています",
+    "disabled": "無効になっています",
+    "confirmDelete": "このツールを削除してもよろしいですか？",
+    "searchPlaceholder": "検索ツール…",
+    "allCategories": "すべてのカテゴリ",
+    "categories": {
+      "web": "ウェブページ",
+      "api": "API",
+      "database": "データベース",
+      "custom": "カスタム",
+      "test": "テスト"
+    },
+    "authTypes": {
+      "none": "未認証",
+      "bearer": "ベアラートークン",
+      "api_key": "APIキー",
+      "basic": "ベーシック認証"
+    },
+    "fields": {
+      "id": "ツールID",
+      "idHint": "一意の識別子で、英小文字、数字、ハイフンのみを含めることができます",
+      "idCannotChange": "IDは作成後に変更できません",
+      "name": "工具名",
+      "nameHint": "コード呼び出しに使用される識別子、例: my_tool",
+      "displayName": "表示名",
+      "displayNamePlaceholder": "例えば：私の道具",
+      "description": "説明",
+      "descriptionPlaceholder": "このツールの機能と用途を説明する...",
+      "category": "分類",
+      "type": "タイプ",
+      "enabled": "有効状態",
+      "url": "API アドレス",
+      "urlHint": "{param} をパラメータのプレースホルダーとして使用します。例：https://api.example.com/{id}",
+      "method": "リクエスト方法",
+      "headers": "リクエストヘッダー",
+      "add": "追加",
+      "authType": "認証タイプ",
+      "tokenEnv": "トークン環境変数",
+      "tokenEnvHint": "環境変数名、例：MY_API_TOKEN",
+      "timeout": "タイムアウト時間（秒）",
+      "parameters": "パラメータ",
+      "paramName": "パラメータ名",
+      "paramType": "パラメータ型",
+      "paramDesc": "パラメータの説明",
+      "paramDescPlaceholder": "このパラメータを説明します...",
+      "required": "必須",
+      "extractPath": "データ抽出パス",
+      "extractHint": "JSONPath を使用してレスポンスからデータを抽出します。例：$.data.items",
+      "responseFormat": "応答フォーマット"
+    },
+    "createModal": {
+      "title": "新しいツールを作成",
+      "step1Desc": "ツールの基本情報を入力する",
+      "step2Desc": "APIエンドポイントと認証の設定",
+      "step3Desc": "パラメータとレスポンス処理の定義",
+      "basicInfo": "基本情報",
+      "endpoint": "API エンドポイント",
+      "parameters": "パラメータ設定",
+      "response": "応答処理"
+    },
+    "editModal": {
+      "title": "編集ツール",
+      "description": "ツールの設定情報を変更する"
+    },
+    "configureModal": {
+      "title": "配置ツール",
+      "description": "エージェント「{name}」にツールを追加または削除する",
+      "searchTools": "検索ツール…",
+      "totalTools": "合計 {count} 個のツール",
+      "selected": "{count} 個選択済み",
+      "toolCategories": "工具の分類",
+      "noToolsFound": "一致するツールが見つかりません"
+    },
+    "validation": {
+      "idRequired": "ツールIDを入力してください",
+      "nameRequired": "ツール名を入力してください",
+      "displayNameRequired": "表示名を入力してください",
+      "urlRequired": "API アドレスを入力してください"
+    },
+    "messages": {
+      "created": "ツールの作成に成功しました",
+      "createFailed": "ツールの作成に失敗しました",
+      "updated": "ツールの更新に成功しました",
+      "updateFailed": "ツールの更新に失敗しました",
+      "deleted": "ツールが正常に削除されました",
+      "deleteFailed": "削除ツールに失敗しました",
+      "enabled": "ツールは有効です",
+      "disabled": "ツールは無効です",
+      "toggleFailed": "状態の切り替えに失敗しました",
+      "toolsConfigured": "ツールの設定が更新されました",
+      "configureFailed": "ツールの配置に失敗しました"
+    },
+    "empty": {
+      "title": "ツールはありません",
+      "description": "最初のツールプラグインを作成する",
+      "noResults": "一致するツールが見つかりません",
+      "tryDifferentFilter": "異なるフィルター条件を試してみてください"
+    },
+    "noParameters": "このツールにはパラメータが定義されていません",
+    "endpoint": "API エンドポイント",
+    "parameters": "パラメータ"
   }
 }

@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { agentService, type Agent } from '@/service/agent'
+import { agentService, type Agent, type ToolCall } from '@/service/agent'
 import { useTranslations } from 'next-intl'
 import { ChatContainer, type Message } from '@/components/organisms'
 import type { SuggestionPrompt } from '@/components/atoms'
+import { type StreamChunk } from '@/service/agent'
 
 export function ChatView() {
   const t = useTranslations('Chat')
@@ -49,6 +50,43 @@ export function ChatView() {
     }
   }, [messages])
 
+  // 处理工具调用事件
+  const handleToolCallEvent = (
+    assistantMessage: Message,
+    chunk: StreamChunk,
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+  ) => {
+    if (!chunk.toolCall) return
+
+    setMessages(prev => {
+      return prev.map(m => {
+        if (m.id !== assistantMessage.id) return m
+
+        // 获取或初始化工具调用列表
+        const currentToolCalls = m.toolCalls || []
+        const existingToolCallIndex = currentToolCalls.findIndex(
+          tc => tc.id === chunk.toolCall!.id
+        )
+
+        let updatedToolCalls: ToolCall[]
+
+        if (existingToolCallIndex >= 0) {
+          // 更新现有工具调用
+          updatedToolCalls = [...currentToolCalls]
+          updatedToolCalls[existingToolCallIndex] = {
+            ...updatedToolCalls[existingToolCallIndex],
+            ...chunk.toolCall,
+          }
+        } else {
+          // 添加新工具调用
+          updatedToolCalls = [...currentToolCalls, chunk.toolCall!]
+        }
+
+        return { ...m, toolCalls: updatedToolCalls }
+      })
+    })
+  }
+
   const handleSend = async (messageContent?: string) => {
     const shouldUseMessageContent =
       messageContent && typeof messageContent === 'string'
@@ -74,6 +112,7 @@ export function ChatView() {
       role: 'assistant',
       content: '',
       timestamp: new Date(),
+      toolCalls: [],
     }
 
     setMessages(prev => [...prev, assistantMessage])
@@ -82,6 +121,11 @@ export function ChatView() {
       await agentService.chatStream(
         contentToSend,
         chunk => {
+          // 处理工具调用事件
+          if (chunk.type?.startsWith('tool_call')) {
+            handleToolCallEvent(assistantMessage, chunk, setMessages)
+          }
+
           if (chunk.done) {
             setIsLoading(false)
             textareaRef.current?.focus()
