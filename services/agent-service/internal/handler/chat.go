@@ -28,8 +28,9 @@ import (
 //
 // 处理聊天相关的 HTTP 请求，包括流式聊天和健康检查。
 type ChatHandler struct {
-	chatService  *service.ChatService // 聊天服务实例
-	agentService service.AgentService // Agent 服务实例（用于获取 Agent 信息）
+	chatService  *service.ChatService  // 聊天服务实例
+	agentService service.AgentService  // Agent 服务实例（用于获取 Agent 信息）
+	toolService  service.ToolService   // 工具服务实例（用于获取工具显示名称）
 }
 
 // ========== 构造函数 ==========
@@ -39,13 +40,15 @@ type ChatHandler struct {
 // 参数：
 //   - chatService: 聊天服务实例
 //   - agentService: Agent 服务实例
+//   - toolService: 工具服务实例
 //
 // 返回：
 //   - *ChatHandler: 处理器实例
-func NewChatHandler(chatService *service.ChatService, agentService service.AgentService) *ChatHandler {
+func NewChatHandler(chatService *service.ChatService, agentService service.AgentService, toolService service.ToolService) *ChatHandler {
 	return &ChatHandler{
 		chatService:  chatService,
 		agentService: agentService,
+		toolService:  toolService,
 	}
 }
 
@@ -165,12 +168,6 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 
 	contentLength := 0
 
-	// 工具调用名称到显示名称的映射
-	toolDisplayNames := map[string]string{
-		"calculator":       "计算器",
-		"get_current_time": "获取当前时间",
-	}
-
 	// 跟踪已发送开始事件的工具（避免重复）
 	activeTools := make(map[string]string) // toolName -> toolCallID
 
@@ -180,10 +177,7 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 			if !ok {
 				// 通道关闭前，完成所有活跃的工具
 				for toolName, toolCallID := range activeTools {
-					displayName := toolDisplayNames[toolName]
-					if displayName == "" {
-						displayName = toolName
-					}
+					displayName := h.toolService.GetToolDisplayName(ctx, toolName)
 					toolCallEndData := gin.H{
 						"type": "tool_call_end",
 						"toolCall": gin.H{
@@ -226,10 +220,7 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 					activeTools[toolName] = toolCallID
 
 					// 获取显示名称
-					displayName := toolDisplayNames[toolName]
-					if displayName == "" {
-						displayName = toolName
-					}
+					displayName := h.toolService.GetToolDisplayName(ctx, toolName)
 
 					tlog.Info("工具调用开始", "tool_name", toolName, "tool_call_id", toolCallID, "request_id", requestID)
 
@@ -259,10 +250,7 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 			if len(activeTools) > 0 {
 				tlog.Info("工具执行完成，发送结束事件", "active_tools", len(activeTools), "request_id", requestID)
 				for toolName, toolCallID := range activeTools {
-					displayName := toolDisplayNames[toolName]
-					if displayName == "" {
-						displayName = toolName
-					}
+					displayName := h.toolService.GetToolDisplayName(ctx, toolName)
 					toolCallEndData := gin.H{
 						"type": "tool_call_end",
 						"toolCall": gin.H{

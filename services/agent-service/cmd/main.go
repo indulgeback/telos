@@ -380,7 +380,7 @@ func main() {
 
 	// ========== 10. 创建处理器 ==========
 	// 使用带工具支持的聊天服务
-	chatHandler := handler.NewChatHandler(chatServiceWithTools, agentService)
+	chatHandler := handler.NewChatHandler(chatServiceWithTools, agentService, toolService)
 	agentHandler := handler.NewAgentHandler(agentService)
 	toolHandler := handler.NewToolHandler(toolService)
 

@@ -15,15 +15,32 @@ import type {
   ToolCallStatus,
 } from "../types/index.js";
 
-// ========== 工具显示名称映射 ==========
+// ========== 工具显示名称获取 ==========
 
-const TOOL_DISPLAY_NAMES: Record<string, string> = {
-  calculator: "计算器",
-  get_current_time: "获取当前时间",
-};
+/**
+ * 获取工具的显示名称
+ * 首先从内置工具定义中查找，然后从数据库中查找
+ * 如果找不到，返回工具名称本身
+ */
+async function getToolDisplayName(toolName: string): Promise<string> {
+  // 1. 先从内置工具定义中查找
+  const builtinDisplayName = toolService.getBuiltinToolDisplayName(toolName);
+  if (builtinDisplayName) {
+    return builtinDisplayName;
+  }
 
-function getToolDisplayName(toolName: string): string {
-  return TOOL_DISPLAY_NAMES[toolName] || toolName;
+  // 2. 从数据库中查找
+  try {
+    const dbTool = await db.getToolByName(toolName);
+    if (dbTool) {
+      return dbTool.displayName;
+    }
+  } catch (error) {
+    logger.warn(`Failed to get tool display name from database: ${error}`);
+  }
+
+  // 3. 找不到则返回工具名称本身
+  return toolName;
 }
 
 // ========== 流事件生成器 ==========
@@ -135,7 +152,7 @@ async function* streamWithTools(
 
     for (const toolCall of response.tool_calls) {
       const toolCallId = `${requestId}-${toolCall.name}-${Date.now()}`;
-      const displayName = getToolDisplayName(toolCall.name);
+      const displayName = await getToolDisplayName(toolCall.name);
 
       // 发送工具调用开始
       yield {

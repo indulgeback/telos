@@ -168,6 +168,16 @@ export class ToolService {
   }
 
   /**
+   * 获取内置工具的显示名称
+   * @param toolName 工具名称
+   * @returns 显示名称，如果找不到则返回 undefined
+   */
+  getBuiltinToolDisplayName(toolName: string): string | undefined {
+    const builtinTool = BUILTIN_TOOLS.find((t) => t.name === toolName);
+    return builtinTool?.displayName;
+  }
+
+  /**
    * 获取 Agent 的所有工具（内置 + 数据库配置）
    */
   async getToolsForAgent(agentId: string, forceRefresh = false) {

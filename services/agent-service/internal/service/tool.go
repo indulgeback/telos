@@ -45,6 +45,9 @@ type ToolService interface {
 
 	// GetEinoToolsForAgent 获取 Agent 的 Eino 工具映射（用于 ChatService）
 	GetEinoToolsForAgent(ctx context.Context, agentID string) (map[string]tool.BaseTool, error)
+
+	// GetToolDisplayName 获取工具的显示名称（用于前端展示）
+	GetToolDisplayName(ctx context.Context, toolName string) string
 }
 
 // toolService 是 ToolService 接口的具体实现
@@ -262,4 +265,27 @@ func (s *toolService) getOrCreateWrapper(dbTool *model.Tool) *toolpkg.DynamicToo
 	wrapper = toolpkg.NewDynamicToolWrapper(dbTool, s.executor)
 	s.wrappers[dbTool.ID] = wrapper
 	return wrapper
+}
+
+// GetToolDisplayName 获取工具的显示名称
+//
+// 首先从内置工具定义中查找，然后从数据库中查找。
+// 如果找不到，返回工具名称本身。
+func (s *toolService) GetToolDisplayName(ctx context.Context, toolName string) string {
+	// 1. 先从内置工具定义中查找
+	builtinTools := s.getBuiltinToolDefinitions()
+	for _, builtinTool := range builtinTools {
+		if builtinTool.Name == toolName {
+			return builtinTool.DisplayName
+		}
+	}
+
+	// 2. 从数据库中查找
+	dbTool, err := s.toolRepo.GetByName(ctx, toolName)
+	if err == nil && dbTool != nil {
+		return dbTool.DisplayName
+	}
+
+	// 3. 找不到则返回工具名称本身
+	return toolName
 }
