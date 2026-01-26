@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ToolDefinition } from "../types/index.js";
 import { toolExecutor } from "./toolExecutor.js";
 import { db } from "./db.js";
+import { logger } from "../config/logger.js";
 
 // ========== 内置工具定义 ==========
 
@@ -242,7 +243,11 @@ export class ToolService {
         const langchainTool = this.createLangChainTool(dbTool as any);
         tools.push(langchainTool);
       } catch (error) {
-        console.error(`Failed to create tool ${dbTool.name}:`, error);
+        logger.warn({
+          msg: "Failed to create tool",
+          toolName: dbTool.name,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
