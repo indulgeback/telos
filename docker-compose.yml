@@ -218,7 +218,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Agent 服务
+  # Agent 服务 (TypeScript/LangChain)
   agent-service:
     build:
       context: .
@@ -227,15 +227,16 @@ services:
     ports:
       - "8895:8895"
     environment:
+      - NODE_ENV=production
       - PORT=8895
-      - ENV=production
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
-      - LOG_LEVEL=info
-      - LOG_FORMAT=json
+      - DATABASE_URL=${DATABASE_URL:-postgresql://telos:telos123@postgres:5432/telos?schema=public}
       - REGISTRY_URL=http://registry:8090
     depends_on:
       registry:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - telos-network

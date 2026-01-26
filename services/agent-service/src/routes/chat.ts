@@ -218,7 +218,7 @@ chatRouter.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "healthy",
     time: new Date().toISOString(),
-    service: "agent-service-ts",
+    service: "agent-service",
   });
 });
 
@@ -230,7 +230,7 @@ chatRouter.get("/ready", (_req: Request, res: Response) => {
 
 chatRouter.get("/info", (_req: Request, res: Response) => {
   res.json({
-    service: "agent-service-ts",
+    service: "agent-service",
     version: "1.0.0",
     framework: "langchain.js",
     model: "deepseek",
