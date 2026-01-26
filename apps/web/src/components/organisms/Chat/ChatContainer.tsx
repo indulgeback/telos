@@ -4,6 +4,7 @@ import type { RefObject } from 'react'
 import { Button } from '@/components/atoms'
 import {
   ChatInput,
+  ChatInputAction,
   ChatMessage,
   SuggestionPromptButton,
   type SuggestionPrompt,
@@ -17,8 +18,9 @@ export interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
-  // 工具调用列表
-  toolCalls?: ToolCall[]
+  // 工具调用列表 - 分为内容前和内容后
+  toolCallsBefore?: ToolCall[]
+  toolCallsAfter?: ToolCall[]
 }
 
 export interface ChatContainerProps {
@@ -53,6 +55,8 @@ export interface ChatContainerProps {
   copiedLabel: string
   retryLabel: string
   errorMessage: string
+  // 输入框操作区域
+  inputActions?: React.ReactNode
 }
 
 export function ChatContainer({
@@ -83,6 +87,7 @@ export function ChatContainer({
   copiedLabel,
   retryLabel,
   errorMessage,
+  inputActions,
 }: ChatContainerProps) {
   return (
     <div className='flex h-full w-full flex-col overflow-hidden bg-linear-to-br from-background via-background to-muted/20'>
@@ -159,7 +164,8 @@ export function ChatContainer({
                     isLoading={isLastAssistantMessage && isLoading}
                     onRetry={showRetry ? onRetry : undefined}
                     retryLabel={retryLabel}
-                    toolCalls={message.toolCalls}
+                    toolCallsBefore={message.toolCallsBefore}
+                    toolCallsAfter={message.toolCallsAfter}
                   />
                 )
               })}
@@ -180,6 +186,7 @@ export function ChatContainer({
             canSend={input.trim().length > 0}
             sendDisabled={isLoading}
             sendAriaLabel={sendAriaLabel}
+            actions={inputActions}
           />
           <p className='mt-2 text-center text-xs text-muted-foreground'>
             {disclaimer}

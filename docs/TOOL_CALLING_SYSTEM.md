@@ -145,9 +145,11 @@ func (w *DynamicToolWrapper) InvokableRun(ctx context.Context, argumentsInJSON s
 - 发送 HTTP 请求
 - 提取和转换响应
 
-#### 内部工具 (Internal Tools)
-- `internal://calculator` - 数学计算
-- `internal://time` - 获取当前时间
+#### 内部工具 (Internal Tools / Builtin Tools)
+- `internal://calculator` - 数学计算（加、减、乘、除）
+- `internal://time` - 获取当前时间（支持时区）
+
+**注意**：这两个内部工具已内置在每个 Agent 中，无需手动配置。所有 Agent 自动拥有这些工具。
 
 ## 工具调用流程
 

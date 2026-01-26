@@ -30,10 +30,12 @@ export interface ChatMessageProps {
   isLoading?: boolean
   onRetry?: () => void
   retryLabel?: string
-  toolCalls?: ToolCall[]
+  // 工具调用 - 分为内容前和内容后
+  toolCallsBefore?: ToolCall[]
+  toolCallsAfter?: ToolCall[]
 }
 
-// 工具调用状态组件
+// 工具调用状态组件（在气泡内部）
 function ToolCallItem({ toolCall }: { toolCall: ToolCall }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -41,94 +43,44 @@ function ToolCallItem({ toolCall }: { toolCall: ToolCall }) {
     switch (toolCall.status) {
       case 'pending':
       case 'running':
-        return <Loader2 className='size-4 animate-spin text-yellow-500' />
+        return (
+          <Loader2 className='size-3.5 animate-spin text-muted-foreground' />
+        )
       case 'success':
-        return <div className='size-4 rounded-full bg-green-500' />
+        return <Check className='size-3.5 text-green-600 dark:text-green-400' />
       case 'error':
-        return <AlertCircle className='size-4 text-red-500' />
-    }
-  }
-
-  const getStatusText = () => {
-    switch (toolCall.status) {
-      case 'pending':
-        return '准备中'
-      case 'running':
-        return '执行中'
-      case 'success':
-        return '成功'
-      case 'error':
-        return '失败'
-    }
-  }
-
-  const getStatusColor = () => {
-    switch (toolCall.status) {
-      case 'pending':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-      case 'running':
-        return 'text-blue-600 bg-blue-50 border-blue-200'
-      case 'success':
-        return 'text-green-600 bg-green-50 border-green-200'
-      case 'error':
-        return 'text-red-600 bg-red-50 border-red-200'
+        return (
+          <AlertCircle className='size-3.5 text-red-600 dark:text-red-400' />
+        )
     }
   }
 
   return (
-    <div
-      className={cn(
-        'rounded-lg border p-3 text-sm',
-        toolCall.status === 'running' && 'bg-blue-50/50 border-blue-200',
-        toolCall.status === 'error' && 'bg-red-50/50 border-red-200',
-        toolCall.status === 'success' && 'bg-green-50/50 border-green-200'
-      )}
-    >
+    <div className='text-sm'>
       <div
-        className='flex items-center justify-between cursor-pointer'
+        className='flex items-center justify-between cursor-pointer gap-2 py-1'
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className='flex items-center gap-2'>
-          <Settings className='size-4 text-muted-foreground' />
-          <span className='font-medium'>{toolCall.displayName}</span>
-          <span
-            className={cn(
-              'px-2 py-0.5 rounded-full text-xs border',
-              getStatusColor()
-            )}
-          >
-            {getStatusText()}
-          </span>
+          <Settings className='size-3.5 text-muted-foreground' />
+          <span className='text-muted-foreground'>{toolCall.displayName}</span>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-1.5'>
           {getStatusIcon()}
-          {(toolCall.input || toolCall.output || toolCall.error) &&
+          {(toolCall.output !== undefined || toolCall.error) &&
             (isExpanded ? (
-              <ChevronUp className='size-4' />
+              <ChevronUp className='size-3.5 text-muted-foreground' />
             ) : (
-              <ChevronDown className='size-4' />
+              <ChevronDown className='size-3.5 text-muted-foreground' />
             ))}
         </div>
       </div>
 
-      {isExpanded && (
-        <div className='mt-3 space-y-2 pl-6'>
-          {toolCall.input && (
-            <div>
-              <div className='text-xs text-muted-foreground mb-1'>
-                输入参数:
-              </div>
-              <pre className='text-xs bg-muted rounded p-2 overflow-x-auto'>
-                {JSON.stringify(toolCall.input, null, 2)}
-              </pre>
-            </div>
-          )}
+      {isExpanded && (toolCall.output !== undefined || toolCall.error) && (
+        <div className='mt-2 pl-5'>
           {toolCall.output !== undefined && (
             <div>
-              <div className='text-xs text-muted-foreground mb-1'>
-                返回结果:
-              </div>
-              <pre className='text-xs bg-muted rounded p-2 overflow-x-auto max-h-32 overflow-y-auto'>
+              <pre className='text-xs bg-muted/50 rounded p-2 overflow-x-auto max-h-32 overflow-y-auto'>
                 {typeof toolCall.output === 'string'
                   ? toolCall.output
                   : JSON.stringify(toolCall.output, null, 2)}
@@ -136,11 +88,8 @@ function ToolCallItem({ toolCall }: { toolCall: ToolCall }) {
             </div>
           )}
           {toolCall.error && (
-            <div>
-              <div className='text-xs text-red-500 mb-1'>错误信息:</div>
-              <div className='text-xs bg-red-50 text-red-600 rounded p-2'>
-                {toolCall.error}
-              </div>
+            <div className='text-xs text-red-600 dark:text-red-400 rounded p-2'>
+              {toolCall.error}
             </div>
           )}
         </div>
@@ -160,11 +109,20 @@ export function ChatMessage({
   isLoading = false,
   onRetry,
   retryLabel = 'Retry',
-  toolCalls = [],
+  toolCallsBefore = [],
+  toolCallsAfter = [],
 }: ChatMessageProps) {
   const isAssistant = role === 'assistant'
   const hasContent = content.length > 0
-  const hasToolCalls = toolCalls && toolCalls.length > 0
+  const hasToolCallsBefore = toolCallsBefore && toolCallsBefore.length > 0
+  const hasToolCallsAfter = toolCallsAfter && toolCallsAfter.length > 0
+  const hasAnyToolCalls = hasToolCallsBefore || hasToolCallsAfter
+
+  // 渲染工具调用列表
+  const renderToolCalls = (toolCalls: ToolCall[]) =>
+    toolCalls.map((toolCall: ToolCall, index: number) => (
+      <ToolCallItem key={`${id}-tool-${index}`} toolCall={toolCall} />
+    ))
 
   return (
     <div
@@ -187,29 +145,37 @@ export function ChatMessage({
             !isAssistant ? 'bg-primary text-primary-foreground' : 'bg-muted/50'
           )}
         >
-          {isAssistant ? (
-            <div className='text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none'>
-              {hasContent ? (
-                <MarkdownContent content={content} />
-              ) : (
-                <TypingIndicator />
-              )}
-            </div>
-          ) : (
-            <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
-              {hasContent ? content : <TypingIndicator />}
-            </p>
-          )}
-        </Card>
+          <div className='space-y-3'>
+            {/* 内容前的工具调用 */}
+            {isAssistant && hasToolCallsBefore && (
+              <div className='space-y-2 pb-2 border-b border-border/50'>
+                {renderToolCalls(toolCallsBefore)}
+              </div>
+            )}
 
-        {/* 工具调用列表 */}
-        {isAssistant && hasToolCalls && (
-          <div className='space-y-2 w-full'>
-            {toolCalls.map((toolCall, index) => (
-              <ToolCallItem key={`${id}-tool-${index}`} toolCall={toolCall} />
-            ))}
+            {/* 消息内容 */}
+            {isAssistant ? (
+              <div className='text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none'>
+                {hasContent ? (
+                  <MarkdownContent content={content} />
+                ) : (
+                  !hasAnyToolCalls && <TypingIndicator />
+                )}
+              </div>
+            ) : (
+              <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
+                {hasContent ? content : <TypingIndicator />}
+              </p>
+            )}
+
+            {/* 内容后的工具调用 */}
+            {isAssistant && hasToolCallsAfter && (
+              <div className='space-y-2 pt-2 border-t border-border/50'>
+                {renderToolCalls(toolCallsAfter)}
+              </div>
+            )}
           </div>
-        )}
+        </Card>
 
         {isAssistant && (
           <div className='flex items-center gap-1'>
@@ -217,7 +183,7 @@ export function ChatMessage({
               <div className='flex items-center gap-1 text-xs text-muted-foreground'>
                 <TypingIndicator />
               </div>
-            ) : hasContent || hasToolCalls ? (
+            ) : hasContent || hasAnyToolCalls ? (
               <>
                 <Button
                   variant='ghost'

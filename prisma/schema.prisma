@@ -1,0 +1,170 @@
+// Monorepo Prisma Schema
+// 合并了 web (Better-Auth) 和 agent-service 的数据模型
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Better-Auth Models (来自 apps/web)
+// ============================================================
+
+model user {
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  emailVerified Boolean?  @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts  account[]
+  sessions  session[]
+}
+
+model account {
+  id                    String    @id @default(cuid())
+  userId                String
+  providerId            String
+  accountId             String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([identifier, value])
+}
+
+// ============================================================
+// Agent Service Models (来自 services/agent-service-ts)
+// ============================================================
+
+model Agent {
+  id            String     @id @default(uuid())
+  name          String     @unique
+  description   String
+  systemPrompt  String?    @map("system_prompt")
+  type          AgentType  @default(public)
+  ownerId       String?    @map("owner_id")
+  isDefault     Boolean    @map("is_default") @default(false)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  agentTools    AgentTool[]
+
+  @@map("agents")
+}
+
+enum AgentType {
+  public
+  private
+  system
+}
+
+model Tool {
+  id               String    @id
+  name             String    @unique
+  type             ToolType  @default(invokable)
+  displayName      String    @map("display_name")
+  description      String
+  category         String    @default("custom")
+  endpoint         Json
+  parameters       Json
+  responseTransform Json?     @map("response_transform")
+  rateLimit        Json?     @map("rate_limit")
+  enabled          Boolean   @default(true)
+  version          String    @default("1.0.0")
+  tags             String[]   @default([])
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  agentTools     AgentTool[]
+  toolExecutions ToolExecution[]
+
+  @@index([enabled])
+  @@index([category])
+  @@map("tools")
+}
+
+enum ToolType {
+  invokable
+  streamable
+}
+
+model AgentTool {
+  id        String   @id @default(uuid())
+  agentId   String   @map("agent_id")
+  toolId    String   @map("tool_id")
+  enabled   Boolean  @default(true)
+  config    Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  tool      Tool     @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, toolId])
+  @@index([agentId])
+  @@index([toolId])
+  @@map("agent_tools")
+}
+
+model ToolExecution {
+  id           String    @id @default(uuid())
+  agentId      String?   @map("agent_id")
+  userId       String?   @map("user_id")
+  toolId       String?   @map("tool_id")
+  inputParams  Json?     @map("input_params")
+  result       Json?     @map("result")
+  success      Boolean   @map("success")
+  errorMessage String?   @map("error_message")
+  durationMs   Int?      @map("duration_ms")
+  tokensUsed   Int?      @map("tokens_used")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  tool         Tool?     @relation(fields: [toolId], references: [id], onDelete: SetNull)
+
+  @@index([agentId])
+  @@index([userId])
+  @@index([toolId])
+  @@index([createdAt(sort: Desc)])
+  @@map("tool_executions")
+}

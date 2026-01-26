@@ -31,6 +31,8 @@ export interface StreamChunk {
   // 工具调用事件
   type?: 'content' | 'tool_call_start' | 'tool_call_end' | 'tool_call_error'
   toolCall?: ToolCall
+  // 工具调用位置：true 表示追加到内容后面，false 表示在内容前面
+  append?: boolean
 }
 
 // Agent 类型
@@ -61,12 +63,6 @@ export interface CreateAgentRequest {
 export interface UpdateAgentRequest {
   name: string
   description: string
-}
-
-// SSE 流式数据格式
-export interface StreamChunk {
-  content: string
-  done?: boolean
 }
 
 // 流式响应回调
@@ -220,16 +216,19 @@ export class AgentService {
   /**
    * 发送聊天消息（流式响应）
    * @param message 用户消息
-   * @param agentId 可选的 Agent ID
    * @param onChunk 接收流式数据的回调
    * @param onError 错误回调
+   * @param options 可选参数
    * @returns 清理函数
    */
   async chatStream(
     message: string,
     onChunk: StreamCallback,
     onError?: StreamErrorCallback,
-    agentId?: string
+    options?: {
+      agentId?: string
+      enableTools?: boolean
+    }
   ): Promise<() => void> {
     const url = `${this.baseURL}/api/agent`
     const controller = new AbortController()
@@ -239,9 +238,14 @@ export class AgentService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(agentId && { 'X-Agent-ID': agentId }),
+          ...(options?.agentId && { 'X-Agent-ID': options.agentId }),
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({
+          message,
+          ...(options?.enableTools !== undefined && {
+            enable_tools: options.enableTools,
+          }),
+        }),
         signal: controller.signal,
         credentials: 'include',
       })
@@ -313,19 +317,30 @@ export class AgentService {
   /**
    * 发送聊天消息（非流式，简单版本）
    * @param message 用户消息
-   * @param agentId 可选的 Agent ID
+   * @param options 可选参数
    * @returns 完整响应
    */
-  async chat(message: string, agentId?: string): Promise<{ content: string }> {
+  async chat(
+    message: string,
+    options?: {
+      agentId?: string
+      enableTools?: boolean
+    }
+  ): Promise<{ content: string }> {
     const url = `${this.baseURL}/api/agent`
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(agentId && { 'X-Agent-ID': agentId }),
+        ...(options?.agentId && { 'X-Agent-ID': options.agentId }),
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({
+        message,
+        ...(options?.enableTools !== undefined && {
+          enable_tools: options.enableTools,
+        }),
+      }),
       credentials: 'include',
     })
 

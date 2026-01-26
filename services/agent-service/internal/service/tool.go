@@ -140,21 +140,103 @@ func (s *toolService) ToggleAgentTool(ctx context.Context, agentID, toolID strin
 //
 // 这是工具系统与 ChatService 集成的关键方法。
 // 从数据库读取 Agent 配置的工具定义，然后动态创建 Eino BaseTool 实例。
+// 同时自动包含内置工具（计算器、时间），无需手动配置。
 func (s *toolService) GetEinoToolsForAgent(ctx context.Context, agentID string) (map[string]tool.BaseTool, error) {
-	// 从数据库获取 Agent 的工具定义
-	dbTools, err := s.agentToolRepo.GetEnabledToolsForAgent(ctx, agentID)
-	if err != nil {
-		return nil, err
+	result := make(map[string]tool.BaseTool)
+
+	// ========== 1. 添加内置工具（所有 Agent 自动拥有） ==========
+	builtinTools := s.getBuiltinToolDefinitions()
+	for _, builtinTool := range builtinTools {
+		wrapper := toolpkg.NewDynamicToolWrapper(builtinTool, s.executor)
+		wrapper.SetContext(agentID, "")
+		result[builtinTool.Name] = wrapper
 	}
 
-	result := make(map[string]tool.BaseTool)
+	// ========== 2. 从数据库获取 Agent 配置的工具 ==========
+	dbTools, err := s.agentToolRepo.GetEnabledToolsForAgent(ctx, agentID)
+	if err != nil {
+		return result, nil // 返回至少包含内置工具的结果
+	}
+
 	for _, dbTool := range dbTools {
+		// 跳过与内置工具同名的情况（数据库配置优先级低于内置）
+		if _, exists := result[dbTool.Name]; exists {
+			continue
+		}
 		// 获取或创建包装器
 		wrapper := s.getOrCreateWrapper(dbTool)
+		wrapper.SetContext(agentID, "")
 		result[dbTool.Name] = wrapper
 	}
 
 	return result, nil
+}
+
+// getBuiltinToolDefinitions 获取内置工具定义
+//
+// 这些工具自动对所有 Agent 可用，无需数据库配置。
+func (s *toolService) getBuiltinToolDefinitions() []*model.Tool {
+	return []*model.Tool{
+		{
+			ID:          "builtin-calculator",
+			Name:        "calculator",
+			Type:        model.ToolTypeInvokable,
+			DisplayName: "计算器",
+			Description: "执行数学运算，支持加法、减法、乘法、除法。参数：operation（运算类型：add/subtract/multiply/divide）、a（第一个数字）、b（第二个数字）",
+			Category:    "builtin",
+			Endpoint: model.EndpointConfig{
+				URLTemplate: "internal://calculator",
+				Method:      "GET",
+			},
+			Parameters: model.ParametersDef{
+				Type: "object",
+				Properties: map[string]*model.ParameterDef{
+					"operation": {
+						Type:        "string",
+						Description: "运算类型",
+						Enum:        []string{"add", "subtract", "multiply", "divide"},
+						Required:    true,
+					},
+					"a": {
+						Type:        "number",
+						Description: "第一个数字",
+						Required:    true,
+					},
+					"b": {
+						Type:        "number",
+						Description: "第二个数字",
+						Required:    true,
+					},
+				},
+				Required: []string{"operation", "a", "b"},
+			},
+			Enabled: true,
+		},
+		{
+			ID:          "builtin-time",
+			Name:        "get_current_time",
+			Type:        model.ToolTypeInvokable,
+			DisplayName: "当前时间",
+			Description: "获取指定时区的当前时间。参数：timezone（时区，如 Asia/Shanghai、America/New_York，默认为 Asia/Shanghai）",
+			Category:    "builtin",
+			Endpoint: model.EndpointConfig{
+				URLTemplate: "internal://time",
+				Method:      "GET",
+			},
+			Parameters: model.ParametersDef{
+				Type: "object",
+				Properties: map[string]*model.ParameterDef{
+					"timezone": {
+						Type:        "string",
+						Description: "时区标识符，如 Asia/Shanghai、America/New_York、UTC 等",
+						Required:    false,
+					},
+				},
+				Required: []string{},
+			},
+			Enabled: true,
+		},
+	}
 }
 
 // getOrCreateWrapper 获取或创建工具包装器

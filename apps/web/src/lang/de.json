@@ -40,7 +40,8 @@
     "actions": {
       "copy": "Kopieren",
       "copied": "Kopiert",
-      "retry": "Erneut versuchen"
+      "retry": "Erneut versuchen",
+      "tools": "Werkzeugaufruf"
     },
     "error": {
       "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
@@ -516,6 +517,7 @@
       "private": "Privat",
       "system": "System"
     },
+    "configureTools": "Konfigurationstool",
     "form": {
       "description": "Agenteninformationen ausfüllen",
       "name": "Agentenname",
@@ -552,8 +554,7 @@
       "description": "Erstellen Sie Ihren ersten KI-Agenten und legen Sie los"
     },
     "created": "Gegründet in",
-    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden",
-    "configureTools": "Konfigurationstool"
+    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden"
   },
   "WorkflowsPage": {
     "hero": {

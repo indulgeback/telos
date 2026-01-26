@@ -253,11 +253,13 @@ type ChatRequestWithTools struct {
 // 根据指定的 Agent ID 从数据库加载其配置的工具，
 // 然后使用 Eino 的 ReAct Agent 让 LLM 决定何时调用工具。
 //
+// 参考：https://github.com/cloudwego/eino-examples/tree/main/flow/agent/react
+//
 // 工作流程：
 //   1. 根据 Agent ID 获取 Agent 配置的工具列表
 //   2. 创建 ReAct Agent，绑定工具
-//   3. 调用 Agent 的 Stream 方法
-//   4. Agent 自动处理：LLM 决定 → 工具调用 → 结果反馈 → 最终响应
+//   3. 调用 Agent 的 Stream 方法（全流式）
+//   4. Agent 自动处理：LLM 决定 → 工具调用 → 结果反馈 → 最终响应（全部流式）
 //
 // 参数：
 //   - ctx: 请求上下文
@@ -306,74 +308,125 @@ func (s *ChatService) ChatStreamWithTools(ctx context.Context, req ChatRequestWi
 			Content: req.Message,
 		})
 
-		// ========== 3. 如果有工具，使用 ReAct Agent ==========
-		if len(einoTools) > 0 {
-			// 将 map 转换为 slice
-			tools := make([]tool.BaseTool, 0, len(einoTools))
-			for _, t := range einoTools {
-				tools = append(tools, t)
-			}
+		// ========== 3. 创建 ReAct Agent 并流式处理 ==========
+		// 将 map 转换为 slice
+		tools := make([]tool.BaseTool, 0, len(einoTools))
+		for _, t := range einoTools {
+			tools = append(tools, t)
+		}
 
-			// 创建 ReAct Agent
-			agentConfig := &react.AgentConfig{
-				ToolCallingModel: s.chatModel,
-				ToolsConfig: compose.ToolsNodeConfig{
-					Tools: tools,
-				},
-				MaxStep: 10, // 最多执行 10 轮工具调用
-			}
+		// 创建 ReAct Agent
+		agent, err := react.NewAgent(ctx, &react.AgentConfig{
+			ToolCallingModel: s.chatModel,
+			ToolsConfig: compose.ToolsNodeConfig{
+				Tools: tools,
+			},
+			MaxStep: 20, // 最多执行 10 轮工具调用（每轮 ChatModel + Tools = 2 步）
+		})
+		if err != nil {
+			errChan <- fmt.Errorf("创建 ReAct Agent 失败: %w", err)
+			return
+		}
 
-			agent, err := react.NewAgent(ctx, agentConfig)
+		tlog.Info("ReAct Agent 创建成功，开始流式响应", "tools", len(tools), "agent_id", req.AgentID)
+
+		// ========== 4. 使用 Stream 方法进行全流式响应 ==========
+		streamReader, err := agent.Stream(ctx, messages)
+		if err != nil {
+			errChan <- fmt.Errorf("调用 Agent Stream 失败: %w", err)
+			return
+		}
+		defer streamReader.Close()
+
+		// ========== 5. 逐块读取流式响应并发送到通道 ==========
+		chunkCount := 0
+		hasToolCalls := false
+		contentAfterToolCalls := ""
+
+		for {
+			msg, err := streamReader.Recv()
 			if err != nil {
-				errChan <- fmt.Errorf("创建 ReAct Agent 失败: %w", err)
-				return
-			}
-
-			tlog.Info("ReAct Agent 创建成功", "tools", len(tools), "agent_id", req.AgentID)
-
-			// 使用 Generate 方法获取完整响应
-			response, err := agent.Generate(ctx, messages)
-			if err != nil {
-				tlog.Error("调用 Agent 失败", "error", err.Error(), "agent_id", req.AgentID)
-				errChan <- fmt.Errorf("调用 Agent 失败: %w", err)
-				return
-			}
-
-			// 记录工具调用
-			if len(response.ToolCalls) > 0 {
-				for i, tc := range response.ToolCalls {
-					tlog.Info("工具调用", "index", i, "name", tc.Function.Name, "agent_id", req.AgentID)
-				}
-			}
-
-			// 将完整响应发送到通道
-			if response.Content != "" {
-				contentChan <- response.Content
-			}
-		} else {
-			// 无工具时，使用普通流式聊天
-			streamReader, err := s.chatModel.Stream(ctx, messages)
-			if err != nil {
-				errChan <- fmt.Errorf("调用聊天模型失败: %w", err)
-				return
-			}
-
-			for {
-				chunk, err := streamReader.Recv()
 				if err == io.EOF {
+					// 流正常结束
+					tlog.Info("Agent Stream 正常结束", "agent_id", req.AgentID, "total_chunks", chunkCount, "has_tool_calls", hasToolCalls, "content_after_tools", len(contentAfterToolCalls))
+
+					// DeepSeek 在流式模式下的已知问题：
+					// 如果检测到工具调用但没有后续响应内容，使用 Generate 重新获取完整结果
+					if hasToolCalls && contentAfterToolCalls == "" {
+						tlog.Info("检测到工具调用但无后续响应，使用 Generate 重新获取完整响应", "agent_id", req.AgentID)
+						s.fallbackToGenerate(ctx, agent, messages, contentChan, errChan)
+						return
+					}
 					break
 				}
-				if err != nil {
-					errChan <- fmt.Errorf("读取流式响应失败: %w", err)
-					return
-				}
+				// 流式读取出错
+				tlog.Error("读取 Agent 流式响应失败", "error", err, "agent_id", req.AgentID)
+				errChan <- fmt.Errorf("读取 Agent 流式响应失败: %w", err)
+				return
+			}
 
-				if chunk.Content != "" {
-					contentChan <- chunk.Content
+			chunkCount++
+
+			// 调试日志：只记录关键信息
+			if len(msg.ToolCalls) > 0 || (chunkCount <= 5 || chunkCount%20 == 0) {
+				tlog.Info("收到 Agent chunk",
+					"chunk", chunkCount,
+					"content_length", len(msg.Content),
+					"tool_calls_count", len(msg.ToolCalls),
+					"agent_id", req.AgentID)
+			}
+
+			// ========== 6. 处理工具调用 ==========
+			if len(msg.ToolCalls) > 0 {
+				hasToolCalls = true
+				for i, tc := range msg.ToolCalls {
+					tlog.Info("工具调用", "index", i, "name", tc.Function.Name, "agent_id", req.AgentID)
+					contentChan <- fmt.Sprintf("[TOOL_CALL:%s]", tc.Function.Name)
 				}
+			}
+
+			// ========== 7. 发送内容到通道 ==========
+			if msg.Content != "" {
+				// 如果已经有工具调用，记录工具调用后的内容
+				if hasToolCalls {
+					contentAfterToolCalls += msg.Content
+				}
+				contentChan <- msg.Content
 			}
 		}
 	}()
 
 	return contentChan, errChan
+}
+
+// fallbackToGenerate 使用 Generate 方法获取完整响应，然后流式发送
+//
+// 这是 DeepSeek 流式工具调用问题的临时解决方案。
+// 参考：https://github.com/cloudwego/eino/issues/613
+func (s *ChatService) fallbackToGenerate(
+	ctx context.Context,
+	agent *react.Agent,
+	messages []*schema.Message,
+	contentChan chan<- string,
+	errChan chan<- error,
+) {
+	// 使用 Generate 获取完整响应
+	resp, err := agent.Generate(ctx, messages)
+	if err != nil {
+		errChan <- fmt.Errorf("Agent Generate 失败: %w", err)
+		return
+	}
+
+	tlog.Info("Generate 返回响应",
+		"content_length", len(resp.Content),
+		"tool_calls", len(resp.ToolCalls),
+		"agent_id", "")
+
+	// 流式发送响应内容
+	if resp.Content != "" {
+		// 逐字符发送以保持流式体验
+		for _, r := range resp.Content {
+			contentChan <- string(r)
+		}
+	}
 }

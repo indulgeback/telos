@@ -98,7 +98,31 @@ func (w *DynamicToolWrapper) InvokableRun(ctx context.Context, argumentsInJSON s
 	return string(resultJSON), nil
 }
 
-// StreamableRun 流式执行（预留接口，暂不支持）
+// StreamableRun 流式执行
+//
+// 对于非流式工具，将同步执行的结果包装成流返回。
+// ReAct Agent 在流式模式下会调用此方法。
 func (w *DynamicToolWrapper) StreamableRun(ctx context.Context, argumentsInJSON string, opts ...tool.Option) (*schema.StreamReader[string], error) {
-	return nil, fmt.Errorf("流式执行暂未实现")
+	// 记录工具调用（用于调试）
+	fmt.Printf("[StreamableRun] 工具=%s 参数=%s\n", w.tool.Name, argumentsInJSON)
+
+	// 先执行工具（同步）
+	result, err := w.InvokableRun(ctx, argumentsInJSON, opts...)
+	if err != nil {
+		fmt.Printf("[StreamableRun] 工具执行失败: %v\n", err)
+		return nil, err
+	}
+
+	fmt.Printf("[StreamableRun] 工具执行成功 结果=%s\n", result)
+
+	// 使用 schema.Pipe 创建流 reader 和 writer
+	reader, writer := schema.Pipe[string](1)
+
+	// 在 goroutine 中发送结果并关闭 writer
+	go func() {
+		defer writer.Close()
+		writer.Send(result, nil)
+	}()
+
+	return reader, nil
 }

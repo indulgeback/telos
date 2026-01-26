@@ -40,7 +40,8 @@
     "actions": {
       "copy": "複製",
       "copied": "已複製",
-      "retry": "重試"
+      "retry": "重試",
+      "tools": "工具調用"
     },
     "error": {
       "message": "抱歉，發生了一些錯誤。請稍後再試。"
@@ -516,6 +517,7 @@
       "private": "私有",
       "system": "系統"
     },
+    "configureTools": "配置工具",
     "form": {
       "description": "填寫 Agent 資訊",
       "name": "Agent 名稱",
@@ -552,8 +554,7 @@
       "description": "建立您的第一個 AI 代理程式開始使用"
     },
     "created": "創建於",
-    "systemAgentReadOnly": "系統 Agent 不可編輯",
-    "configureTools": "配置工具"
+    "systemAgentReadOnly": "系統 Agent 不可編輯"
   },
   "WorkflowsPage": {
     "hero": {

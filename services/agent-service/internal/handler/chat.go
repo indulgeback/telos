@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -52,7 +53,8 @@ func NewChatHandler(chatService *service.ChatService, agentService service.Agent
 
 // ChatRequest 前端聊天请求格式
 type ChatRequest struct {
-	Message string `json:"message"` // 用户输入的消息
+	Message    string `json:"message"`    // 用户输入的消息
+	EnableTools *bool  `json:"enable_tools"` // 是否启用工具调用（可选，默认 true）
 }
 
 // ========== 处理器函数 ==========
@@ -107,8 +109,11 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 	// 获取指定的 Agent ID
 	agentID := c.GetHeader("X-Agent-ID")
 
-	// 如果指定了 Agent，使用带工具的聊天
-	if agentID != "" {
+	// 判断是否启用工具（默认启用）
+	enableTools := req.EnableTools == nil || *req.EnableTools
+
+	// 如果指定了 Agent 且启用了工具，使用带工具的聊天
+	if agentID != "" && enableTools {
 		// 获取 Agent 的系统提示词
 		agent, err := h.agentService.GetAgentForChat(ctx, agentID)
 		if err != nil {
@@ -126,12 +131,21 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 		contentChan, errChan = h.chatService.ChatStreamWithTools(ctx, toolReq)
 		tlog.Info("使用带工具的聊天", "agent_id", agentID, "agent_name", agent.Name, "request_id", requestID)
 	} else {
-		// 未指定 Agent 时使用普通聊天，构建默认消息
+		// 未指定 Agent 或禁用了工具时使用普通聊天
+		systemPrompt := "你是一个友好、专业的 AI 助手，可以帮助用户解答各种问题。"
+		if agentID != "" && !enableTools {
+			// 获取 Agent 的系统提示词，但不使用工具
+			agent, err := h.agentService.GetAgentForChat(ctx, agentID)
+			if err == nil {
+				systemPrompt = agent.SystemPrompt
+			}
+		}
 		messages := []service.Message{
-			{Role: "system", Content: "你是一个友好、专业的 AI 助手，可以帮助用户qqqd解答各种问题。"},
+			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: req.Message},
 		}
 		contentChan, errChan = h.chatService.ChatStream(ctx, messages)
+		tlog.Info("使用普通聊天", "agent_id", agentID, "enable_tools", enableTools, "request_id", requestID)
 	}
 
 	// ========== 4. 发送流式响应 ==========
@@ -150,11 +164,41 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 	}
 
 	contentLength := 0
+
+	// 工具调用名称到显示名称的映射
+	toolDisplayNames := map[string]string{
+		"calculator":       "计算器",
+		"get_current_time": "获取当前时间",
+	}
+
+	// 跟踪已发送开始事件的工具（避免重复）
+	activeTools := make(map[string]string) // toolName -> toolCallID
+
 	for {
 		select {
 		case content, ok := <-contentChan:
 			if !ok {
-				// 通道已关闭，发送结束标记
+				// 通道关闭前，完成所有活跃的工具
+				for toolName, toolCallID := range activeTools {
+					displayName := toolDisplayNames[toolName]
+					if displayName == "" {
+						displayName = toolName
+					}
+					toolCallEndData := gin.H{
+						"type": "tool_call_end",
+						"toolCall": gin.H{
+							"id":          toolCallID,
+							"name":        toolName,
+							"displayName": displayName,
+							"status":      "success",
+							"timestamp":   time.Now().Format(time.RFC3339),
+						},
+						"content": "",
+					}
+					writeSSEData(c.Writer, flusher, toolCallEndData)
+				}
+
+				// 发送结束标记
 				if _, err := c.Writer.Write([]byte("data: [DONE]\n\n")); err != nil {
 					tlog.Warn("发送完成标记失败", "error", err, "request_id", requestID)
 				}
@@ -163,7 +207,84 @@ func (h *ChatHandler) HandleChat(c *gin.Context) {
 				return
 			}
 
-			// 发送增量内容数据块，检查写入错误
+			// ========== 优先处理工具调用消息 ==========
+			// 检测工具调用消息 [TOOL_CALL:tool_name]
+			// 必须先处理这个，避免被普通内容的逻辑干扰
+			if strings.HasPrefix(content, "[TOOL_CALL:") && strings.HasSuffix(content, "]") {
+				toolName := strings.TrimPrefix(content, "[TOOL_CALL:")
+				toolName = strings.TrimSuffix(toolName, "]")
+
+				// 跳过空的工具名（防御性编程）
+				if toolName == "" {
+					continue
+				}
+
+				// 如果这个工具还没有发送开始事件，则发送
+				if _, exists := activeTools[toolName]; !exists {
+					// 使用 requestID + toolName 生成稳定的 ID
+					toolCallID := fmt.Sprintf("%s-%s", requestID, toolName)
+					activeTools[toolName] = toolCallID
+
+					// 获取显示名称
+					displayName := toolDisplayNames[toolName]
+					if displayName == "" {
+						displayName = toolName
+					}
+
+					tlog.Info("工具调用开始", "tool_name", toolName, "tool_call_id", toolCallID, "request_id", requestID)
+
+					// 发送工具调用开始事件
+					toolCallData := gin.H{
+						"type": "tool_call_start",
+						"toolCall": gin.H{
+							"id":          toolCallID,
+							"name":        toolName,
+							"displayName": displayName,
+							"status":      "running",
+							"timestamp":   time.Now().Format(time.RFC3339),
+						},
+						"content": "",
+					}
+					if !writeSSEData(c.Writer, flusher, toolCallData) {
+						tlog.Warn("SSE 工具调用事件写入失败", "request_id", requestID)
+						return
+					}
+				}
+
+				continue
+			}
+
+			// ========== 处理普通内容 ==========
+			// 如果有活跃的工具，说明工具执行完成，发送结束事件
+			if len(activeTools) > 0 {
+				tlog.Info("工具执行完成，发送结束事件", "active_tools", len(activeTools), "request_id", requestID)
+				for toolName, toolCallID := range activeTools {
+					displayName := toolDisplayNames[toolName]
+					if displayName == "" {
+						displayName = toolName
+					}
+					toolCallEndData := gin.H{
+						"type": "tool_call_end",
+						"toolCall": gin.H{
+							"id":          toolCallID,
+							"name":        toolName,
+							"displayName": displayName,
+							"status":      "success",
+							"timestamp":   time.Now().Format(time.RFC3339),
+						},
+						"content": "",
+					}
+					if !writeSSEData(c.Writer, flusher, toolCallEndData) {
+						tlog.Warn("SSE 工具调用结束事件写入失败", "request_id", requestID)
+						return
+					}
+				}
+				// 清空活跃工具列表
+				activeTools = make(map[string]string)
+			}
+
+			// 发送普通内容数据块
+			tlog.Debug("发送内容块", "length", len(content), "request_id", requestID)
 			data := gin.H{"content": content}
 			if !writeSSEData(c.Writer, flusher, data) {
 				// 写入失败，客户端可能已断开

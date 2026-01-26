@@ -40,7 +40,8 @@
     "actions": {
       "copy": "复制",
       "copied": "已复制",
-      "retry": "重试"
+      "retry": "重试",
+      "tools": "工具调用"
     },
     "error": {
       "message": "抱歉，发生了一些错误。请稍后再试。"

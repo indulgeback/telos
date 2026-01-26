@@ -40,7 +40,8 @@
     "actions": {
       "copy": "コピー",
       "copied": "コピーしました",
-      "retry": "再試行"
+      "retry": "再試行",
+      "tools": "ツール呼び出し"
     },
     "error": {
       "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
@@ -516,6 +517,7 @@
       "private": "私有",
       "system": "システム"
     },
+    "configureTools": "配置ツール",
     "form": {
       "description": "エージェント情報を入力する",
       "name": "エージェント名",
@@ -552,8 +554,7 @@
       "description": "あなたの最初のAIエージェントを作成して始めましょう"
     },
     "created": "作成日",
-    "systemAgentReadOnly": "システムエージェントは編集できません",
-    "configureTools": "配置ツール"
+    "systemAgentReadOnly": "システムエージェントは編集できません"
   },
   "WorkflowsPage": {
     "hero": {

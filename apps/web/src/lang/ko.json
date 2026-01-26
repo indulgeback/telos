@@ -40,7 +40,8 @@
     "actions": {
       "copy": "복사",
       "copied": "복사됨",
-      "retry": "다시 시도"
+      "retry": "다시 시도",
+      "tools": "도구 호출"
     },
     "error": {
       "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
@@ -516,6 +517,7 @@
       "private": "사유",
       "system": "시스템"
     },
+    "configureTools": "구성 도구",
     "form": {
       "description": "에이전트 정보 입력",
       "name": "에이전트 이름",
@@ -552,8 +554,7 @@
       "description": "첫 번째 AI 에이전트 만들기 시작하기"
     },
     "created": "설립일",
-    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다",
-    "configureTools": "구성 도구"
+    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다"
   },
   "WorkflowsPage": {
     "hero": {

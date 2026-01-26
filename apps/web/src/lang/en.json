@@ -40,7 +40,8 @@
     "actions": {
       "copy": "Copy",
       "copied": "Copied",
-      "retry": "Retry"
+      "retry": "Retry",
+      "tools": "Tool invocation"
     },
     "error": {
       "message": "Sorry, something went wrong. Please try again later."
@@ -516,6 +517,7 @@
       "private": "Private",
       "system": "System"
     },
+    "configureTools": "Configuration Tool",
     "form": {
       "description": "Fill in Agent information",
       "name": "Agent Name",
@@ -552,8 +554,7 @@
       "description": "Create your first AI Agent to get started"
     },
     "created": "Created at",
-    "systemAgentReadOnly": "System agents cannot be edited",
-    "configureTools": "Configuration Tool"
+    "systemAgentReadOnly": "System agents cannot be edited"
   },
   "WorkflowsPage": {
     "hero": {

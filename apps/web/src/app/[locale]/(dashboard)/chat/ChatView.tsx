@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { Wrench } from 'lucide-react'
 import { agentService, type Agent, type ToolCall } from '@/service/agent'
 import { useTranslations } from 'next-intl'
 import { ChatContainer, type Message } from '@/components/organisms'
+import { ChatInputAction } from '@/components/atoms'
 import type { SuggestionPrompt } from '@/components/atoms'
 import { type StreamChunk } from '@/service/agent'
 
@@ -17,6 +19,7 @@ export function ChatView() {
   const [lastUserMessage, setLastUserMessage] = useState<string>('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [enableTools, setEnableTools] = useState(true) // 工具调用开关
 
   const suggestionPrompts = useMemo(
     (): SuggestionPrompt[] => [
@@ -62,8 +65,13 @@ export function ChatView() {
       return prev.map(m => {
         if (m.id !== assistantMessage.id) return m
 
+        // 判断工具调用应该放在前面还是后面
+        // 如果消息内容已经存在，说明工具调用是在内容之后产生的
+        const hasContent = m.content.length > 0
+        const targetKey = hasContent ? 'toolCallsAfter' : 'toolCallsBefore'
+
         // 获取或初始化工具调用列表
-        const currentToolCalls = m.toolCalls || []
+        const currentToolCalls = m[targetKey] || []
         const existingToolCallIndex = currentToolCalls.findIndex(
           tc => tc.id === chunk.toolCall!.id
         )
@@ -82,7 +90,7 @@ export function ChatView() {
           updatedToolCalls = [...currentToolCalls, chunk.toolCall!]
         }
 
-        return { ...m, toolCalls: updatedToolCalls }
+        return { ...m, [targetKey]: updatedToolCalls }
       })
     })
   }
@@ -112,7 +120,8 @@ export function ChatView() {
       role: 'assistant',
       content: '',
       timestamp: new Date(),
-      toolCalls: [],
+      toolCallsBefore: [],
+      toolCallsAfter: [],
     }
 
     setMessages(prev => [...prev, assistantMessage])
@@ -152,7 +161,7 @@ export function ChatView() {
             )
           )
         },
-        selectedAgent?.id
+        { agentId: selectedAgent?.id, enableTools }
       )
     } catch (error) {
       console.error('Chat error:', error)
@@ -181,6 +190,18 @@ export function ChatView() {
   const handleClear = () => {
     setMessages([])
   }
+
+  // 输入框操作区域 - 工具调用开关
+  const inputActions = (
+    <ChatInputAction
+      icon={<Wrench className='size-3.5' />}
+      label={t('actions.tools') || '工具调用'}
+      checked={enableTools}
+      onToggle={() => setEnableTools(!enableTools)}
+      variant='toggle'
+      size='sm'
+    />
+  )
 
   return (
     <ChatContainer
@@ -211,6 +232,7 @@ export function ChatView() {
       retryLabel={t('actions.retry')}
       errorMessage={t('error.message')}
       lastUserMessage={lastUserMessage}
+      inputActions={inputActions}
     />
   )
 }
