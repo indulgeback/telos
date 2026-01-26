@@ -41,7 +41,10 @@ async function getLocalAddress(): Promise<string> {
       }
     }
   } catch (error) {
-    logger.warn('自动检测IP失败，使用 localhost', error)
+    logger.warn({
+      msg: 'Failed to auto-detect IP, using localhost',
+      err: error,
+    })
   }
 
   // localhost 时返回 127.0.0.1（与 Go 版本一致）
@@ -83,15 +86,25 @@ export async function registerToRegistry(
 
     // 检查注册响应
     if (response.status === 200) {
-      logger.info('服务注册成功', { service: serviceName, address, port })
+      logger.info({
+        msg: 'Service registered successfully',
+        service: serviceName,
+        address,
+        port,
+      })
     } else {
-      logger.error('服务注册响应异常', {
-        status_code: response.status,
+      logger.error({
+        msg: 'Service registration response abnormal',
+        statusCode: response.status,
         service: serviceName,
       })
     }
   } catch (error) {
-    logger.error('服务注册失败', error)
+    logger.error({
+      msg: 'Service registration failed',
+      service: serviceName,
+      err: error,
+    })
   }
 }
 
@@ -124,7 +137,10 @@ export async function getHealthCheckURL(
  */
 export async function performRegistration(): Promise<void> {
   const serviceAddr = await getServiceAddress()
-  logger.info('检测到服务地址', { address: serviceAddr })
+  logger.info({
+    msg: 'Detected service address',
+    address: serviceAddr,
+  })
 
   await registerToRegistry(config.serviceName, serviceAddr, config.port)
 }

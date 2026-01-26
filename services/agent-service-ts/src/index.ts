@@ -19,7 +19,8 @@ app.use(express.json());
 
 // 请求日志
 app.use((req: Request, _res: Response, next) => {
-  logger.info(`${req.method} ${req.path}`, {
+  logger.info({
+    msg: `${req.method} ${req.path}`,
     requestId: req.header("X-Request-ID"),
     agentId: req.header("X-Agent-ID"),
   });
@@ -73,7 +74,10 @@ app.use((_req: Request, res: Response) => {
 // ========== 错误处理 ==========
 
 app.use((err: Error, _req: Request, res: Response, _next: any) => {
-  logger.error("Unhandled error:", err);
+  logger.error({
+    msg: "Unhandled error",
+    err,
+  });
   res.status(500).json({
     code: 500,
     message: config.nodeEnv === "development" ? err.message : "Internal Server Error",
@@ -83,9 +87,12 @@ app.use((err: Error, _req: Request, res: Response, _next: any) => {
 // ========== 启动服务 ==========
 
 const server = app.listen(config.port, async () => {
-  logger.info(`Agent Service started on port ${config.port}`);
-  logger.info(`Environment: ${config.nodeEnv}`);
-  logger.info(`DeepSeek Model: ${config.deepseekModel}`);
+  logger.info({
+    msg: "Agent Service started",
+    port: config.port,
+    environment: config.nodeEnv,
+    model: config.deepseekModel,
+  });
 
   // 注册到服务注册中心
   performRegistration();
@@ -94,24 +101,35 @@ const server = app.listen(config.port, async () => {
 // ========== 优雅关闭 ==========
 
 const shutdown = async () => {
-  logger.info("Shutting down gracefully...");
+  logger.info({
+    msg: "Shutting down gracefully...",
+  });
 
   server.close(async () => {
-    logger.info("HTTP server closed");
+    logger.info({
+      msg: "HTTP server closed",
+    });
 
     try {
       await db.disconnect();
-      logger.info("Database disconnected");
+      logger.info({
+        msg: "Database disconnected",
+      });
       process.exit(0);
     } catch (error) {
-      logger.error("Error during shutdown:", error);
+      logger.error({
+        msg: "Error during shutdown",
+        err: error,
+      });
       process.exit(1);
     }
   });
 
   // 强制关闭超时
   setTimeout(() => {
-    logger.error("Forced shutdown after timeout");
+    logger.error({
+      msg: "Forced shutdown after timeout",
+    });
     process.exit(1);
   }, 10000);
 };
@@ -122,10 +140,17 @@ process.on("SIGINT", shutdown);
 // ========== 未捕获的异常 ==========
 
 process.on("unhandledRejection", (reason, promise) => {
-  logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+  logger.error({
+    msg: "Unhandled Rejection",
+    promise,
+    reason,
+  });
 });
 
 process.on("uncaughtException", (error) => {
-  logger.error("Uncaught Exception:", error);
+  logger.error({
+    msg: "Uncaught Exception",
+    err: error,
+  });
   shutdown();
 });

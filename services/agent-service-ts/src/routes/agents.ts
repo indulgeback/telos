@@ -3,6 +3,8 @@ import { prisma } from "../services/db.js";
 import { randomUUID } from "node:crypto";
 import { logger } from "../config/index.js";
 import type { ApiResponse } from "../types/index.js";
+import { serializeAgent, serializeAgents, serializeTools } from "../utils/serializer.js";
+import { toolService } from "../services/toolService.js";
 
 export const agentsRouter = Router();
 
@@ -26,15 +28,21 @@ agentsRouter.get("/", async (req: Request, res: Response) => {
       },
     });
 
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedAgents = serializeAgents(agents);
+
     const response: ApiResponse = {
       code: 0,
       message: "success",
-      data: agents,
+      data: serializedAgents,
     };
 
     res.json(response);
   } catch (error) {
-    logger.error("List agents error:", error);
+    logger.error({
+      msg: "List agents error",
+      err: error,
+    });
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "获取 Agent 列表失败",
@@ -59,15 +67,22 @@ agentsRouter.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedAgent = serializeAgent(agent);
+
     const response: ApiResponse = {
       code: 0,
       message: "success",
-      data: agent,
+      data: serializedAgent,
     };
 
     res.json(response);
   } catch (error) {
-    logger.error("Get agent error:", error);
+    logger.error({
+      msg: "Get agent error",
+      agentId: getParamString(req, "id"),
+      err: error,
+    });
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "获取 Agent 详情失败",
@@ -94,15 +109,21 @@ agentsRouter.get("/default", async (req: Request, res: Response) => {
       });
     }
 
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedAgent = serializeAgent(agent);
+
     const response: ApiResponse = {
       code: 0,
       message: "success",
-      data: agent,
+      data: serializedAgent,
     };
 
     res.json(response);
   } catch (error) {
-    logger.error("Get default agent error:", error);
+    logger.error({
+      msg: "Get default agent error",
+      err: error,
+    });
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "获取默认 Agent 失败",
@@ -130,15 +151,22 @@ agentsRouter.post("/", async (req: Request, res: Response) => {
       },
     });
 
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedAgent = serializeAgent(agent);
+
     const response: ApiResponse = {
       code: 0,
       message: "success",
-      data: agent,
+      data: serializedAgent,
     };
 
     res.status(201).json(response);
   } catch (error) {
-    logger.error("Create agent error:", error);
+    logger.error({
+      msg: "Create agent error",
+      agentName: req.body.name,
+      err: error,
+    });
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "创建 Agent 失败",
@@ -163,15 +191,22 @@ agentsRouter.put("/:id", async (req: Request, res: Response) => {
       },
     });
 
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedAgent = serializeAgent(agent);
+
     const response: ApiResponse = {
       code: 0,
       message: "success",
-      data: agent,
+      data: serializedAgent,
     };
 
     res.json(response);
   } catch (error) {
-    logger.error("Update agent error:", error);
+    logger.error({
+      msg: "Update agent error",
+      agentId: getParamString(req, "id"),
+      err: error,
+    });
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "更新 Agent 失败",
@@ -191,10 +226,101 @@ agentsRouter.delete("/:id", async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    logger.error("Delete agent error:", error);
+    logger.error({
+      msg: "Delete agent error",
+      agentId: getParamString(req, "id"),
+      err: error,
+    });
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "删除 Agent 失败",
+    });
+  }
+});
+
+// ========== Agent 工具关联接口 ==========
+
+/**
+ * GET /api/agents/:id/tools
+ * 获取 Agent 的工具
+ */
+agentsRouter.get("/:id/tools", async (req: Request, res: Response) => {
+  try {
+    const agentId = getParamString(req, "id");
+    const agentTools = await prisma.agentTool.findMany({
+      where: { agentId },
+      include: { tool: true },
+    });
+
+    // 提取工具信息并序列化
+    const tools = agentTools
+      .filter((at) => at.tool !== null && at.tool.enabled)
+      .map((at) => ({
+        ...at.tool,
+        agent_tool_id: at.id,
+        enabled: at.enabled,
+      }));
+
+    const serializedTools = serializeTools(tools);
+
+    res.status(200).json({ tools: serializedTools });
+  } catch (error) {
+    logger.error({
+      msg: "Get agent tools error",
+      agentId: getParamString(req, "id"),
+      err: error,
+    });
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "获取 Agent 工具失败",
+    });
+  }
+});
+
+/**
+ * PUT /api/agents/:id/tools
+ * 设置 Agent 的工具
+ */
+agentsRouter.put("/:id/tools", async (req: Request, res: Response) => {
+  try {
+    const agentId = getParamString(req, "id");
+    const { tool_ids: toolIds } = req.body;
+
+    if (!Array.isArray(toolIds)) {
+      return res.status(400).json({
+        error: "tool_ids must be an array",
+      });
+    }
+
+    // 删除现有关联
+    await prisma.agentTool.deleteMany({
+      where: { agentId },
+    });
+
+    // 创建新关联
+    if (toolIds.length > 0) {
+      await prisma.agentTool.createMany({
+        data: toolIds.map((toolId: string) => ({
+          id: randomUUID(),
+          agentId,
+          toolId,
+          enabled: true,
+        })),
+      });
+    }
+
+    // 清除缓存
+    toolService.clearCache(agentId);
+
+    res.status(200).json({ message: "Tools updated successfully" });
+  } catch (error) {
+    logger.error({
+      msg: "Set agent tools error",
+      agentId: getParamString(req, "id"),
+      toolCount: req.body.tool_ids?.length || 0,
+      err: error,
+    });
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "设置 Agent 工具失败",
     });
   }
 });

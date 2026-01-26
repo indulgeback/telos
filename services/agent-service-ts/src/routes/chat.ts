@@ -41,9 +41,11 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
     });
   }
 
-  logger.info("Chat request received", {
+  logger.info({
+    msg: "Chat request received",
     requestId,
     agentId,
+    messageLength: message.length,
     message: message.slice(0, 100),
   });
 
@@ -96,9 +98,17 @@ chatRouter.post("/chat", async (req: Request, res: Response) => {
       res.write("data: [DONE]\n\n");
     }
 
-    logger.info("Chat completed", { requestId, hasSentContent });
+    logger.info({
+      msg: "Chat completed",
+      requestId,
+      hasSentContent,
+    });
   } catch (error) {
-    logger.error("Chat error:", error);
+    logger.error({
+      msg: "Chat error",
+      requestId,
+      err: error,
+    });
     if (!res.writableEnded) {
       sendSSEError(
         res,
@@ -132,10 +142,12 @@ chatRouter.post("/agent", async (req: Request, res: Response) => {
   // 判断是否启用工具（默认启用）
   const shouldEnableTools = enableTools === undefined || enableTools === true;
 
-  logger.info("Chat request", {
+  logger.info({
+    msg: "Chat request",
     requestId,
     agentId,
     enableTools: shouldEnableTools,
+    messageLength: message.length,
     message: message.slice(0, 100),
   });
 
@@ -168,7 +180,11 @@ chatRouter.post("/agent", async (req: Request, res: Response) => {
             systemPrompt = agent.systemPrompt || systemPrompt;
           }
         } catch (error) {
-          logger.warn("Failed to get agent, using default prompt", { error, agentId });
+          logger.warn({
+            msg: "Failed to get agent, using default prompt",
+            agentId,
+            err: error,
+          });
         }
       }
 
@@ -183,7 +199,11 @@ chatRouter.post("/agent", async (req: Request, res: Response) => {
       res.write("data: [DONE]\n\n");
     }
   } catch (error) {
-    logger.error("Chat error:", error);
+    logger.error({
+      msg: "Chat error",
+      requestId,
+      err: error,
+    });
     if (!res.writableEnded) {
       sendSSEError(res, error instanceof Error ? error.message : "聊天服务错误");
     }

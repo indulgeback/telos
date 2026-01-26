@@ -36,7 +36,11 @@ async function getToolDisplayName(toolName: string): Promise<string> {
       return dbTool.displayName;
     }
   } catch (error) {
-    logger.warn(`Failed to get tool display name from database: ${error}`);
+    logger.warn({
+      msg: "Failed to get tool display name from database",
+      toolName,
+      err: error,
+    });
   }
 
   // 3. 找不到则返回工具名称本身
@@ -63,7 +67,12 @@ async function* streamChatEvents(
 
     // 2. 获取工具
     const tools = await toolService.getToolsForAgent(agentId);
-    logger.info(`Agent ${agentId} has ${tools.length} tools`);
+    logger.info({
+      msg: "Agent tools loaded",
+      agentId,
+      toolCount: tools.length,
+      toolNames: tools.map((t: any) => t.name),
+    });
 
     // 3. 创建 DeepSeek Chat Model
     const llm = new ChatDeepSeek({
@@ -86,7 +95,12 @@ async function* streamChatEvents(
       yield* streamSimpleChat(llm, messages);
     }
   } catch (error) {
-    logger.error("Chat error:", error);
+    logger.error({
+      msg: "Chat error",
+      agentId,
+      requestId,
+      err: error,
+    });
     yield {
       type: "error" as SSEEventType,
       error: error instanceof Error ? error.message : String(error),
@@ -125,9 +139,11 @@ async function* streamWithTools(
   // 第一步：调用 LLM 决定是否使用工具
   const response = await llmWithTools.invoke(augmentedMessages);
 
-  logger.info("LLM Response:", {
+  logger.info({
+    msg: "LLM response received",
+    requestId,
     hasContent: !!response.content,
-    toolCalls: response.tool_calls?.length || 0,
+    toolCallsCount: response.tool_calls?.length || 0,
   });
 
   // 如果没有工具调用，使用流式输出
@@ -176,7 +192,12 @@ async function* streamWithTools(
         const result = await tool.invoke(toolCall.args);
         toolResults.push({ toolCall, result });
 
-        logger.info("Tool result:", { toolName: toolCall.name, result });
+        logger.info({
+          msg: "Tool executed successfully",
+          requestId,
+          toolName: toolCall.name,
+          toolCallId,
+        });
 
         // 发送工具调用结束
         yield {
@@ -191,7 +212,13 @@ async function* streamWithTools(
           },
         };
       } catch (error) {
-        logger.error("Tool error:", error);
+        logger.error({
+          msg: "Tool execution error",
+          requestId,
+          toolName: toolCall.name,
+          toolCallId,
+          err: error,
+        });
         yield {
           type: "tool_call_error" as SSEEventType,
           toolCall: {
@@ -263,8 +290,11 @@ export class ChatService {
   async *chatStream(request: ChatRequestWithTools): AsyncGenerator<StreamChunk> {
     const requestId = `req-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-    logger.info(`Chat request: ${requestId}`, {
+    logger.info({
+      msg: "Chat stream started",
+      requestId,
       agentId: request.agentId,
+      messageLength: request.message.length,
       message: request.message.slice(0, 100),
     });
 

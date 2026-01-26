@@ -1,8 +1,8 @@
 import { Router, Request, Response } from "express";
 import { toolService } from "../services/toolService.js";
-import { db } from "../services/db.js";
 import { logger } from "../config/index.js";
-import type { ApiResponse, ToolListOptions } from "../types/index.js";
+import type { ToolListOptions } from "../types/index.js";
+import { serializeTools, serializeTool } from "../utils/serializer.js";
 
 export const toolsRouter = Router();
 
@@ -27,6 +27,14 @@ function getParamString(req: Request, key: string): string {
 /**
  * GET /api/tools
  * 获取工具列表
+ *
+ * 返回格式（与 Go 版本保持一致）:
+ * {
+ *   "tools": [...],
+ *   "total": 123,
+ *   "page": 1,
+ *   "page_size": 20
+ * }
  */
 toolsRouter.get("/", async (req: Request, res: Response) => {
   try {
@@ -35,23 +43,30 @@ toolsRouter.get("/", async (req: Request, res: Response) => {
       enabled: getQueryString(req, "enabled") === "true" ? true : getQueryString(req, "enabled") === "false" ? false : undefined,
       search: getQueryString(req, "search"),
       page: parseInt(getQueryString(req, "page") || "1"),
-      pageSize: parseInt(getQueryString(req, "pageSize") || "20"),
+      pageSize: parseInt(getQueryString(req, "page_size") || "20"),
     };
 
     const tools = await toolService.listTools(options);
 
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: tools,
-    };
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedTools = serializeTools(tools);
 
-    res.json(response);
+    const total = serializedTools.length; // 简化实现，实际应该从数据库获取总数
+
+    // 与 Go 版本保持一致的响应格式
+    res.status(200).json({
+      tools: serializedTools,
+      total: total,
+      page: options.page,
+      page_size: options.pageSize,
+    });
   } catch (error) {
-    logger.error("List tools error:", error);
+    logger.error({
+      msg: "List tools error",
+      err: error,
+    });
     res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "获取工具列表失败",
+      error: error instanceof Error ? error.message : "获取工具列表失败",
     });
   }
 });
@@ -67,23 +82,22 @@ toolsRouter.get("/:id", async (req: Request, res: Response) => {
 
     if (!tool) {
       return res.status(404).json({
-        code: 404,
-        message: "工具不存在",
+        error: "Tool not found",
       });
     }
 
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: tool,
-    };
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedTool = serializeTool(tool);
 
-    res.json(response);
+    res.status(200).json(serializedTool);
   } catch (error) {
-    logger.error("Get tool error:", error);
+    logger.error({
+      msg: "Get tool error",
+      toolId: getParamString(req, "id"),
+      err: error,
+    });
     res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "获取工具详情失败",
+      error: error instanceof Error ? error.message : "获取工具详情失败",
     });
   }
 });
@@ -95,19 +109,17 @@ toolsRouter.get("/:id", async (req: Request, res: Response) => {
 toolsRouter.post("/", async (req: Request, res: Response) => {
   try {
     const tool = await toolService.createTool(req.body);
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: tool,
-    };
-
-    res.status(201).json(response);
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedTool = serializeTool(tool);
+    res.status(201).json(serializedTool);
   } catch (error) {
-    logger.error("Create tool error:", error);
+    logger.error({
+      msg: "Create tool error",
+      toolName: req.body.name,
+      err: error,
+    });
     res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "创建工具失败",
+      error: error instanceof Error ? error.message : "创建工具失败",
     });
   }
 });
@@ -119,19 +131,17 @@ toolsRouter.post("/", async (req: Request, res: Response) => {
 toolsRouter.put("/:id", async (req: Request, res: Response) => {
   try {
     const tool = await toolService.updateTool(getParamString(req, "id"), req.body);
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: tool,
-    };
-
-    res.json(response);
+    // 转换为 snake_case 以匹配 Go 版本
+    const serializedTool = serializeTool(tool);
+    res.status(200).json(serializedTool);
   } catch (error) {
-    logger.error("Update tool error:", error);
+    logger.error({
+      msg: "Update tool error",
+      toolId: getParamString(req, "id"),
+      err: error,
+    });
     res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "更新工具失败",
+      error: error instanceof Error ? error.message : "更新工具失败",
     });
   }
 });
@@ -143,74 +153,15 @@ toolsRouter.put("/:id", async (req: Request, res: Response) => {
 toolsRouter.delete("/:id", async (req: Request, res: Response) => {
   try {
     await toolService.deleteTool(getParamString(req, "id"));
-
     res.status(204).send();
   } catch (error) {
-    logger.error("Delete tool error:", error);
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "删除工具失败",
+    logger.error({
+      msg: "Delete tool error",
+      toolId: getParamString(req, "id"),
+      err: error,
     });
-  }
-});
-
-// ========== Agent 工具关联接口 ==========
-
-/**
- * GET /api/agents/:id/tools
- * 获取 Agent 的工具
- */
-toolsRouter.get("/agents/:id/tools", async (req: Request, res: Response) => {
-  try {
-    const agentTools = await db.getAgentTools(getParamString(req, "id"));
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: agentTools,
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error("Get agent tools error:", error);
     res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "获取 Agent 工具失败",
-    });
-  }
-});
-
-/**
- * PUT /api/agents/:id/tools
- * 设置 Agent 的工具
- */
-toolsRouter.put("/agents/:id/tools", async (req: Request, res: Response) => {
-  try {
-    const { toolIds } = req.body;
-
-    if (!Array.isArray(toolIds)) {
-      return res.status(400).json({
-        code: 400,
-        message: "toolIds 必须是数组",
-      });
-    }
-
-    await db.setAgentTools(getParamString(req, "id"), toolIds);
-
-    // 清除缓存
-    toolService.clearCache(getParamString(req, "id"));
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "工具设置成功",
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error("Set agent tools error:", error);
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "设置 Agent 工具失败",
+      error: error instanceof Error ? error.message : "删除工具失败",
     });
   }
 });

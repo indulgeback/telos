@@ -1,127 +1,125 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError } from 'axios'
 import type {
   EndpointConfig,
   AuthConfig,
   ToolExecuteRequest,
   ToolExecuteResult,
-} from "../types/index.js";
+} from '../types/index.js'
+import { logger } from '../config/logger.js'
 
 // ========== 内部工具处理 ==========
 
 // 内部工具：计算器
 function handleCalculator(params: Record<string, any>): string {
-  const { operation, a, b } = params;
-  const numA = Number(a);
-  const numB = Number(b);
+  const { operation, a, b } = params
+  const numA = Number(a)
+  const numB = Number(b)
 
-  let result: number;
+  let result: number
   switch (operation) {
-    case "add":
-      result = numA + numB;
-      break;
-    case "subtract":
-      result = numA - numB;
-      break;
-    case "multiply":
-      result = numA * numB;
-      break;
-    case "divide":
+    case 'add':
+      result = numA + numB
+      break
+    case 'subtract':
+      result = numA - numB
+      break
+    case 'multiply':
+      result = numA * numB
+      break
+    case 'divide':
       if (numB === 0) {
-        throw new Error("Division by zero");
+        throw new Error('Division by zero')
       }
-      result = numA / numB;
-      break;
+      result = numA / numB
+      break
     default:
-      throw new Error(`Unknown operation: ${operation}`);
+      throw new Error(`Unknown operation: ${operation}`)
   }
 
-  return String(result);
+  return String(result)
 }
 
 // 内部工具：获取当前时间
 function handleGetCurrentTime(params: Record<string, any>): string {
-  const timezone = params.timezone || "Asia/Shanghai";
-  const now = new Date();
+  const timezone = params.timezone || 'Asia/Shanghai'
+  const now = new Date()
   const options: Intl.DateTimeFormatOptions = {
     timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
     hour12: false,
-  };
-  return now.toLocaleString("zh-CN", options);
+  }
+  return now.toLocaleString('zh-CN', options)
 }
 
 // ========== 通用工具执行器 ==========
 
 export class ToolExecutor {
-  private timeout: number;
+  private timeout: number
 
   constructor(timeout = 30000) {
-    this.timeout = timeout;
+    this.timeout = timeout
   }
 
   /**
    * 执行工具
    */
   async execute(request: ToolExecuteRequest): Promise<ToolExecuteResult> {
-    const startTime = Date.now();
-    const { tool, parameters } = request;
+    const startTime = Date.now()
+    const { tool, parameters } = request
 
     try {
-      let result: any;
+      let result: any
 
       // 处理内部工具
-      if (tool.endpoint.urlTemplate.startsWith("internal://")) {
-        result = this.executeInternalTool(tool, parameters);
+      if (tool.endpoint.urlTemplate.startsWith('internal://')) {
+        result = this.executeInternalTool(tool, parameters)
       }
       // 处理 HTTP 工具
       else {
-        result = await this.executeHttpTool(tool, parameters);
+        result = await this.executeHttpTool(tool, parameters)
       }
 
       // 应用响应转换
       if (tool.responseTransform) {
-        result = this.transformResponse(result, tool.responseTransform);
+        result = this.transformResponse(result, tool.responseTransform)
       }
 
-      const durationMs = Date.now() - startTime;
+      const durationMs = Date.now() - startTime
       return {
         success: true,
         data: result,
         durationMs,
-      };
+      }
     } catch (error) {
-      const durationMs = Date.now() - startTime;
+      const durationMs = Date.now() - startTime
       const errorMessage =
-        error instanceof Error ? error.message : String(error);
+        error instanceof Error ? error.message : String(error)
       return {
         success: false,
         errorMessage,
         durationMs,
-      };
+      }
     }
   }
 
   /**
    * 执行内部工具
    */
-  private executeInternalTool(
-    tool: any,
-    params: Record<string, any>
-  ): any {
-    const internalType = tool.endpoint.urlTemplate.replace("internal://", "");
+  private executeInternalTool(tool: any, params: Record<string, any>): any {
+    const internalType = tool.endpoint.urlTemplate.replace('internal://', '')
 
     switch (internalType) {
-      case "calculator":
-        return handleCalculator(params);
-      case "time":
-        return handleGetCurrentTime(params);
+      case 'calculator':
+        return handleCalculator(params)
+      case 'time':
+        return handleGetCurrentTime(params)
       default:
-        throw new Error(`Unknown internal tool: ${internalType}`);
+        throw new Error(`Unknown internal tool: ${internalType}`)
     }
   }
 
@@ -132,52 +130,60 @@ export class ToolExecutor {
     tool: any,
     params: Record<string, any>
   ): Promise<any> {
-    const { endpoint } = tool;
+    const { endpoint } = tool
 
     // 构建 URL
-    const url = this.buildUrl(endpoint.urlTemplate, params);
+    const url = this.buildUrl(endpoint.urlTemplate, params)
 
     // 构建请求头
-    const headers: Record<string, string> = { ...endpoint.headers };
+    const headers: Record<string, string> = { ...endpoint.headers }
 
     // 设置认证
-    this.setAuthHeaders(headers, endpoint.auth);
+    this.setAuthHeaders(headers, endpoint.auth)
 
     // 构建请求体
-    let body: any = undefined;
+    let body: any = undefined
     if (endpoint.bodyTemplate) {
-      body = this.renderTemplate(endpoint.bodyTemplate, params);
-      headers["Content-Type"] = "application/json";
+      body = this.renderTemplate(endpoint.bodyTemplate, params)
+      headers['Content-Type'] = 'application/json'
     }
 
+    logger.info({
+      msg: 'Executing HTTP tool',
+      toolName: tool.name,
+      method: endpoint.method,
+      url,
+      endpointTimeout: endpoint.timeout,
+    })
+
     // 执行 HTTP 请求
-    const timeout = endpoint.timeout || this.timeout;
+    const timeout = endpoint.timeout || this.timeout
     const response = await axios({
       method: endpoint.method,
       url,
       headers,
       data: body,
       timeout,
-    });
+    })
 
-    return response.data;
+    return response.data
   }
 
   /**
    * 构建 URL，支持参数替换
    */
   private buildUrl(template: string, params: Record<string, any>): string {
-    let url = template;
+    let url = template
 
     // 替换路径参数 {param}
     for (const [key, value] of Object.entries(params)) {
-      const placeholder = `{${key}}`;
+      const placeholder = `{${key}}`
       if (url.includes(placeholder)) {
-        url = url.replace(new RegExp(placeholder, "g"), String(value));
+        url = url.replace(new RegExp(placeholder, 'g'), String(value))
       }
     }
 
-    return url;
+    return url
   }
 
   /**
@@ -187,14 +193,14 @@ export class ToolExecutor {
     template: string,
     params: Record<string, any>
   ): string {
-    let result = template;
+    let result = template
     for (const [key, value] of Object.entries(params)) {
-      const placeholder = `{${key}}`;
+      const placeholder = `{${key}}`
       if (result.includes(placeholder)) {
-        result = result.replace(new RegExp(placeholder, "g"), String(value));
+        result = result.replace(new RegExp(placeholder, 'g'), String(value))
       }
     }
-    return result;
+    return result
   }
 
   /**
@@ -204,113 +210,119 @@ export class ToolExecutor {
     headers: Record<string, string>,
     auth?: AuthConfig
   ): void {
-    if (!auth) return;
+    if (!auth) return
 
     switch (auth.type) {
-      case "bearer":
-        if (auth.tokenEnv) {
-          const token = process.env[auth.tokenEnv];
-          if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-          }
+      case 'bearer':
+        // 优先使用直接存储的 token，其次从环境变量读取
+        const token = auth.token || (auth.tokenEnv ? process.env[auth.tokenEnv] : undefined)
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+          logger.debug({
+            msg: 'Bearer token added to headers',
+            hasToken: !!token,
+          })
+        } else {
+          logger.warn({
+            msg: 'No bearer token available',
+            hasDirectToken: !!auth.token,
+            hasTokenEnv: !!auth.tokenEnv,
+          })
         }
-        break;
-      case "api_key":
+        break
+      case 'api_key':
         if (auth.apiKey) {
-          headers["X-API-Key"] = auth.apiKey;
+          headers['X-API-Key'] = auth.apiKey
         }
-        break;
-      case "basic":
+        break
+      case 'basic':
         if (auth.username && auth.password) {
           const credentials = Buffer.from(
             `${auth.username}:${auth.password}`
-          ).toString("base64");
-          headers["Authorization"] = `Basic ${credentials}`;
+          ).toString('base64')
+          headers['Authorization'] = `Basic ${credentials}`
         }
-        break;
-      case "none":
+        break
+      case 'none':
       default:
-        break;
+        break
     }
   }
 
   /**
    * 应用响应转换
    */
-  private transformResponse(
-    data: any,
-    transform: any
-  ): any {
-    if (!transform) return data;
+  private transformResponse(data: any, transform: any): any {
+    if (!transform) return data
 
     // JSONPath 提取（简化实现）
-    if (transform.extract && transform.extract !== "$") {
-      data = this.extractJSONPath(data, transform.extract);
+    if (transform.extract && transform.extract !== '$') {
+      data = this.extractJSONPath(data, transform.extract)
     }
 
     // 格式转换
     if (transform.format) {
       switch (transform.format) {
-        case "text":
-          if (typeof data === "object") {
-            data = JSON.stringify(data, null, 2);
+        case 'text':
+          if (typeof data === 'object') {
+            data = JSON.stringify(data, null, 2)
           }
-          break;
-        case "markdown":
-          if (typeof data === "object") {
-            data = this.toMarkdown(data);
+          break
+        case 'markdown':
+          if (typeof data === 'object') {
+            data = this.toMarkdown(data)
           }
-          break;
+          break
       }
     }
 
     // 包装文本
-    if (transform.wrapperText && typeof data === "string") {
-      data = transform.wrapperText.replace("{content}", data);
+    if (transform.wrapperText && typeof data === 'string') {
+      data = transform.wrapperText.replace('{content}', data)
     }
 
-    return data;
+    return data
   }
 
   /**
    * 简化版 JSONPath 提取
    */
   private extractJSONPath(data: any, path: string): any {
-    if (path === "$" || !path) return data;
+    if (path === '$' || !path) return data
 
     // 移除前缀 $.
-    const cleanPath = path.replace(/^\$\./, "");
-    const parts = cleanPath.split(".");
+    const cleanPath = path.replace(/^\$\./, '')
+    const parts = cleanPath.split('.')
 
-    let current = data;
+    let current = data
     for (const part of parts) {
-      if (typeof current === "object" && current !== null) {
-        current = current[part];
+      if (typeof current === 'object' && current !== null) {
+        current = current[part]
       } else {
-        return data; // 路径无效，返回原始数据
+        return data // 路径无效，返回原始数据
       }
     }
 
-    return current;
+    return current
   }
 
   /**
    * 转换为 Markdown 格式
    */
   private toMarkdown(data: any): string {
-    if (typeof data !== "object" || data === null) {
-      return String(data);
+    if (typeof data !== 'object' || data === null) {
+      return String(data)
     }
 
     if (Array.isArray(data)) {
-      return data.map((item) => `- ${this.toMarkdown(item)}`).join("\n");
+      return data.map(item => `- ${this.toMarkdown(item)}`).join('\n')
     }
 
     return Object.entries(data)
       .map(([key, value]) => `**${key}**: ${this.toMarkdown(value)}`)
-      .join("\n");
+      .join('\n')
   }
 }
 
 // 导出单例
-export const toolExecutor = new ToolExecutor();
+export const toolExecutor = new ToolExecutor()

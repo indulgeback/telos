@@ -36,7 +36,8 @@ export interface EndpointConfig {
 // 认证配置
 export interface AuthConfig {
   type: AuthType;
-  tokenEnv?: string;
+  token?: string;           // 直接存储的 token
+  tokenEnv?: string;        // 从环境变量读取 token 的变量名
   apiKey?: string;
   username?: string;
   password?: string;

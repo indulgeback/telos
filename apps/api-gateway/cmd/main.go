@@ -50,6 +50,7 @@ func main() {
 	proxyManager := proxy.NewProxyManager(discovery)
 
 	// 加载路由配置
+	// 注意：更具体的路由应该放在前面，避免前缀匹配冲突
 	routes := []proxy.RouteConfig{
 		{
 			Path:        "/api/auth",
@@ -70,23 +71,25 @@ func main() {
 			Timeout:     10,
 		},
 		{
+			// 工具管理 API - 必须在 /api/agent 之前，避免前缀匹配冲突
+			Path:        "/api/tools",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     10,
+		},
+		{
+			// Agent 管理 API
 			Path:        "/api/agents",
 			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     10,
 		},
 		{
+			// 聊天 API - 必须放在最后，因为 /api/agent 是 /api/agents 的前缀
 			Path:        "/api/agent",
 			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     60,
-		},
-		{
-			// 工具管理 API - 列表、创建、详情、更新、删除
-			Path:        "/api/tools",
-			ServiceName: "agent-service",
-			StripPrefix: false,
-			Timeout:     10,
 		},
 	}
 	proxyManager.LoadRoutes(routes)

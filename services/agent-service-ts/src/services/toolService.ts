@@ -78,9 +78,47 @@ export class ToolService {
   private agentToolsCache = new Map<string, any[]>();
 
   /**
+   * 递归地将对象的键从 snake_case 转换为 camelCase
+   */
+  private snakeToCamel(obj: any): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.snakeToCamel(item));
+    }
+
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      // 将 snake_case 转换为 camelCase
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      result[camelKey] = this.snakeToCamel(value);
+    }
+    return result;
+  }
+
+  /**
+   * 标准化工具定义（将 snake_case 转换为 camelCase）
+   * 数据库存储使用 snake_case，但内部代码使用 camelCase
+   */
+  private normalizeToolDef(toolDef: any): any {
+    // 如果 endpoint 已经是 camelCase 格式，直接返回
+    if (toolDef.endpoint?.urlTemplate) {
+      return toolDef;
+    }
+
+    // 深拷贝并递归转换所有键
+    return this.snakeToCamel(toolDef);
+  }
+
+  /**
    * 创建 LangChain 工具（从数据库定义）
    */
   createLangChainTool(toolDef: ToolDefinition) {
+    // 标准化工具定义（snake_case -> camelCase）
+    toolDef = this.normalizeToolDef(toolDef);
+
     // 构建 Zod Schema
     const schemaShape: Record<string, z.ZodTypeAny> = {};
 
