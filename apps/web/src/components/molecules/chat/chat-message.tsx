@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from './button'
-import { Card } from './card'
+import { Button, Card, TypingIndicator, ChatAvatar } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
-import { TypingIndicator } from './typing-indicator'
-import { ChatAvatar } from './chat-avatar'
 import {
   Copy,
   Check,
@@ -33,6 +30,9 @@ export interface ChatMessageProps {
   // 工具调用 - 分为内容前和内容后
   toolCallsBefore?: ToolCall[]
   toolCallsAfter?: ToolCall[]
+  // 用户头像相关
+  userAvatarUrl?: string | null
+  userInitials?: string | null
 }
 
 // 工具调用状态组件（在气泡内部）
@@ -111,6 +111,8 @@ export function ChatMessage({
   retryLabel = 'Retry',
   toolCallsBefore = [],
   toolCallsAfter = [],
+  userAvatarUrl,
+  userInitials,
 }: ChatMessageProps) {
   const isAssistant = role === 'assistant'
   const hasContent = content.length > 0
@@ -220,7 +222,13 @@ export function ChatMessage({
         )}
       </div>
 
-      {!isAssistant && <ChatAvatar type='user' />}
+      {!isAssistant && (
+        <ChatAvatar
+          type='user'
+          imageUrl={userAvatarUrl}
+          initials={userInitials}
+        />
+      )}
     </div>
   )
 }

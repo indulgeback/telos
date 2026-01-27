@@ -1,14 +1,12 @@
 'use client'
 
 import type { RefObject } from 'react'
-import { Button } from '@/components/atoms'
 import {
-  ChatInput,
-  ChatInputAction,
-  ChatMessage,
+  Button,
   SuggestionPromptButton,
   type SuggestionPrompt,
 } from '@/components/atoms'
+import { ChatInput, ChatInputAction, ChatMessage } from '@/components/molecules'
 import { Sparkles, Bot } from 'lucide-react'
 import { AgentSelector } from './AgentSelector'
 import { Agent, type ToolCall } from '@/service/agent'
@@ -57,6 +55,9 @@ export interface ChatContainerProps {
   errorMessage: string
   // 输入框操作区域
   inputActions?: React.ReactNode
+  // 用户头像相关
+  userAvatarUrl?: string | null
+  userInitials?: string | null
 }
 
 export function ChatContainer({
@@ -88,6 +89,8 @@ export function ChatContainer({
   retryLabel,
   errorMessage,
   inputActions,
+  userAvatarUrl,
+  userInitials,
 }: ChatContainerProps) {
   return (
     <div className='flex h-full w-full flex-col overflow-hidden bg-linear-to-br from-background via-background to-muted/20'>
@@ -166,6 +169,8 @@ export function ChatContainer({
                     retryLabel={retryLabel}
                     toolCallsBefore={message.toolCallsBefore}
                     toolCallsAfter={message.toolCallsAfter}
+                    userAvatarUrl={userAvatarUrl}
+                    userInitials={userInitials}
                   />
                 )
               })}

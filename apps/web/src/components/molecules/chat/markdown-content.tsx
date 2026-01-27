@@ -8,7 +8,6 @@ import type { Components } from 'react-markdown'
 
 interface MarkdownContentProps {
   content: string
-  isStreaming?: boolean
 }
 
 export function MarkdownContent({ content }: MarkdownContentProps) {

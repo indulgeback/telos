@@ -6,7 +6,7 @@ import {
   TextareaHTMLAttributes,
   useState,
 } from 'react'
-import { Button } from './button'
+import { Button } from '@/components/atoms'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

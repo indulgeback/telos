@@ -5,12 +5,28 @@ import { Wrench } from 'lucide-react'
 import { agentService, type Agent, type ToolCall } from '@/service/agent'
 import { useTranslations } from 'next-intl'
 import { ChatContainer, type Message } from '@/components/organisms'
-import { ChatInputAction } from '@/components/atoms'
+import { ChatInputAction } from '@/components/molecules'
 import type { SuggestionPrompt } from '@/components/atoms'
 import { type StreamChunk } from '@/service/agent'
+import { authClient } from '@/lib/auth-client'
 
 export function ChatView() {
   const t = useTranslations('Chat')
+  const { data: session } = authClient.useSession()
+
+  // 计算用户头像和首字母
+  const userAvatarUrl = session?.user?.image || null
+  const userInitials = useMemo(() => {
+    if (!session?.user?.name) return null
+    return session?.user?.name
+      .trim()
+      .split(/\s+/) // 按一个或多个空白字符分割
+      .filter(Boolean) // 移除空字符串
+      .map(n => n[0]!) // 取首字母
+      .slice(0, 2) // 最多取两个首字母
+      .join('')
+      .toUpperCase()
+  }, [session?.user?.name])
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -233,6 +249,8 @@ export function ChatView() {
       errorMessage={t('error.message')}
       lastUserMessage={lastUserMessage}
       inputActions={inputActions}
+      userAvatarUrl={userAvatarUrl}
+      userInitials={userInitials}
     />
   )
 }
