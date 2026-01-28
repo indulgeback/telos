@@ -34,7 +34,7 @@ app.get("/health", async (_req: Request, res: Response) => {
   res.status(isHealthy ? 200 : 503).json({
     status: isHealthy ? "healthy" : "unhealthy",
     time: new Date().toISOString(),
-    service: "agent-service-ts",
+    service: "agent-service",
   });
 });
 
@@ -44,7 +44,7 @@ app.get("/ready", async (_req: Request, res: Response) => {
 
 app.get("/info", (_req: Request, res: Response) => {
   res.json({
-    service: "agent-service-ts",
+    service: "agent-service",
     version: "1.0.0",
     framework: "langchain.js",
     model: "deepseek",

@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
   # 数据库服务
@@ -10,13 +10,13 @@ services:
       POSTGRES_USER: telos
       POSTGRES_PASSWORD: telos123
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - telos-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U telos"]
+      test: ['CMD-SHELL', 'pg_isready -U telos']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,13 +26,13 @@ services:
     image: redis:7-alpine
     container_name: telos-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     networks:
       - telos-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,7 +44,7 @@ services:
       dockerfile: apps/registry/Dockerfile
     container_name: telos-registry
     ports:
-      - "8090:8090"
+      - '8090:8090'
     environment:
       - PORT=8090
       - NODE_ENV=production
@@ -53,12 +53,12 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8090/health",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8090/health',
         ]
       interval: 30s
       timeout: 10s
@@ -71,7 +71,7 @@ services:
       dockerfile: apps/api-gateway/Dockerfile
     container_name: telos-api-gateway
     ports:
-      - "8890:8890"
+      - '8890:8890'
     environment:
       - PORT=8890
       - REGISTRY_URL=http://registry:8090
@@ -84,12 +84,12 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8890/ping",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8890/ping',
         ]
       interval: 30s
       timeout: 10s
@@ -102,7 +102,7 @@ services:
       dockerfile: services/auth-service/Dockerfile
     container_name: telos-auth-service
     ports:
-      - "8081:8081"
+      - '8081:8081'
     environment:
       - PORT=8081
       - DB_HOST=postgres
@@ -125,12 +125,12 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8081/health",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8081/health',
         ]
       interval: 30s
       timeout: 10s
@@ -143,7 +143,7 @@ services:
       dockerfile: services/user-service/Dockerfile
     container_name: telos-user-service
     ports:
-      - "8082:8082"
+      - '8082:8082'
     environment:
       - PORT=8082
       - DB_HOST=postgres
@@ -166,12 +166,12 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8082/health",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8082/health',
         ]
       interval: 30s
       timeout: 10s
@@ -184,7 +184,7 @@ services:
       dockerfile: services/workflow-service/Dockerfile
     container_name: telos-workflow-service
     ports:
-      - "8083:8083"
+      - '8083:8083'
     environment:
       - PORT=8083
       - DB_HOST=postgres
@@ -207,47 +207,48 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8083/health",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8083/health',
         ]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Agent 服务
+  # Agent 服务 (TypeScript/LangChain)
   agent-service:
     build:
       context: .
       dockerfile: services/agent-service/Dockerfile
     container_name: telos-agent-service
     ports:
-      - "8895:8895"
+      - '8895:8895'
     environment:
+      - NODE_ENV=production
       - PORT=8895
-      - ENV=production
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
-      - LOG_LEVEL=info
-      - LOG_FORMAT=json
+      - DATABASE_URL=${DATABASE_URL:-postgresql://telos:telos123@postgres:5432/telos?schema=public}q
       - REGISTRY_URL=http://registry:8090
     depends_on:
       registry:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - telos-network
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8895/health",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8895/health',
         ]
       interval: 30s
       timeout: 10s
@@ -260,7 +261,7 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: telos-web
     ports:
-      - "8800:8800"
+      - '8800:8800'
     environment:
       - PORT=8800
       - NEXT_PUBLIC_API_URL=http://localhost:8890
@@ -277,12 +278,12 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8800",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8800',
         ]
       interval: 30s
       timeout: 10s
@@ -296,7 +297,7 @@ services:
       target: metro
     container_name: telos-mobile-metro
     ports:
-      - "8081:8081"
+      - '8081:8081'
     environment:
       - NODE_ENV=development
     networks:
