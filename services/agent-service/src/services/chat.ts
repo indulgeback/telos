@@ -341,6 +341,9 @@ export async function runChatWithBuiltInTools(
       : []
 
     if (!toolCalls.length) {
+      if (step > 0) {
+        return await baseModel.stream(conversation)
+      }
       return createSingleChunkStream(aiMessage.content)
     }
 
