@@ -12,7 +12,6 @@ interface MarkdownContentProps {
 
 export function MarkdownContent({ content }: MarkdownContentProps) {
   const components: Components = {
-    // 代码块
     pre: ({ children, className, ...props }) => (
       <pre
         className='bg-muted rounded-lg p-4 overflow-x-auto text-sm'
@@ -21,7 +20,6 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         {children}
       </pre>
     ),
-    // 行内代码
     code: ({ className, children, ...props }) => {
       const match = /language-(\w+)/.exec(className || '')
       return match ? (
@@ -37,13 +35,11 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         </code>
       )
     },
-    // 段落
     p: ({ children, ...props }) => (
       <p className='mb-4 last:mb-0' {...props}>
         {children}
       </p>
     ),
-    // 标题
     h1: ({ children, ...props }) => (
       <h1 className='text-xl font-bold mb-4 mt-6 first:mt-0' {...props}>
         {children}
@@ -64,7 +60,6 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         {children}
       </h4>
     ),
-    // 列表
     ul: ({ children, ...props }) => (
       <ul className='list-disc list-inside mb-4 space-y-1' {...props}>
         {children}
@@ -80,7 +75,6 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         {children}
       </li>
     ),
-    // 引用
     blockquote: ({ children, ...props }) => (
       <blockquote
         className='border-l-4 border-muted-foreground/30 pl-4 italic text-muted-foreground mb-4'
@@ -89,9 +83,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         {children}
       </blockquote>
     ),
-    // 分隔线
     hr: props => <hr className='my-4 border-border' {...props} />,
-    // 链接
     a: ({ children, href, ...props }) => (
       <a
         className='text-primary hover:underline'
@@ -103,7 +95,6 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         {children}
       </a>
     ),
-    // 表格
     table: ({ children, ...props }) => (
       <div className='overflow-x-auto mb-4'>
         <table className='min-w-full border-collapse' {...props}>
@@ -132,7 +123,6 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         {children}
       </td>
     ),
-    // 强调
     strong: ({ children, ...props }) => (
       <strong className='font-semibold' {...props}>
         {children}
@@ -146,14 +136,12 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
   }
 
   return (
-    <div>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
-        components={components}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeHighlight]}
+      components={components}
+    >
+      {content}
+    </ReactMarkdown>
   )
 }

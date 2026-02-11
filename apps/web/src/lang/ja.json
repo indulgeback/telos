@@ -31,6 +31,22 @@
       "creativeIdeas": {
         "label": "創造的なひらめき",
         "prompt": "製品イノベーションについてのアドバイスを教えてください"
+      },
+      "dailyPlan": {
+        "label": "今日の予定",
+        "prompt": "今日のやることリストを作って、優先順に並べてください"
+      },
+      "quickSummary": {
+        "label": "クイックサマリー",
+        "prompt": "この内容を三つのポイントにまとめてください"
+      },
+      "writeReply": {
+        "label": "返信を書いてください",
+        "prompt": "礼儀正しく、簡潔な返信を書いてください"
+      },
+      "makeDecision": {
+        "label": "私の決断を手伝ってください",
+        "prompt": "簡単なメリット・デメリットの分析を教えて、そしておすすめの選択肢を教えてください"
       }
     },
     "input": {
@@ -517,7 +533,6 @@
       "private": "私有",
       "system": "システム"
     },
-    "configureTools": "配置ツール",
     "form": {
       "description": "エージェント情報を入力する",
       "name": "エージェント名",
@@ -554,7 +569,8 @@
       "description": "あなたの最初のAIエージェントを作成して始めましょう"
     },
     "created": "作成日",
-    "systemAgentReadOnly": "システムエージェントは編集できません"
+    "systemAgentReadOnly": "システムエージェントは編集できません",
+    "configureTools": "配置ツール"
   },
   "WorkflowsPage": {
     "hero": {
@@ -893,6 +909,11 @@
     },
     "noParameters": "このツールにはパラメータが定義されていません",
     "endpoint": "API エンドポイント",
-    "parameters": "パラメータ"
+    "parameters": "パラメータ",
+    "searchTools": "検索ツール...",
+    "totalTools": "合計 {count} 個のツール",
+    "selected": "{count} 個選択済み",
+    "toolCategories": "工具の分類",
+    "noToolsFound": "一致するツールが見つかりません"
   }
 }

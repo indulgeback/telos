@@ -1,238 +1,477 @@
-import { Router, Request, Response } from "express";
-import { chatService } from "../services/chatService.js";
-import { logger } from "../config/index.js";
+import { Router, Request, Response } from 'express'
+import {
+  AIMessageChunk,
+  BaseMessage,
+  HumanMessage,
+  ToolMessage,
+} from '@langchain/core/messages'
+import { ChatOpenAI } from '@langchain/openai'
+import { DynamicTool } from '@langchain/core/tools'
+import { createUIMessageStreamResponse } from 'ai'
+import { toBaseMessages, toUIMessageStream } from '@ai-sdk/langchain'
+import { config, logger } from '../config/index.js'
 
-export const chatRouter = Router();
+export const chatRouter = Router()
 
-// ========== SSE 辅助函数 ==========
-
-function sendSSEData(res: Response, data: any) {
-  res.write(`data: ${JSON.stringify(data)}\n\n`);
+function createModel() {
+  const baseURL = config.aiBaseUrl || undefined
+  return new ChatOpenAI({
+    apiKey: config.aiApiKey,
+    model: config.aiModel,
+    temperature: 0.7,
+    configuration: baseURL ? { baseURL } : undefined,
+  })
 }
 
-function sendSSEError(res: Response, error: string) {
-  res.write(`data: ${JSON.stringify({ error })}\n\n`);
+function extractExpression(input: string): string | null {
+  const trimmed = input.trim()
+  const prefixed = /^(calc|计算|计算器)[:：\s]+(.+)$/i
+  const prefixedMatch = trimmed.match(prefixed)
+  if (prefixedMatch?.[2]) return prefixedMatch[2].trim()
+
+  if (/^[\d\s()+\-*/.]+$/.test(trimmed)) return trimmed
+  return null
 }
 
-// ========== 聊天接口 ==========
+function tokenize(expression: string): (number | string)[] {
+  const tokens: (number | string)[] = []
+  const cleaned = expression.replace(/\s+/g, '')
+  let i = 0
 
-/**
- * POST /api/chat
- * 流式聊天接口（SSE）
- *
- * 请求头：
- * - X-Agent-ID: Agent ID（可选）
- *
- * 请求体：
- * {
- *   "message": "用户消息"
- * }
- */
-chatRouter.post("/chat", async (req: Request, res: Response) => {
-  const requestId = req.header("X-Request-ID") || `req-${Date.now()}`;
-  const agentId = req.header("X-Agent-ID") || "";
-  const { message } = req.body;
+  while (i < cleaned.length) {
+    const char = cleaned[i]
 
-  // 验证请求
-  if (!message || typeof message !== "string") {
-    return res.status(400).json({
-      code: 400,
-      message: "消息不能为空",
-    });
-  }
-
-  logger.info({
-    msg: "Chat request received",
-    requestId,
-    agentId,
-    messageLength: message.length,
-    message: message.slice(0, 100),
-  });
-
-  // 设置 SSE 响应头
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no");
-
-  try {
-    let hasSentContent = false;
-
-    if (agentId) {
-      // 带工具的聊天
-      for await (const chunk of chatService.chatStream({
-        agentId,
-        message,
-        userId: "", // TODO: 从 session 获取
-      })) {
-        // 发送数据
-        sendSSEData(res, chunk);
-
-        if (chunk.content) {
-          hasSentContent = true;
-        }
-
-        // 检查是否完成
-        if (chunk.done) {
-          break;
+    if ((char >= '0' && char <= '9') || char === '.') {
+      let numberText = char
+      i += 1
+      while (i < cleaned.length) {
+        const next = cleaned[i]
+        if ((next >= '0' && next <= '9') || next === '.') {
+          numberText += next
+          i += 1
+        } else {
+          break
         }
       }
-    } else {
-      // 简单聊天（无工具）
-      for await (const chunk of chatService.simpleChat(message)) {
-        sendSSEData(res, chunk);
+      const value = Number(numberText)
+      if (!Number.isFinite(value)) {
+        throw new Error('Invalid number')
+      }
+      tokens.push(value)
+      continue
+    }
 
-        if (chunk.content) {
-          hasSentContent = true;
-        }
-
-        if (chunk.done) {
-          break;
+    if (
+      char === '-' &&
+      (tokens.length === 0 ||
+        (typeof tokens[tokens.length - 1] === 'string' &&
+          tokens[tokens.length - 1] !== ')'))
+    ) {
+      let numberText = '-'
+      i += 1
+      while (i < cleaned.length) {
+        const next = cleaned[i]
+        if ((next >= '0' && next <= '9') || next === '.') {
+          numberText += next
+          i += 1
+        } else {
+          break
         }
       }
+      const value = Number(numberText)
+      if (!Number.isFinite(value)) {
+        throw new Error('Invalid number')
+      }
+      tokens.push(value)
+      continue
     }
 
-    // 发送完成标记
-    if (!res.writableEnded) {
-      sendSSEData(res, { done: true });
-      res.write("data: [DONE]\n\n");
+    if ('+-*/()'.includes(char)) {
+      tokens.push(char)
+      i += 1
+      continue
     }
 
-    logger.info({
-      msg: "Chat completed",
-      requestId,
-      hasSentContent,
-    });
-  } catch (error) {
-    logger.error({
-      msg: "Chat error",
-      requestId,
-      err: error,
-    });
-    if (!res.writableEnded) {
-      sendSSEError(
-        res,
-        error instanceof Error ? error.message : "聊天服务错误"
-      );
-    }
-  } finally {
-    res.end();
+    throw new Error('Invalid character')
   }
-});
 
-// ========== 兼容接口（与 Go 版本保持一致） ==========
+  return tokens
+}
+
+function toRpn(tokens: (number | string)[]): (number | string)[] {
+  const output: (number | string)[] = []
+  const operators: string[] = []
+
+  const precedence: Record<string, number> = {
+    '+': 1,
+    '-': 1,
+    '*': 2,
+    '/': 2,
+  }
+
+  for (const token of tokens) {
+    if (typeof token === 'number') {
+      output.push(token)
+      continue
+    }
+
+    if (token === '(') {
+      operators.push(token)
+      continue
+    }
+
+    if (token === ')') {
+      while (operators.length) {
+        const op = operators.pop()!
+        if (op === '(') break
+        output.push(op)
+      }
+      continue
+    }
+
+    while (operators.length) {
+      const op = operators[operators.length - 1]
+      if (op === '(') break
+      if (precedence[op] >= precedence[token]) {
+        output.push(operators.pop()!)
+      } else {
+        break
+      }
+    }
+    operators.push(token)
+  }
+
+  while (operators.length) {
+    const op = operators.pop()!
+    if (op === '(' || op === ')') {
+      throw new Error('Mismatched parentheses')
+    }
+    output.push(op)
+  }
+
+  return output
+}
+
+function evalRpn(tokens: (number | string)[]): number {
+  const stack: number[] = []
+
+  for (const token of tokens) {
+    if (typeof token === 'number') {
+      stack.push(token)
+      continue
+    }
+
+    const b = stack.pop()
+    const a = stack.pop()
+
+    if (a === undefined || b === undefined) {
+      throw new Error('Invalid expression')
+    }
+
+    switch (token) {
+      case '+':
+        stack.push(a + b)
+        break
+      case '-':
+        stack.push(a - b)
+        break
+      case '*':
+        stack.push(a * b)
+        break
+      case '/':
+        if (b === 0) throw new Error('Division by zero')
+        stack.push(a / b)
+        break
+      default:
+        throw new Error('Unsupported operator')
+    }
+  }
+
+  if (stack.length !== 1 || !Number.isFinite(stack[0])) {
+    throw new Error('Invalid expression')
+  }
+
+  return stack[0]
+}
+
+function extractTextFromMessage(raw: unknown): string {
+  if (typeof raw === 'string') return raw
+  if (!raw || typeof raw !== 'object') return ''
+
+  const message = raw as {
+    role?: string
+    content?: unknown
+    parts?: Array<{ type?: string; text?: string }>
+  }
+
+  if (typeof message.content === 'string') {
+    return message.content
+  }
+
+  if (Array.isArray(message.parts)) {
+    const text = message.parts
+      .filter(part => part?.type === 'text' && typeof part.text === 'string')
+      .map(part => part.text)
+      .join('')
+    if (text) return text
+  }
+
+  if (Array.isArray(message.content)) {
+    const text = message.content
+      .filter(
+        part =>
+          part &&
+          typeof part === 'object' &&
+          (part as { type?: string }).type === 'text' &&
+          typeof (part as { text?: unknown }).text === 'string'
+      )
+      .map(part => (part as { text: string }).text)
+      .join('')
+    if (text) return text
+  }
+
+  return ''
+}
+
+function normalizeToolInput(args: unknown): string {
+  if (typeof args === 'string') return args
+  if (typeof args === 'number' || typeof args === 'boolean') return String(args)
+
+  if (args && typeof args === 'object') {
+    const obj = args as Record<string, unknown>
+    const candidates = ['input', 'expression', 'query', 'text', 'value']
+    for (const key of candidates) {
+      if (typeof obj[key] === 'string' && obj[key].trim()) {
+        return obj[key]
+      }
+    }
+    return JSON.stringify(obj)
+  }
+
+  return ''
+}
+
+function createBuiltinTools() {
+  const timeTool = new DynamicTool({
+    name: 'get_current_time',
+    description:
+      'Get current date and time in Chinese locale. Input can be empty.',
+    func: async () => {
+      const formatter = new Intl.DateTimeFormat('zh-CN', {
+        dateStyle: 'full',
+        timeStyle: 'medium',
+      })
+      return `当前时间：${formatter.format(new Date())}`
+    },
+  })
+
+  const calculatorTool = new DynamicTool({
+    name: 'calculator',
+    description:
+      'Calculate arithmetic expressions with + - * / and parentheses. Input should be a plain math expression.',
+    func: async input => {
+      const expression = extractExpression(input)
+      if (!expression) {
+        return '计算失败，请提供可计算表达式。'
+      }
+
+      try {
+        const tokens = tokenize(expression)
+        const rpn = toRpn(tokens)
+        const result = evalRpn(rpn)
+        return `计算结果：${result}`
+      } catch (error) {
+        logger.warn({
+          msg: 'Calculator tool error',
+          expression,
+          err: error instanceof Error ? error.message : String(error),
+        })
+        return '计算失败，请检查表达式格式。'
+      }
+    },
+  })
+
+  return [timeTool, calculatorTool]
+}
+
+async function runWithTools(inputMessages: BaseMessage[]) {
+  const tools = createBuiltinTools()
+  const baseModel = createModel()
+  const modelWithTools = baseModel.bindTools(tools)
+  const toolMap = new Map(tools.map(tool => [tool.name, tool]))
+  const conversation: BaseMessage[] = [...inputMessages]
+  const maxSteps = 6
+
+  for (let step = 0; step < maxSteps; step += 1) {
+    const aiMessage = await modelWithTools.invoke(conversation)
+
+    const toolCalls = Array.isArray(aiMessage.tool_calls)
+      ? aiMessage.tool_calls
+      : []
+
+    if (!toolCalls.length) {
+      return await baseModel.stream(conversation)
+    }
+    conversation.push(aiMessage)
+
+    for (const call of toolCalls) {
+      const tool = toolMap.get(call.name)
+      if (!tool) {
+        conversation.push(
+          new ToolMessage({
+            tool_call_id: call.id ?? `missing-tool-${step}`,
+            content: `工具 ${call.name} 不存在。`,
+          })
+        )
+        continue
+      }
+
+      const normalizedInput = normalizeToolInput(call.args)
+      logger.info({
+        msg: 'Tool called',
+        toolName: call.name,
+        step,
+        input: normalizedInput,
+      })
+
+      const toolResult = await tool.invoke(normalizedInput)
+      const toolContent =
+        typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult)
+
+      conversation.push(
+        new ToolMessage({
+          tool_call_id: call.id ?? `${call.name}-${step}`,
+          content: toolContent,
+        })
+      )
+    }
+  }
+
+  const fallbackStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        new AIMessageChunk({
+          content:
+            '我尝试调用工具处理你的请求，但步骤超出上限。请换个问法再试一次。',
+        })
+      )
+      controller.close()
+    },
+  })
+  return fallbackStream
+}
+
+async function sendStreamResponse(
+  res: Response,
+  stream: ReadableStream | AsyncIterable<AIMessageChunk>
+) {
+  const uiStream = toUIMessageStream(stream)
+  const response = createUIMessageStreamResponse({ stream: uiStream })
+
+  res.status(response.status)
+  response.headers.forEach((value, key) => {
+    res.setHeader(key, value)
+  })
+
+  if (!response.body) {
+    res.end()
+    return
+  }
+
+  const reader = response.body.getReader()
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    res.write(Buffer.from(value))
+  }
+  res.end()
+}
 
 /**
  * POST /api/agent
- * 与 /chat 相同的接口，保持与 Go 版本的兼容性
+ * AI SDK data stream response
  */
-chatRouter.post("/agent", async (req: Request, res: Response) => {
-  const requestId = req.header("X-Request-ID") || `req-${Date.now()}`;
-  const agentId = req.header("X-Agent-ID") || "";
-  const { message, enable_tools: enableTools } = req.body;
-
-  // 验证请求
-  if (!message || typeof message !== "string") {
-    return res.status(400).json({
-      code: 400,
-      message: "消息不能为空",
-    });
-  }
-
-  // 判断是否启用工具（默认启用）
-  const shouldEnableTools = enableTools === undefined || enableTools === true;
-
-  logger.info({
-    msg: "Chat request",
-    requestId,
-    agentId,
-    enableTools: shouldEnableTools,
-    messageLength: message.length,
-    message: message.slice(0, 100),
-  });
-
-  // 设置 SSE 响应头
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no");
+async function handleChat(req: Request, res: Response) {
+  const requestId = req.header('X-Request-ID') || `req-${Date.now()}`
 
   try {
-    if (agentId && shouldEnableTools) {
-      // 带工具的聊天
-      for await (const chunk of chatService.chatStream({
-        agentId,
-        message,
-        userId: "",
-      })) {
-        sendSSEData(res, chunk);
-        if (chunk.done) break;
-      }
-    } else {
-      // 简单聊天（无工具）
-      // 如果有 agentId 但禁用了工具，使用 agent 的 system prompt
-      let systemPrompt = "你是一个友好、专业的 AI 助手，可以帮助用户解答各种问题。";
+    const { messages, message } = req.body || {}
+    const hasUiMessages = Array.isArray(messages) && messages.length > 0
+    const fallbackMessage = hasUiMessages
+      ? ([...messages]
+          .reverse()
+          .find(
+            raw =>
+              raw &&
+              typeof raw === 'object' &&
+              (raw as { role?: string }).role === 'user'
+          ) ?? messages[messages.length - 1])
+      : undefined
+    const candidate = message ?? fallbackMessage
+    const lastMessageText = extractTextFromMessage(candidate).trim()
 
-      if (agentId && !shouldEnableTools) {
-        try {
-          const agent = await chatService.getAgentForChat(agentId);
-          if (agent) {
-            systemPrompt = agent.systemPrompt || systemPrompt;
-          }
-        } catch (error) {
-          logger.warn({
-            msg: "Failed to get agent, using default prompt",
-            agentId,
-            err: error,
-          });
-        }
-      }
-
-      for await (const chunk of chatService.simpleChatWithPrompt(message, systemPrompt)) {
-        sendSSEData(res, chunk);
-        if (chunk.done) break;
-      }
+    if (!candidate || !lastMessageText) {
+      res.status(400).json({
+        code: 400,
+        message: '消息不能为空',
+      })
+      return
     }
 
-    if (!res.writableEnded) {
-      sendSSEData(res, { done: true });
-      res.write("data: [DONE]\n\n");
-    }
+    logger.info({
+      msg: 'Chat request received',
+      requestId,
+      messageLength: lastMessageText.length,
+    })
+
+    const inputMessages = hasUiMessages
+      ? await toBaseMessages(messages)
+      : [new HumanMessage(lastMessageText)]
+
+    const stream = await runWithTools(inputMessages as BaseMessage[])
+    await sendStreamResponse(res, stream)
   } catch (error) {
     logger.error({
-      msg: "Chat error",
+      msg: 'Chat error',
       requestId,
-      err: error,
-    });
-    if (!res.writableEnded) {
-      sendSSEError(res, error instanceof Error ? error.message : "聊天服务错误");
+      err: error instanceof Error ? error.message : String(error),
+    })
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        code: 500,
+        message: '聊天服务错误',
+      })
+    } else {
+      res.end()
     }
-  } finally {
-    res.end();
   }
-});
+}
+
+chatRouter.post('/', handleChat)
+
+chatRouter.post('/chat', async (req: Request, res: Response) => {
+  await handleChat(req, res)
+})
 
 // ========== 健康检查 ==========
 
-chatRouter.get("/health", (_req: Request, res: Response) => {
+chatRouter.get('/health', (_req: Request, res: Response) => {
   res.json({
-    status: "healthy",
+    status: 'healthy',
     time: new Date().toISOString(),
-    service: "agent-service",
-  });
-});
+    service: 'agent-service',
+  })
+})
 
-chatRouter.get("/ready", (_req: Request, res: Response) => {
-  res.json({
-    status: "ready",
-  });
-});
+chatRouter.get('/ready', (_req: Request, res: Response) => {
+  res.json({ status: 'ready' })
+})
 
-chatRouter.get("/info", (_req: Request, res: Response) => {
+chatRouter.get('/info', (_req: Request, res: Response) => {
   res.json({
-    service: "agent-service",
-    version: "1.0.0",
-    framework: "langchain.js",
-    model: "deepseek",
-  });
-});
+    service: 'agent-service',
+    version: '1.0.0',
+    framework: 'ai-sdk + langchain',
+  })
+})

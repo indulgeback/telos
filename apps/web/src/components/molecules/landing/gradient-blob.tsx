@@ -18,9 +18,12 @@ interface GradientBlobProps {
 }
 
 const colorMap = {
-  primary: 'from-emerald-500/40 dark:from-emerald-400/30',
-  secondary: 'from-teal-400/30 dark:from-teal-500/20',
-  accent: 'from-green-600/25 dark:from-emerald-600/15',
+  primary:
+    'from-[#4285F4]/55 via-[#9B51E0]/40 to-transparent dark:from-[#4285F4]/35 dark:via-[#9B51E0]/25',
+  secondary:
+    'from-[#34A853]/45 via-[#4285F4]/35 to-transparent dark:from-[#34A853]/30 dark:via-[#4285F4]/25',
+  accent:
+    'from-[#C8B27C]/40 via-[#9B51E0]/25 to-transparent dark:from-[#C8B27C]/25 dark:via-[#9B51E0]/20',
 }
 
 const sizeMap = {
@@ -63,7 +66,7 @@ export function GradientBlob({
     <div
       ref={blobRef}
       className={cn(
-        'absolute bg-gradient-to-br to-transparent rounded-full blur-[100px] opacity-80 pointer-events-none',
+        'absolute bg-gradient-to-br rounded-full blur-[100px] opacity-80 pointer-events-none',
         colorMap[color],
         sizeMap[size],
         positionMap[position],

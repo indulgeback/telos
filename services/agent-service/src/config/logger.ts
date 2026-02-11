@@ -43,18 +43,18 @@ function createLogger(config: LoggerConfig) {
     },
   };
 
-  // 开发环境：使用 pino-pretty 美化输出
+  // 开发环境：使用 pino-pretty 美化输出（单行格式）
   if (isDevelopment) {
     const prettyStream = pinoPretty({
       colorize: config.colorize,
       levelFirst: true,
       translateTime: config.translateTime ? 'SYS:standard' : false,
       ignore: 'pid,hostname',
-      singleLine: false,
+      singleLine: true,  // 改为 true，单行输出
       messageFormat: (log, messageKey) => {
         const msg = log[messageKey];
         if (typeof msg === 'object') {
-          return JSON.stringify(msg, null, 2);
+          return JSON.stringify(msg);  // 移除格式化，单行输出
         }
         return msg as string;
       },

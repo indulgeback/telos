@@ -31,6 +31,22 @@
       "creativeIdeas": {
         "label": "Creative Inspiration",
         "prompt": "Give me some advice on product innovation"
+      },
+      "dailyPlan": {
+        "label": "Today's Schedule",
+        "prompt": "Help me make a to-do list for today and prioritize it."
+      },
+      "quickSummary": {
+        "label": "Quick Summary",
+        "prompt": "Please help me summarize this content into three points."
+      },
+      "writeReply": {
+        "label": "Write a reply",
+        "prompt": "Help me write a polite and concise reply"
+      },
+      "makeDecision": {
+        "label": "Help me make a decision",
+        "prompt": "Give me a simple analysis of the pros and cons, and recommend a choice."
       }
     },
     "input": {
@@ -517,7 +533,6 @@
       "private": "Private",
       "system": "System"
     },
-    "configureTools": "Configuration Tool",
     "form": {
       "description": "Fill in Agent information",
       "name": "Agent Name",
@@ -554,7 +569,8 @@
       "description": "Create your first AI Agent to get started"
     },
     "created": "Created at",
-    "systemAgentReadOnly": "System agents cannot be edited"
+    "systemAgentReadOnly": "System agents cannot be edited",
+    "configureTools": "Configuration Tool"
   },
   "WorkflowsPage": {
     "hero": {
@@ -893,6 +909,11 @@
     },
     "noParameters": "This tool does not have defined parameters",
     "endpoint": "API Endpoint",
-    "parameters": "Parameter"
+    "parameters": "Parameter",
+    "searchTools": "Search tools...",
+    "totalTools": "A total of {count} tools",
+    "selected": "{count} selected",
+    "toolCategories": "Tool Classification",
+    "noToolsFound": "No matching tool found"
   }
 }

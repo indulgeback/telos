@@ -1,14 +1,28 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Wrench } from 'lucide-react'
-import { agentService, type Agent, type ToolCall } from '@/service/agent'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { useTranslations } from 'next-intl'
 import { ChatContainer, type Message } from '@/components/organisms'
-import { ChatInputAction } from '@/components/molecules'
 import type { SuggestionPrompt } from '@/components/atoms'
-import { type StreamChunk } from '@/service/agent'
 import { authClient } from '@/lib/auth-client'
+import { API_BASE_URL } from '@/service/request'
+
+const isTextPart = (part: unknown): part is { type: 'text'; text: string } => {
+  return (
+    !!part &&
+    typeof part === 'object' &&
+    (part as { type?: string }).type === 'text' &&
+    typeof (part as { text?: unknown }).text === 'string'
+  )
+}
+
+const isRenderableMessage = <T extends { role: string }>(
+  message: T
+): message is T & { role: 'user' | 'assistant' } => {
+  return message.role === 'user' || message.role === 'assistant'
+}
 
 export function ChatView() {
   const t = useTranslations('Chat')
@@ -27,89 +41,128 @@ export function ChatView() {
       .join('')
       .toUpperCase()
   }, [session?.user?.name])
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-  const [lastUserMessage, setLastUserMessage] = useState<string>('')
+
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [enableTools, setEnableTools] = useState(true) // 工具调用开关
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [input, setInput] = useState('')
+
+  const { messages, status, setMessages, sendMessage, regenerate } = useChat({
+    transport: new DefaultChatTransport({
+      api: `${API_BASE_URL}/api/agent`,
+      credentials: 'include',
+    }),
+  })
 
   const suggestionPrompts = useMemo(
     (): SuggestionPrompt[] => [
       {
-        icon: '🚀',
-        label: t('suggestions.newProject.label'),
-        prompt: t('suggestions.newProject.prompt'),
+        icon: '🍽️',
+        label: t('suggestions.whatToEat.label'),
+        prompt: t('suggestions.whatToEat.prompt'),
       },
       {
-        icon: '🐛',
-        label: t('suggestions.debugCode.label'),
-        prompt: t('suggestions.debugCode.prompt'),
+        icon: '🧳',
+        label: t('suggestions.tripList.label'),
+        prompt: t('suggestions.tripList.prompt'),
       },
       {
-        icon: '📝',
-        label: t('suggestions.writeDocs.label'),
-        prompt: t('suggestions.writeDocs.prompt'),
+        icon: '💬',
+        label: t('suggestions.quickReply.label'),
+        prompt: t('suggestions.quickReply.prompt'),
       },
       {
-        icon: '💡',
-        label: t('suggestions.creativeIdeas.label'),
-        prompt: t('suggestions.creativeIdeas.prompt'),
+        icon: '🧾',
+        label: t('suggestions.quickSummary.label'),
+        prompt: t('suggestions.quickSummary.prompt'),
+      },
+      {
+        icon: '🧠',
+        label: t('suggestions.makeDecision.label'),
+        prompt: t('suggestions.makeDecision.prompt'),
+      },
+      {
+        icon: '🧘',
+        label: t('suggestions.focusPlan.label'),
+        prompt: t('suggestions.focusPlan.prompt'),
+      },
+      {
+        icon: '🛒',
+        label: t('suggestions.groceryList.label'),
+        prompt: t('suggestions.groceryList.prompt'),
+      },
+      {
+        icon: '🏃',
+        label: t('suggestions.workoutPlan.label'),
+        prompt: t('suggestions.workoutPlan.prompt'),
+      },
+      {
+        icon: '💤',
+        label: t('suggestions.sleepTip.label'),
+        prompt: t('suggestions.sleepTip.prompt'),
+      },
+      {
+        icon: '📖',
+        label: t('suggestions.learnQuick.label'),
+        prompt: t('suggestions.learnQuick.prompt'),
+      },
+      {
+        icon: '💰',
+        label: t('suggestions.saveMoney.label'),
+        prompt: t('suggestions.saveMoney.prompt'),
+      },
+      {
+        icon: '🧽',
+        label: t('suggestions.homeChores.label'),
+        prompt: t('suggestions.homeChores.prompt'),
       },
     ],
     [t]
   )
 
+  const isLoading = status === 'submitted' || status === 'streaming'
+
+  const uiMessages = useMemo((): Message[] => {
+    return messages.filter(isRenderableMessage).map(message => {
+      const textParts = Array.isArray(message.parts)
+        ? message.parts.filter(isTextPart).map(part => part.text)
+        : []
+      return {
+        id: message.id,
+        role: message.role,
+        content: textParts.join(''),
+      }
+    })
+  }, [messages])
+
+  const displayMessages = useMemo(() => {
+    if (!isLoading) return uiMessages
+    const last = uiMessages[uiMessages.length - 1]
+    if (last && last.role === 'assistant') return uiMessages
+    return [
+      ...uiMessages,
+      {
+        id: 'pending-assistant',
+        role: 'assistant' as const,
+        content: '',
+      },
+    ]
+  }, [uiMessages, isLoading])
+
+  const lastUserMessage = useMemo(() => {
+    for (let i = displayMessages.length - 1; i >= 0; i -= 1) {
+      if (displayMessages[i]?.role === 'user') {
+        return displayMessages[i]?.content || ''
+      }
+    }
+    return ''
+  }, [displayMessages])
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages])
-
-  // 处理工具调用事件
-  const handleToolCallEvent = (
-    assistantMessage: Message,
-    chunk: StreamChunk,
-    setMessages: React.Dispatch<React.SetStateAction<Message[]>>
-  ) => {
-    if (!chunk.toolCall) return
-
-    setMessages(prev => {
-      return prev.map(m => {
-        if (m.id !== assistantMessage.id) return m
-
-        // 判断工具调用应该放在前面还是后面
-        // 如果消息内容已经存在，说明工具调用是在内容之后产生的
-        const hasContent = m.content.length > 0
-        const targetKey = hasContent ? 'toolCallsAfter' : 'toolCallsBefore'
-
-        // 获取或初始化工具调用列表
-        const currentToolCalls = m[targetKey] || []
-        const existingToolCallIndex = currentToolCalls.findIndex(
-          tc => tc.id === chunk.toolCall!.id
-        )
-
-        let updatedToolCalls: ToolCall[]
-
-        if (existingToolCallIndex >= 0) {
-          // 更新现有工具调用
-          updatedToolCalls = [...currentToolCalls]
-          updatedToolCalls[existingToolCallIndex] = {
-            ...updatedToolCalls[existingToolCallIndex],
-            ...chunk.toolCall,
-          }
-        } else {
-          // 添加新工具调用
-          updatedToolCalls = [...currentToolCalls, chunk.toolCall!]
-        }
-
-        return { ...m, [targetKey]: updatedToolCalls }
-      })
-    })
-  }
+  }, [displayMessages])
 
   const handleSend = async (messageContent?: string) => {
     const shouldUseMessageContent =
@@ -119,82 +172,17 @@ export function ChatView() {
       .trim()
     if (!contentToSend || isLoading) return
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: contentToSend,
-      timestamp: new Date(),
-    }
+    setInput('')
 
-    setMessages(prev => [...prev, userMessage])
-    setLastUserMessage(contentToSend)
-    if (!shouldUseMessageContent) setInput('')
-    setIsLoading(true)
-
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-      toolCallsBefore: [],
-      toolCallsAfter: [],
-    }
-
-    setMessages(prev => [...prev, assistantMessage])
-
-    try {
-      await agentService.chatStream(
-        contentToSend,
-        chunk => {
-          // 处理工具调用事件
-          if (chunk.type?.startsWith('tool_call')) {
-            handleToolCallEvent(assistantMessage, chunk, setMessages)
-          }
-
-          if (chunk.done) {
-            setIsLoading(false)
-            textareaRef.current?.focus()
-            return
-          }
-          if (chunk.content) {
-            setMessages(prev =>
-              prev.map(m =>
-                m.id === assistantMessage.id
-                  ? { ...m, content: m.content + chunk.content }
-                  : m
-              )
-            )
-          }
-        },
-        error => {
-          console.error('Chat error:', error)
-          setIsLoading(false)
-          setMessages(prev =>
-            prev.map(m =>
-              m.id === assistantMessage.id && !m.content
-                ? { ...m, content: t('error.message') }
-                : m
-            )
-          )
-        },
-        { agentId: selectedAgent?.id, enableTools }
-      )
-    } catch (error) {
-      console.error('Chat error:', error)
-      setIsLoading(false)
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === assistantMessage.id && !m.content
-            ? { ...m, content: t('error.message') }
-            : m
-        )
-      )
-    }
+    await sendMessage({
+      text: contentToSend,
+    })
+    textareaRef.current?.focus()
   }
 
   const handleRetry = () => {
     if (!lastUserMessage || isLoading) return
-    handleSend(lastUserMessage)
+    regenerate()
   }
 
   const handleCopy = (content: string, id: string) => {
@@ -207,26 +195,14 @@ export function ChatView() {
     setMessages([])
   }
 
-  // 输入框操作区域 - 工具调用开关
-  const inputActions = (
-    <ChatInputAction
-      icon={<Wrench className='size-3.5' />}
-      label={t('actions.tools') || '工具调用'}
-      checked={enableTools}
-      onToggle={() => setEnableTools(!enableTools)}
-      variant='toggle'
-      size='sm'
-    />
-  )
-
   return (
     <ChatContainer
-      messages={messages}
+      messages={displayMessages}
       input={input}
       isLoading={isLoading}
       copiedId={copiedId}
-      selectedAgentId={selectedAgent?.id || null}
       suggestionPrompts={suggestionPrompts}
+      lastUserMessage={lastUserMessage}
       scrollRef={scrollRef}
       textareaRef={textareaRef}
       onInputChange={setInput}
@@ -234,10 +210,8 @@ export function ChatView() {
       onRetry={handleRetry}
       onCopy={handleCopy}
       onClear={handleClear}
-      onAgentChange={setSelectedAgent}
-      title={t('title')}
-      subtitle={t('subtitle')}
       clearConversationLabel={t('clearConversation')}
+      refreshSuggestionsLabel={t('actions.refresh')}
       inputPlaceholder={t('input.placeholder')}
       sendAriaLabel={t('input.sendAriaLabel')}
       disclaimer={t('disclaimer')}
@@ -246,9 +220,6 @@ export function ChatView() {
       copyLabel={t('actions.copy')}
       copiedLabel={t('actions.copied')}
       retryLabel={t('actions.retry')}
-      errorMessage={t('error.message')}
-      lastUserMessage={lastUserMessage}
-      inputActions={inputActions}
       userAvatarUrl={userAvatarUrl}
       userInitials={userInitials}
     />

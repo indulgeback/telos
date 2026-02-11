@@ -1,20 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Button, Card, TypingIndicator, ChatAvatar } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
-import {
-  Copy,
-  Check,
-  RotateCcw,
-  ChevronDown,
-  ChevronUp,
-  Settings,
-  Loader2,
-  AlertCircle,
-} from 'lucide-react'
+import { Copy, Check, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { ToolCall } from '@/service/agent'
 
 export interface ChatMessageProps {
   id: string
@@ -27,75 +16,9 @@ export interface ChatMessageProps {
   isLoading?: boolean
   onRetry?: () => void
   retryLabel?: string
-  // 工具调用 - 分为内容前和内容后
-  toolCallsBefore?: ToolCall[]
-  toolCallsAfter?: ToolCall[]
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
-}
-
-// 工具调用状态组件（在气泡内部）
-function ToolCallItem({ toolCall }: { toolCall: ToolCall }) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  const getStatusIcon = () => {
-    switch (toolCall.status) {
-      case 'pending':
-      case 'running':
-        return (
-          <Loader2 className='size-3.5 animate-spin text-muted-foreground' />
-        )
-      case 'success':
-        return <Check className='size-3.5 text-green-600 dark:text-green-400' />
-      case 'error':
-        return (
-          <AlertCircle className='size-3.5 text-red-600 dark:text-red-400' />
-        )
-    }
-  }
-
-  return (
-    <div className='text-sm'>
-      <div
-        className='flex items-center justify-between cursor-pointer gap-2 py-1'
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className='flex items-center gap-2'>
-          <Settings className='size-3.5 text-muted-foreground' />
-          <span className='text-muted-foreground'>{toolCall.displayName}</span>
-        </div>
-        <div className='flex items-center gap-1.5'>
-          {getStatusIcon()}
-          {(toolCall.output !== undefined || toolCall.error) &&
-            (isExpanded ? (
-              <ChevronUp className='size-3.5 text-muted-foreground' />
-            ) : (
-              <ChevronDown className='size-3.5 text-muted-foreground' />
-            ))}
-        </div>
-      </div>
-
-      {isExpanded && (toolCall.output !== undefined || toolCall.error) && (
-        <div className='mt-2 pl-5'>
-          {toolCall.output !== undefined && (
-            <div>
-              <pre className='text-xs bg-muted/50 rounded p-2 overflow-x-auto max-h-32 overflow-y-auto'>
-                {typeof toolCall.output === 'string'
-                  ? toolCall.output
-                  : JSON.stringify(toolCall.output, null, 2)}
-              </pre>
-            </div>
-          )}
-          {toolCall.error && (
-            <div className='text-xs text-red-600 dark:text-red-400 rounded p-2'>
-              {toolCall.error}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
 }
 
 export function ChatMessage({
@@ -109,22 +32,12 @@ export function ChatMessage({
   isLoading = false,
   onRetry,
   retryLabel = 'Retry',
-  toolCallsBefore = [],
-  toolCallsAfter = [],
   userAvatarUrl,
   userInitials,
 }: ChatMessageProps) {
+  const safeContent = content ?? ''
   const isAssistant = role === 'assistant'
-  const hasContent = content.length > 0
-  const hasToolCallsBefore = toolCallsBefore && toolCallsBefore.length > 0
-  const hasToolCallsAfter = toolCallsAfter && toolCallsAfter.length > 0
-  const hasAnyToolCalls = hasToolCallsBefore || hasToolCallsAfter
-
-  // 渲染工具调用列表
-  const renderToolCalls = (toolCalls: ToolCall[]) =>
-    toolCalls.map((toolCall: ToolCall, index: number) => (
-      <ToolCallItem key={`${id}-tool-${index}`} toolCall={toolCall} />
-    ))
+  const hasContent = safeContent.length > 0
 
   return (
     <div
@@ -137,47 +50,32 @@ export function ChatMessage({
 
       <div
         className={cn(
-          'flex max-w-[85%] flex-col gap-2',
-          isAssistant ? 'items-start' : 'items-end'
+          'flex w-full max-w-[85%] flex-col gap-2',
+          isAssistant ? 'items-start pr-4' : 'items-end'
         )}
       >
-        <Card
-          className={cn(
-            'relative px-4 py-3 shadow-sm',
-            !isAssistant ? 'bg-primary text-primary-foreground' : 'bg-muted/50'
-          )}
-        >
-          <div className='space-y-3'>
-            {/* 内容前的工具调用 */}
-            {isAssistant && hasToolCallsBefore && (
-              <div className='space-y-2 pb-2 border-b border-border/50'>
-                {renderToolCalls(toolCallsBefore)}
-              </div>
-            )}
-
-            {/* 消息内容 */}
-            {isAssistant ? (
-              <div className='text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none'>
-                {hasContent ? (
-                  <MarkdownContent content={content} />
-                ) : (
-                  !hasAnyToolCalls && <TypingIndicator />
-                )}
-              </div>
-            ) : (
-              <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
-                {hasContent ? content : <TypingIndicator />}
-              </p>
-            )}
-
-            {/* 内容后的工具调用 */}
-            {isAssistant && hasToolCallsAfter && (
-              <div className='space-y-2 pt-2 border-t border-border/50'>
-                {renderToolCalls(toolCallsAfter)}
-              </div>
-            )}
+        {isAssistant ? (
+          <div className='w-full'>
+            <div
+              key={`${id}-${hasContent ? 'content' : 'typing'}`}
+              className={cn(
+                'chat-assistant-markdown max-w-none text-sm leading-relaxed prose prose-sm dark:prose-invert'
+              )}
+            >
+              {hasContent ? (
+                <MarkdownContent content={safeContent} />
+              ) : (
+                <TypingIndicator />
+              )}
+            </div>
           </div>
-        </Card>
+        ) : (
+          <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>
+            <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
+              {hasContent ? safeContent : <TypingIndicator />}
+            </p>
+          </Card>
+        )}
 
         {isAssistant && (
           <div className='flex items-center gap-1'>
@@ -185,13 +83,13 @@ export function ChatMessage({
               <div className='flex items-center gap-1 text-xs text-muted-foreground'>
                 <TypingIndicator />
               </div>
-            ) : hasContent || hasAnyToolCalls ? (
+            ) : hasContent ? (
               <>
                 <Button
                   variant='ghost'
                   size='sm'
                   className='h-7 gap-1 px-2 text-xs text-muted-foreground'
-                  onClick={() => onCopy(content, id)}
+                  onClick={() => onCopy(safeContent, id)}
                 >
                   {copiedId === id ? (
                     <>

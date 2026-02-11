@@ -52,7 +52,7 @@ export default function ComparisonPage() {
     switch (value) {
       case 'yes':
         return (
-          <Check className='h-5 w-5 text-green-500' aria-label={labelText} />
+          <Check className='h-5 w-5 text-[#4285F4]' aria-label={labelText} />
         )
       case 'partial':
         return (
@@ -266,7 +266,7 @@ export default function ComparisonPage() {
         {/* Legend */}
         <div className='mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground'>
           <div className='flex items-center gap-2'>
-            <Check className='h-4 w-4 text-green-500' />
+            <Check className='h-4 w-4 text-[#4285F4]' />
             <span>{t('legend.yes')}</span>
           </div>
           <div className='flex items-center gap-2'>

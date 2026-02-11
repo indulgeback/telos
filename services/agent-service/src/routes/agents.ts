@@ -3,8 +3,7 @@ import { prisma } from "../services/db.js";
 import { randomUUID } from "node:crypto";
 import { logger } from "../config/index.js";
 import type { ApiResponse } from "../types/index.js";
-import { serializeAgent, serializeAgents, serializeTools } from "../utils/serializer.js";
-import { toolService } from "../services/toolService.js";
+import { serializeAgent, serializeAgents } from "../utils/serializer.js";
 
 export const agentsRouter = Router();
 
@@ -144,8 +143,7 @@ agentsRouter.post("/", async (req: Request, res: Response) => {
         id: randomUUID(),
         name,
         description,
-        type: type || "PUBLIC",
-        systemPrompt: req.body.systemPrompt || "",
+        type: typeof type === "string" ? type.toLowerCase() : "public",
         ownerId: req.body.ownerId || null,
         isDefault: false,
       },
@@ -180,14 +178,13 @@ agentsRouter.post("/", async (req: Request, res: Response) => {
  */
 agentsRouter.put("/:id", async (req: Request, res: Response) => {
   try {
-    const { name, description, systemPrompt } = req.body;
+    const { name, description } = req.body;
 
     const agent = await prisma.agent.update({
       where: { id: getParamString(req, "id") },
       data: {
         name,
         description,
-        systemPrompt,
       },
     });
 
@@ -234,93 +231,6 @@ agentsRouter.delete("/:id", async (req: Request, res: Response) => {
     res.status(500).json({
       code: 500,
       message: error instanceof Error ? error.message : "删除 Agent 失败",
-    });
-  }
-});
-
-// ========== Agent 工具关联接口 ==========
-
-/**
- * GET /api/agents/:id/tools
- * 获取 Agent 的工具
- */
-agentsRouter.get("/:id/tools", async (req: Request, res: Response) => {
-  try {
-    const agentId = getParamString(req, "id");
-    const agentTools = await prisma.agentTool.findMany({
-      where: { agentId },
-      include: { tool: true },
-    });
-
-    // 提取工具信息并序列化
-    const tools = agentTools
-      .filter((at) => at.tool !== null && at.tool.enabled)
-      .map((at) => ({
-        ...at.tool,
-        agent_tool_id: at.id,
-        enabled: at.enabled,
-      }));
-
-    const serializedTools = serializeTools(tools);
-
-    res.status(200).json({ tools: serializedTools });
-  } catch (error) {
-    logger.error({
-      msg: "Get agent tools error",
-      agentId: getParamString(req, "id"),
-      err: error,
-    });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "获取 Agent 工具失败",
-    });
-  }
-});
-
-/**
- * PUT /api/agents/:id/tools
- * 设置 Agent 的工具
- */
-agentsRouter.put("/:id/tools", async (req: Request, res: Response) => {
-  try {
-    const agentId = getParamString(req, "id");
-    const { tool_ids: toolIds } = req.body;
-
-    if (!Array.isArray(toolIds)) {
-      return res.status(400).json({
-        error: "tool_ids must be an array",
-      });
-    }
-
-    // 删除现有关联
-    await prisma.agentTool.deleteMany({
-      where: { agentId },
-    });
-
-    // 创建新关联
-    if (toolIds.length > 0) {
-      await prisma.agentTool.createMany({
-        data: toolIds.map((toolId: string) => ({
-          id: randomUUID(),
-          agentId,
-          toolId,
-          enabled: true,
-        })),
-      });
-    }
-
-    // 清除缓存
-    toolService.clearCache(agentId);
-
-    res.status(200).json({ message: "Tools updated successfully" });
-  } catch (error) {
-    logger.error({
-      msg: "Set agent tools error",
-      agentId: getParamString(req, "id"),
-      toolCount: req.body.tool_ids?.length || 0,
-      err: error,
-    });
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "设置 Agent 工具失败",
     });
   }
 });

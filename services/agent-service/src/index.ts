@@ -1,7 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { config, validateConfig, logger } from "./config/index.js";
 import { chatRouter } from "./routes/chat.js";
-import { toolsRouter } from "./routes/tools.js";
 import { agentsRouter } from "./routes/agents.js";
 import { db } from "./services/db.js";
 import { performRegistration } from "./services/registry.js";
@@ -54,10 +53,7 @@ app.get("/info", (_req: Request, res: Response) => {
 // ========== API 路由 ==========
 
 // 聊天接口
-app.use("/api", chatRouter);
-
-// 工具管理
-app.use("/api/tools", toolsRouter);
+app.use("/api/agent", chatRouter);
 
 // Agent 管理
 app.use("/api/agents", agentsRouter);
@@ -91,7 +87,7 @@ const server = app.listen(config.port, async () => {
     msg: "Agent Service started",
     port: config.port,
     environment: config.nodeEnv,
-    model: config.deepseekModel,
+    model: config.aiModel,
   });
 
   // 注册到服务注册中心

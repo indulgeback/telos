@@ -1,6 +1,6 @@
 # Agent Service (TypeScript)
 
-基于 LangChain.js 的 AI Agent 服务，支持工具调用和流式响应。
+基于 LangChain.js 的 AI Agent 服务，使用 AI SDK 的 UI Message 流式响应。
 
 ## 技术栈
 
@@ -14,10 +14,9 @@
 ## 功能特性
 
 - ✅ 流式聊天响应（SSE）
-- ✅ 动态工具系统（数据驱动）
+- ✅ 简单聊天（AI SDK UI Message stream）
 - ✅ 内置工具（计算器、时间）
 - ✅ Agent 管理
-- ✅ 工具执行日志
 
 ## 项目结构
 
@@ -30,13 +29,9 @@ agent-service-ts/
 │   │   └── index.ts
 │   ├── routes/            # API 路由
 │   │   ├── chat.ts        # 聊天接口
-│   │   ├── tools.ts       # 工具管理
 │   │   └── agents.ts      # Agent 管理
 │   ├── services/          # 业务逻辑
-│   │   ├── db.ts          # 数据库服务
-│   │   ├── chatService.ts # 聊天服务
-│   │   ├── toolService.ts # 工具服务
-│   │   └── toolExecutor.ts# 工具执行器
+│   │   └── db.ts          # 数据库服务
 │   ├── types/             # 类型定义
 │   │   └── index.ts
 │   └── index.ts           # 主入口
@@ -66,6 +61,11 @@ cp .env.example .env
 DATABASE_URL="postgresql://user:password@localhost:5432/telos"
 DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxx"
 DEEPSEEK_MODEL="deepseek-chat"
+DEEPSEEK_BASE_URL="https://api.deepseek.com/v1"
+# 可选：OpenAI-compatible 配置
+# AI_API_KEY="sk-xxxxxxxxxxxxxx"
+# AI_MODEL="deepseek-chat"
+# AI_BASE_URL="https://api.deepseek.com/v1"
 PORT=3001
 NODE_ENV="development"
 LOG_LEVEL="info"
@@ -88,10 +88,7 @@ npm run dev
 
 ### 聊天接口
 
-**POST** `/api/chat` 或 `/api/agent`
-
-请求头：
-- `X-Agent-ID`: Agent ID（可选）
+**POST** `/api/agent`（推荐）
 
 请求体：
 ```json
@@ -100,24 +97,7 @@ npm run dev
 }
 ```
 
-响应（SSE）：
-```
-data: {"type":"tool_call_start","toolCall":{...}}
-data: {"type":"content","content":"计算结果"}
-data: {"type":"tool_call_end","toolCall":{...}}
-data: {"type":"done","done":true}
-data: [DONE]
-```
-
-### 工具管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/tools` | 获取工具列表 |
-| GET | `/api/tools/:id` | 获取工具详情 |
-| POST | `/api/tools` | 创建工具 |
-| PUT | `/api/tools/:id` | 更新工具 |
-| DELETE | `/api/tools/:id` | 删除工具 |
+响应为 AI SDK UI Message stream。
 | GET | `/api/agents/:id/tools` | 获取 Agent 的工具 |
 | PUT | `/api/agents/:id/tools` | 设置 Agent 的工具 |
 

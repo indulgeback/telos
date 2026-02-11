@@ -34,13 +34,34 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false)
+    const [isComposing, setIsComposing] = useState(false)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      // 防止在输入法选词时按回车直接提交
+      if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
         e.preventDefault()
         if (canSend && !sendDisabled) {
           onSend()
         }
+      }
+    }
+
+    const handleCompositionStart = () => {
+      setIsComposing(true)
+    }
+
+    const handleCompositionEnd = (
+      e: React.CompositionEvent<HTMLTextAreaElement>
+    ) => {
+      setIsComposing(false)
+      // 输入法结束后，如果用户按了回车确认选词，手动触发提交
+      if (e.data && canSend && !sendDisabled) {
+        // 使用 nextTick 确保 isComposing 状态已更新
+        setTimeout(() => {
+          if (!isComposing) {
+            onSend()
+          }
+        }, 0)
       }
     }
 
@@ -55,8 +76,8 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     return (
       <div
         className={cn(
-          'flex flex-col gap-2 rounded-2xl border bg-background p-2 shadow-sm transition-shadow',
-          isFocused ? 'border-primary/50 shadow-2xl' : 'ring-0'
+          'flex flex-col gap-2 rounded-2xl border bg-background/95 p-2 shadow-sm transition-shadow',
+          isFocused ? 'border-ring/60 shadow-xl' : 'ring-0'
         )}
       >
         {/* 输入区域 */}
@@ -65,10 +86,12 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
             ref={ref}
             value={value}
             onKeyDown={handleKeyDown}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              'max-h-32 min-h-11 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm outline-none',
+              'max-h-40 min-h-11 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground/70',
               className
             )}
             rows={1}
@@ -78,7 +101,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
             onClick={onSend}
             disabled={!canSend || sendDisabled}
             size='icon'
-            className='size-10 shrink-0 rounded-xl'
+            className='size-10 shrink-0 rounded-xl shadow-sm'
             aria-label={sendAriaLabel}
           >
             <Send className='size-4' />

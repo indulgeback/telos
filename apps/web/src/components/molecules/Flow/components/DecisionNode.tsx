@@ -11,7 +11,7 @@ const handles: HandleConfig[] = [
 
 const DecisionNode: React.FC<NodeProps> = ({ data }) => (
   <BaseNode
-    icon={<Split className='text-green-500 w-8 h-8' />}
+    icon={<Split className='text-[#4285F4] w-8 h-8' />}
     label={typeof data?.label === 'string' ? data.label : ''}
     desc={typeof data?.desc === 'string' ? data.desc : ''}
     shape='diamond'

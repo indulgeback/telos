@@ -31,6 +31,22 @@
       "creativeIdeas": {
         "label": "創意靈感",
         "prompt": "給我一些關於產品創新的建議"
+      },
+      "dailyPlan": {
+        "label": "今日安排",
+        "prompt": "幫我列一個今天的待辦清單，並按優先級排序"
+      },
+      "quickSummary": {
+        "label": "快速總結",
+        "prompt": "請幫我把這段內容概括成三點"
+      },
+      "writeReply": {
+        "label": "寫一條回覆",
+        "prompt": "幫我寫一條禮貌、簡潔的回覆"
+      },
+      "makeDecision": {
+        "label": "幫我做決定",
+        "prompt": "給我一個簡單的利弊分析，並推薦一個選擇"
       }
     },
     "input": {
@@ -517,7 +533,6 @@
       "private": "私有",
       "system": "系統"
     },
-    "configureTools": "配置工具",
     "form": {
       "description": "填寫 Agent 資訊",
       "name": "Agent 名稱",
@@ -554,7 +569,8 @@
       "description": "建立您的第一個 AI 代理程式開始使用"
     },
     "created": "創建於",
-    "systemAgentReadOnly": "系統 Agent 不可編輯"
+    "systemAgentReadOnly": "系統 Agent 不可編輯",
+    "configureTools": "配置工具"
   },
   "WorkflowsPage": {
     "hero": {
@@ -893,6 +909,11 @@
     },
     "noParameters": "此工具沒有定義參數",
     "endpoint": "API 端點",
-    "parameters": "參數"
+    "parameters": "參數",
+    "searchTools": "搜尋工具...",
+    "totalTools": "共 {count} 個工具",
+    "selected": "已選擇 {count} 個",
+    "toolCategories": "工具分類",
+    "noToolsFound": "未找到匹配的工具"
   }
 }

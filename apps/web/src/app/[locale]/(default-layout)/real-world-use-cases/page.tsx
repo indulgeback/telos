@@ -301,7 +301,7 @@ export default function UseCasesPage() {
                             {t(`difficulty.${useCase.difficulty}`)}
                           </span>
                           <span className='flex items-center gap-1 text-xs text-muted-foreground'>
-                            <TrendingDown className='h-3 w-3 text-green-500' />
+                            <TrendingDown className='h-3 w-3 text-[#34A853]' />
                             {useCase.timeSaved}
                           </span>
                           {useCase.tags.slice(0, 3).map(tag => (
@@ -329,7 +329,7 @@ export default function UseCasesPage() {
                         {/* Benefits */}
                         <div>
                           <h4 className='font-semibold text-foreground mb-3 flex items-center gap-2'>
-                            <CheckCircle2 className='h-4 w-4 text-green-500' />
+                            <CheckCircle2 className='h-4 w-4 text-[#34A853]' />
                             {t('details.benefits')}
                           </h4>
                           <ul className='space-y-2'>

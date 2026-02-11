@@ -49,7 +49,7 @@ export default async function BlogPage() {
         style={{
           margin: '3rem 0',
           border: 'none',
-          borderTop: '1px solid #e2e8f0',
+          borderTop: '1px solid hsl(var(--border))',
         }}
       />
 

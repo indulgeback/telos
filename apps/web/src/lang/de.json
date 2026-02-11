@@ -31,6 +31,22 @@
       "creativeIdeas": {
         "label": "kreative Inspiration",
         "prompt": "Gib mir einige Vorschläge zur Produktinnovation"
+      },
+      "dailyPlan": {
+        "label": "Heutige Planung",
+        "prompt": "Hilf mir, eine To-Do-Liste für heute zu erstellen und sie nach Priorität zu ordnen."
+      },
+      "quickSummary": {
+        "label": "Schnelle Zusammenfassung",
+        "prompt": "Bitte fassen Sie diesen Inhalt für mich in drei Punkten zusammen."
+      },
+      "writeReply": {
+        "label": "Schreibe eine Antwort",
+        "prompt": "Hilf mir bitte, eine höfliche und kurze Antwort zu schreiben."
+      },
+      "makeDecision": {
+        "label": "Hilf mir, eine Entscheidung zu treffen",
+        "prompt": "Gib mir eine einfache Analyse von Vor- und Nachteilen und empfehle eine Auswahl."
       }
     },
     "input": {
@@ -517,7 +533,6 @@
       "private": "Privat",
       "system": "System"
     },
-    "configureTools": "Konfigurationstool",
     "form": {
       "description": "Agenteninformationen ausfüllen",
       "name": "Agentenname",
@@ -554,7 +569,8 @@
       "description": "Erstellen Sie Ihren ersten KI-Agenten und legen Sie los"
     },
     "created": "Gegründet in",
-    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden"
+    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden",
+    "configureTools": "Konfigurationstool"
   },
   "WorkflowsPage": {
     "hero": {
@@ -893,6 +909,11 @@
     },
     "noParameters": "Dieses Werkzeug hat keine definierten Parameter",
     "endpoint": "API-Endpunkt",
-    "parameters": "Parameter"
+    "parameters": "Parameter",
+    "searchTools": "Suchwerkzeuge...",
+    "totalTools": "Insgesamt {count} Werkzeuge",
+    "selected": "{count} ausgewählt",
+    "toolCategories": "Werkzeugkategorie",
+    "noToolsFound": "Kein passendes Werkzeug gefunden"
   }
 }

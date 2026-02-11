@@ -16,21 +16,53 @@
       "description": "选择一个建议问题开始，或者直接输入您的问题"
     },
     "suggestions": {
-      "newProject": {
-        "label": "开始新项目",
-        "prompt": "帮我规划一个新项目的技术栈和架构"
+      "whatToEat": {
+        "label": "晚饭吃什么",
+        "prompt": "给我 3 个 10 分钟内能完成的晚餐建议，含食材和做法"
       },
-      "debugCode": {
-        "label": "调试代码",
-        "prompt": "帮我分析这段代码的问题所在"
+      "tripList": {
+        "label": "出行清单",
+        "prompt": "列一个周末两天一夜的出行清单（城市+天气未知）"
       },
-      "writeDocs": {
-        "label": "编写文档",
-        "prompt": "帮我为这个功能编写用户文档"
+      "quickReply": {
+        "label": "快速回复",
+        "prompt": "帮我写 3 条不同语气的“稍后回复你”的简短消息"
       },
-      "creativeIdeas": {
-        "label": "创意灵感",
-        "prompt": "给我一些关于产品创新的建议"
+      "quickSummary": {
+        "label": "快速总结",
+        "prompt": "用 3 条要点总结“今天加班到 10 点，但任务推进很顺利”"
+      },
+      "makeDecision": {
+        "label": "做个选择",
+        "prompt": "比较“周末宅家 vs 短途出游”，给出利弊和推荐"
+      },
+      "focusPlan": {
+        "label": "专注计划",
+        "prompt": "帮我做一个 2 小时专注安排（含休息节点）"
+      },
+      "groceryList": {
+        "label": "买菜清单",
+        "prompt": "列一份 3 天家庭买菜清单（含主食、蔬菜、蛋白质）"
+      },
+      "workoutPlan": {
+        "label": "轻量运动",
+        "prompt": "给我一个 20 分钟在家徒手训练计划"
+      },
+      "sleepTip": {
+        "label": "睡前建议",
+        "prompt": "给我 5 条今晚更快入睡的小建议"
+      },
+      "learnQuick": {
+        "label": "快速学习",
+        "prompt": "用 5 分钟了解“番茄工作法”，并给出使用步骤"
+      },
+      "saveMoney": {
+        "label": "省钱小招",
+        "prompt": "给我 5 条日常省钱的小技巧"
+      },
+      "homeChores": {
+        "label": "家务清单",
+        "prompt": "列一个 30 分钟能完成的家务清单"
       }
     },
     "input": {
@@ -41,7 +73,8 @@
       "copy": "复制",
       "copied": "已复制",
       "retry": "重试",
-      "tools": "工具调用"
+      "tools": "工具调用",
+      "refresh": "换一批"
     },
     "error": {
       "message": "抱歉，发生了一些错误。请稍后再试。"
@@ -548,7 +581,8 @@
       "description": "创建您的第一个 AI Agent 开始使用"
     },
     "created": "创建于",
-    "systemAgentReadOnly": "系统 Agent 不可编辑"
+    "systemAgentReadOnly": "系统 Agent 不可编辑",
+    "configureTools": "配置工具"
   },
   "WorkflowsPage": {
     "hero": {
@@ -791,6 +825,11 @@
     "disabled": "已禁用",
     "confirmDelete": "确认删除此工具？",
     "searchPlaceholder": "搜索工具...",
+    "searchTools": "搜索工具...",
+    "totalTools": "共 {count} 个工具",
+    "selected": "已选择 {count} 个",
+    "toolCategories": "工具分类",
+    "noToolsFound": "未找到匹配的工具",
     "allCategories": "全部分类",
     "categories": {
       "web": "网页",

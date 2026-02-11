@@ -88,7 +88,7 @@ export default async function RootLayout({ children }: Iprops) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable} ${poppins.variable} antialiased`}
       >
-        <NextTopLoader color={appConfig.subjectColor} showSpinner={false} />
+        <NextTopLoader color='hsl(var(--foreground))' showSpinner={false} />
         <ThemeProvider
           attribute='class'
           defaultTheme='system'

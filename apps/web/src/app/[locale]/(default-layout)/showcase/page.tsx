@@ -319,7 +319,7 @@ export default function ShowcasePage() {
               {/* Solutions */}
               <div>
                 <h4 className='font-semibold text-foreground mb-4 flex items-center gap-2'>
-                  <Check className='h-5 w-5 text-green-500' />
+                  <Check className='h-5 w-5 text-[#4285F4]' />
                   {t('detail.solutions')}
                 </h4>
                 <ul className='space-y-2'>
@@ -328,7 +328,7 @@ export default function ShowcasePage() {
                       key={i}
                       className='flex items-start gap-3 text-muted-foreground'
                     >
-                      <Check className='h-5 w-5 text-green-500 shrink-0 mt-0.5' />
+                      <Check className='h-5 w-5 text-[#4285F4] shrink-0 mt-0.5' />
                       {solution}
                     </li>
                   ))}

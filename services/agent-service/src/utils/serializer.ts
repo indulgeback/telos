@@ -59,18 +59,3 @@ export function serializeAgent(agent: any) {
 export function serializeAgents(agents: any[]) {
   return agents.map(serializeAgent);
 }
-
-/**
- * Tool 序列化器
- */
-export function serializeTool(tool: any) {
-  if (!tool) return null;
-  return toSnakeCase(tool);
-}
-
-/**
- * Tool 列表序列化器
- */
-export function serializeTools(tools: any[]) {
-  return tools.map(serializeTool);
-}

@@ -27,7 +27,7 @@ const buttonVariants = cva(
         'smart-text-3':
           'text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-yellow-500 to-red-500 hover:bg-gradient-to-r hover:from-orange-400 hover:via-yellow-400 hover:to-red-400',
         'smart-text-4':
-          'text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-lime-500 to-emerald-500 hover:bg-gradient-to-r hover:from-green-400 hover:via-lime-400 hover:to-emerald-400',
+          'text-transparent bg-clip-text bg-gradient-to-r from-[#4285F4] via-[#9B51E0] to-[#34A853] hover:bg-gradient-to-r hover:from-[#5A95F6] hover:via-[#B06AF0] hover:to-[#4CC167]',
         'smart-fill-1':
           'text-white bg-gradient-to-tr from-purple-500 via-pink-500 to-sky-500 hover:bg-gradient-to-tr hover:from-purple-400 hover:via-pink-400 hover:to-sky-400 smart-fill-btn-hover',
         'smart-fill-2':
@@ -35,7 +35,7 @@ const buttonVariants = cva(
         'smart-fill-3':
           'text-white bg-gradient-to-tr from-orange-500 via-yellow-500 to-red-500 hover:bg-gradient-to-tr hover:from-orange-400 hover:via-yellow-400 hover:to-red-400 smart-fill-btn-hover',
         'smart-fill-4':
-          'text-white bg-gradient-to-tr from-green-500 via-lime-500 to-emerald-500 hover:bg-gradient-to-tr hover:from-green-400 hover:via-lime-400 hover:to-emerald-400 smart-fill-btn-hover',
+          'text-white bg-gradient-to-tr from-[#4285F4] via-[#9B51E0] to-[#34A853] hover:bg-gradient-to-tr hover:from-[#5A95F6] hover:via-[#B06AF0] hover:to-[#4CC167] smart-fill-btn-hover',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',

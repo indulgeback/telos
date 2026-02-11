@@ -3,7 +3,7 @@ const appConfig = {
   baseDomain: process.env.NEXT_PUBLIC_DOMAIN || 'http://localhost:8800',
   locales: ['en', 'zh', 'tw', 'ko', 'ja', 'de', 'ru'],
   defaultLocale: 'en',
-  subjectColor: '#22c55e', // 翡翠绿主题色 (hsl 160 65% 45%)
+  subjectColor: '#4285F4', // Deep compute blue
 }
 
 export default appConfig

@@ -31,6 +31,22 @@
       "creativeIdeas": {
         "label": "창의적 영감",
         "prompt": "제품 혁신에 관한 조언을 좀 주세요"
+      },
+      "dailyPlan": {
+        "label": "오늘 일정",
+        "prompt": "오늘 할 일 목록을 만들어 주고, 우선순위별로 정리해 주세요."
+      },
+      "quickSummary": {
+        "label": "빠른 요약",
+        "prompt": "이 내용을 세 가지 점으로 요약해 주세요"
+      },
+      "writeReply": {
+        "label": "답글을 작성하세요",
+        "prompt": "저에게 정중하고 간결한 답변을 작성하는 것을 도와주세요"
+      },
+      "makeDecision": {
+        "label": "결정을 도와줘",
+        "prompt": "간단한 장단점 분석을 해주고 하나의 선택을 추천해 주세요"
       }
     },
     "input": {
@@ -517,7 +533,6 @@
       "private": "사유",
       "system": "시스템"
     },
-    "configureTools": "구성 도구",
     "form": {
       "description": "에이전트 정보 입력",
       "name": "에이전트 이름",
@@ -554,7 +569,8 @@
       "description": "첫 번째 AI 에이전트 만들기 시작하기"
     },
     "created": "설립일",
-    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다"
+    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다",
+    "configureTools": "설정 도구"
   },
   "WorkflowsPage": {
     "hero": {
@@ -893,6 +909,11 @@
     },
     "noParameters": "이 도구에는 매개변수가 정의되어 있지 않습니다",
     "endpoint": "API 엔드포인트",
-    "parameters": "매개변수"
+    "parameters": "매개변수",
+    "searchTools": "검색 도구...",
+    "totalTools": "총 {count}개의 도구",
+    "selected": "{count}개 선택됨",
+    "toolCategories": "도구 분류",
+    "noToolsFound": "일치하는 도구를 찾을 수 없습니다"
   }
 }

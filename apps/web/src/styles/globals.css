@@ -53,83 +53,83 @@
 
 :root {
   --radius: 0.625rem;
-  /* Light mode - 清新自然的浅绿灰 */
-  --background: 150 15% 98%;
-  --foreground: 160 25% 10%;
-  --card: 150 12% 100%;
-  --card-foreground: 160 25% 10%;
-  --popover: 150 14% 100%;
-  --popover-foreground: 160 25% 10%;
-  --primary: 160 65% 35%;
-  --primary-foreground: 150 20% 98%;
-  --secondary: 155 18% 25%;
-  --secondary-foreground: 150 15% 95%;
-  --muted: 150 10% 92%;
-  --muted-foreground: 155 15% 35%;
-  --accent: 165 40% 92%;
-  --accent-foreground: 165 40% 10%;
-  --destructive: 0 65% 50%;
-  --destructive-foreground: 150 20% 98%;
-  --border: 150 12% 85%;
-  --input: 150 12% 90%;
-  --ring: 160 65% 35%;
-  --success: 155 50% 35%;
-  --success-foreground: 150 20% 95%;
-  --warning: 40 75% 50%;
-  --warning-foreground: 40 30% 15%;
-  --chart-1: 160 65% 35%;
-  --chart-2: 155 35% 45%;
-  --chart-3: 165 40% 30%;
-  --chart-4: 150 25% 40%;
-  --chart-5: 145 20% 50%;
-  --sidebar: 160 30% 12%;
-  --sidebar-foreground: 150 15% 92%;
-  --sidebar-primary: 160 65% 45%;
-  --sidebar-primary-foreground: 150 20% 98%;
-  --sidebar-accent: 165 40% 25%;
-  --sidebar-accent-foreground: 150 15% 92%;
-  --sidebar-border: 155 20% 22%;
-  --sidebar-ring: 160 65% 45%;
+  /* Light mode - shadcn default (gray/white/black) */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 98%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 10%;
+  --chart-1: 240 5.9% 10%;
+  --chart-2: 240 3.8% 46.1%;
+  --chart-3: 240 5% 65%;
+  --chart-4: 240 5% 80%;
+  --chart-5: 240 5% 90%;
+  --sidebar: 240 5.9% 10%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 0 0% 98%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
+  --sidebar-accent: 240 4.8% 15%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 4.8% 15%;
+  --sidebar-ring: 240 5.9% 10%;
 }
 
 .dark {
-  /* Dark mode - 神秘深邃的绿黑 */
-  --background: 160 20% 8%;
-  --foreground: 150 15% 95%;
-  --card: 158 22% 12%;
-  --card-foreground: 150 15% 90%;
-  --popover: 156 24% 12%;
-  --popover-foreground: 150 15% 90%;
-  --primary: 160 70% 45%;
-  --primary-foreground: 160 25% 6%;
-  --secondary: 155 20% 16%;
-  --secondary-foreground: 150 15% 88%;
-  --muted: 155 15% 22%;
-  --muted-foreground: 150 12% 65%;
-  --accent: 165 50% 20%;
-  --accent-foreground: 150 15% 95%;
-  --destructive: 0 60% 55%;
-  --destructive-foreground: 150 15% 95%;
-  --border: 155 18% 25%;
-  --input: 155 18% 22%;
-  --ring: 160 70% 45%;
-  --success: 155 55% 40%;
-  --success-foreground: 150 15% 92%;
-  --warning: 42 70% 55%;
-  --warning-foreground: 40 25% 12%;
-  --chart-1: 160 70% 45%;
-  --chart-2: 155 45% 38%;
-  --chart-3: 165 50% 32%;
-  --chart-4: 150 35% 28%;
-  --chart-5: 145 25% 22%;
-  --sidebar: 160 25% 5%;
-  --sidebar-foreground: 150 15% 88%;
-  --sidebar-primary: 160 70% 45%;
-  --sidebar-primary-foreground: 160 25% 6%;
-  --sidebar-accent: 165 50% 28%;
-  --sidebar-accent-foreground: 150 15% 90%;
-  --sidebar-border: 155 18% 18%;
-  --sidebar-ring: 160 70% 45%;
+  /* Dark mode - shadcn default (gray/white/black) */
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+  --success: 142 71% 45%;
+  --success-foreground: 0 0% 98%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 10%;
+  --chart-1: 0 0% 98%;
+  --chart-2: 240 5% 64.9%;
+  --chart-3: 240 4% 46%;
+  --chart-4: 240 4% 30%;
+  --chart-5: 240 4% 20%;
+  --sidebar: 240 10% 3.9%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 0 0% 98%;
+  --sidebar-primary-foreground: 240 5.9% 10%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 240 4.9% 83.9%;
 }
 
 @layer base {
@@ -206,19 +206,19 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* Dark mode scrollbar - emerald tint for visibility */
+/* Dark mode scrollbar - use theme border color */
 .dark {
-  scrollbar-color: hsl(160 30% 35% / 0.4) transparent;
+  scrollbar-color: hsl(var(--border) / 0.4) transparent;
 }
 
 .dark:hover {
-  scrollbar-color: hsl(160 35% 40% / 0.55) transparent;
+  scrollbar-color: hsl(var(--border) / 0.55) transparent;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(160 30% 35% / 0.35);
+  background: hsl(var(--border) / 0.35);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(160 40% 42% / 0.5);
+  background: hsl(var(--border) / 0.5);
 }
