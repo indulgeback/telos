@@ -1,6 +1,7 @@
-import { Bot, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from './avatar'
+import { AiLottieIcon } from './ai-lottie-icon'
 
 type ChatAvatarType = 'assistant' | 'user'
 
@@ -38,7 +39,7 @@ export function ChatAvatar({
         className
       )}
     >
-      <Bot className='size-4 text-primary' />
+      <AiLottieIcon className='size-5' />
     </div>
   )
 }

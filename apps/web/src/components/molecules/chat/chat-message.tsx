@@ -1,14 +1,27 @@
 'use client'
 
-import { Button, Card, TypingIndicator, ChatAvatar } from '@/components/atoms'
+import {
+  AiLottieIcon,
+  Button,
+  Card,
+  TypingIndicator,
+  ChatAvatar,
+} from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
+import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
 import { Copy, Check, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+export type AssistantContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'tool'; tool: ToolCallPreview }
 
 export interface ChatMessageProps {
   id: string
   role: 'user' | 'assistant'
   content: string
+  contentParts?: AssistantContentPart[]
+  toolCalls?: ToolCallPreview[]
   copiedId: string | null
   onCopy: (content: string, id: string) => void
   copyLabel: string
@@ -25,6 +38,8 @@ export function ChatMessage({
   id,
   role,
   content,
+  contentParts = [],
+  toolCalls = [],
   copiedId,
   onCopy,
   copyLabel,
@@ -36,6 +51,8 @@ export function ChatMessage({
   userInitials,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
+  const safeToolCalls = toolCalls ?? []
+  const safeContentParts = contentParts ?? []
   const isAssistant = role === 'assistant'
   const hasContent = safeContent.length > 0
 
@@ -46,7 +63,11 @@ export function ChatMessage({
         isAssistant ? 'justify-start' : 'justify-end'
       )}
     >
-      {isAssistant && <ChatAvatar type='assistant' />}
+      {isAssistant && (
+        <div className='flex size-14 shrink-0 items-center justify-center'>
+          <AiLottieIcon className='size-14' />
+        </div>
+      )}
 
       <div
         className={cn(
@@ -56,18 +77,40 @@ export function ChatMessage({
       >
         {isAssistant ? (
           <div className='w-full'>
-            <div
-              key={`${id}-${hasContent ? 'content' : 'typing'}`}
-              className={cn(
-                'chat-assistant-markdown max-w-none text-sm leading-relaxed prose prose-sm dark:prose-invert'
-              )}
-            >
-              {hasContent ? (
+            {safeContentParts.length > 0 ? (
+              <div className='space-y-3'>
+                {safeContentParts.map((part, index) => {
+                  if (part.type === 'tool') {
+                    return (
+                      <ToolCallStatus
+                        key={`${part.tool.toolCallId}-${index}`}
+                        tool={part.tool}
+                      />
+                    )
+                  }
+
+                  return (
+                    <div
+                      key={`text-${id}-${index}`}
+                      className={cn(
+                        'chat-assistant-markdown max-w-none text-sm leading-relaxed prose prose-sm dark:prose-invert'
+                      )}
+                    >
+                      <MarkdownContent content={part.text} />
+                    </div>
+                  )
+                })}
+              </div>
+            ) : hasContent ? (
+              <div
+                key={`${id}-content`}
+                className={cn(
+                  'chat-assistant-markdown max-w-none text-sm leading-relaxed prose prose-sm dark:prose-invert'
+                )}
+              >
                 <MarkdownContent content={safeContent} />
-              ) : (
-                <TypingIndicator />
-              )}
-            </div>
+              </div>
+            ) : null}
           </div>
         ) : (
           <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>

@@ -2,12 +2,18 @@
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  AiLottieIcon,
   Button,
   SuggestionPromptButton,
   type SuggestionPrompt,
 } from '@/components/atoms'
-import { ChatInput, ChatMessage } from '@/components/molecules'
-import { Bot, RefreshCw } from 'lucide-react'
+import {
+  ChatInput,
+  ChatMessage,
+  type AssistantContentPart,
+  type ToolCallPreview,
+} from '@/components/molecules'
+import { RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const CARD_TILTS = ['-5deg', '3.5deg', '0deg', '-3deg', '5deg', '2deg'] as const
@@ -22,7 +28,7 @@ const GRADIENT_POOL = [
 
 const SUGGESTION_BATCH_SIZE = 4
 const SHUFFLE_COLLAPSE_MS = 180
-const SHUFFLE_END_MS = 520
+const SHUFFLE_END_MS = 300
 
 function getVisibleSuggestions<T>(items: T[], seed: number, batchSize: number) {
   if (items.length <= batchSize) return items
@@ -57,13 +63,15 @@ function getCardTransform(
   const offset = isShuffling ? { x: 0, y: 0 } : { x: spreadX, y: spreadY }
   const rotation = isHovered ? '0deg' : tilt
 
-  return `translate(calc(-50% + ${offset.x}px), ${offset.y}px) rotate(${rotation})`
+  return `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) rotate(${rotation})`
 }
 
 export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  contentParts?: AssistantContentPart[]
+  toolCalls?: ToolCallPreview[]
   createdAt?: Date
 }
 
@@ -191,8 +199,8 @@ export function ChatContainer({
           {messages.length === 0 ? (
             <div className='flex min-h-[70vh] flex-col items-center justify-center py-10'>
               <div className='mb-8 text-center'>
-                <div className='mb-4 inline-flex size-16 items-center justify-center rounded-2xl border bg-card shadow-sm'>
-                  <Bot className='size-8 text-foreground' />
+                <div className='mb-4 inline-flex items-center justify-center'>
+                  <AiLottieIcon className='size-20' />
                 </div>
                 <h2 className='mb-2 text-xl font-semibold'>
                   {emptyStateTitle}
@@ -224,10 +232,8 @@ export function ChatContainer({
                         onMouseEnter={() => setHoveredSuggestion(hoverKey)}
                         onMouseLeave={() => setHoveredSuggestion(null)}
                         className={cn(
-                          'absolute left-1/2 top-0 will-change-transform transition-all duration-300 ease-out',
-                          isShuffling
-                            ? 'scale-[0.92] opacity-70'
-                            : 'opacity-100'
+                          'absolute left-1/2 top-1/2 will-change-transform transition-all duration-300 ease-out',
+                          isShuffling ? 'scale-[0.5] opacity-10' : 'opacity-100'
                         )}
                         style={{
                           transform,
@@ -267,6 +273,8 @@ export function ChatContainer({
                     id={message.id}
                     role={message.role}
                     content={message.content}
+                    contentParts={message.contentParts}
+                    toolCalls={message.toolCalls}
                     copiedId={copiedId}
                     onCopy={onCopy}
                     copyLabel={copyLabel}

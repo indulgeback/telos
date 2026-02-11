@@ -1,7 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { AIMessageChunk } from '@langchain/core/messages'
-import { createUIMessageStreamResponse } from 'ai'
-import { toUIMessageStream } from '@ai-sdk/langchain'
+import { createUIMessageStreamResponse, type UIMessageChunk } from 'ai'
 import { logger } from '../config/index.js'
 import { parseChatInput, runChatWithBuiltInTools } from '../services/chat.js'
 
@@ -9,10 +7,9 @@ export const chatRouter = Router()
 
 async function sendStreamResponse(
   res: Response,
-  stream: ReadableStream | AsyncIterable<AIMessageChunk>
+  stream: ReadableStream<UIMessageChunk>
 ) {
-  const uiStream = toUIMessageStream(stream)
-  const response = createUIMessageStreamResponse({ stream: uiStream })
+  const response = createUIMessageStreamResponse({ stream })
 
   res.status(response.status)
   response.headers.forEach((value, key) => {

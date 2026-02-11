@@ -24,6 +24,92 @@ const isRenderableMessage = <T extends { role: string }>(
   return message.role === 'user' || message.role === 'assistant'
 }
 
+type ToolCallItem = NonNullable<Message['toolCalls']>[number]
+type ContentPartItem = NonNullable<Message['contentParts']>[number]
+
+const stringifyPartValue = (value: unknown) => {
+  if (value === null || value === undefined) return undefined
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return undefined
+  }
+}
+
+const mapToolState = (state: unknown): ToolCallItem['state'] => {
+  if (state === 'output-available') return 'success'
+  if (state === 'output-error' || state === 'output-denied') return 'error'
+  return 'running'
+}
+
+const parseToolCallPart = (part: unknown): ToolCallItem | null => {
+  if (!part || typeof part !== 'object') return null
+  const raw = part as Record<string, unknown>
+  const toolCallId =
+    typeof raw.toolCallId === 'string' ? raw.toolCallId : undefined
+  if (!toolCallId) return null
+
+  const type = typeof raw.type === 'string' ? raw.type : ''
+  const fallbackToolName = type.startsWith('tool-') ? type.slice(5) : 'tool'
+  const toolName =
+    typeof raw.toolName === 'string' && raw.toolName.trim()
+      ? raw.toolName
+      : fallbackToolName
+
+  return {
+    toolCallId,
+    toolName,
+    state: mapToolState(raw.state),
+    inputText: stringifyPartValue(raw.input),
+    outputText: stringifyPartValue(raw.output),
+    errorText: typeof raw.errorText === 'string' ? raw.errorText : undefined,
+  }
+}
+
+const extractAssistantContentParts = (parts: unknown[]): ContentPartItem[] => {
+  const result: ContentPartItem[] = []
+  const toolIndexById = new Map<string, number>()
+  let textBuffer = ''
+
+  const flushText = () => {
+    if (!textBuffer.trim()) {
+      textBuffer = ''
+      return
+    }
+    result.push({ type: 'text', text: textBuffer })
+    textBuffer = ''
+  }
+
+  parts.forEach(part => {
+    if (isTextPart(part)) {
+      textBuffer += part.text
+      return
+    }
+
+    const tool = parseToolCallPart(part)
+    if (!tool) return
+
+    flushText()
+
+    const existingIndex = toolIndexById.get(tool.toolCallId)
+    const toolPart: ContentPartItem = { type: 'tool', tool }
+
+    if (existingIndex !== undefined) {
+      result[existingIndex] = toolPart
+    } else {
+      toolIndexById.set(tool.toolCallId, result.length)
+      result.push(toolPart)
+    }
+  })
+
+  flushText()
+  return result
+}
+
 export function ChatView() {
   const t = useTranslations('Chat')
   const { data: session } = authClient.useSession()
@@ -124,13 +210,28 @@ export function ChatView() {
 
   const uiMessages = useMemo((): Message[] => {
     return messages.filter(isRenderableMessage).map(message => {
-      const textParts = Array.isArray(message.parts)
-        ? message.parts.filter(isTextPart).map(part => part.text)
-        : []
+      const textContent = Array.isArray(message.parts)
+        ? message.parts
+            .filter(isTextPart)
+            .map(part => part.text)
+            .join('')
+        : ''
+
+      const assistantContentParts =
+        message.role === 'assistant' && Array.isArray(message.parts)
+          ? extractAssistantContentParts(message.parts)
+          : []
+      const toolCalls = assistantContentParts
+        .filter(part => part.type === 'tool')
+        .map(part => part.tool)
+
       return {
         id: message.id,
         role: message.role,
-        content: textParts.join(''),
+        content: textContent,
+        contentParts:
+          message.role === 'assistant' ? assistantContentParts : undefined,
+        toolCalls: message.role === 'assistant' ? toolCalls : undefined,
       }
     })
   }, [messages])

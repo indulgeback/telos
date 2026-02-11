@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import {
+  AiLottieIcon,
   Button,
   Popover,
   PopoverContent,
@@ -10,7 +11,7 @@ import {
   ScrollArea,
 } from '@/components/atoms'
 import { agentService, type Agent } from '@/service/agent'
-import { Sparkles, Check, ChevronsUpDown, Bot, Lock, Globe } from 'lucide-react'
+import { Sparkles, Check, ChevronsUpDown, Lock, Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 
@@ -54,7 +55,7 @@ export function AgentSelector({
   const getTypeIcon = (type: Agent['type']) => {
     switch (type) {
       case 'system':
-        return <Bot className='mr-2 size-4' />
+        return <AiLottieIcon className='mr-2 size-4' />
       case 'private':
         return <Lock className='mr-2 size-4' />
       case 'public':

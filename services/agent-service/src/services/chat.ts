@@ -1,4 +1,5 @@
 import {
+  AIMessage,
   AIMessageChunk,
   BaseMessage,
   HumanMessage,
@@ -7,6 +8,7 @@ import {
 import { DynamicTool } from '@langchain/core/tools'
 import { ChatOpenAI } from '@langchain/openai'
 import { toBaseMessages } from '@ai-sdk/langchain'
+import { createUIMessageStream, type UIMessageChunk } from 'ai'
 import { config, logger } from '../config/index.js'
 
 function createModel() {
@@ -270,19 +272,6 @@ function createBuiltinTools() {
   return [timeTool, calculatorTool]
 }
 
-function createSingleChunkStream(content: unknown): ReadableStream {
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        new AIMessageChunk({
-          content: typeof content === 'string' ? content : '',
-        })
-      )
-      controller.close()
-    },
-  })
-}
-
 export interface ParsedChatInput {
   inputMessages: BaseMessage[]
   lastMessageText: string
@@ -326,63 +315,199 @@ export async function parseChatInput(
 
 export async function runChatWithBuiltInTools(
   inputMessages: BaseMessage[]
-): Promise<ReadableStream | AsyncIterable<AIMessageChunk>> {
+): Promise<ReadableStream<UIMessageChunk>> {
   const tools = createBuiltinTools()
-  const baseModel = createModel()
-  const modelWithTools = baseModel.bindTools(tools)
+  const model = createModel().bindTools(tools)
   const toolMap = new Map(tools.map(tool => [tool.name, tool]))
-  const conversation: BaseMessage[] = [...inputMessages]
-  const maxSteps = 6
+  const createPartId = (prefix: string) =>
+    `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
-  for (let step = 0; step < maxSteps; step += 1) {
-    const aiMessage = await modelWithTools.invoke(conversation)
-    const toolCalls = Array.isArray(aiMessage.tool_calls)
-      ? aiMessage.tool_calls
-      : []
+  const extractTextFromChunk = (chunk: AIMessageChunk) => {
+    if (typeof chunk.content === 'string') return chunk.content
+    if (!Array.isArray(chunk.content)) return ''
 
-    if (!toolCalls.length) {
-      if (step > 0) {
-        return await baseModel.stream(conversation)
-      }
-      return createSingleChunkStream(aiMessage.content)
-    }
-
-    conversation.push(aiMessage)
-
-    for (const call of toolCalls) {
-      const tool = toolMap.get(call.name)
-      if (!tool) {
-        conversation.push(
-          new ToolMessage({
-            tool_call_id: call.id ?? `missing-tool-${step}`,
-            content: `工具 ${call.name} 不存在。`,
-          })
-        )
-        continue
-      }
-
-      const normalizedInput = normalizeToolInput(call.args)
-      logger.info({
-        msg: 'Tool called',
-        toolName: call.name,
-        step,
-        input: normalizedInput,
-      })
-
-      const toolResult = await tool.invoke(normalizedInput)
-      const toolContent =
-        typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult)
-
-      conversation.push(
-        new ToolMessage({
-          tool_call_id: call.id ?? `${call.name}-${step}`,
-          content: toolContent,
-        })
+    return chunk.content
+      .filter(
+        part =>
+          part &&
+          typeof part === 'object' &&
+          'type' in part &&
+          part.type === 'text' &&
+          typeof (part as { text?: unknown }).text === 'string'
       )
-    }
+      .map(part => (part as { text: string }).text)
+      .join('')
   }
 
-  return createSingleChunkStream(
-    '我尝试调用工具处理你的请求，但步骤超出上限。请换个问法再试一次。'
-  )
+  return createUIMessageStream({
+    execute: async ({ writer }) => {
+      const conversation: BaseMessage[] = [...inputMessages]
+      const maxSteps = 6
+
+      for (let step = 0; step < maxSteps; step += 1) {
+        writer.write({ type: 'start-step' })
+
+        let finalChunk: AIMessageChunk | null = null
+        const stepStream = await model.stream(conversation)
+        const textPartId = createPartId(`text-${step}`)
+        let textStarted = false
+
+        for await (const chunk of stepStream) {
+          finalChunk = finalChunk ? finalChunk.concat(chunk) : chunk
+          const text = extractTextFromChunk(chunk)
+          if (!text) continue
+
+          if (!textStarted) {
+            writer.write({ type: 'text-start', id: textPartId })
+            textStarted = true
+          }
+          writer.write({
+            type: 'text-delta',
+            id: textPartId,
+            delta: text,
+          })
+        }
+
+        if (textStarted) {
+          writer.write({ type: 'text-end', id: textPartId })
+        }
+
+        if (!finalChunk) {
+          writer.write({ type: 'finish-step' })
+          return
+        }
+
+        const toolCalls = Array.isArray(finalChunk.tool_calls)
+          ? finalChunk.tool_calls
+          : []
+
+        if (!toolCalls.length) {
+          writer.write({ type: 'finish-step' })
+          return
+        }
+
+        conversation.push(
+          new AIMessage({
+            content: finalChunk.content,
+            tool_calls: toolCalls,
+          })
+        )
+
+        for (let index = 0; index < toolCalls.length; index += 1) {
+          const call = toolCalls[index]!
+          const toolCallId = call.id ?? `${call.name}-${step}-${index}`
+          const normalizedInput = normalizeToolInput(call.args)
+
+          writer.write({
+            type: 'tool-input-start',
+            toolCallId,
+            toolName: call.name,
+            dynamic: true,
+          })
+
+          if (normalizedInput) {
+            writer.write({
+              type: 'tool-input-delta',
+              toolCallId,
+              inputTextDelta: normalizedInput,
+            })
+          }
+
+          writer.write({
+            type: 'tool-input-available',
+            toolCallId,
+            toolName: call.name,
+            input: call.args ?? normalizedInput,
+            dynamic: true,
+          })
+
+          const tool = toolMap.get(call.name)
+          if (!tool) {
+            const errorText = `工具 ${call.name} 不存在。`
+            writer.write({
+              type: 'tool-output-error',
+              toolCallId,
+              errorText,
+              dynamic: true,
+            })
+
+            conversation.push(
+              new ToolMessage({
+                tool_call_id: toolCallId,
+                content: errorText,
+              })
+            )
+            continue
+          }
+
+          logger.info({
+            msg: 'Tool called',
+            toolName: call.name,
+            step,
+            input: normalizedInput,
+          })
+
+          try {
+            const toolResult = await tool.invoke(normalizedInput)
+            const toolContent =
+              typeof toolResult === 'string'
+                ? toolResult
+                : JSON.stringify(toolResult)
+
+            writer.write({
+              type: 'tool-output-available',
+              toolCallId,
+              output: toolResult,
+              dynamic: true,
+            })
+
+            conversation.push(
+              new ToolMessage({
+                tool_call_id: toolCallId,
+                content: toolContent,
+              })
+            )
+          } catch (error) {
+            const errorText =
+              error instanceof Error ? error.message : '工具执行失败'
+
+            writer.write({
+              type: 'tool-output-error',
+              toolCallId,
+              errorText,
+              dynamic: true,
+            })
+
+            conversation.push(
+              new ToolMessage({
+                tool_call_id: toolCallId,
+                content: errorText,
+              })
+            )
+          }
+        }
+
+        writer.write({ type: 'finish-step' })
+      }
+
+      const fallbackTextId = createPartId('fallback')
+      writer.write({ type: 'start-step' })
+      writer.write({ type: 'text-start', id: fallbackTextId })
+      writer.write({
+        type: 'text-delta',
+        id: fallbackTextId,
+        delta:
+          '我尝试调用工具处理你的请求，但步骤超出上限。请换个问法再试一次。',
+      })
+      writer.write({ type: 'text-end', id: fallbackTextId })
+      writer.write({ type: 'finish-step' })
+    },
+    onError: error => {
+      logger.error({
+        msg: 'UI stream error',
+        err: error instanceof Error ? error.message : String(error),
+      })
+      return '聊天服务错误'
+    },
+  })
 }
