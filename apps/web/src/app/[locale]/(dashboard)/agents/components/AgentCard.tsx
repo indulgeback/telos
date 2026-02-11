@@ -122,13 +122,6 @@ export function AgentCard({ agent, onUpdate }: AgentCardProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {/* System Prompt Preview */}
-          <div className='rounded-md bg-muted/50 p-3'>
-            <p className='text-xs text-muted-foreground line-clamp-3'>
-              {agent.system_prompt}
-            </p>
-          </div>
-
           {/* Metadata */}
           <div className='flex items-center justify-between text-xs text-muted-foreground'>
             <span>
