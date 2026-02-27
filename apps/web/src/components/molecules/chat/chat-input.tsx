@@ -91,7 +91,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              'max-h-40 min-h-11 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground/70',
+              'max-h-40 min-h-10 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground/70',
               className
             )}
             rows={1}

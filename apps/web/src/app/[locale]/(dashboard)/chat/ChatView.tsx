@@ -9,6 +9,8 @@ import type { SuggestionPrompt } from '@/components/atoms'
 import { authClient } from '@/lib/auth-client'
 import { API_BASE_URL } from '@/service/request'
 
+const AUTO_SCROLL_THRESHOLD_PX = 120
+
 const isTextPart = (part: unknown): part is { type: 'text'; text: string } => {
   return (
     !!part &&
@@ -130,6 +132,9 @@ export function ChatView() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const shouldAutoScrollRef = useRef(true)
+  const isStreamingRef = useRef(false)
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [input, setInput] = useState('')
 
@@ -208,6 +213,10 @@ export function ChatView() {
 
   const isLoading = status === 'submitted' || status === 'streaming'
 
+  useEffect(() => {
+    isStreamingRef.current = isLoading
+  }, [isLoading])
+
   const uiMessages = useMemo((): Message[] => {
     return messages.filter(isRenderableMessage).map(message => {
       const textContent = Array.isArray(message.parts)
@@ -260,10 +269,60 @@ export function ChatView() {
   }, [displayMessages])
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    const container = scrollRef.current
+    if (!container) return
+
+    const updateAutoScrollState = () => {
+      const distanceToBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight
+      const isNearBottom = distanceToBottom <= AUTO_SCROLL_THRESHOLD_PX
+
+      if (isNearBottom) {
+        shouldAutoScrollRef.current = true
+        setShowScrollToBottom(false)
+        return
+      }
+
+      // 仅在流式生成期间用户上滑时，暂停自动跟随到底部
+      if (isStreamingRef.current && shouldAutoScrollRef.current) {
+        shouldAutoScrollRef.current = false
+      }
+
+      // 无论是否在生成，只要离开底部就展示“回到底部”按钮
+      setShowScrollToBottom(true)
     }
+
+    updateAutoScrollState()
+    container.addEventListener('scroll', updateAutoScrollState, {
+      passive: true,
+    })
+
+    return () => {
+      container.removeEventListener('scroll', updateAutoScrollState)
+    }
+  }, [])
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container || !shouldAutoScrollRef.current) return
+
+    window.requestAnimationFrame(() => {
+      if (!scrollRef.current || !shouldAutoScrollRef.current) return
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    })
   }, [displayMessages])
+
+  const handleScrollToBottom = () => {
+    const container = scrollRef.current
+    if (!container) return
+
+    shouldAutoScrollRef.current = true
+    setShowScrollToBottom(false)
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth',
+    })
+  }
 
   const handleSend = async (messageContent?: string) => {
     const shouldUseMessageContent =
@@ -274,6 +333,8 @@ export function ChatView() {
     if (!contentToSend || isLoading) return
 
     setInput('')
+    shouldAutoScrollRef.current = true
+    setShowScrollToBottom(false)
 
     await sendMessage({
       text: contentToSend,
@@ -283,6 +344,8 @@ export function ChatView() {
 
   const handleRetry = () => {
     if (!lastUserMessage || isLoading) return
+    shouldAutoScrollRef.current = true
+    setShowScrollToBottom(false)
     regenerate()
   }
 
@@ -293,6 +356,8 @@ export function ChatView() {
   }
 
   const handleClear = () => {
+    shouldAutoScrollRef.current = true
+    setShowScrollToBottom(false)
     setMessages([])
   }
 
@@ -311,8 +376,10 @@ export function ChatView() {
       onRetry={handleRetry}
       onCopy={handleCopy}
       onClear={handleClear}
+      onScrollToBottom={handleScrollToBottom}
       clearConversationLabel={t('clearConversation')}
       refreshSuggestionsLabel={t('actions.refresh')}
+      scrollToBottomLabel={t('actions.scrollToBottom')}
       inputPlaceholder={t('input.placeholder')}
       sendAriaLabel={t('input.sendAriaLabel')}
       disclaimer={t('disclaimer')}
@@ -321,6 +388,7 @@ export function ChatView() {
       copyLabel={t('actions.copy')}
       copiedLabel={t('actions.copied')}
       retryLabel={t('actions.retry')}
+      showScrollToBottom={showScrollToBottom}
       userAvatarUrl={userAvatarUrl}
       userInitials={userInitials}
     />

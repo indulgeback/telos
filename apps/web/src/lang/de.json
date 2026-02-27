@@ -16,37 +16,53 @@
       "description": "Wählen Sie eine vorgeschlagene Frage, um zu beginnen, oder geben Sie direkt Ihre Frage ein"
     },
     "suggestions": {
-      "newProject": {
-        "label": "Neues Projekt starten",
-        "prompt": "Hilf mir, den Tech-Stack und die Architektur für ein neues Projekt zu planen"
+      "whatToEat": {
+        "label": "Was essen wir zum Abendessen?",
+        "prompt": "Gib mir 3 Abendessen-Ideen, die in 10 Minuten zuzubereiten sind, einschließlich Zutaten und Zubereitung."
       },
-      "debugCode": {
-        "label": "Code debuggen",
-        "prompt": "Hilf mir, das Problem in diesem Code zu analysieren"
+      "tripList": {
+        "label": "Reiseliste",
+        "prompt": "Erstelle eine Packliste für einen Wochenendausflug von zwei Tagen und einer Nacht (Stadt + Wetter unbekannt)"
       },
-      "writeDocs": {
-        "label": "Dokumentation schreiben",
-        "prompt": "Hilf mir, eine Benutzerdokumentation für diese Funktion zu erstellen"
-      },
-      "creativeIdeas": {
-        "label": "kreative Inspiration",
-        "prompt": "Gib mir einige Vorschläge zur Produktinnovation"
-      },
-      "dailyPlan": {
-        "label": "Heutige Planung",
-        "prompt": "Hilf mir, eine To-Do-Liste für heute zu erstellen und sie nach Priorität zu ordnen."
+      "quickReply": {
+        "label": "Schnelle Antwort",
+        "prompt": "Hilf mir, 3 kurze Nachrichten mit unterschiedlichem Ton für 'Ich antworte dir später' zu schreiben."
       },
       "quickSummary": {
         "label": "Schnelle Zusammenfassung",
-        "prompt": "Bitte fassen Sie diesen Inhalt für mich in drei Punkten zusammen."
-      },
-      "writeReply": {
-        "label": "Schreibe eine Antwort",
-        "prompt": "Hilf mir bitte, eine höfliche und kurze Antwort zu schreiben."
+        "prompt": "Fassen Sie 'Heute bis 22 Uhr Überstunden gemacht, aber die Aufgaben liefen reibungslos' in 3 Punkten zusammen."
       },
       "makeDecision": {
-        "label": "Hilf mir, eine Entscheidung zu treffen",
-        "prompt": "Gib mir eine einfache Analyse von Vor- und Nachteilen und empfehle eine Auswahl."
+        "label": "Treffe eine Wahl",
+        "prompt": "Vergleich von „Wochenende zu Hause bleiben vs. Kurztrip unternehmen“: Vor- und Nachteile sowie Empfehlungen"
+      },
+      "focusPlan": {
+        "label": "Fokusplan",
+        "prompt": "Hilf mir, einen 2-Stunden-Fokusplan zu erstellen (inklusive Pausen)."
+      },
+      "groceryList": {
+        "label": "Einkaufsliste",
+        "prompt": "Erstelle eine 3-tägige Einkaufsliste für die Familie (inklusive Grundnahrungsmitteln, Gemüse und Protein)."
+      },
+      "workoutPlan": {
+        "label": "Leichte Sportarten",
+        "prompt": "Gib mir einen 20-minütigen Trainingsplan für zu Hause ohne Geräte"
+      },
+      "sleepTip": {
+        "label": "Empfehlungen vor dem Schlafengehen",
+        "prompt": "Gib mir 5 kleine Tipps, um heute Nacht schneller einzuschlafen."
+      },
+      "learnQuick": {
+        "label": "Schnelles Lernen",
+        "prompt": "Verstehen Sie die \"Pomodoro-Technik\" in 5 Minuten und geben Sie die Anwendungsschritte an"
+      },
+      "saveMoney": {
+        "label": "Spartricks",
+        "prompt": "Gib mir 5 alltägliche Spartipps"
+      },
+      "homeChores": {
+        "label": "Haushaltsliste",
+        "prompt": "Erstelle eine Checkliste für Hausarbeiten, die in 30 Minuten erledigt werden kann"
       }
     },
     "input": {
@@ -57,7 +73,9 @@
       "copy": "Kopieren",
       "copied": "Kopiert",
       "retry": "Erneut versuchen",
-      "tools": "Werkzeugaufruf"
+      "tools": "Werkzeugaufruf",
+      "refresh": "Wechsle eine neue Charge",
+      "scrollToBottom": "Zum Ende zurückkehren"
     },
     "error": {
       "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
@@ -813,6 +831,11 @@
     "disabled": "Deaktiviert",
     "confirmDelete": "Möchten Sie dieses Werkzeug wirklich löschen?",
     "searchPlaceholder": "Suchwerkzeug...",
+    "searchTools": "Suchwerkzeuge...",
+    "totalTools": "Insgesamt {count} Werkzeuge",
+    "selected": "{count} ausgewählt",
+    "toolCategories": "Werkzeugkategorie",
+    "noToolsFound": "Kein passendes Werkzeug gefunden",
     "allCategories": "Alle Kategorien",
     "categories": {
       "web": "Webseite",
@@ -909,11 +932,6 @@
     },
     "noParameters": "Dieses Werkzeug hat keine definierten Parameter",
     "endpoint": "API-Endpunkt",
-    "parameters": "Parameter",
-    "searchTools": "Suchwerkzeuge...",
-    "totalTools": "Insgesamt {count} Werkzeuge",
-    "selected": "{count} ausgewählt",
-    "toolCategories": "Werkzeugkategorie",
-    "noToolsFound": "Kein passendes Werkzeug gefunden"
+    "parameters": "Parameter"
   }
 }

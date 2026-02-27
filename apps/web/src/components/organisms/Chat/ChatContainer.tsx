@@ -13,7 +13,7 @@ import {
   type AssistantContentPart,
   type ToolCallPreview,
 } from '@/components/molecules'
-import { RefreshCw } from 'lucide-react'
+import { ArrowDown, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const CARD_TILTS = ['-5deg', '3.5deg', '0deg', '-3deg', '5deg', '2deg'] as const
@@ -92,9 +92,11 @@ export interface ChatContainerProps {
   onRetry: () => void
   onCopy: (content: string, id: string) => void
   onClear: () => void
+  onScrollToBottom: () => void
   // Text
   clearConversationLabel: string
   refreshSuggestionsLabel: string
+  scrollToBottomLabel: string
   inputPlaceholder: string
   sendAriaLabel: string
   disclaimer: string
@@ -103,6 +105,7 @@ export interface ChatContainerProps {
   copyLabel: string
   copiedLabel: string
   retryLabel: string
+  showScrollToBottom: boolean
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
@@ -122,8 +125,10 @@ export function ChatContainer({
   onRetry,
   onCopy,
   onClear,
+  onScrollToBottom,
   clearConversationLabel,
   refreshSuggestionsLabel,
+  scrollToBottomLabel,
   inputPlaceholder,
   sendAriaLabel,
   disclaimer,
@@ -132,6 +137,7 @@ export function ChatContainer({
   copyLabel,
   copiedLabel,
   retryLabel,
+  showScrollToBottom,
   userAvatarUrl,
   userInitials,
 }: ChatContainerProps) {
@@ -195,7 +201,7 @@ export function ChatContainer({
       </div>
       {/* Messages Area */}
       <div className='flex-1 overflow-y-auto relative z-10' ref={scrollRef}>
-        <div className='mx-auto max-w-3xl px-4 py-10'>
+        <div className='mx-auto max-w-4xl px-4 py-10'>
           {messages.length === 0 ? (
             <div className='flex min-h-[70vh] flex-col items-center justify-center py-10'>
               <div className='mb-8 text-center'>
@@ -302,9 +308,34 @@ export function ChatContainer({
         </div>
       </div>
 
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-x-0 bottom-32 z-20 flex justify-center px-4 transition-all duration-200',
+          showScrollToBottom
+            ? 'translate-y-0 opacity-100'
+            : 'translate-y-2 opacity-0'
+        )}
+      >
+        <Button
+          type='button'
+          variant='outline'
+          size='icon'
+          radius='full'
+          onClick={onScrollToBottom}
+          aria-label={scrollToBottomLabel}
+          title={scrollToBottomLabel}
+          className={cn(
+            'size-9 bg-background/95 text-foreground shadow-xl backdrop-blur hover:bg-muted',
+            showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'
+          )}
+        >
+          <ArrowDown className='size-4' />
+        </Button>
+      </div>
+
       {/* Input Area */}
-      <div className='shrink-0 bg-background/80 backdrop-blur-lg shadow-[0_-1px_0_rgba(0,0,0,0.04)] relative z-10'>
-        <div className='mx-auto max-w-3xl px-4 py-4'>
+      <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-10'>
+        <div className='mx-auto max-w-4xl px-4 py-4'>
           <ChatInput
             ref={textareaRef}
             value={safeInput}

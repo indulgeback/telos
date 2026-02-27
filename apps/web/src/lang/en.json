@@ -16,37 +16,53 @@
       "description": "Choose a suggested question to start, or simply type your question"
     },
     "suggestions": {
-      "newProject": {
-        "label": "Start a new project",
-        "prompt": "Help me plan the tech stack and architecture for a new project"
+      "whatToEat": {
+        "label": "What should we have for dinner?",
+        "prompt": "Give me 3 dinner ideas that can be prepared in under 10 minutes, including ingredients and instructions."
       },
-      "debugCode": {
-        "label": "Debug code",
-        "prompt": "Help me analyze the problem with this piece of code"
+      "tripList": {
+        "label": "Travel Checklist",
+        "prompt": "Make a packing list for a two-day, one-night weekend trip (city and weather unknown)"
       },
-      "writeDocs": {
-        "label": "Write documentation",
-        "prompt": "Help me write user documentation for this feature"
-      },
-      "creativeIdeas": {
-        "label": "Creative Inspiration",
-        "prompt": "Give me some advice on product innovation"
-      },
-      "dailyPlan": {
-        "label": "Today's Schedule",
-        "prompt": "Help me make a to-do list for today and prioritize it."
+      "quickReply": {
+        "label": "Quick reply",
+        "prompt": "Help me write 3 short messages saying 'I will reply to you later' in different tones."
       },
       "quickSummary": {
         "label": "Quick Summary",
-        "prompt": "Please help me summarize this content into three points."
-      },
-      "writeReply": {
-        "label": "Write a reply",
-        "prompt": "Help me write a polite and concise reply"
+        "prompt": "Summarize 'Worked overtime until 10 PM today, but the tasks progressed smoothly' in 3 key points"
       },
       "makeDecision": {
-        "label": "Help me make a decision",
-        "prompt": "Give me a simple analysis of the pros and cons, and recommend a choice."
+        "label": "Make a choice",
+        "prompt": "Compare 'staying home on the weekend vs taking a short trip,' and provide the pros, cons, and recommendations."
+      },
+      "focusPlan": {
+        "label": "Focus Plan",
+        "prompt": "Help me create a 2-hour focus schedule (including break times)"
+      },
+      "groceryList": {
+        "label": "Grocery List",
+        "prompt": "Make a 3-day grocery list for a family (including staples, vegetables, and protein)"
+      },
+      "workoutPlan": {
+        "label": "Light exercise",
+        "prompt": "Give me a 20-minute at-home bodyweight workout plan"
+      },
+      "sleepTip": {
+        "label": "Bedtime Advice",
+        "prompt": "Give me 5 tips to fall asleep faster tonight"
+      },
+      "learnQuick": {
+        "label": "Learn quickly",
+        "prompt": "Learn about the 'Pomodoro Technique' in 5 minutes and outline the steps for using it"
+      },
+      "saveMoney": {
+        "label": "Tips for Saving Money",
+        "prompt": "Give me 5 daily money-saving tips."
+      },
+      "homeChores": {
+        "label": "Household Chore List",
+        "prompt": "Make a list of chores that can be completed in 30 minutes"
       }
     },
     "input": {
@@ -57,7 +73,9 @@
       "copy": "Copy",
       "copied": "Copied",
       "retry": "Retry",
-      "tools": "Tool invocation"
+      "tools": "Tool invocation",
+      "refresh": "Change batch",
+      "scrollToBottom": "Go back to the bottom"
     },
     "error": {
       "message": "Sorry, something went wrong. Please try again later."
@@ -813,6 +831,11 @@
     "disabled": "Disabled",
     "confirmDelete": "Are you sure you want to delete this tool?",
     "searchPlaceholder": "Search tools...",
+    "searchTools": "Search tools...",
+    "totalTools": "A total of {count} tools",
+    "selected": "{count} selected",
+    "toolCategories": "Tool Classification",
+    "noToolsFound": "No matching tool found",
     "allCategories": "All Categories",
     "categories": {
       "web": "Webpage",
@@ -909,11 +932,6 @@
     },
     "noParameters": "This tool does not have defined parameters",
     "endpoint": "API Endpoint",
-    "parameters": "Parameter",
-    "searchTools": "Search tools...",
-    "totalTools": "A total of {count} tools",
-    "selected": "{count} selected",
-    "toolCategories": "Tool Classification",
-    "noToolsFound": "No matching tool found"
+    "parameters": "Parameter"
   }
 }

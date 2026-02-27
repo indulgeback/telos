@@ -16,37 +16,53 @@
       "description": "選擇一個建議問題開始，或者直接輸入您的問題"
     },
     "suggestions": {
-      "newProject": {
-        "label": "開始新項目",
-        "prompt": "幫我規劃一個新專案的技術棧和架構"
+      "whatToEat": {
+        "label": "晚飯吃什麼",
+        "prompt": "給我 3 個 10 分鐘內能完成的晚餐建議，含食材和做法"
       },
-      "debugCode": {
-        "label": "調試代碼",
-        "prompt": "幫我分析這段程式碼的問題所在"
+      "tripList": {
+        "label": "出行清單",
+        "prompt": "列一個週末兩天一夜的出行清單（城市+天氣未知）"
       },
-      "writeDocs": {
-        "label": "編寫文件",
-        "prompt": "幫我為這個功能編寫使用者文件"
-      },
-      "creativeIdeas": {
-        "label": "創意靈感",
-        "prompt": "給我一些關於產品創新的建議"
-      },
-      "dailyPlan": {
-        "label": "今日安排",
-        "prompt": "幫我列一個今天的待辦清單，並按優先級排序"
+      "quickReply": {
+        "label": "快速回覆",
+        "prompt": "幫我寫 3 條不同語氣的「稍後回覆你」的簡短消息"
       },
       "quickSummary": {
         "label": "快速總結",
-        "prompt": "請幫我把這段內容概括成三點"
-      },
-      "writeReply": {
-        "label": "寫一條回覆",
-        "prompt": "幫我寫一條禮貌、簡潔的回覆"
+        "prompt": "用 3 條要點總結“今天加班到 10 點，但任務推進很順利”"
       },
       "makeDecision": {
-        "label": "幫我做決定",
-        "prompt": "給我一個簡單的利弊分析，並推薦一個選擇"
+        "label": "做個選擇",
+        "prompt": "比較“週末宅家 vs 短途出遊”，給出利弊和推薦"
+      },
+      "focusPlan": {
+        "label": "專注計畫",
+        "prompt": "幫我做一個 2 小時專注安排（含休息節點）"
+      },
+      "groceryList": {
+        "label": "買菜清單",
+        "prompt": "列一份 3 天家庭買菜清單（含主食、蔬菜、蛋白質）"
+      },
+      "workoutPlan": {
+        "label": "輕量運動",
+        "prompt": "給我一個 20 分鐘在家徒手訓練計劃"
+      },
+      "sleepTip": {
+        "label": "睡前建議",
+        "prompt": "給我 5 條今晚更快入睡的小建議"
+      },
+      "learnQuick": {
+        "label": "快速學習",
+        "prompt": "用 5 分鐘了解「番茄工作法」，並給出使用步驟"
+      },
+      "saveMoney": {
+        "label": "省錢小招",
+        "prompt": "給我 5 條日常省錢的小技巧"
+      },
+      "homeChores": {
+        "label": "家務清單",
+        "prompt": "列一個 30 分鐘能完成的家務清單"
       }
     },
     "input": {
@@ -57,7 +73,9 @@
       "copy": "複製",
       "copied": "已複製",
       "retry": "重試",
-      "tools": "工具調用"
+      "tools": "工具調用",
+      "refresh": "換一批",
+      "scrollToBottom": "回到底部"
     },
     "error": {
       "message": "抱歉，發生了一些錯誤。請稍後再試。"
@@ -813,6 +831,11 @@
     "disabled": "已禁用",
     "confirmDelete": "確認刪除此工具？",
     "searchPlaceholder": "搜尋工具...",
+    "searchTools": "搜尋工具...",
+    "totalTools": "共 {count} 個工具",
+    "selected": "已選擇 {count} 個",
+    "toolCategories": "工具分類",
+    "noToolsFound": "未找到匹配的工具",
     "allCategories": "全部分類",
     "categories": {
       "web": "網頁",
@@ -909,11 +932,6 @@
     },
     "noParameters": "此工具沒有定義參數",
     "endpoint": "API 端點",
-    "parameters": "參數",
-    "searchTools": "搜尋工具...",
-    "totalTools": "共 {count} 個工具",
-    "selected": "已選擇 {count} 個",
-    "toolCategories": "工具分類",
-    "noToolsFound": "未找到匹配的工具"
+    "parameters": "參數"
   }
 }
