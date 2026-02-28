@@ -69,6 +69,13 @@
       "placeholder": "질문을 입력하세요... (Shift + Enter로 줄 바꿈)",
       "sendAriaLabel": "메시지 보내기"
     },
+    "model": {
+      "label": "모형",
+      "deepseek": "딥시크",
+      "seed": "씨앗",
+      "empty": "사용 가능한 모델이 없습니다",
+      "reasoning": "추리"
+    },
     "actions": {
       "copy": "복사",
       "copied": "복사됨",
@@ -81,10 +88,24 @@
       "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
     },
     "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요",
-    "model": {
-      "label": "모형",
-      "deepseek": "딥시크",
-      "seed": "씨앗"
+    "reasoningEffort": {
+      "label": "사고 강도",
+      "hint": "콩빵 모델만 유효",
+      "minimal": "닫기",
+      "low": "낮다",
+      "medium": "중",
+      "high": "높다"
+    },
+    "toolbar": {
+      "online": "인터넷 연결",
+      "reasoning": "사고 깊이:",
+      "mcp": "MCP",
+      "canvas": "캔버스"
+    },
+    "reasoning": {
+      "title": "추리 과정",
+      "thinking": "추리 중",
+      "done": "추리 완료"
     }
   },
   "Dashboard": {

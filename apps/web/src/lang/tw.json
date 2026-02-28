@@ -69,6 +69,13 @@
       "placeholder": "輸入您的問題... (Shift + Enter 換行)",
       "sendAriaLabel": "發送訊息"
     },
+    "model": {
+      "label": "模型",
+      "deepseek": "深尋",
+      "seed": "種子",
+      "empty": "暫無可用模型",
+      "reasoning": "推理"
+    },
     "actions": {
       "copy": "複製",
       "copied": "已複製",
@@ -81,10 +88,24 @@
       "message": "抱歉，發生了一些錯誤。請稍後再試。"
     },
     "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊",
-    "model": {
-      "label": "模型",
-      "deepseek": "深尋",
-      "seed": "種子"
+    "reasoningEffort": {
+      "label": "思考強度",
+      "hint": "僅豆包模型生效",
+      "minimal": "關閉",
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "toolbar": {
+      "online": "聯網",
+      "reasoning": "思考深度:",
+      "mcp": "MCP",
+      "canvas": "畫布"
+    },
+    "reasoning": {
+      "title": "推理過程",
+      "thinking": "推理中",
+      "done": "推理完成"
     }
   },
   "Dashboard": {

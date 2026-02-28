@@ -93,11 +93,14 @@ npm run dev
 ```json
 {
   "message": "帮我计算 123 + 456",
-  "model": "deepseek-chat"
+  "model": "deepseek-chat",
+  "images": ["data:image/png;base64,...."]
 }
 ```
 
 响应为 AI SDK UI Message stream。
+
+`images` 为可选字段，支持 `http(s)` URL 或 `data:image/...;base64,...`。当前可用于豆包 Seed 系列模型的图片理解。
 
 支持的 `model` 值：
 

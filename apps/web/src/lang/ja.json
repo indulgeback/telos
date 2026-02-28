@@ -69,6 +69,13 @@
       "placeholder": "質問を入力してください…（Shift + Enter で改行）",
       "sendAriaLabel": "メッセージを送信"
     },
+    "model": {
+      "label": "模型",
+      "deepseek": "ディープシーク",
+      "seed": "種",
+      "empty": "利用可能なモデルはありません",
+      "reasoning": "推理"
+    },
     "actions": {
       "copy": "コピー",
       "copied": "コピーしました",
@@ -81,10 +88,24 @@
       "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
     },
     "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください",
-    "model": {
-      "label": "模型",
-      "deepseek": "ディープシーク",
-      "seed": "種"
+    "reasoningEffort": {
+      "label": "思考の強度",
+      "hint": "豆包モデルのみ有効",
+      "minimal": "閉じる",
+      "low": "低い",
+      "medium": "中",
+      "high": "高い"
+    },
+    "toolbar": {
+      "online": "ネットワークに接続する",
+      "reasoning": "思考の深さ:",
+      "mcp": "MCP",
+      "canvas": "キャンバス"
+    },
+    "reasoning": {
+      "title": "推論過程",
+      "thinking": "推理中",
+      "done": "推理完了"
     }
   },
   "Dashboard": {

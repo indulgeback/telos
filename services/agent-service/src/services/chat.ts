@@ -77,13 +77,6 @@ const DEFAULT_CHAT_MODELS = [
     isReasoning: true,
     sortOrder: 60,
   },
-  {
-    modelKey: 'kimi-k2-thinking-251104',
-    displayName: 'Kimi K2 Thinking',
-    provider: 'seed',
-    isReasoning: true,
-    sortOrder: 70,
-  },
 ] as const
 
 let modelsInitialized = false
@@ -520,6 +513,55 @@ export interface ParsedChatInput {
   lastMessageText: string
   selectedModel: string
   reasoningEffort: ReasoningEffort
+  imageCount: number
+}
+
+const IMAGE_PLACEHOLDER_PROMPT = '请描述这张图片'
+
+function normalizeImageUrls(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+
+  return raw
+    .map(item => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean)
+    .filter(
+      url => /^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url)
+    )
+    .slice(0, 3)
+}
+
+function withLastUserImageMessage(
+  inputMessages: BaseMessage[],
+  text: string,
+  imageUrls: string[]
+): BaseMessage[] {
+  if (!imageUrls.length) return inputMessages
+
+  const nextMessages = [...inputMessages]
+  const content = [
+    {
+      type: 'text',
+      text: text.trim() || IMAGE_PLACEHOLDER_PROMPT,
+    },
+    ...imageUrls.map(url => ({
+      type: 'image_url' as const,
+      image_url: { url },
+    })),
+  ]
+  const lastUserIndex = [...nextMessages]
+    .reverse()
+    .findIndex(message => message instanceof HumanMessage)
+
+  const multimodalMessage = new HumanMessage({ content })
+
+  if (lastUserIndex < 0) {
+    nextMessages.push(multimodalMessage)
+    return nextMessages
+  }
+
+  const targetIndex = nextMessages.length - 1 - lastUserIndex
+  nextMessages[targetIndex] = multimodalMessage
+  return nextMessages
 }
 
 export async function parseChatInput(
@@ -531,6 +573,7 @@ export async function parseChatInput(
     model?: unknown
     reasoningEffort?: unknown
     reasoning_effort?: unknown
+    images?: unknown
   }
   const hasUiMessages =
     Array.isArray(payload.messages) && payload.messages.length > 0
@@ -547,18 +590,26 @@ export async function parseChatInput(
     : undefined
 
   const candidate = payload.message ?? fallbackMessage
-  const lastMessageText = extractTextFromMessage(candidate).trim()
+  const imageUrls = normalizeImageUrls(payload.images)
+  let lastMessageText = extractTextFromMessage(candidate).trim()
+  if (!lastMessageText && imageUrls.length > 0) {
+    lastMessageText = IMAGE_PLACEHOLDER_PROMPT
+  }
 
   if (!candidate || !lastMessageText) return null
 
-  const inputMessages = hasUiMessages
+  const baseMessages = hasUiMessages
     ? await toBaseMessages(payload.messages as any)
     : [new HumanMessage(lastMessageText)]
+  const inputMessages = withLastUserImageMessage(
+    baseMessages as BaseMessage[],
+    lastMessageText,
+    imageUrls
+  )
 
   const selectedModel =
     typeof payload.model === 'string' ? payload.model.trim() : ''
-  const reasoningEffortRaw =
-    payload.reasoningEffort ?? payload.reasoning_effort
+  const reasoningEffortRaw = payload.reasoningEffort ?? payload.reasoning_effort
   const reasoningEffort =
     typeof reasoningEffortRaw === 'string' &&
     REASONING_EFFORT_VALUES.includes(reasoningEffortRaw as ReasoningEffort)
@@ -570,6 +621,7 @@ export async function parseChatInput(
     lastMessageText,
     selectedModel,
     reasoningEffort,
+    imageCount: imageUrls.length,
   }
 }
 

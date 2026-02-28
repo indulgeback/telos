@@ -81,7 +81,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
         )}
       >
         {/* 输入区域 */}
-        <div className='flex items-end gap-3'>
+        <div className='flex items-end'>
           <textarea
             ref={ref}
             value={value}
@@ -97,23 +97,23 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
             rows={1}
             {...props}
           />
-          <Button
-            onClick={onSend}
-            disabled={!canSend || sendDisabled}
-            size='icon'
-            className='size-10 shrink-0 rounded-xl shadow-sm'
-            aria-label={sendAriaLabel}
-          >
-            <Send className='size-4' />
-          </Button>
         </div>
 
         {/* 操作区域 - 在边框内 */}
-        {actions && (
-          <div className='flex items-center gap-2 px-1 pt-1 border-t border-border/50 mt-1'>
-            {actions}
+        <div className='mt-1 flex items-center justify-between gap-2 px-1 pt-1'>
+          <div className='min-w-0 flex-1'>{actions}</div>
+          <div className='shrink-0'>
+            <Button
+              onClick={onSend}
+              disabled={!canSend || sendDisabled}
+              size='icon'
+              className='size-9 rounded-xl shadow-sm'
+              aria-label={sendAriaLabel}
+            >
+              <Send className='size-4' />
+            </Button>
           </div>
-        )}
+        </div>
       </div>
     )
   }

@@ -14,6 +14,8 @@ import { authClient } from '@/lib/auth-client'
 import { API_BASE_URL } from '@/service/request'
 
 const AUTO_SCROLL_THRESHOLD_PX = 120
+const IMAGE_PLACEHOLDER_PROMPT = '请描述这张图片'
+const MAX_IMAGE_ATTACHMENTS = 3
 
 const isTextPart = (part: unknown): part is { type: 'text'; text: string } => {
   return (
@@ -39,6 +41,85 @@ const normalizeModelProvider = (
   provider: unknown
 ): ChatModelOption['provider'] => {
   return provider === 'seed' ? 'seed' : 'deepseek'
+}
+
+const supportsReasoningEffortControl = (
+  modelOption: ChatModelOption | undefined
+) => {
+  if (!modelOption) return false
+  return (
+    modelOption.provider === 'seed' &&
+    modelOption.isReasoning &&
+    modelOption.model.startsWith('doubao-')
+  )
+}
+
+const supportsSeedVision = (modelOption: ChatModelOption | undefined) => {
+  if (!modelOption) return false
+  return (
+    modelOption.provider === 'seed' &&
+    modelOption.model.startsWith('doubao-seed-')
+  )
+}
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+      reject(new Error('Failed to read image file'))
+    }
+    reader.onerror = () => reject(new Error('Failed to read image file'))
+    reader.readAsDataURL(file)
+  })
+
+const tryGetImageUrl = (part: unknown): string | null => {
+  if (!part || typeof part !== 'object') return null
+  const raw = part as Record<string, unknown>
+
+  if (typeof raw.url === 'string' && raw.url.trim()) return raw.url
+  if (typeof raw.image === 'string' && raw.image.trim()) return raw.image
+
+  const imageUrl = raw.image_url
+  if (imageUrl && typeof imageUrl === 'object') {
+    const url = (imageUrl as { url?: unknown }).url
+    if (typeof url === 'string' && url.trim()) return url
+  }
+
+  const file = raw.file
+  if (file && typeof file === 'object') {
+    const fileUrl = (file as { url?: unknown }).url
+    if (typeof fileUrl === 'string' && fileUrl.trim()) return fileUrl
+  }
+
+  return null
+}
+
+const extractImageUrlsFromMessageParts = (parts: unknown): string[] => {
+  if (!Array.isArray(parts)) return []
+  const urls: string[] = []
+
+  parts.forEach(part => {
+    if (!part || typeof part !== 'object') return
+    const type = (part as { type?: unknown }).type
+    if (
+      type !== 'image' &&
+      type !== 'image_url' &&
+      type !== 'file' &&
+      type !== 'input_image'
+    ) {
+      return
+    }
+    const url = tryGetImageUrl(part)
+    if (url && !urls.includes(url)) {
+      urls.push(url)
+    }
+  })
+
+  return urls
 }
 
 const stringifyPartValue = (value: unknown) => {
@@ -235,6 +316,11 @@ export function ChatView() {
   const [modelOptions, setModelOptions] = useState<ChatModelOption[]>([])
   const [reasoningEffort, setReasoningEffort] =
     useState<ReasoningEffort>('medium')
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const pendingImageBatchesRef = useRef<string[][]>([])
+  const [imagesByMessageId, setImagesByMessageId] = useState<
+    Record<string, string[]>
+  >({})
 
   const chatTransport = useMemo(
     () =>
@@ -389,15 +475,67 @@ export function ChatView() {
     () => modelOptions.find(item => item.model === selectedModel),
     [modelOptions, selectedModel]
   )
-  const supportsReasoningEffort = selectedModelOption?.provider === 'seed'
+  const supportsReasoningEffort =
+    supportsReasoningEffortControl(selectedModelOption)
+  const supportsImageUpload = supportsSeedVision(selectedModelOption)
 
-  const buildRequestBody = (): { model?: string; reasoningEffort?: string } => {
-    const body: { model?: string; reasoningEffort?: string } = {}
+  useEffect(() => {
+    if (!supportsImageUpload && imagePreviews.length > 0) {
+      setImagePreviews([])
+    }
+  }, [supportsImageUpload, imagePreviews.length])
+
+  useEffect(() => {
+    const userMessages = messages.filter(
+      message => isRenderableMessage(message) && message.role === 'user'
+    )
+    if (!userMessages.length) return
+
+    const nextPairs: Array<[string, string[]]> = []
+
+    userMessages.forEach(message => {
+      if (imagesByMessageId[message.id]) return
+
+      const fromMessage = extractImageUrlsFromMessageParts(message.parts)
+      if (fromMessage.length > 0) {
+        nextPairs.push([message.id, fromMessage])
+        return
+      }
+
+      const pending = pendingImageBatchesRef.current[0]
+      if (pending && pending.length > 0) {
+        pendingImageBatchesRef.current.shift()
+        nextPairs.push([message.id, pending])
+      }
+    })
+
+    if (!nextPairs.length) return
+
+    setImagesByMessageId(prev => {
+      const next = { ...prev }
+      nextPairs.forEach(([id, urls]) => {
+        next[id] = urls
+      })
+      return next
+    })
+  }, [messages, imagesByMessageId])
+
+  const buildRequestBody = (
+    images?: string[]
+  ): { model?: string; reasoningEffort?: string; images?: string[] } => {
+    const body: {
+      model?: string
+      reasoningEffort?: string
+      images?: string[]
+    } = {}
     if (selectedModel) {
       body.model = selectedModel
     }
     if (supportsReasoningEffort) {
       body.reasoningEffort = reasoningEffort
+    }
+    if (supportsImageUpload && images && images.length > 0) {
+      body.images = images
     }
     return body
   }
@@ -431,12 +569,14 @@ export function ChatView() {
         id: message.id,
         role: message.role,
         content: textContent,
+        images:
+          message.role === 'user' ? (imagesByMessageId[message.id] ?? []) : [],
         contentParts:
           message.role === 'assistant' ? assistantContentParts : undefined,
         toolCalls: message.role === 'assistant' ? toolCalls : undefined,
       }
     })
-  }, [messages])
+  }, [messages, imagesByMessageId])
 
   const displayMessages = useMemo(() => {
     if (!isLoading) return uiMessages
@@ -518,14 +658,22 @@ export function ChatView() {
   }
 
   const handleSend = async (messageContent?: string) => {
+    const hasImages = supportsImageUpload && imagePreviews.length > 0
     const shouldUseMessageContent =
       messageContent && typeof messageContent === 'string'
-    const contentToSend = (shouldUseMessageContent ? messageContent : input)
+    const textInput = (shouldUseMessageContent ? messageContent : input)
       .toString()
       .trim()
+    const contentToSend =
+      textInput || (hasImages ? IMAGE_PLACEHOLDER_PROMPT : '')
     if (!contentToSend || isLoading) return
 
     setInput('')
+    const imagesForRequest = hasImages ? [...imagePreviews] : []
+    if (imagesForRequest.length > 0) {
+      pendingImageBatchesRef.current.push(imagesForRequest)
+      setImagePreviews([])
+    }
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
 
@@ -534,10 +682,35 @@ export function ChatView() {
         text: contentToSend,
       },
       {
-        body: buildRequestBody(),
+        body: buildRequestBody(imagesForRequest),
       }
     )
     textareaRef.current?.focus()
+  }
+
+  const handlePickImages = async (files: FileList | null) => {
+    if (!supportsImageUpload || !files || files.length === 0) return
+    const remaining = Math.max(0, MAX_IMAGE_ATTACHMENTS - imagePreviews.length)
+    if (remaining <= 0) return
+
+    const picked = Array.from(files)
+      .filter(file => file.type.startsWith('image/'))
+      .slice(0, remaining)
+
+    if (!picked.length) return
+
+    try {
+      const urls = await Promise.all(picked.map(fileToDataUrl))
+      setImagePreviews(prev =>
+        [...prev, ...urls].slice(0, MAX_IMAGE_ATTACHMENTS)
+      )
+    } catch (error) {
+      console.error('Failed to parse selected images', error)
+    }
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleRetry = () => {
@@ -556,6 +729,8 @@ export function ChatView() {
   const handleClear = () => {
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
+    pendingImageBatchesRef.current = []
+    setImagesByMessageId({})
     setMessages([])
   }
 
@@ -604,6 +779,15 @@ export function ChatView() {
       reasoningDoneLabel={t('reasoning.done')}
       showScrollToBottom={showScrollToBottom}
       showReasoningEffort={supportsReasoningEffort}
+      showImageUpload={supportsImageUpload}
+      imagePreviews={imagePreviews}
+      onPickImages={handlePickImages}
+      onRemoveImage={handleRemoveImage}
+      imageUploadLabel='上传图片'
+      imageRemoveLabel='移除图片'
+      imagePreviewLabel={t('actions.previewImage')}
+      imagePrevLabel={t('actions.prevImage')}
+      imageNextLabel={t('actions.nextImage')}
       disableModelSelect={isLoading || modelOptions.length === 0}
       disableReasoningEffort={isLoading}
       userAvatarUrl={userAvatarUrl}

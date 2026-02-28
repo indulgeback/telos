@@ -1,16 +1,19 @@
 'use client'
 
 import { memo, useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import {
   AiLottieIcon,
   Button,
   Card,
+  Dialog,
+  DialogContent,
   TypingIndicator,
   ChatAvatar,
 } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
 import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
-import { Copy, Check, RotateCcw, ChevronRight } from 'lucide-react'
+import { Copy, Check, RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type AssistantContentPart =
@@ -28,6 +31,7 @@ export interface ChatMessageProps {
   id: string
   role: 'user' | 'assistant'
   content: string
+  images?: string[]
   contentParts?: AssistantContentPart[]
   toolCalls?: ToolCallPreview[]
   copiedId: string | null
@@ -40,6 +44,9 @@ export interface ChatMessageProps {
   reasoningTitle?: string
   reasoningThinkingLabel?: string
   reasoningDoneLabel?: string
+  imagePreviewLabel?: string
+  imagePrevLabel?: string
+  imageNextLabel?: string
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
@@ -119,6 +126,7 @@ function ChatMessageInner({
   id,
   role,
   content,
+  images = [],
   contentParts = [],
   toolCalls: _toolCalls = [],
   copiedId,
@@ -131,13 +139,20 @@ function ChatMessageInner({
   reasoningTitle = 'Reasoning',
   reasoningThinkingLabel = 'Thinking',
   reasoningDoneLabel = 'Done',
+  imagePreviewLabel = 'Preview image',
+  imagePrevLabel = 'Previous image',
+  imageNextLabel = 'Next image',
   userAvatarUrl,
   userInitials,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
+  const safeImages = images ?? []
   const safeContentParts = contentParts ?? []
   const isAssistant = role === 'assistant'
   const hasContent = safeContent.length > 0
+  const hasImages = safeImages.length > 0
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState(0)
   const [isAvatarBouncing, setIsAvatarBouncing] = useState(false)
   const avatarBounceTimerRef = useRef<number | null>(null)
 
@@ -272,9 +287,38 @@ function ChatMessageInner({
           </div>
         ) : (
           <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>
-            <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
-              {hasContent ? safeContent : <TypingIndicator />}
-            </p>
+            {hasImages && (
+              <div className='mb-2 grid max-w-[360px] grid-cols-3 gap-2'>
+                {safeImages.map((src, index) => (
+                  <button
+                    type='button'
+                    key={`${id}-img-${index}`}
+                    className='relative aspect-square overflow-hidden rounded-md bg-primary-foreground/10'
+                    onClick={() => {
+                      setPreviewIndex(index)
+                      setPreviewOpen(true)
+                    }}
+                    aria-label={imagePreviewLabel}
+                  >
+                    <Image
+                      src={src}
+                      alt={`user-image-${index + 1}`}
+                      fill
+                      unoptimized
+                      sizes='120px'
+                      className='object-cover'
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+            {hasContent ? (
+              <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
+                {safeContent}
+              </p>
+            ) : (
+              <TypingIndicator />
+            )}
           </Card>
         )}
 
@@ -328,6 +372,61 @@ function ChatMessageInner({
           initials={userInitials}
         />
       )}
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent
+          showCloseButton
+          className='max-w-[92vw] border-none bg-transparent p-0 shadow-none sm:max-w-4xl'
+        >
+          <div className='relative flex items-center justify-center'>
+            {safeImages[previewIndex] && (
+              <div className='relative h-[72vh] w-full overflow-hidden rounded-xl bg-black/70'>
+                <Image
+                  src={safeImages[previewIndex]}
+                  alt={`preview-image-${previewIndex + 1}`}
+                  fill
+                  unoptimized
+                  sizes='90vw'
+                  className='object-contain'
+                />
+              </div>
+            )}
+
+            {safeImages.length > 1 && (
+              <>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  size='icon'
+                  radius='full'
+                  className='absolute left-3 top-1/2 -translate-y-1/2 bg-background/85'
+                  onClick={() =>
+                    setPreviewIndex(
+                      (previewIndex - 1 + safeImages.length) % safeImages.length
+                    )
+                  }
+                  aria-label={imagePrevLabel}
+                >
+                  <ChevronLeft className='size-4' />
+                </Button>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  size='icon'
+                  radius='full'
+                  className='absolute right-3 top-1/2 -translate-y-1/2 bg-background/85'
+                  onClick={() =>
+                    setPreviewIndex((previewIndex + 1) % safeImages.length)
+                  }
+                  aria-label={imageNextLabel}
+                >
+                  <ChevronRight className='size-4' />
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -336,11 +435,20 @@ function areEqual(prev: ChatMessageProps, next: ChatMessageProps): boolean {
   if (prev.id !== next.id) return false
   if (prev.role !== next.role) return false
   if (prev.content !== next.content) return false
+  const prevImages = prev.images ?? []
+  const nextImages = next.images ?? []
+  if (prevImages.length !== nextImages.length) return false
+  for (let i = 0; i < prevImages.length; i += 1) {
+    if (prevImages[i] !== nextImages[i]) return false
+  }
   if (prev.isLoading !== next.isLoading) return false
   if (prev.retryLabel !== next.retryLabel) return false
   if (prev.reasoningTitle !== next.reasoningTitle) return false
   if (prev.reasoningThinkingLabel !== next.reasoningThinkingLabel) return false
   if (prev.reasoningDoneLabel !== next.reasoningDoneLabel) return false
+  if (prev.imagePreviewLabel !== next.imagePreviewLabel) return false
+  if (prev.imagePrevLabel !== next.imagePrevLabel) return false
+  if (prev.imageNextLabel !== next.imageNextLabel) return false
   if (prev.userAvatarUrl !== next.userAvatarUrl) return false
   if (prev.userInitials !== next.userInitials) return false
 

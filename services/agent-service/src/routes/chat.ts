@@ -56,6 +56,7 @@ async function handleChat(req: Request, res: Response) {
       msg: 'Chat request received',
       requestId,
       messageLength: parsed.lastMessageText.length,
+      imageCount: parsed.imageCount,
       model: parsed.selectedModel,
       reasoningEffort: parsed.reasoningEffort,
     })

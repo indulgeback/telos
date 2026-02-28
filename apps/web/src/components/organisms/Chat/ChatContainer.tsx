@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import {
   AiLottieIcon,
   Button,
@@ -14,11 +15,12 @@ import {
 } from '@/components/atoms'
 import {
   ChatInput,
+  ChatInputActions,
   ChatMessage,
   type AssistantContentPart,
   type ToolCallPreview,
 } from '@/components/molecules'
-import { ArrowDown, BrainCircuit, RefreshCw } from 'lucide-react'
+import { ArrowDown, RefreshCw, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const CARD_TILTS = ['-5deg', '3.5deg', '0deg', '-3deg', '5deg', '2deg'] as const
@@ -75,6 +77,7 @@ export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  images?: string[]
   contentParts?: AssistantContentPart[]
   toolCalls?: ToolCallPreview[]
   createdAt?: Date
@@ -112,6 +115,8 @@ export interface ChatContainerProps {
   onReasoningEffortChange: (
     value: 'minimal' | 'low' | 'medium' | 'high'
   ) => void
+  onPickImages?: (files: FileList | null) => void
+  onRemoveImage?: (index: number) => void
   // Text
   modelLabel: string
   modelEmptyLabel: string
@@ -135,8 +140,15 @@ export interface ChatContainerProps {
   reasoningTitle: string
   reasoningThinkingLabel: string
   reasoningDoneLabel: string
+  imagePreviewLabel?: string
+  imagePrevLabel?: string
+  imageNextLabel?: string
+  imageUploadLabel?: string
+  imageRemoveLabel?: string
   showScrollToBottom: boolean
   showReasoningEffort?: boolean
+  showImageUpload?: boolean
+  imagePreviews?: string[]
   disableModelSelect?: boolean
   disableReasoningEffort?: boolean
   // 用户头像相关
@@ -164,6 +176,8 @@ export function ChatContainer({
   onScrollToBottom,
   onModelChange,
   onReasoningEffortChange,
+  onPickImages,
+  onRemoveImage,
   modelLabel,
   modelEmptyLabel,
   modelReasoningLabel,
@@ -186,8 +200,15 @@ export function ChatContainer({
   reasoningTitle,
   reasoningThinkingLabel,
   reasoningDoneLabel,
+  imagePreviewLabel = 'Preview image',
+  imagePrevLabel = 'Previous image',
+  imageNextLabel = 'Next image',
+  imageUploadLabel = 'Upload image',
+  imageRemoveLabel = 'Remove image',
   showScrollToBottom,
   showReasoningEffort = false,
+  showImageUpload = false,
+  imagePreviews = [],
   disableModelSelect = false,
   disableReasoningEffort = false,
   userAvatarUrl,
@@ -246,7 +267,7 @@ export function ChatContainer({
   }
   return (
     <div className='relative flex h-full w-full flex-col overflow-hidden bg-background'>
-      <div className='absolute right-4 top-4 z-20'>
+      <div className='absolute right-4 top-4 z-30'>
         <div className='flex items-center gap-2 rounded-md bg-background/90 px-2 py-1 shadow-sm ring-1 ring-border/60 backdrop-blur'>
           <span className='text-[11px] text-muted-foreground'>
             {modelLabel}
@@ -286,186 +307,205 @@ export function ChatContainer({
         <div className='absolute bottom-[-10%] left-[-18%] h-[520px] w-[680px] rounded-full bg-[radial-gradient(circle_at_center,rgba(52,168,83,0.08),transparent_65%)] blur-3xl' />
       </div>
       {/* Messages Area */}
-      <div className='flex-1 overflow-y-auto relative z-10' ref={scrollRef}>
-        <div className='mx-auto max-w-4xl px-4 py-10'>
-          {messages.length === 0 ? (
-            <div className='flex min-h-[70vh] flex-col items-center justify-center py-10'>
-              <div className='mb-8 text-center'>
-                <div className='mb-4 inline-flex items-center justify-center'>
-                  <AiLottieIcon className='size-20' />
-                </div>
-                <h2 className='mb-2 text-xl font-semibold'>
-                  {emptyStateTitle}
-                </h2>
-                <p className='text-sm text-muted-foreground'>
-                  {emptyStateDescription}
-                </p>
-              </div>
-
-              <div className='mt-6 w-[min(1200px,95vw)]'>
-                <div
-                  className={cn('relative flex justify-center', 'h-[200px]')}
-                >
-                  {visibleSuggestions.map((suggestion, index) => {
-                    const hoverKey = `${suggestion.label}-${index}`
-                    const isHovered = hoveredSuggestion === hoverKey
-                    const gradient = getCardGradient(index, isDark)
-                    const transform = getCardTransform(
-                      index,
-                      isShuffling,
-                      isHovered
-                    )
-
-                    return (
-                      <SuggestionPromptButton
-                        key={`${suggestion.label}-${suggestionSeed}`}
-                        suggestion={suggestion}
-                        onClick={onSend}
-                        onMouseEnter={() => setHoveredSuggestion(hoverKey)}
-                        onMouseLeave={() => setHoveredSuggestion(null)}
-                        className={cn(
-                          'absolute left-1/2 top-1/2 will-change-transform transition-all duration-300 ease-out',
-                          isShuffling ? 'scale-[0.5] opacity-10' : 'opacity-100'
-                        )}
-                        style={{
-                          transform,
-                          backgroundImage: gradient,
-                          zIndex: isHovered ? 50 : index,
-                        }}
-                      />
-                    )
-                  })}
-                </div>
-                {suggestionPrompts.length > SUGGESTION_BATCH_SIZE && (
-                  <div className='mt-6 flex justify-center'>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={handleShuffle}
-                      className='text-[11px] text-muted-foreground hover:text-foreground'
-                    >
-                      <RefreshCw className='mr-1 size-3' />
-                      {refreshSuggestionsLabel}
-                    </Button>
+      <div className='relative z-20 flex-1 min-h-0'>
+        <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
+          <div className='mx-auto max-w-4xl px-4 py-10'>
+            {messages.length === 0 ? (
+              <div className='flex min-h-[50vh] flex-col items-center justify-center py-10'>
+                <div className='mb-8 text-center'>
+                  <div className='mb-4 inline-flex items-center justify-center'>
+                    <AiLottieIcon className='size-20' />
                   </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className='space-y-8'>
-              {messages.map(message => {
-                const isLastAssistantMessage =
-                  message.role === 'assistant' &&
-                  message.id === messages[messages.length - 1]?.id
-                const showRetry = isLastAssistantMessage && lastUserMessage
+                  <h2 className='mb-2 text-xl font-semibold'>
+                    {emptyStateTitle}
+                  </h2>
+                  <p className='text-sm text-muted-foreground'>
+                    {emptyStateDescription}
+                  </p>
+                </div>
 
-                return (
-                  <ChatMessage
-                    key={message.id}
-                    id={message.id}
-                    role={message.role}
-                    content={message.content}
-                    contentParts={message.contentParts}
-                    toolCalls={message.toolCalls}
-                    copiedId={copiedId}
-                    onCopy={onCopy}
-                    copyLabel={copyLabel}
-                    copiedLabel={copiedLabel}
-                    isLoading={isLastAssistantMessage && isLoading}
-                    onRetry={showRetry ? onRetry : undefined}
-                    retryLabel={retryLabel}
-                    reasoningTitle={reasoningTitle}
-                    reasoningThinkingLabel={reasoningThinkingLabel}
-                    reasoningDoneLabel={reasoningDoneLabel}
-                    userAvatarUrl={userAvatarUrl}
-                    userInitials={userInitials}
-                  />
-                )
-              })}
-              <div className='flex justify-center pt-2'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={onClear}
-                  className='text-[11px] text-muted-foreground hover:text-foreground'
-                >
-                  {clearConversationLabel}
-                </Button>
+                <div className='mt-6 w-[min(1200px,95vw)]'>
+                  <div
+                    className={cn('relative flex justify-center', 'h-[200px]')}
+                  >
+                    {visibleSuggestions.map((suggestion, index) => {
+                      const hoverKey = `${suggestion.label}-${index}`
+                      const isHovered = hoveredSuggestion === hoverKey
+                      const gradient = getCardGradient(index, isDark)
+                      const transform = getCardTransform(
+                        index,
+                        isShuffling,
+                        isHovered
+                      )
+
+                      return (
+                        <SuggestionPromptButton
+                          key={`${suggestion.label}-${suggestionSeed}`}
+                          suggestion={suggestion}
+                          onClick={onSend}
+                          onMouseEnter={() => setHoveredSuggestion(hoverKey)}
+                          onMouseLeave={() => setHoveredSuggestion(null)}
+                          className={cn(
+                            'absolute left-1/2 top-1/2 will-change-transform transition-all duration-300 ease-out',
+                            isShuffling
+                              ? 'scale-[0.5] opacity-10'
+                              : 'opacity-100'
+                          )}
+                          style={{
+                            transform,
+                            backgroundImage: gradient,
+                            zIndex: isHovered ? 50 : index,
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                  {suggestionPrompts.length > SUGGESTION_BATCH_SIZE && (
+                    <div className='mt-6 flex justify-center'>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={handleShuffle}
+                        className='text-[11px] text-muted-foreground hover:text-foreground'
+                      >
+                        <RefreshCw className='mr-1 size-3' />
+                        {refreshSuggestionsLabel}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className='space-y-8'>
+                {messages.map(message => {
+                  const isLastAssistantMessage =
+                    message.role === 'assistant' &&
+                    message.id === messages[messages.length - 1]?.id
+                  const showRetry = isLastAssistantMessage && lastUserMessage
+
+                  return (
+                    <ChatMessage
+                      key={message.id}
+                      id={message.id}
+                      role={message.role}
+                      content={message.content}
+                      images={message.images}
+                      contentParts={message.contentParts}
+                      toolCalls={message.toolCalls}
+                      copiedId={copiedId}
+                      onCopy={onCopy}
+                      copyLabel={copyLabel}
+                      copiedLabel={copiedLabel}
+                      isLoading={isLastAssistantMessage && isLoading}
+                      onRetry={showRetry ? onRetry : undefined}
+                      retryLabel={retryLabel}
+                      reasoningTitle={reasoningTitle}
+                      reasoningThinkingLabel={reasoningThinkingLabel}
+                      reasoningDoneLabel={reasoningDoneLabel}
+                      imagePreviewLabel={imagePreviewLabel}
+                      imagePrevLabel={imagePrevLabel}
+                      imageNextLabel={imageNextLabel}
+                      userAvatarUrl={userAvatarUrl}
+                      userInitials={userInitials}
+                    />
+                  )
+                })}
+                <div className='flex justify-center pt-2'>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    onClick={onClear}
+                    className='text-[11px] text-muted-foreground hover:text-foreground'
+                  >
+                    {clearConversationLabel}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div
-        className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-10 z-20 flex justify-center px-4 transition-all duration-200',
-          showScrollToBottom
-            ? 'translate-y-0 opacity-100'
-            : 'translate-y-2 opacity-0'
-        )}
-      >
-        <Button
-          type='button'
-          variant='outline'
-          size='icon'
-          radius='full'
-          onClick={onScrollToBottom}
-          aria-label={scrollToBottomLabel}
-          title={scrollToBottomLabel}
+        <div
           className={cn(
-            'size-9 bg-background/95 text-foreground shadow-xl backdrop-blur hover:bg-muted',
-            showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'
+            'pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4 transition-all duration-200',
+            showScrollToBottom
+              ? 'translate-y-0 opacity-100'
+              : 'translate-y-2 opacity-0'
           )}
         >
-          <ArrowDown className='size-4' />
-        </Button>
+          <Button
+            type='button'
+            variant='outline'
+            size='icon'
+            radius='full'
+            onClick={onScrollToBottom}
+            aria-label={scrollToBottomLabel}
+            title={scrollToBottomLabel}
+            className={cn(
+              'size-9 bg-background/95 text-foreground shadow-xl backdrop-blur hover:bg-muted',
+              showScrollToBottom ? 'pointer-events-auto' : 'pointer-events-none'
+            )}
+          >
+            <ArrowDown className='size-4' />
+          </Button>
+        </div>
       </div>
 
       {/* Input Area */}
       <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-10'>
         <div className='mx-auto max-w-4xl px-4 py-4'>
+          {showImageUpload && imagePreviews.length > 0 && (
+            <div className='mb-2 flex items-center gap-2 overflow-x-auto pb-1'>
+              {imagePreviews.map((src, index) => (
+                <div
+                  key={`${src.slice(0, 36)}-${index}`}
+                  className='relative h-12 w-12 shrink-0 overflow-hidden rounded-md ring-1 ring-border/70'
+                >
+                  <Image
+                    src={src}
+                    alt={`${imageUploadLabel}-${index + 1}`}
+                    fill
+                    unoptimized
+                    sizes='48px'
+                    className='object-cover'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => onRemoveImage?.(index)}
+                    className='absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border'
+                    aria-label={imageRemoveLabel}
+                    title={imageRemoveLabel}
+                  >
+                    <X className='size-2.5' />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <ChatInput
             ref={textareaRef}
             value={safeInput}
             onChange={e => onInputChange(e.target.value)}
             placeholder={inputPlaceholder}
             onSend={onSend}
-            canSend={safeInput.trim().length > 0}
+            canSend={safeInput.trim().length > 0 || imagePreviews.length > 0}
             sendDisabled={isLoading}
             sendAriaLabel={sendAriaLabel}
             actions={
-              showReasoningEffort ? (
-                <Select
-                  value={reasoningEffort}
-                  onValueChange={value =>
-                    onReasoningEffortChange(
-                      value as 'minimal' | 'low' | 'medium' | 'high'
-                    )
-                  }
-                  disabled={disableReasoningEffort}
-                >
-                  <SelectTrigger className='h-8 w-[190px] rounded-md text-xs'>
-                    <div className='flex items-center gap-1.5'>
-                      <BrainCircuit className='size-3.5' />
-                      <span className='text-muted-foreground'>
-                        {reasoningEffortLabel}
-                      </span>
-                      <SelectValue />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='minimal'>
-                      {reasoningEffortMinimal}
-                    </SelectItem>
-                    <SelectItem value='low'>{reasoningEffortLow}</SelectItem>
-                    <SelectItem value='medium'>
-                      {reasoningEffortMedium}
-                    </SelectItem>
-                    <SelectItem value='high'>{reasoningEffortHigh}</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : undefined
+              <ChatInputActions
+                showImageUpload={showImageUpload}
+                showReasoningEffort={showReasoningEffort}
+                imageUploadLabel={imageUploadLabel}
+                reasoningEffort={reasoningEffort}
+                reasoningEffortLabel={reasoningEffortLabel}
+                reasoningEffortMinimal={reasoningEffortMinimal}
+                reasoningEffortLow={reasoningEffortLow}
+                reasoningEffortMedium={reasoningEffortMedium}
+                reasoningEffortHigh={reasoningEffortHigh}
+                disableReasoningEffort={disableReasoningEffort}
+                onPickImages={onPickImages}
+                onReasoningEffortChange={onReasoningEffortChange}
+              />
             }
           />
           <p className='mt-2 text-center text-[11px] text-muted-foreground'>

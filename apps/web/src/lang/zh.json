@@ -99,7 +99,10 @@
       "retry": "重试",
       "tools": "工具调用",
       "refresh": "换一批",
-      "scrollToBottom": "回到底部"
+      "scrollToBottom": "回到底部",
+      "previewImage": "预览图片",
+      "prevImage": "上一张",
+      "nextImage": "下一张"
     },
     "error": {
       "message": "抱歉，发生了一些错误。请稍后再试。"

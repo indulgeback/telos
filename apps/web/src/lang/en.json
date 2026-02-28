@@ -69,6 +69,13 @@
       "placeholder": "Enter your question... (Shift + Enter for a new line)",
       "sendAriaLabel": "Send Message"
     },
+    "model": {
+      "label": "Model",
+      "deepseek": "DeepSeek",
+      "seed": "Seed",
+      "empty": "No available models",
+      "reasoning": "Reasoning"
+    },
     "actions": {
       "copy": "Copy",
       "copied": "Copied",
@@ -81,10 +88,24 @@
       "message": "Sorry, something went wrong. Please try again later."
     },
     "disclaimer": "AI assistants may make mistakes, please verify important information.",
-    "model": {
-      "label": "Model",
-      "deepseek": "DeepSeek",
-      "seed": "Seed"
+    "reasoningEffort": {
+      "label": "Thinking intensity",
+      "hint": "Only the Doubao model is effective",
+      "minimal": "Close",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "Tall"
+    },
+    "toolbar": {
+      "online": "connect to the internet",
+      "reasoning": "Depth of thought:",
+      "mcp": "MCP",
+      "canvas": "Canvas"
+    },
+    "reasoning": {
+      "title": "Reasoning process",
+      "thinking": "In the middle of reasoning",
+      "done": "Reasoning complete"
     }
   },
   "Dashboard": {

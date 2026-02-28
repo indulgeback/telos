@@ -1,4 +1,5 @@
 export * from './chat-message'
 export * from './markdown-content'
 export * from './chat-input'
+export * from './chat-input-actions'
 export * from './tool-call-status'

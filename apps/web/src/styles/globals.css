@@ -2,6 +2,13 @@
 @import 'tw-animate-css';
 @import './custom-variant.css';
 
+/* Remove outline for all elements */
+*,
+*:focus,
+*:active {
+  outline: none !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -201,9 +208,17 @@
   background: transparent;
 }
 
-/* Prevent layout shift when scrollbar appears/disappears */
+/* Use overlay-like behavior whenever the platform supports it */
 html {
-  scrollbar-gutter: stable;
+  scrollbar-gutter: auto;
+}
+
+/* Ensure scroll containers don't reserve extra gutter space */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-scroll,
+.overflow-y-scroll {
+  scrollbar-gutter: auto;
 }
 
 /* Dark mode scrollbar - use theme border color */

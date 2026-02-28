@@ -69,6 +69,13 @@
       "placeholder": "Geben Sie Ihre Frage ein... (Shift + Enter für Zeilenumbruch)",
       "sendAriaLabel": "Nachricht senden"
     },
+    "model": {
+      "label": "Modell",
+      "deepseek": "Tiefensuche",
+      "seed": "Samenkorn",
+      "empty": "Derzeit kein Modell verfügbar",
+      "reasoning": "Deduktion"
+    },
     "actions": {
       "copy": "Kopieren",
       "copied": "Kopiert",
@@ -81,10 +88,24 @@
       "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
     },
     "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen.",
-    "model": {
-      "label": "Modell",
-      "deepseek": "Tiefensuche",
-      "seed": "Samenkorn"
+    "reasoningEffort": {
+      "label": "Denkintensität",
+      "hint": "Nur das Doubao-Modell ist wirksam",
+      "minimal": "Schließen",
+      "low": "niedrig",
+      "medium": "Mitte",
+      "high": "hoch"
+    },
+    "toolbar": {
+      "online": "online gehen",
+      "reasoning": "Denkentiefe:",
+      "mcp": "MCP",
+      "canvas": "Leinwand"
+    },
+    "reasoning": {
+      "title": "Schlussfolgerungsprozess",
+      "thinking": "Beim Nachdenken",
+      "done": "Ermittlung abgeschlossen"
     }
   },
   "Dashboard": {
