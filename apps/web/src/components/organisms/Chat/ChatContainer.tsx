@@ -399,7 +399,7 @@ export function ChatContainer({
 
       <div
         className={cn(
-          'pointer-events-none absolute inset-x-0 bottom-32 z-20 flex justify-center px-4 transition-all duration-200',
+          'pointer-events-none absolute inset-x-0 bottom-10 z-20 flex justify-center px-4 transition-all duration-200',
           showScrollToBottom
             ? 'translate-y-0 opacity-100'
             : 'translate-y-2 opacity-0'

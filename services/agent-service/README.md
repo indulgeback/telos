@@ -106,6 +106,8 @@ npm run dev
 - `doubao-seed-2-0-lite-260215`
 - `doubao-seed-2-0-pro-260215`
 - `doubao-seed-2-0-mini-260215`
+- `glm-4-7-251222`
+- `kimi-k2-thinking-251104`
 
 **GET** `/api/agent/models`
 

@@ -70,6 +70,20 @@ const DEFAULT_CHAT_MODELS = [
     isReasoning: true,
     sortOrder: 50,
   },
+  {
+    modelKey: 'glm-4-7-251222',
+    displayName: 'GLM-4.7',
+    provider: 'seed',
+    isReasoning: true,
+    sortOrder: 60,
+  },
+  {
+    modelKey: 'kimi-k2-thinking-251104',
+    displayName: 'Kimi K2 Thinking',
+    provider: 'seed',
+    isReasoning: true,
+    sortOrder: 70,
+  },
 ] as const
 
 let modelsInitialized = false
