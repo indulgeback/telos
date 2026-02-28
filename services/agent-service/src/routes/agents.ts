@@ -15,6 +15,23 @@ function getParamString(req: Request, key: string): string {
   return String(value);
 }
 
+function normalizeAgentType(
+  value: unknown
+): "public" | "private" | "system" {
+  if (typeof value !== "string") return "public";
+  const normalized = value.toLowerCase();
+
+  if (
+    normalized === "public" ||
+    normalized === "private" ||
+    normalized === "system"
+  ) {
+    return normalized;
+  }
+
+  return "public";
+}
+
 /**
  * GET /api/agents
  * 获取 Agent 列表
@@ -143,7 +160,7 @@ agentsRouter.post("/", async (req: Request, res: Response) => {
         id: randomUUID(),
         name,
         description,
-        type: typeof type === "string" ? type.toLowerCase() : "public",
+        type: normalizeAgentType(type),
         ownerId: req.body.ownerId || null,
         isDefault: false,
       },
