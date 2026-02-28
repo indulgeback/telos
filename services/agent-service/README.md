@@ -60,12 +60,10 @@ cp .env.example .env
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/telos"
 DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxx"
-DEEPSEEK_MODEL="deepseek-chat"
 DEEPSEEK_BASE_URL="https://api.deepseek.com/v1"
-# 可选：OpenAI-compatible 配置
-# AI_API_KEY="sk-xxxxxxxxxxxxxx"
-# AI_MODEL="deepseek-chat"
-# AI_BASE_URL="https://api.deepseek.com/v1"
+# 可选：字节 Seed 配置
+# SEED_API_KEY="xxxxxxxxxxxxxx"
+# SEED_BASE_URL="https://ark.cn-beijing.volces.com/api/v3"
 PORT=3001
 NODE_ENV="development"
 LOG_LEVEL="info"
@@ -91,26 +89,53 @@ npm run dev
 **POST** `/api/agent`（推荐）
 
 请求体：
+
 ```json
 {
-  "message": "帮我计算 123 + 456"
+  "message": "帮我计算 123 + 456",
+  "model": "deepseek-chat"
 }
 ```
 
 响应为 AI SDK UI Message stream。
-| GET | `/api/agents/:id/tools` | 获取 Agent 的工具 |
-| PUT | `/api/agents/:id/tools` | 设置 Agent 的工具 |
+
+支持的 `model` 值：
+
+- `deepseek-chat`
+- `deepseek-reasoner`
+- `doubao-seed-2-0-lite-260215`
+- `doubao-seed-2-0-pro-260215`
+- `doubao-seed-2-0-mini-260215`
+
+**GET** `/api/agent/models`
+
+返回数据库中启用的模型列表（用于前端模型下拉）：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": [
+    {
+      "model": "deepseek-chat",
+      "label": "DeepSeek Chat",
+      "provider": "deepseek",
+      "isReasoning": false
+    }
+  ]
+}
+```
 
 ### Agent 管理
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/agents` | 获取 Agent 列表 |
-| GET | `/api/agents/:id` | 获取 Agent 详情 |
-| GET | `/api/agents/default` | 获取默认 Agent |
-| POST | `/api/agents` | 创建 Agent |
-| PUT | `/api/agents/:id` | 更新 Agent |
-| DELETE | `/api/agents/:id` | 删除 Agent |
+| 方法   | 路径                  | 说明            |
+| ------ | --------------------- | --------------- |
+| GET    | `/api/agents`         | 获取 Agent 列表 |
+| GET    | `/api/agents/:id`     | 获取 Agent 详情 |
+| GET    | `/api/agents/default` | 获取默认 Agent  |
+| POST   | `/api/agents`         | 创建 Agent      |
+| PUT    | `/api/agents/:id`     | 更新 Agent      |
+| DELETE | `/api/agents/:id`     | 删除 Agent      |
 
 ## 内置工具
 
@@ -119,6 +144,7 @@ npm run dev
 执行数学运算，支持加法、减法、乘法、除法。
 
 参数：
+
 - `operation`: 运算类型（add/subtract/multiply/divide）
 - `a`: 第一个数字
 - `b`: 第二个数字
@@ -128,6 +154,7 @@ npm run dev
 获取指定时区的当前时间。
 
 参数：
+
 - `timezone`: 时区标识符（可选，默认 Asia/Shanghai）
 
 ## 工具定义示例
@@ -198,10 +225,10 @@ npm run db:studio
 
 ## 与 Go 版本的对比
 
-| 特性 | Go 版本 | TypeScript 版本 |
-|------|---------|-----------------|
-| 框架 | Eino | LangChain.js |
-| 工具调用 | ReAct Agent | Tool Calling Agent |
-| 流式响应 | 需要 fallback 机制 | 原生支持 |
-| 复杂度 | 较高 | 较低 |
-| 生态 | 较新 | 成熟 |
+| 特性     | Go 版本            | TypeScript 版本    |
+| -------- | ------------------ | ------------------ |
+| 框架     | Eino               | LangChain.js       |
+| 工具调用 | ReAct Agent        | Tool Calling Agent |
+| 流式响应 | 需要 fallback 机制 | 原生支持           |
+| 复杂度   | 较高               | 较低               |
+| 生态     | 较新               | 成熟               |

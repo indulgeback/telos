@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express'
 import { createUIMessageStreamResponse, type UIMessageChunk } from 'ai'
 import { logger } from '../config/index.js'
-import { parseChatInput, runChatWithBuiltInTools } from '../services/chat.js'
+import {
+  listChatModels,
+  parseChatInput,
+  runChatWithBuiltInTools,
+} from '../services/chat.js'
 
 export const chatRouter = Router()
 
@@ -52,21 +56,35 @@ async function handleChat(req: Request, res: Response) {
       msg: 'Chat request received',
       requestId,
       messageLength: parsed.lastMessageText.length,
+      model: parsed.selectedModel,
+      reasoningEffort: parsed.reasoningEffort,
     })
 
-    const stream = await runChatWithBuiltInTools(parsed.inputMessages)
+    const stream = await runChatWithBuiltInTools(
+      parsed.inputMessages,
+      parsed.selectedModel,
+      parsed.reasoningEffort
+    )
     await sendStreamResponse(res, stream)
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+
     logger.error({
       msg: 'Chat error',
       requestId,
-      err: error instanceof Error ? error.message : String(error),
+      err: errorMessage,
     })
 
     if (!res.headersSent) {
-      res.status(500).json({
-        code: 500,
-        message: '聊天服务错误',
+      const isModelConfigError =
+        errorMessage.includes('SEED_API_KEY') ||
+        errorMessage.includes('DEEPSEEK_API_KEY') ||
+        errorMessage.includes('chat_models')
+      const statusCode = isModelConfigError ? 400 : 500
+
+      res.status(statusCode).json({
+        code: statusCode,
+        message: isModelConfigError ? errorMessage : '聊天服务错误',
       })
     } else {
       res.end()
@@ -78,6 +96,26 @@ chatRouter.post('/', handleChat)
 
 chatRouter.post('/chat', async (req: Request, res: Response) => {
   await handleChat(req, res)
+})
+
+chatRouter.get('/models', async (_req: Request, res: Response) => {
+  try {
+    const models = await listChatModels()
+    res.json({
+      code: 0,
+      message: 'success',
+      data: models,
+    })
+  } catch (error) {
+    logger.error({
+      msg: 'List chat models error',
+      err: error instanceof Error ? error.message : String(error),
+    })
+    res.status(500).json({
+      code: 500,
+      message: error instanceof Error ? error.message : '获取模型列表失败',
+    })
+  }
 })
 
 // ========== 健康检查 ==========

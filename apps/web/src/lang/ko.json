@@ -80,7 +80,12 @@
     "error": {
       "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
     },
-    "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요"
+    "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요",
+    "model": {
+      "label": "모형",
+      "deepseek": "딥시크",
+      "seed": "씨앗"
+    }
   },
   "Dashboard": {
     "welcome": "환영합니다, {name}!",

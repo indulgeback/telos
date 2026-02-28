@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useEffect, useRef, useState } from 'react'
 import {
   AiLottieIcon,
   Button,
@@ -9,11 +10,18 @@ import {
 } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
 import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
-import { Copy, Check, RotateCcw } from 'lucide-react'
+import { Copy, Check, RotateCcw, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type AssistantContentPart =
   | { type: 'text'; text: string }
+  | {
+      type: 'reasoning'
+      reasoning: {
+        text: string
+        state?: 'streaming' | 'done'
+      }
+    }
   | { type: 'tool'; tool: ToolCallPreview }
 
 export interface ChatMessageProps {
@@ -29,17 +37,90 @@ export interface ChatMessageProps {
   isLoading?: boolean
   onRetry?: () => void
   retryLabel?: string
+  reasoningTitle?: string
+  reasoningThinkingLabel?: string
+  reasoningDoneLabel?: string
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
 }
 
-export function ChatMessage({
+function compareToolPreview(
+  prev: ToolCallPreview,
+  next: ToolCallPreview
+): boolean {
+  return (
+    prev.toolCallId === next.toolCallId &&
+    prev.toolName === next.toolName &&
+    prev.state === next.state &&
+    prev.inputText === next.inputText &&
+    prev.outputText === next.outputText &&
+    prev.errorText === next.errorText
+  )
+}
+
+function compareContentParts(
+  prev: AssistantContentPart[] | undefined,
+  next: AssistantContentPart[] | undefined
+): boolean {
+  const prevParts = prev ?? []
+  const nextParts = next ?? []
+  if (prevParts.length !== nextParts.length) return false
+
+  for (let i = 0; i < prevParts.length; i += 1) {
+    const prevPart = prevParts[i]
+    const nextPart = nextParts[i]
+    if (!prevPart || !nextPart || prevPart.type !== nextPart.type) return false
+
+    if (prevPart.type === 'text' && nextPart.type === 'text') {
+      if (prevPart.text !== nextPart.text) return false
+      continue
+    }
+
+    if (prevPart.type === 'reasoning' && nextPart.type === 'reasoning') {
+      if (
+        prevPart.reasoning.text !== nextPart.reasoning.text ||
+        prevPart.reasoning.state !== nextPart.reasoning.state
+      ) {
+        return false
+      }
+      continue
+    }
+
+    if (prevPart.type === 'tool' && nextPart.type === 'tool') {
+      if (!compareToolPreview(prevPart.tool, nextPart.tool)) return false
+      continue
+    }
+
+    return false
+  }
+
+  return true
+}
+
+function compareToolCalls(
+  prev: ToolCallPreview[] | undefined,
+  next: ToolCallPreview[] | undefined
+): boolean {
+  const prevCalls = prev ?? []
+  const nextCalls = next ?? []
+  if (prevCalls.length !== nextCalls.length) return false
+  for (let i = 0; i < prevCalls.length; i += 1) {
+    const prevCall = prevCalls[i]
+    const nextCall = nextCalls[i]
+    if (!prevCall || !nextCall || !compareToolPreview(prevCall, nextCall)) {
+      return false
+    }
+  }
+  return true
+}
+
+function ChatMessageInner({
   id,
   role,
   content,
   contentParts = [],
-  toolCalls = [],
+  toolCalls: _toolCalls = [],
   copiedId,
   onCopy,
   copyLabel,
@@ -47,14 +128,39 @@ export function ChatMessage({
   isLoading = false,
   onRetry,
   retryLabel = 'Retry',
+  reasoningTitle = 'Reasoning',
+  reasoningThinkingLabel = 'Thinking',
+  reasoningDoneLabel = 'Done',
   userAvatarUrl,
   userInitials,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
-  const safeToolCalls = toolCalls ?? []
   const safeContentParts = contentParts ?? []
   const isAssistant = role === 'assistant'
   const hasContent = safeContent.length > 0
+  const [isAvatarBouncing, setIsAvatarBouncing] = useState(false)
+  const avatarBounceTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (avatarBounceTimerRef.current) {
+        window.clearTimeout(avatarBounceTimerRef.current)
+      }
+    }
+  }, [])
+
+  const handleAssistantAvatarClick = () => {
+    setIsAvatarBouncing(false)
+    requestAnimationFrame(() => {
+      setIsAvatarBouncing(true)
+      if (avatarBounceTimerRef.current) {
+        window.clearTimeout(avatarBounceTimerRef.current)
+      }
+      avatarBounceTimerRef.current = window.setTimeout(() => {
+        setIsAvatarBouncing(false)
+      }, 780)
+    })
+  }
 
   return (
     <div
@@ -64,9 +170,17 @@ export function ChatMessage({
       )}
     >
       {isAssistant && (
-        <div className='flex size-14 shrink-0 items-center justify-center'>
-          <AiLottieIcon className='size-14' />
-        </div>
+        <button
+          type='button'
+          onClick={handleAssistantAvatarClick}
+          aria-label='Animate assistant avatar'
+          className={cn(
+            'flex size-14 shrink-0 items-center justify-center outline-none',
+            isAvatarBouncing && 'chat-assistant-avatar-jelly'
+          )}
+        >
+          <AiLottieIcon className='size-14' play={isLoading} />
+        </button>
       )}
 
       <div
@@ -89,14 +203,48 @@ export function ChatMessage({
                     )
                   }
 
+                  if (part.type === 'reasoning') {
+                    return (
+                      <details
+                        key={`reasoning-${id}-${index}`}
+                        className='chat-reasoning-details rounded-xl border border-border/70 bg-muted/35 px-3 py-2 text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'
+                      >
+                        <summary className='flex cursor-pointer list-none items-center justify-between gap-2'>
+                          <span className='flex items-center gap-1.5 font-medium'>
+                            <ChevronRight className='chat-reasoning-chevron size-3.5' />
+                            {reasoningTitle}
+                          </span>
+                          <span className='text-[11px]'>
+                            {part.reasoning.state === 'streaming'
+                              ? reasoningThinkingLabel
+                              : reasoningDoneLabel}
+                          </span>
+                        </summary>
+                        <div className='mt-2 whitespace-pre-wrap text-xs leading-relaxed text-foreground/80'>
+                          {part.reasoning.text}
+                        </div>
+                      </details>
+                    )
+                  }
+
                   return (
                     <div
                       key={`text-${id}-${index}`}
-                      className={cn(
-                        'chat-assistant-markdown max-w-none text-sm leading-relaxed prose prose-sm dark:prose-invert'
-                      )}
+                      className='max-w-none text-sm leading-relaxed'
                     >
-                      <MarkdownContent content={part.text} />
+                      {isLoading ? (
+                        <p className='whitespace-pre-wrap break-words'>
+                          {part.text}
+                        </p>
+                      ) : (
+                        <div
+                          className={cn(
+                            'chat-assistant-markdown prose prose-sm dark:prose-invert'
+                          )}
+                        >
+                          <MarkdownContent content={part.text} />
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -104,11 +252,21 @@ export function ChatMessage({
             ) : hasContent ? (
               <div
                 key={`${id}-content`}
-                className={cn(
-                  'chat-assistant-markdown max-w-none text-sm leading-relaxed prose prose-sm dark:prose-invert'
-                )}
+                className='max-w-none text-sm leading-relaxed'
               >
-                <MarkdownContent content={safeContent} />
+                {isLoading ? (
+                  <p className='whitespace-pre-wrap break-words'>
+                    {safeContent}
+                  </p>
+                ) : (
+                  <div
+                    className={cn(
+                      'chat-assistant-markdown prose prose-sm dark:prose-invert'
+                    )}
+                  >
+                    <MarkdownContent content={safeContent} />
+                  </div>
+                )}
               </div>
             ) : null}
           </div>
@@ -173,3 +331,28 @@ export function ChatMessage({
     </div>
   )
 }
+
+function areEqual(prev: ChatMessageProps, next: ChatMessageProps): boolean {
+  if (prev.id !== next.id) return false
+  if (prev.role !== next.role) return false
+  if (prev.content !== next.content) return false
+  if (prev.isLoading !== next.isLoading) return false
+  if (prev.retryLabel !== next.retryLabel) return false
+  if (prev.reasoningTitle !== next.reasoningTitle) return false
+  if (prev.reasoningThinkingLabel !== next.reasoningThinkingLabel) return false
+  if (prev.reasoningDoneLabel !== next.reasoningDoneLabel) return false
+  if (prev.userAvatarUrl !== next.userAvatarUrl) return false
+  if (prev.userInitials !== next.userInitials) return false
+
+  const prevCopied = prev.copiedId === prev.id
+  const nextCopied = next.copiedId === next.id
+  if (prevCopied !== nextCopied) return false
+
+  if (!compareContentParts(prev.contentParts, next.contentParts)) return false
+  if (!compareToolCalls(prev.toolCalls, next.toolCalls)) return false
+
+  return true
+}
+
+export const ChatMessage = memo(ChatMessageInner, areEqual)
+ChatMessage.displayName = 'ChatMessage'

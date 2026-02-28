@@ -10,15 +10,194 @@ import { ChatOpenAI } from '@langchain/openai'
 import { toBaseMessages } from '@ai-sdk/langchain'
 import { createUIMessageStream, type UIMessageChunk } from 'ai'
 import { config, logger } from '../config/index.js'
+import { prisma } from './db.js'
 
-function createModel() {
-  const baseURL = config.aiBaseUrl || undefined
-  return new ChatOpenAI({
-    apiKey: config.aiApiKey,
-    model: config.aiModel,
-    temperature: 0.7,
-    configuration: baseURL ? { baseURL } : undefined,
+interface RuntimeModelConfig {
+  apiKey: string
+  baseURL: string
+  model: string
+  provider: 'deepseek' | 'seed'
+}
+
+export interface ChatModelOption {
+  model: string
+  label: string
+  provider: 'deepseek' | 'seed'
+  isReasoning: boolean
+}
+
+export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
+const REASONING_EFFORT_VALUES: ReasoningEffort[] = [
+  'minimal',
+  'low',
+  'medium',
+  'high',
+]
+
+const DEFAULT_CHAT_MODELS = [
+  {
+    modelKey: 'deepseek-chat',
+    displayName: 'DeepSeek Chat',
+    provider: 'deepseek',
+    isReasoning: false,
+    sortOrder: 10,
+  },
+  {
+    modelKey: 'deepseek-reasoner',
+    displayName: 'DeepSeek Reasoner',
+    provider: 'deepseek',
+    isReasoning: true,
+    sortOrder: 20,
+  },
+  {
+    modelKey: 'doubao-seed-2-0-lite-260215',
+    displayName: 'Doubao Seed 2.0 Lite',
+    provider: 'seed',
+    isReasoning: true,
+    sortOrder: 30,
+  },
+  {
+    modelKey: 'doubao-seed-2-0-pro-260215',
+    displayName: 'Doubao Seed 2.0 Pro',
+    provider: 'seed',
+    isReasoning: true,
+    sortOrder: 40,
+  },
+  {
+    modelKey: 'doubao-seed-2-0-mini-260215',
+    displayName: 'Doubao Seed 2.0 Mini',
+    provider: 'seed',
+    isReasoning: true,
+    sortOrder: 50,
+  },
+] as const
+
+let modelsInitialized = false
+
+async function ensureChatModelsInitialized() {
+  if (modelsInitialized) return
+
+  try {
+    await Promise.all(
+      DEFAULT_CHAT_MODELS.map(item =>
+        prisma.chatModel.upsert({
+          where: { modelKey: item.modelKey },
+          update: {
+            displayName: item.displayName,
+            provider: item.provider,
+            isReasoning: item.isReasoning,
+            sortOrder: item.sortOrder,
+          },
+          create: {
+            modelKey: item.modelKey,
+            displayName: item.displayName,
+            provider: item.provider,
+            isReasoning: item.isReasoning,
+            isEnabled: true,
+            sortOrder: item.sortOrder,
+          },
+        })
+      )
+    )
+    modelsInitialized = true
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new Error(
+      `初始化聊天模型失败，请先执行数据库同步（pnpm --filter ./services/agent-service db:push）：${errorMessage}`
+    )
+  }
+}
+
+function toChatModelOption(raw: {
+  modelKey: string
+  displayName: string
+  provider: string
+  isReasoning: boolean
+}): ChatModelOption {
+  return {
+    model: raw.modelKey,
+    label: raw.displayName,
+    provider: raw.provider === 'seed' ? 'seed' : 'deepseek',
+    isReasoning: raw.isReasoning,
+  }
+}
+
+export async function listChatModels(): Promise<ChatModelOption[]> {
+  await ensureChatModelsInitialized()
+
+  const models = await prisma.chatModel.findMany({
+    where: { isEnabled: true },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
   })
+
+  return models.map(toChatModelOption)
+}
+
+async function resolveModelConfig(
+  selectedModel: string
+): Promise<RuntimeModelConfig> {
+  const availableModels = await listChatModels()
+  const resolved =
+    availableModels.find(item => item.model === selectedModel) ??
+    availableModels[0]
+
+  if (!resolved) {
+    throw new Error('未配置可用模型，请先在数据库中启用 chat_models')
+  }
+
+  if (resolved.provider === 'seed') {
+    if (!config.seedApiKey) {
+      throw new Error('SEED_API_KEY is required for seed models')
+    }
+
+    return {
+      apiKey: config.seedApiKey,
+      baseURL: config.seedBaseUrl,
+      model: resolved.model,
+      provider: 'seed',
+    }
+  }
+
+  if (!config.deepseekApiKey) {
+    throw new Error('DEEPSEEK_API_KEY is required for deepseek models')
+  }
+
+  return {
+    apiKey: config.deepseekApiKey,
+    baseURL: config.deepseekBaseUrl,
+    model: resolved.model,
+    provider: 'deepseek',
+  }
+}
+
+async function createModel(
+  selectedModel: string,
+  reasoningEffort: ReasoningEffort
+) {
+  const runtimeModel = await resolveModelConfig(selectedModel)
+  const baseURL = runtimeModel.baseURL || undefined
+  const seedModelKwargs =
+    runtimeModel.provider === 'seed'
+      ? {
+          reasoning_effort: reasoningEffort,
+          ...(reasoningEffort === 'minimal'
+            ? { thinking: { type: 'disabled' } }
+            : {}),
+        }
+      : undefined
+
+  return {
+    provider: runtimeModel.provider,
+    model: new ChatOpenAI({
+      apiKey: runtimeModel.apiKey,
+      model: runtimeModel.model,
+      temperature: 0.7,
+      modelKwargs: seedModelKwargs,
+      // Keep provider raw chunks so we can read DeepSeek/Seed reasoning fields
+      __includeRawResponse: true,
+      configuration: baseURL ? { baseURL } : undefined,
+    }),
+  }
 }
 
 function extractExpression(input: string): string | null {
@@ -272,9 +451,61 @@ function createBuiltinTools() {
   return [timeTool, calculatorTool]
 }
 
+function extractThinkText(content: string): string {
+  if (!content.includes('<think>')) return ''
+  const matches = content.matchAll(/<think>([\s\S]*?)<\/think>/gi)
+  const segments: string[] = []
+
+  for (const match of matches) {
+    const text = (match[1] ?? '').trim()
+    if (text) segments.push(text)
+  }
+
+  return segments.join('\n')
+}
+
+function extractReasoningFromRawResponse(raw: unknown): string {
+  if (!raw || typeof raw !== 'object') return ''
+
+  const obj = raw as Record<string, unknown>
+  const choices = Array.isArray(obj.choices) ? obj.choices : []
+  if (!choices.length) return ''
+
+  const first = choices[0]
+  if (!first || typeof first !== 'object') return ''
+
+  const choice = first as Record<string, unknown>
+  const delta =
+    choice.delta && typeof choice.delta === 'object'
+      ? (choice.delta as Record<string, unknown>)
+      : undefined
+  const message =
+    choice.message && typeof choice.message === 'object'
+      ? (choice.message as Record<string, unknown>)
+      : undefined
+
+  const values: string[] = []
+  const push = (value: unknown) => {
+    if (typeof value === 'string' && value.trim()) {
+      values.push(value)
+    }
+  }
+
+  push(delta?.reasoning_content)
+  push(delta?.reasoning)
+  push(delta?.thinking)
+  push(message?.reasoning_content)
+  push(message?.reasoning)
+  push(message?.thinking)
+
+  return values.join('')
+}
+
 export interface ParsedChatInput {
   inputMessages: BaseMessage[]
   lastMessageText: string
+  selectedModel: string
+  reasoningEffort: ReasoningEffort
 }
 
 export async function parseChatInput(
@@ -283,6 +514,9 @@ export async function parseChatInput(
   const payload = (body ?? {}) as {
     messages?: unknown[]
     message?: unknown
+    model?: unknown
+    reasoningEffort?: unknown
+    reasoning_effort?: unknown
   }
   const hasUiMessages =
     Array.isArray(payload.messages) && payload.messages.length > 0
@@ -307,17 +541,32 @@ export async function parseChatInput(
     ? await toBaseMessages(payload.messages as any)
     : [new HumanMessage(lastMessageText)]
 
+  const selectedModel =
+    typeof payload.model === 'string' ? payload.model.trim() : ''
+  const reasoningEffortRaw =
+    payload.reasoningEffort ?? payload.reasoning_effort
+  const reasoningEffort =
+    typeof reasoningEffortRaw === 'string' &&
+    REASONING_EFFORT_VALUES.includes(reasoningEffortRaw as ReasoningEffort)
+      ? (reasoningEffortRaw as ReasoningEffort)
+      : 'medium'
+
   return {
     inputMessages: inputMessages as BaseMessage[],
     lastMessageText,
+    selectedModel,
+    reasoningEffort,
   }
 }
 
 export async function runChatWithBuiltInTools(
-  inputMessages: BaseMessage[]
+  inputMessages: BaseMessage[],
+  selectedModel: string,
+  reasoningEffort: ReasoningEffort
 ): Promise<ReadableStream<UIMessageChunk>> {
   const tools = createBuiltinTools()
-  const model = createModel().bindTools(tools)
+  const modelRuntime = await createModel(selectedModel, reasoningEffort)
+  const model = modelRuntime.model.bindTools(tools)
   const toolMap = new Map(tools.map(tool => [tool.name, tool]))
   const createPartId = (prefix: string) =>
     `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -339,6 +588,89 @@ export async function runChatWithBuiltInTools(
       .join('')
   }
 
+  const extractReasoningFromChunk = (chunk: AIMessageChunk) => {
+    const values: string[] = []
+
+    const tryPush = (value: unknown) => {
+      if (typeof value === 'string' && value.trim()) {
+        if (!values.includes(value)) {
+          values.push(value)
+        }
+      }
+    }
+
+    if (typeof chunk.content === 'string') {
+      const thinkText = extractThinkText(chunk.content)
+      tryPush(thinkText)
+    }
+
+    if (Array.isArray(chunk.content)) {
+      chunk.content.forEach(part => {
+        if (!part || typeof part !== 'object') return
+        const typedPart = part as {
+          type?: string
+          text?: unknown
+          reasoning?: unknown
+        }
+        if (
+          (typedPart.type === 'reasoning' || typedPart.type === 'thinking') &&
+          typeof typedPart.text === 'string'
+        ) {
+          values.push(typedPart.text)
+        }
+        tryPush(typedPart.reasoning)
+      })
+    }
+
+    const contentBlocks = (chunk as { contentBlocks?: unknown }).contentBlocks
+    if (Array.isArray(contentBlocks)) {
+      contentBlocks.forEach(block => {
+        if (!block || typeof block !== 'object') return
+        const typedBlock = block as {
+          type?: string
+          text?: unknown
+          reasoning?: unknown
+        }
+
+        if (
+          (typedBlock.type === 'reasoning' || typedBlock.type === 'thinking') &&
+          typeof typedBlock.text === 'string'
+        ) {
+          tryPush(typedBlock.text)
+        }
+
+        tryPush(typedBlock.reasoning)
+      })
+    }
+
+    const additional = chunk.additional_kwargs as Record<string, unknown>
+    const metadata = chunk.response_metadata as Record<string, unknown>
+
+    tryPush(additional.reasoning_content)
+    tryPush(additional.reasoning)
+    tryPush(additional.thinking)
+    tryPush(extractReasoningFromRawResponse(additional.__raw_response))
+    tryPush(metadata.reasoning_content)
+    tryPush(metadata.reasoning)
+    tryPush(metadata.thinking)
+
+    return values.join('')
+  }
+
+  const getIncrementalDelta = (raw: string, snapshot: string) => {
+    if (!raw) return { delta: '', nextSnapshot: snapshot }
+    if (raw.startsWith(snapshot)) {
+      return {
+        delta: raw.slice(snapshot.length),
+        nextSnapshot: raw,
+      }
+    }
+    return {
+      delta: raw,
+      nextSnapshot: `${snapshot}${raw}`,
+    }
+  }
+
   return createUIMessageStream({
     execute: async ({ writer }) => {
       const conversation: BaseMessage[] = [...inputMessages]
@@ -350,11 +682,33 @@ export async function runChatWithBuiltInTools(
         let finalChunk: AIMessageChunk | null = null
         const stepStream = await model.stream(conversation)
         const textPartId = createPartId(`text-${step}`)
+        const reasoningPartId = createPartId(`reasoning-${step}`)
         let textStarted = false
+        let reasoningStarted = false
+        let reasoningSnapshot = ''
 
         for await (const chunk of stepStream) {
           finalChunk = finalChunk ? finalChunk.concat(chunk) : chunk
           const text = extractTextFromChunk(chunk)
+          const reasoningRaw = extractReasoningFromChunk(chunk)
+          const reasoningDeltaResult = getIncrementalDelta(
+            reasoningRaw,
+            reasoningSnapshot
+          )
+          reasoningSnapshot = reasoningDeltaResult.nextSnapshot
+
+          if (reasoningDeltaResult.delta) {
+            if (!reasoningStarted) {
+              writer.write({ type: 'reasoning-start', id: reasoningPartId })
+              reasoningStarted = true
+            }
+            writer.write({
+              type: 'reasoning-delta',
+              id: reasoningPartId,
+              delta: reasoningDeltaResult.delta,
+            })
+          }
+
           if (!text) continue
 
           if (!textStarted) {
@@ -370,6 +724,9 @@ export async function runChatWithBuiltInTools(
 
         if (textStarted) {
           writer.write({ type: 'text-end', id: textPartId })
+        }
+        if (reasoningStarted) {
+          writer.write({ type: 'reasoning-end', id: reasoningPartId })
         }
 
         if (!finalChunk) {

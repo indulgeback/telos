@@ -80,7 +80,12 @@
     "error": {
       "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
     },
-    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen."
+    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen.",
+    "model": {
+      "label": "Modell",
+      "deepseek": "Tiefensuche",
+      "seed": "Samenkorn"
+    }
   },
   "Dashboard": {
     "welcome": "Willkommen zurück, {name}!",
