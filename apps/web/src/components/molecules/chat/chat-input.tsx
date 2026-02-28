@@ -76,7 +76,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     return (
       <div
         className={cn(
-          'flex flex-col gap-2 rounded-2xl border bg-background/95 p-2 shadow-sm transition-shadow',
+          'flex flex-col rounded-2xl border bg-background/95 p-2 shadow-sm transition-shadow',
           isFocused ? 'border-ring/60 shadow-xl' : 'ring-0'
         )}
       >

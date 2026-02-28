@@ -11,13 +11,15 @@ export const config = {
   // 数据库
   databaseUrl: process.env.DATABASE_URL || '',
 
-  // AI Model (OpenAI compatible)
-  aiApiKey: process.env.AI_API_KEY || process.env.DEEPSEEK_API_KEY || '',
-  aiBaseUrl:
-    process.env.AI_BASE_URL ||
-    process.env.DEEPSEEK_BASE_URL ||
-    'https://api.deepseek.com/v1',
-  aiModel: process.env.AI_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+  // DeepSeek Model
+  deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',
+  deepseekBaseUrl:
+    process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1',
+
+  // Seed Model (ByteDance)
+  seedApiKey: process.env.SEED_API_KEY || '',
+  seedBaseUrl:
+    process.env.SEED_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3',
 
   // 服务
   port: parseInt(process.env.PORT || '8895', 10),
@@ -33,8 +35,10 @@ export function validateConfig(): void {
   if (!config.databaseUrl) {
     throw new Error('DATABASE_URL is required')
   }
-  if (!config.aiApiKey) {
-    throw new Error('AI_API_KEY or DEEPSEEK_API_KEY is required')
+  if (!config.deepseekApiKey && !config.seedApiKey) {
+    throw new Error(
+      'At least one model key is required: DEEPSEEK_API_KEY or SEED_API_KEY'
+    )
   }
 }
 

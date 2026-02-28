@@ -80,7 +80,12 @@
     "error": {
       "message": "抱歉，發生了一些錯誤。請稍後再試。"
     },
-    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊"
+    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊",
+    "model": {
+      "label": "模型",
+      "deepseek": "深尋",
+      "seed": "種子"
+    }
   },
   "Dashboard": {
     "welcome": "歡迎回來，{name}！",

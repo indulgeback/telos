@@ -80,7 +80,12 @@
     "error": {
       "message": "Sorry, something went wrong. Please try again later."
     },
-    "disclaimer": "AI assistants may make mistakes, please verify important information."
+    "disclaimer": "AI assistants may make mistakes, please verify important information.",
+    "model": {
+      "label": "Model",
+      "deepseek": "DeepSeek",
+      "seed": "Seed"
+    }
   },
   "Dashboard": {
     "welcome": "Welcome back, {name}!",

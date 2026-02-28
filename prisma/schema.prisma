@@ -90,8 +90,27 @@ model Agent {
   @@map("agents")
 }
 
+model ChatModel {
+  id          String            @id @default(uuid())
+  modelKey    String            @unique @map("model_key")
+  displayName String            @map("display_name")
+  provider    ChatModelProvider
+  isReasoning Boolean           @default(false) @map("is_reasoning")
+  isEnabled   Boolean           @default(true) @map("is_enabled")
+  sortOrder   Int               @default(0) @map("sort_order")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  @@map("chat_models")
+}
+
 enum AgentType {
   public
   private
   system
+}
+
+enum ChatModelProvider {
+  deepseek
+  seed
 }

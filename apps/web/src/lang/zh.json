@@ -69,6 +69,30 @@
       "placeholder": "输入您的问题... (Shift + Enter 换行)",
       "sendAriaLabel": "发送消息"
     },
+    "model": {
+      "label": "模型",
+      "empty": "暂无可用模型",
+      "reasoning": "推理"
+    },
+    "reasoningEffort": {
+      "label": "思考强度",
+      "hint": "仅豆包模型生效",
+      "minimal": "关闭",
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "toolbar": {
+      "online": "联网",
+      "reasoning": "思考深度:",
+      "mcp": "MCP",
+      "canvas": "Canvas"
+    },
+    "reasoning": {
+      "title": "推理过程",
+      "thinking": "推理中",
+      "done": "推理完成"
+    },
     "actions": {
       "copy": "复制",
       "copied": "已复制",

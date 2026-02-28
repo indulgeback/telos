@@ -222,3 +222,41 @@ html {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--border) / 0.5);
 }
+
+@keyframes chat-assistant-avatar-jelly {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  16% {
+    transform: scale3d(1.2, 0.82, 1);
+  }
+  32% {
+    transform: scale3d(0.9, 1.12, 1);
+  }
+  48% {
+    transform: scale3d(1.1, 0.92, 1);
+  }
+  64% {
+    transform: scale3d(0.96, 1.05, 1);
+  }
+  80% {
+    transform: scale3d(1.03, 0.98, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.chat-assistant-avatar-jelly {
+  transform-origin: center;
+  will-change: transform;
+  animation: chat-assistant-avatar-jelly 760ms cubic-bezier(0.22, 1.45, 0.36, 1);
+}
+
+.chat-reasoning-chevron {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chat-reasoning-details[open] .chat-reasoning-chevron {
+  transform: rotate(90deg);
+}

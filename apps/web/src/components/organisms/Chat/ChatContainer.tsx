@@ -4,6 +4,11 @@ import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AiLottieIcon,
   Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   SuggestionPromptButton,
   type SuggestionPrompt,
 } from '@/components/atoms'
@@ -13,7 +18,7 @@ import {
   type AssistantContentPart,
   type ToolCallPreview,
 } from '@/components/molecules'
-import { ArrowDown, RefreshCw } from 'lucide-react'
+import { ArrowDown, BrainCircuit, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const CARD_TILTS = ['-5deg', '3.5deg', '0deg', '-3deg', '5deg', '2deg'] as const
@@ -75,7 +80,17 @@ export interface Message {
   createdAt?: Date
 }
 
+export interface ChatModelOption {
+  model: string
+  label: string
+  provider: 'deepseek' | 'seed'
+  isReasoning: boolean
+}
+
 export interface ChatContainerProps {
+  selectedModel: string
+  modelOptions: ChatModelOption[]
+  reasoningEffort: 'minimal' | 'low' | 'medium' | 'high'
   // State
   messages: Message[]
   input: string
@@ -93,7 +108,19 @@ export interface ChatContainerProps {
   onCopy: (content: string, id: string) => void
   onClear: () => void
   onScrollToBottom: () => void
+  onModelChange: (model: string) => void
+  onReasoningEffortChange: (
+    value: 'minimal' | 'low' | 'medium' | 'high'
+  ) => void
   // Text
+  modelLabel: string
+  modelEmptyLabel: string
+  modelReasoningLabel: string
+  reasoningEffortLabel: string
+  reasoningEffortMinimal: string
+  reasoningEffortLow: string
+  reasoningEffortMedium: string
+  reasoningEffortHigh: string
   clearConversationLabel: string
   refreshSuggestionsLabel: string
   scrollToBottomLabel: string
@@ -105,13 +132,22 @@ export interface ChatContainerProps {
   copyLabel: string
   copiedLabel: string
   retryLabel: string
+  reasoningTitle: string
+  reasoningThinkingLabel: string
+  reasoningDoneLabel: string
   showScrollToBottom: boolean
+  showReasoningEffort?: boolean
+  disableModelSelect?: boolean
+  disableReasoningEffort?: boolean
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
 }
 
 export function ChatContainer({
+  selectedModel,
+  modelOptions,
+  reasoningEffort,
   messages,
   input,
   isLoading,
@@ -126,6 +162,16 @@ export function ChatContainer({
   onCopy,
   onClear,
   onScrollToBottom,
+  onModelChange,
+  onReasoningEffortChange,
+  modelLabel,
+  modelEmptyLabel,
+  modelReasoningLabel,
+  reasoningEffortLabel,
+  reasoningEffortMinimal,
+  reasoningEffortLow,
+  reasoningEffortMedium,
+  reasoningEffortHigh,
   clearConversationLabel,
   refreshSuggestionsLabel,
   scrollToBottomLabel,
@@ -137,7 +183,13 @@ export function ChatContainer({
   copyLabel,
   copiedLabel,
   retryLabel,
+  reasoningTitle,
+  reasoningThinkingLabel,
+  reasoningDoneLabel,
   showScrollToBottom,
+  showReasoningEffort = false,
+  disableModelSelect = false,
+  disableReasoningEffort = false,
   userAvatarUrl,
   userInitials,
 }: ChatContainerProps) {
@@ -194,6 +246,40 @@ export function ChatContainer({
   }
   return (
     <div className='relative flex h-full w-full flex-col overflow-hidden bg-background'>
+      <div className='absolute right-4 top-4 z-20'>
+        <div className='flex items-center gap-2 rounded-md bg-background/90 px-2 py-1 shadow-sm ring-1 ring-border/60 backdrop-blur'>
+          <span className='text-[11px] text-muted-foreground'>
+            {modelLabel}
+          </span>
+          <Select
+            value={selectedModel || undefined}
+            onValueChange={onModelChange}
+            disabled={disableModelSelect}
+          >
+            <SelectTrigger
+              size='sm'
+              className='h-7 w-[210px] rounded-md border-border/70 bg-transparent text-xs shadow-none'
+            >
+              <SelectValue placeholder={modelEmptyLabel} />
+            </SelectTrigger>
+            <SelectContent>
+              {modelOptions.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span>{option.label}</span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className='pointer-events-none absolute inset-0'>
         <div className='absolute -top-48 left-1/2 h-[560px] w-[820px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(66,133,244,0.1),transparent_65%)] blur-3xl' />
         <div className='absolute top-24 right-[-12%] h-[520px] w-[620px] rounded-full bg-[radial-gradient(circle_at_center,rgba(155,81,224,0.1),transparent_65%)] blur-3xl' />
@@ -288,6 +374,9 @@ export function ChatContainer({
                     isLoading={isLastAssistantMessage && isLoading}
                     onRetry={showRetry ? onRetry : undefined}
                     retryLabel={retryLabel}
+                    reasoningTitle={reasoningTitle}
+                    reasoningThinkingLabel={reasoningThinkingLabel}
+                    reasoningDoneLabel={reasoningDoneLabel}
                     userAvatarUrl={userAvatarUrl}
                     userInitials={userInitials}
                   />
@@ -345,6 +434,39 @@ export function ChatContainer({
             canSend={safeInput.trim().length > 0}
             sendDisabled={isLoading}
             sendAriaLabel={sendAriaLabel}
+            actions={
+              showReasoningEffort ? (
+                <Select
+                  value={reasoningEffort}
+                  onValueChange={value =>
+                    onReasoningEffortChange(
+                      value as 'minimal' | 'low' | 'medium' | 'high'
+                    )
+                  }
+                  disabled={disableReasoningEffort}
+                >
+                  <SelectTrigger className='h-8 w-[190px] rounded-md text-xs'>
+                    <div className='flex items-center gap-1.5'>
+                      <BrainCircuit className='size-3.5' />
+                      <span className='text-muted-foreground'>
+                        {reasoningEffortLabel}
+                      </span>
+                      <SelectValue />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='minimal'>
+                      {reasoningEffortMinimal}
+                    </SelectItem>
+                    <SelectItem value='low'>{reasoningEffortLow}</SelectItem>
+                    <SelectItem value='medium'>
+                      {reasoningEffortMedium}
+                    </SelectItem>
+                    <SelectItem value='high'>{reasoningEffortHigh}</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : undefined
+            }
           />
           <p className='mt-2 text-center text-[11px] text-muted-foreground'>
             {disclaimer}
