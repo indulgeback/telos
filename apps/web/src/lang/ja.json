@@ -71,23 +71,14 @@
     },
     "model": {
       "label": "模型",
-      "deepseek": "ディープシーク",
-      "seed": "種",
       "empty": "利用可能なモデルはありません",
-      "reasoning": "推理"
+      "reasoning": "推理",
+      "group": {
+        "deepseek": "ディープシーク",
+        "seed": "火山の方舟",
+        "bailian": "アリババ百錬"
+      }
     },
-    "actions": {
-      "copy": "コピー",
-      "copied": "コピーしました",
-      "retry": "再試行",
-      "tools": "ツール呼び出し",
-      "refresh": "別のものに換える",
-      "scrollToBottom": "一番下まで戻る"
-    },
-    "error": {
-      "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
-    },
-    "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください",
     "reasoningEffort": {
       "label": "思考の強度",
       "hint": "豆包モデルのみ有効",
@@ -106,7 +97,24 @@
       "title": "推論過程",
       "thinking": "推理中",
       "done": "推理完了"
-    }
+    },
+    "actions": {
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "stop": "生成を停止",
+      "retry": "再試行",
+      "tools": "ツール呼び出し",
+      "refresh": "別のものに換える",
+      "scrollToBottom": "一番下まで戻る",
+      "previewImage": "プレビュー画像",
+      "prevImage": "前の一枚",
+      "nextImage": "次のページ",
+      "usedModel": "模型"
+    },
+    "error": {
+      "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
+    },
+    "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください"
   },
   "Dashboard": {
     "welcome": "お帰りなさい、{name}！",

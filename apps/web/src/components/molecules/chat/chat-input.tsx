@@ -7,14 +7,17 @@ import {
   useState,
 } from 'react'
 import { Button } from '@/components/atoms'
-import { Send } from 'lucide-react'
+import { ArrowUp, Square } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ChatInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   onSend: () => void
+  onStop?: () => void
   canSend: boolean
+  isLoading?: boolean
   sendDisabled?: boolean
   sendAriaLabel?: string
+  stopAriaLabel?: string
   // 输入框下方的操作区域（用于工具开关、附件等）
   actions?: ReactNode
 }
@@ -23,9 +26,12 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
   (
     {
       onSend,
+      onStop,
       canSend,
+      isLoading = false,
       sendDisabled = false,
       sendAriaLabel = 'Send message',
+      stopAriaLabel = 'Stop generation',
       actions,
       className,
       value,
@@ -35,11 +41,13 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
   ) => {
     const [isFocused, setIsFocused] = useState(false)
     const [isComposing, setIsComposing] = useState(false)
+    const [isStopCooldown, setIsStopCooldown] = useState(false)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       // 防止在输入法选词时按回车直接提交
       if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
         e.preventDefault()
+        if (isLoading) return
         if (canSend && !sendDisabled) {
           onSend()
         }
@@ -73,6 +81,21 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
       setIsFocused(false)
     }
 
+    const handleActionClick = () => {
+      if (isLoading) {
+        if (!onStop || isStopCooldown) return
+        onStop()
+        setIsStopCooldown(true)
+        window.setTimeout(() => {
+          setIsStopCooldown(false)
+        }, 300)
+        return
+      }
+
+      if (!canSend || sendDisabled) return
+      onSend()
+    }
+
     return (
       <div
         className={cn(
@@ -104,13 +127,22 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
           <div className='min-w-0 flex-1'>{actions}</div>
           <div className='shrink-0'>
             <Button
-              onClick={onSend}
-              disabled={!canSend || sendDisabled}
+              onClick={handleActionClick}
+              disabled={
+                isLoading ? !onStop || isStopCooldown : !canSend || sendDisabled
+              }
               size='icon'
-              className='size-9 rounded-xl shadow-sm'
-              aria-label={sendAriaLabel}
+              className={cn(
+                'size-9 rounded-xl shadow-sm',
+                isLoading && isStopCooldown && 'opacity-60'
+              )}
+              aria-label={isLoading ? stopAriaLabel : sendAriaLabel}
             >
-              <Send className='size-4' />
+              {isLoading ? (
+                <Square className='size-3.5 fill-current' />
+              ) : (
+                <ArrowUp className='size-4' />
+              )}
             </Button>
           </div>
         </div>

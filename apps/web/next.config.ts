@@ -14,6 +14,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 const codeInspectorRules =
   codeInspectorPlugin({
     bundler: 'turbopack',
+    editor: 'code',
   }) || {}
 
 const nextConfig: NextConfig = {

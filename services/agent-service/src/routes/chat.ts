@@ -25,13 +25,35 @@ async function sendStreamResponse(
     return
   }
 
-  const reader = response.body.getReader()
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    res.write(Buffer.from(value))
+  let closed = false
+  const handleClose = () => {
+    closed = true
+    try {
+      void stream.cancel('client disconnected')
+    } catch {
+      // noop
+    }
   }
-  res.end()
+  res.on('close', handleClose)
+
+  const reader = response.body.getReader()
+  try {
+    while (true) {
+      if (closed) {
+        await reader.cancel('client disconnected')
+        break
+      }
+      const { done, value } = await reader.read()
+      if (done) break
+      if (closed) break
+      res.write(Buffer.from(value))
+    }
+  } finally {
+    res.off('close', handleClose)
+  }
+  if (!closed) {
+    res.end()
+  }
 }
 
 /**
@@ -64,7 +86,8 @@ async function handleChat(req: Request, res: Response) {
     const stream = await runChatWithBuiltInTools(
       parsed.inputMessages,
       parsed.selectedModel,
-      parsed.reasoningEffort
+      parsed.reasoningEffort,
+      { hasImages: parsed.imageCount > 0 }
     )
     await sendStreamResponse(res, stream)
   } catch (error) {
@@ -80,6 +103,7 @@ async function handleChat(req: Request, res: Response) {
       const isModelConfigError =
         errorMessage.includes('SEED_API_KEY') ||
         errorMessage.includes('DEEPSEEK_API_KEY') ||
+        errorMessage.includes('BAILIAN_API_KEY') ||
         errorMessage.includes('chat_models')
       const statusCode = isModelConfigError ? 400 : 500
 

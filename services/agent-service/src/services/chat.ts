@@ -6,27 +6,23 @@ import {
   ToolMessage,
 } from '@langchain/core/messages'
 import { DynamicTool } from '@langchain/core/tools'
-import { ChatOpenAI } from '@langchain/openai'
 import { toBaseMessages } from '@ai-sdk/langchain'
 import { createUIMessageStream, type UIMessageChunk } from 'ai'
-import { config, logger } from '../config/index.js'
+import { logger } from '../config/index.js'
 import { prisma } from './db.js'
-
-interface RuntimeModelConfig {
-  apiKey: string
-  baseURL: string
-  model: string
-  provider: 'deepseek' | 'seed'
-}
+import {
+  createModelByProvider,
+  type ChatProvider,
+  type ReasoningEffort,
+} from './chat/providers/index.js'
 
 export interface ChatModelOption {
   model: string
   label: string
-  provider: 'deepseek' | 'seed'
+  provider: ChatProvider
   isReasoning: boolean
 }
 
-export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
 const REASONING_EFFORT_VALUES: ReasoningEffort[] = [
   'minimal',
   'low',
@@ -77,6 +73,27 @@ const DEFAULT_CHAT_MODELS = [
     isReasoning: true,
     sortOrder: 60,
   },
+  {
+    modelKey: 'qwen3.5-plus',
+    displayName: 'Qwen 3.5 Plus',
+    provider: 'bailian',
+    isReasoning: true,
+    sortOrder: 70,
+  },
+  {
+    modelKey: 'qwen3.5-flash',
+    displayName: 'Qwen 3.5 Flash',
+    provider: 'bailian',
+    isReasoning: false,
+    sortOrder: 71,
+  },
+  {
+    modelKey: 'qwen3-max',
+    displayName: 'Qwen 3 Max',
+    provider: 'bailian',
+    isReasoning: true,
+    sortOrder: 72,
+  },
 ] as const
 
 let modelsInitialized = false
@@ -118,13 +135,18 @@ async function ensureChatModelsInitialized() {
 function toChatModelOption(raw: {
   modelKey: string
   displayName: string
-  provider: string
+  provider: ChatProvider | string
   isReasoning: boolean
 }): ChatModelOption {
+  const provider: ChatProvider =
+    raw.provider === 'seed' || raw.provider === 'bailian'
+      ? raw.provider
+      : 'deepseek'
+
   return {
     model: raw.modelKey,
     label: raw.displayName,
-    provider: raw.provider === 'seed' ? 'seed' : 'deepseek',
+    provider,
     isReasoning: raw.isReasoning,
   }
 }
@@ -140,9 +162,9 @@ export async function listChatModels(): Promise<ChatModelOption[]> {
   return models.map(toChatModelOption)
 }
 
-async function resolveModelConfig(
+async function resolveSelectedModel(
   selectedModel: string
-): Promise<RuntimeModelConfig> {
+): Promise<ChatModelOption> {
   const availableModels = await listChatModels()
   const resolved =
     availableModels.find(item => item.model === selectedModel) ??
@@ -151,60 +173,18 @@ async function resolveModelConfig(
   if (!resolved) {
     throw new Error('未配置可用模型，请先在数据库中启用 chat_models')
   }
-
-  if (resolved.provider === 'seed') {
-    if (!config.seedApiKey) {
-      throw new Error('SEED_API_KEY is required for seed models')
-    }
-
-    return {
-      apiKey: config.seedApiKey,
-      baseURL: config.seedBaseUrl,
-      model: resolved.model,
-      provider: 'seed',
-    }
-  }
-
-  if (!config.deepseekApiKey) {
-    throw new Error('DEEPSEEK_API_KEY is required for deepseek models')
-  }
-
-  return {
-    apiKey: config.deepseekApiKey,
-    baseURL: config.deepseekBaseUrl,
-    model: resolved.model,
-    provider: 'deepseek',
-  }
+  return resolved
 }
 
 async function createModel(
   selectedModel: string,
   reasoningEffort: ReasoningEffort
 ) {
-  const runtimeModel = await resolveModelConfig(selectedModel)
-  const baseURL = runtimeModel.baseURL || undefined
-  const seedModelKwargs =
-    runtimeModel.provider === 'seed'
-      ? {
-          reasoning_effort: reasoningEffort,
-          ...(reasoningEffort === 'minimal'
-            ? { thinking: { type: 'disabled' } }
-            : {}),
-        }
-      : undefined
-
-  return {
-    provider: runtimeModel.provider,
-    model: new ChatOpenAI({
-      apiKey: runtimeModel.apiKey,
-      model: runtimeModel.model,
-      temperature: 0.7,
-      modelKwargs: seedModelKwargs,
-      // Keep provider raw chunks so we can read DeepSeek/Seed reasoning fields
-      __includeRawResponse: true,
-      configuration: baseURL ? { baseURL } : undefined,
-    }),
-  }
+  const selected = await resolveSelectedModel(selectedModel)
+  return createModelByProvider(selected.provider, {
+    model: selected.model,
+    reasoningEffort,
+  })
 }
 
 function extractExpression(input: string): string | null {
@@ -527,6 +507,7 @@ function normalizeImageUrls(raw: unknown): string[] {
     .filter(
       url => /^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url)
     )
+    .map(url => (url.startsWith('http://') ? url.replace(/^http:\/\//i, 'https://') : url))
     .slice(0, 3)
 }
 
@@ -545,7 +526,8 @@ function withLastUserImageMessage(
     },
     ...imageUrls.map(url => ({
       type: 'image_url' as const,
-      image_url: { url },
+      // Keep image_url as string for broader OpenAI-compatible provider support.
+      image_url: url,
     })),
   ]
   const lastUserIndex = [...nextMessages]
@@ -628,11 +610,17 @@ export async function parseChatInput(
 export async function runChatWithBuiltInTools(
   inputMessages: BaseMessage[],
   selectedModel: string,
-  reasoningEffort: ReasoningEffort
+  reasoningEffort: ReasoningEffort,
+  options?: {
+    hasImages?: boolean
+  }
 ): Promise<ReadableStream<UIMessageChunk>> {
   const tools = createBuiltinTools()
   const modelRuntime = await createModel(selectedModel, reasoningEffort)
-  const model = modelRuntime.model.bindTools(tools)
+  const hasImages = options?.hasImages === true
+  // Some OpenAI-compatible vision endpoints reject tool schema in the same turn.
+  // For image turns, run direct model stream without binding tools.
+  const model = hasImages ? modelRuntime.model : modelRuntime.model.bindTools(tools)
   const toolMap = new Map(tools.map(tool => [tool.name, tool]))
   const createPartId = (prefix: string) =>
     `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`

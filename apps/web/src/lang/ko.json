@@ -71,23 +71,14 @@
     },
     "model": {
       "label": "모형",
-      "deepseek": "딥시크",
-      "seed": "씨앗",
       "empty": "사용 가능한 모델이 없습니다",
-      "reasoning": "추리"
+      "reasoning": "추리",
+      "group": {
+        "deepseek": "딥시크",
+        "seed": "화산 방주",
+        "bailian": "알리바이렌"
+      }
     },
-    "actions": {
-      "copy": "복사",
-      "copied": "복사됨",
-      "retry": "다시 시도",
-      "tools": "도구 호출",
-      "refresh": "다른 걸로 바꾸다",
-      "scrollToBottom": "맨 아래로 돌아가기"
-    },
-    "error": {
-      "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-    },
-    "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요",
     "reasoningEffort": {
       "label": "사고 강도",
       "hint": "콩빵 모델만 유효",
@@ -106,7 +97,24 @@
       "title": "추리 과정",
       "thinking": "추리 중",
       "done": "추리 완료"
-    }
+    },
+    "actions": {
+      "copy": "복사",
+      "copied": "복사됨",
+      "stop": "생성 중지",
+      "retry": "다시 시도",
+      "tools": "도구 호출",
+      "refresh": "다른 걸로 바꾸다",
+      "scrollToBottom": "맨 아래로 돌아가기",
+      "previewImage": "이미지 미리보기",
+      "prevImage": "이전 장",
+      "nextImage": "다음 장",
+      "usedModel": "모델"
+    },
+    "error": {
+      "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+    },
+    "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요"
   },
   "Dashboard": {
     "welcome": "환영합니다, {name}!",

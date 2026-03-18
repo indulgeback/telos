@@ -11,6 +11,7 @@ import {
 } from '@/components/organisms'
 import type { SuggestionPrompt } from '@/components/atoms'
 import { authClient } from '@/lib/auth-client'
+import { uploadImageToCos } from '@/lib/cos-upload'
 import { API_BASE_URL } from '@/service/request'
 
 const AUTO_SCROLL_THRESHOLD_PX = 120
@@ -40,7 +41,9 @@ const THINK_TAG_REGEX = /<think>([\s\S]*?)<\/think>/gi
 const normalizeModelProvider = (
   provider: unknown
 ): ChatModelOption['provider'] => {
-  return provider === 'seed' ? 'seed' : 'deepseek'
+  if (provider === 'seed') return 'seed'
+  if (provider === 'bailian') return 'bailian'
+  return 'deepseek'
 }
 
 const supportsReasoningEffortControl = (
@@ -309,6 +312,7 @@ export function ChatView() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const shouldAutoScrollRef = useRef(true)
   const isStreamingRef = useRef(false)
+  const lastScrollTopRef = useRef(0)
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [input, setInput] = useState('')
@@ -317,6 +321,12 @@ export function ChatView() {
   const [reasoningEffort, setReasoningEffort] =
     useState<ReasoningEffort>('medium')
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([])
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
+  const [assistantModelById, setAssistantModelById] = useState<
+    Record<string, string>
+  >({})
+  const pendingReplyModelLabelRef = useRef('')
   const pendingImageBatchesRef = useRef<string[][]>([])
   const [imagesByMessageId, setImagesByMessageId] = useState<
     Record<string, string[]>
@@ -331,10 +341,11 @@ export function ChatView() {
     []
   )
 
-  const { messages, status, setMessages, sendMessage, regenerate } = useChat({
-    transport: chatTransport,
-    experimental_throttle: 60,
-  })
+  const { messages, status, setMessages, sendMessage, regenerate, stop } =
+    useChat({
+      transport: chatTransport,
+      experimental_throttle: 60,
+    })
 
   useEffect(() => {
     let disposed = false
@@ -475,6 +486,9 @@ export function ChatView() {
     () => modelOptions.find(item => item.model === selectedModel),
     [modelOptions, selectedModel]
   )
+  const selectedModelDisplayLabel = useMemo(() => {
+    return selectedModelOption?.label || selectedModel || ''
+  }, [selectedModelOption, selectedModel])
   const supportsReasoningEffort =
     supportsReasoningEffortControl(selectedModelOption)
   const supportsImageUpload = supportsSeedVision(selectedModelOption)
@@ -482,6 +496,7 @@ export function ChatView() {
   useEffect(() => {
     if (!supportsImageUpload && imagePreviews.length > 0) {
       setImagePreviews([])
+      setUploadedImageUrls([])
     }
   }, [supportsImageUpload, imagePreviews.length])
 
@@ -574,9 +589,38 @@ export function ChatView() {
         contentParts:
           message.role === 'assistant' ? assistantContentParts : undefined,
         toolCalls: message.role === 'assistant' ? toolCalls : undefined,
+        modelLabel:
+          message.role === 'assistant'
+            ? assistantModelById[message.id]
+            : undefined,
       }
     })
-  }, [messages, imagesByMessageId])
+  }, [messages, imagesByMessageId, assistantModelById])
+
+  useEffect(() => {
+    const fallbackLabel =
+      pendingReplyModelLabelRef.current || selectedModelDisplayLabel
+    if (!fallbackLabel) return
+
+    const assistantMessages = messages.filter(
+      message => message.role === 'assistant'
+    )
+    if (!assistantMessages.length) return
+
+    setAssistantModelById(prev => {
+      let changed = false
+      const next = { ...prev }
+
+      assistantMessages.forEach(message => {
+        if (!next[message.id]) {
+          next[message.id] = fallbackLabel
+          changed = true
+        }
+      })
+
+      return changed ? next : prev
+    })
+  }, [messages, selectedModelDisplayLabel])
 
   const displayMessages = useMemo(() => {
     if (!isLoading) return uiMessages
@@ -605,9 +649,21 @@ export function ChatView() {
     const container = scrollRef.current
     if (!container) return
 
+    lastScrollTopRef.current = container.scrollTop
+
     const updateAutoScrollState = () => {
+      const currentScrollTop = container.scrollTop
+      const isScrollingUp = currentScrollTop < lastScrollTopRef.current - 1
+      lastScrollTopRef.current = currentScrollTop
+
+      if (isStreamingRef.current && isScrollingUp) {
+        shouldAutoScrollRef.current = false
+        setShowScrollToBottom(true)
+        return
+      }
+
       const distanceToBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight
+        container.scrollHeight - currentScrollTop - container.clientHeight
       const isNearBottom = distanceToBottom <= AUTO_SCROLL_THRESHOLD_PX
 
       if (isNearBottom) {
@@ -658,7 +714,7 @@ export function ChatView() {
   }
 
   const handleSend = async (messageContent?: string) => {
-    const hasImages = supportsImageUpload && imagePreviews.length > 0
+    const hasImages = supportsImageUpload && uploadedImageUrls.length > 0
     const shouldUseMessageContent =
       messageContent && typeof messageContent === 'string'
     const textInput = (shouldUseMessageContent ? messageContent : input)
@@ -669,13 +725,16 @@ export function ChatView() {
     if (!contentToSend || isLoading) return
 
     setInput('')
-    const imagesForRequest = hasImages ? [...imagePreviews] : []
-    if (imagesForRequest.length > 0) {
-      pendingImageBatchesRef.current.push(imagesForRequest)
+    const previewBatch = supportsImageUpload ? [...imagePreviews] : []
+    const imagesForRequest = hasImages ? [...uploadedImageUrls] : []
+    if (previewBatch.length > 0) {
+      pendingImageBatchesRef.current.push(previewBatch)
       setImagePreviews([])
+      setUploadedImageUrls([])
     }
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
+    pendingReplyModelLabelRef.current = selectedModelDisplayLabel
 
     await sendMessage(
       {
@@ -690,7 +749,10 @@ export function ChatView() {
 
   const handlePickImages = async (files: FileList | null) => {
     if (!supportsImageUpload || !files || files.length === 0) return
-    const remaining = Math.max(0, MAX_IMAGE_ATTACHMENTS - imagePreviews.length)
+    const remaining = Math.max(
+      0,
+      MAX_IMAGE_ATTACHMENTS - uploadedImageUrls.length
+    )
     if (remaining <= 0) return
 
     const picked = Array.from(files)
@@ -700,23 +762,58 @@ export function ChatView() {
     if (!picked.length) return
 
     try {
-      const urls = await Promise.all(picked.map(fileToDataUrl))
+      setIsUploadingImages(true)
+      const uploadedPairs = await Promise.all(
+        picked.map(async file => {
+          try {
+            const [previewUrl, remoteUrl] = await Promise.all([
+              fileToDataUrl(file),
+              uploadImageToCos(file),
+            ])
+            return { previewUrl, remoteUrl }
+          } catch (error) {
+            console.error('COS upload failed', error)
+            return null
+          }
+        })
+      )
+
+      const successPairs = uploadedPairs.filter(
+        (item): item is { previewUrl: string; remoteUrl: string } =>
+          item !== null
+      )
+
+      if (!successPairs.length) return
+
       setImagePreviews(prev =>
-        [...prev, ...urls].slice(0, MAX_IMAGE_ATTACHMENTS)
+        [...prev, ...successPairs.map(item => item.previewUrl)].slice(
+          0,
+          MAX_IMAGE_ATTACHMENTS
+        )
+      )
+      setUploadedImageUrls(prev =>
+        [...prev, ...successPairs.map(item => item.remoteUrl)].slice(
+          0,
+          MAX_IMAGE_ATTACHMENTS
+        )
       )
     } catch (error) {
       console.error('Failed to parse selected images', error)
+    } finally {
+      setIsUploadingImages(false)
     }
   }
 
   const handleRemoveImage = (index: number) => {
     setImagePreviews(prev => prev.filter((_, i) => i !== index))
+    setUploadedImageUrls(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleRetry = () => {
     if (!lastUserMessage || isLoading) return
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
+    pendingReplyModelLabelRef.current = selectedModelDisplayLabel
     regenerate({ body: buildRequestBody() })
   }
 
@@ -731,7 +828,15 @@ export function ChatView() {
     setShowScrollToBottom(false)
     pendingImageBatchesRef.current = []
     setImagesByMessageId({})
+    setUploadedImageUrls([])
+    setImagePreviews([])
+    setAssistantModelById({})
     setMessages([])
+  }
+
+  const handleStop = () => {
+    stop()
+    shouldAutoScrollRef.current = false
   }
 
   return (
@@ -748,6 +853,7 @@ export function ChatView() {
       textareaRef={textareaRef}
       onInputChange={setInput}
       onSend={handleSend}
+      onStop={handleStop}
       onRetry={handleRetry}
       onCopy={handleCopy}
       onClear={handleClear}
@@ -758,6 +864,9 @@ export function ChatView() {
       modelLabel={t('model.label')}
       modelEmptyLabel={t('model.empty')}
       modelReasoningLabel={t('model.reasoning')}
+      modelGroupDeepseekLabel={t('model.group.deepseek')}
+      modelGroupSeedLabel={t('model.group.seed')}
+      modelGroupBailianLabel={t('model.group.bailian')}
       reasoningEffortLabel={t('toolbar.reasoning')}
       reasoningEffortMinimal={t('reasoningEffort.minimal')}
       reasoningEffortLow={t('reasoningEffort.low')}
@@ -768,12 +877,14 @@ export function ChatView() {
       scrollToBottomLabel={t('actions.scrollToBottom')}
       inputPlaceholder={t('input.placeholder')}
       sendAriaLabel={t('input.sendAriaLabel')}
+      stopAriaLabel={t('actions.stop')}
       disclaimer={t('disclaimer')}
       emptyStateTitle={t('emptyState.title')}
       emptyStateDescription={t('emptyState.description')}
       copyLabel={t('actions.copy')}
       copiedLabel={t('actions.copied')}
       retryLabel={t('actions.retry')}
+      usedModelLabel={t('actions.usedModel')}
       reasoningTitle={t('reasoning.title')}
       reasoningThinkingLabel={t('reasoning.thinking')}
       reasoningDoneLabel={t('reasoning.done')}
@@ -789,7 +900,8 @@ export function ChatView() {
       imagePrevLabel={t('actions.prevImage')}
       imageNextLabel={t('actions.nextImage')}
       disableModelSelect={isLoading || modelOptions.length === 0}
-      disableReasoningEffort={isLoading}
+      disableReasoningEffort={isLoading || isUploadingImages}
+      isUploadingImages={isUploadingImages}
       userAvatarUrl={userAvatarUrl}
       userInitials={userInitials}
     />

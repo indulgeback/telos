@@ -71,23 +71,14 @@
     },
     "model": {
       "label": "Model",
-      "deepseek": "DeepSeek",
-      "seed": "Seed",
       "empty": "No available models",
-      "reasoning": "Reasoning"
+      "reasoning": "Reasoning",
+      "group": {
+        "deepseek": "DeepSeek",
+        "seed": "Volcano Ark",
+        "bailian": "Alibaba Bailing"
+      }
     },
-    "actions": {
-      "copy": "Copy",
-      "copied": "Copied",
-      "retry": "Retry",
-      "tools": "Tool invocation",
-      "refresh": "Change batch",
-      "scrollToBottom": "Go back to the bottom"
-    },
-    "error": {
-      "message": "Sorry, something went wrong. Please try again later."
-    },
-    "disclaimer": "AI assistants may make mistakes, please verify important information.",
     "reasoningEffort": {
       "label": "Thinking intensity",
       "hint": "Only the Doubao model is effective",
@@ -106,7 +97,24 @@
       "title": "Reasoning process",
       "thinking": "In the middle of reasoning",
       "done": "Reasoning complete"
-    }
+    },
+    "actions": {
+      "copy": "Copy",
+      "copied": "Copied",
+      "stop": "Stop generation",
+      "retry": "Retry",
+      "tools": "Tool invocation",
+      "refresh": "Change batch",
+      "scrollToBottom": "Go back to the bottom",
+      "previewImage": "Preview Image",
+      "prevImage": "Previous one",
+      "nextImage": "Next",
+      "usedModel": "model"
+    },
+    "error": {
+      "message": "Sorry, something went wrong. Please try again later."
+    },
+    "disclaimer": "AI assistants may make mistakes, please verify important information."
   },
   "Dashboard": {
     "welcome": "Welcome back, {name}!",

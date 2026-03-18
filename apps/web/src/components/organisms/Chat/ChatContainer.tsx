@@ -7,9 +7,12 @@ import {
   Button,
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
+  SvgIcon,
   SuggestionPromptButton,
   type SuggestionPrompt,
 } from '@/components/atoms'
@@ -73,6 +76,17 @@ function getCardTransform(
   return `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) rotate(${rotation})`
 }
 
+function getModelIconName(modelKey: string) {
+  if (modelKey.startsWith('deepseek-')) return 'chat-models-deepseek'
+  if (modelKey.startsWith('qwen')) return 'chat-models-qwen'
+  if (modelKey.startsWith('glm-')) return 'chat-models-glm'
+  return 'chat-models-seed'
+}
+
+function ModelIcon({ modelKey }: { modelKey: string }) {
+  return <SvgIcon name={getModelIconName(modelKey)} size={14} />
+}
+
 export interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -80,13 +94,14 @@ export interface Message {
   images?: string[]
   contentParts?: AssistantContentPart[]
   toolCalls?: ToolCallPreview[]
+  modelLabel?: string
   createdAt?: Date
 }
 
 export interface ChatModelOption {
   model: string
   label: string
-  provider: 'deepseek' | 'seed'
+  provider: 'deepseek' | 'seed' | 'bailian'
   isReasoning: boolean
 }
 
@@ -107,6 +122,7 @@ export interface ChatContainerProps {
   // Callbacks
   onInputChange: (value: string) => void
   onSend: (messageContent?: string) => void
+  onStop: () => void
   onRetry: () => void
   onCopy: (content: string, id: string) => void
   onClear: () => void
@@ -121,6 +137,9 @@ export interface ChatContainerProps {
   modelLabel: string
   modelEmptyLabel: string
   modelReasoningLabel: string
+  modelGroupDeepseekLabel?: string
+  modelGroupSeedLabel?: string
+  modelGroupBailianLabel?: string
   reasoningEffortLabel: string
   reasoningEffortMinimal: string
   reasoningEffortLow: string
@@ -131,12 +150,14 @@ export interface ChatContainerProps {
   scrollToBottomLabel: string
   inputPlaceholder: string
   sendAriaLabel: string
+  stopAriaLabel?: string
   disclaimer: string
   emptyStateTitle: string
   emptyStateDescription: string
   copyLabel: string
   copiedLabel: string
   retryLabel: string
+  usedModelLabel: string
   reasoningTitle: string
   reasoningThinkingLabel: string
   reasoningDoneLabel: string
@@ -151,6 +172,7 @@ export interface ChatContainerProps {
   imagePreviews?: string[]
   disableModelSelect?: boolean
   disableReasoningEffort?: boolean
+  isUploadingImages?: boolean
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
@@ -170,6 +192,7 @@ export function ChatContainer({
   textareaRef,
   onInputChange,
   onSend,
+  onStop,
   onRetry,
   onCopy,
   onClear,
@@ -181,6 +204,9 @@ export function ChatContainer({
   modelLabel,
   modelEmptyLabel,
   modelReasoningLabel,
+  modelGroupDeepseekLabel = 'DeepSeek',
+  modelGroupSeedLabel = 'Seed',
+  modelGroupBailianLabel = 'Bailian',
   reasoningEffortLabel,
   reasoningEffortMinimal,
   reasoningEffortLow,
@@ -191,12 +217,14 @@ export function ChatContainer({
   scrollToBottomLabel,
   inputPlaceholder,
   sendAriaLabel,
+  stopAriaLabel = '停止生成',
   disclaimer,
   emptyStateTitle,
   emptyStateDescription,
   copyLabel,
   copiedLabel,
   retryLabel,
+  usedModelLabel,
   reasoningTitle,
   reasoningThinkingLabel,
   reasoningDoneLabel,
@@ -211,6 +239,7 @@ export function ChatContainer({
   imagePreviews = [],
   disableModelSelect = false,
   disableReasoningEffort = false,
+  isUploadingImages = false,
   userAvatarUrl,
   userInitials,
 }: ChatContainerProps) {
@@ -243,6 +272,18 @@ export function ChatContainer({
   }, [])
 
   const safeInput = input ?? ''
+  const selectedModelOption = useMemo(
+    () => modelOptions.find(option => option.model === selectedModel),
+    [modelOptions, selectedModel]
+  )
+  const groupedModelOptions = useMemo(
+    () => ({
+      deepseek: modelOptions.filter(option => option.provider === 'deepseek'),
+      seed: modelOptions.filter(option => option.provider === 'seed'),
+      bailian: modelOptions.filter(option => option.provider === 'bailian'),
+    }),
+    [modelOptions]
+  )
 
   useEffect(() => {
     return () => {
@@ -279,23 +320,78 @@ export function ChatContainer({
           >
             <SelectTrigger
               size='sm'
-              className='h-7 w-[210px] rounded-md border-border/70 bg-transparent text-xs shadow-none'
+              className='h-7 w-[220px] rounded-md border-border/70 bg-transparent text-xs shadow-none'
             >
-              <SelectValue placeholder={modelEmptyLabel} />
+              {selectedModelOption ? (
+                <span className='flex min-w-0 items-center gap-1.5'>
+                  <ModelIcon modelKey={selectedModelOption.model} />
+                  <span className='truncate'>{selectedModelOption.label}</span>
+                </span>
+              ) : (
+                <SelectValue placeholder={modelEmptyLabel} />
+              )}
             </SelectTrigger>
             <SelectContent>
-              {modelOptions.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span>{option.label}</span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
+              {groupedModelOptions.deepseek.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel>{modelGroupDeepseekLabel}</SelectLabel>
+                  {groupedModelOptions.deepseek.map(option => (
+                    <SelectItem key={option.model} value={option.model}>
+                      <div className='flex w-full items-center justify-between gap-2'>
+                        <span className='flex items-center gap-1.5'>
+                          <ModelIcon modelKey={option.model} />
+                          {option.label}
+                        </span>
+                        {option.isReasoning && (
+                          <span className='text-[10px] text-muted-foreground'>
+                            {modelReasoningLabel}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
+              {groupedModelOptions.seed.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel>{modelGroupSeedLabel}</SelectLabel>
+                  {groupedModelOptions.seed.map(option => (
+                    <SelectItem key={option.model} value={option.model}>
+                      <div className='flex w-full items-center justify-between gap-2'>
+                        <span className='flex items-center gap-1.5'>
+                          <ModelIcon modelKey={option.model} />
+                          {option.label}
+                        </span>
+                        {option.isReasoning && (
+                          <span className='text-[10px] text-muted-foreground'>
+                            {modelReasoningLabel}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
+              {groupedModelOptions.bailian.length > 0 && (
+                <SelectGroup>
+                  <SelectLabel>{modelGroupBailianLabel}</SelectLabel>
+                  {groupedModelOptions.bailian.map(option => (
+                    <SelectItem key={option.model} value={option.model}>
+                      <div className='flex w-full items-center justify-between gap-2'>
+                        <span className='flex items-center gap-1.5'>
+                          <ModelIcon modelKey={option.model} />
+                          {option.label}
+                        </span>
+                        {option.isReasoning && (
+                          <span className='text-[10px] text-muted-foreground'>
+                            {modelReasoningLabel}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -399,6 +495,8 @@ export function ChatContainer({
                       isLoading={isLastAssistantMessage && isLoading}
                       onRetry={showRetry ? onRetry : undefined}
                       retryLabel={retryLabel}
+                      assistantModelLabel={message.modelLabel}
+                      usedModelLabel={usedModelLabel}
                       reasoningTitle={reasoningTitle}
                       reasoningThinkingLabel={reasoningThinkingLabel}
                       reasoningDoneLabel={reasoningDoneLabel}
@@ -410,16 +508,18 @@ export function ChatContainer({
                     />
                   )
                 })}
-                <div className='flex justify-center pt-2'>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    onClick={onClear}
-                    className='text-[11px] text-muted-foreground hover:text-foreground'
-                  >
-                    {clearConversationLabel}
-                  </Button>
-                </div>
+                {!isLoading && (
+                  <div className='flex justify-center pt-2'>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={onClear}
+                      className='text-[11px] text-muted-foreground hover:text-foreground'
+                    >
+                      {clearConversationLabel}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -455,11 +555,11 @@ export function ChatContainer({
       <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-10'>
         <div className='mx-auto max-w-4xl px-4 py-4'>
           {showImageUpload && imagePreviews.length > 0 && (
-            <div className='mb-2 flex items-center gap-2 overflow-x-auto pb-1'>
+            <div className='mb-2 flex items-center gap-2 overflow-x-auto py-2'>
               {imagePreviews.map((src, index) => (
                 <div
                   key={`${src.slice(0, 36)}-${index}`}
-                  className='relative h-12 w-12 shrink-0 overflow-hidden rounded-md ring-1 ring-border/70'
+                  className='relative h-12 w-12 shrink-0 rounded-md ring-1 ring-border/70'
                 >
                   <Image
                     src={src}
@@ -472,7 +572,7 @@ export function ChatContainer({
                   <button
                     type='button'
                     onClick={() => onRemoveImage?.(index)}
-                    className='absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border'
+                    className='absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border cursor-pointer hover:scale-110 transition-transform duration-300'
                     aria-label={imageRemoveLabel}
                     title={imageRemoveLabel}
                   >
@@ -488,9 +588,12 @@ export function ChatContainer({
             onChange={e => onInputChange(e.target.value)}
             placeholder={inputPlaceholder}
             onSend={onSend}
+            onStop={onStop}
             canSend={safeInput.trim().length > 0 || imagePreviews.length > 0}
-            sendDisabled={isLoading}
+            isLoading={isLoading}
+            sendDisabled={isLoading || isUploadingImages}
             sendAriaLabel={sendAriaLabel}
+            stopAriaLabel={stopAriaLabel}
             actions={
               <ChatInputActions
                 showImageUpload={showImageUpload}

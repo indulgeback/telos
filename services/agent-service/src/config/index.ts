@@ -21,6 +21,12 @@ export const config = {
   seedBaseUrl:
     process.env.SEED_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3',
 
+  // Bailian Model (Alibaba DashScope OpenAI compatible)
+  bailianApiKey: process.env.BAILIAN_API_KEY || '',
+  bailianBaseUrl:
+    process.env.BAILIAN_BASE_URL ||
+    'https://dashscope.aliyuncs.com/compatible-mode/v1',
+
   // 服务
   port: parseInt(process.env.PORT || '8895', 10),
   serviceName: process.env.SERVICE_NAME || 'agent-service',
@@ -35,9 +41,9 @@ export function validateConfig(): void {
   if (!config.databaseUrl) {
     throw new Error('DATABASE_URL is required')
   }
-  if (!config.deepseekApiKey && !config.seedApiKey) {
+  if (!config.deepseekApiKey && !config.seedApiKey && !config.bailianApiKey) {
     throw new Error(
-      'At least one model key is required: DEEPSEEK_API_KEY or SEED_API_KEY'
+      'At least one model key is required: DEEPSEEK_API_KEY, SEED_API_KEY or BAILIAN_API_KEY'
     )
   }
 }

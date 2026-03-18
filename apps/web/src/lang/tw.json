@@ -71,23 +71,14 @@
     },
     "model": {
       "label": "模型",
-      "deepseek": "深尋",
-      "seed": "種子",
       "empty": "暫無可用模型",
-      "reasoning": "推理"
+      "reasoning": "推理",
+      "group": {
+        "deepseek": "深尋",
+        "seed": "火山方舟",
+        "bailian": "阿里百鍊"
+      }
     },
-    "actions": {
-      "copy": "複製",
-      "copied": "已複製",
-      "retry": "重試",
-      "tools": "工具調用",
-      "refresh": "換一批",
-      "scrollToBottom": "回到底部"
-    },
-    "error": {
-      "message": "抱歉，發生了一些錯誤。請稍後再試。"
-    },
-    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊",
     "reasoningEffort": {
       "label": "思考強度",
       "hint": "僅豆包模型生效",
@@ -106,7 +97,24 @@
       "title": "推理過程",
       "thinking": "推理中",
       "done": "推理完成"
-    }
+    },
+    "actions": {
+      "copy": "複製",
+      "copied": "已複製",
+      "stop": "停止生成",
+      "retry": "重試",
+      "tools": "工具調用",
+      "refresh": "換一批",
+      "scrollToBottom": "回到底部",
+      "previewImage": "預覽圖片",
+      "prevImage": "上一張",
+      "nextImage": "下一張",
+      "usedModel": "模型"
+    },
+    "error": {
+      "message": "抱歉，發生了一些錯誤。請稍後再試。"
+    },
+    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊"
   },
   "Dashboard": {
     "welcome": "歡迎回來，{name}！",

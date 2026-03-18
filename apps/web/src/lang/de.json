@@ -71,23 +71,14 @@
     },
     "model": {
       "label": "Modell",
-      "deepseek": "Tiefensuche",
-      "seed": "Samenkorn",
       "empty": "Derzeit kein Modell verfügbar",
-      "reasoning": "Deduktion"
+      "reasoning": "Deduktion",
+      "group": {
+        "deepseek": "Tiefesuchen",
+        "seed": "Vulkan-Arche",
+        "bailian": "Ali Bai Lian"
+      }
     },
-    "actions": {
-      "copy": "Kopieren",
-      "copied": "Kopiert",
-      "retry": "Erneut versuchen",
-      "tools": "Werkzeugaufruf",
-      "refresh": "Wechsle eine neue Charge",
-      "scrollToBottom": "Zum Ende zurückkehren"
-    },
-    "error": {
-      "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
-    },
-    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen.",
     "reasoningEffort": {
       "label": "Denkintensität",
       "hint": "Nur das Doubao-Modell ist wirksam",
@@ -106,7 +97,24 @@
       "title": "Schlussfolgerungsprozess",
       "thinking": "Beim Nachdenken",
       "done": "Ermittlung abgeschlossen"
-    }
+    },
+    "actions": {
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "stop": "Generierung stoppen",
+      "retry": "Erneut versuchen",
+      "tools": "Werkzeugaufruf",
+      "refresh": "Wechsle eine neue Charge",
+      "scrollToBottom": "Zum Ende zurückkehren",
+      "previewImage": "Bildvorschau",
+      "prevImage": "Vorheriges",
+      "nextImage": "Nächstes Blatt",
+      "usedModel": "Modell"
+    },
+    "error": {
+      "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
+    },
+    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen."
   },
   "Dashboard": {
     "welcome": "Willkommen zurück, {name}!",

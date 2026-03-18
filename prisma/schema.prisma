@@ -113,4 +113,5 @@ enum AgentType {
 enum ChatModelProvider {
   deepseek
   seed
+  bailian
 }
