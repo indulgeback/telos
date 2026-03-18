@@ -8,6 +8,7 @@ import {
   Card,
   Dialog,
   DialogContent,
+  DialogTitle,
   TypingIndicator,
   ChatAvatar,
 } from '@/components/atoms'
@@ -41,6 +42,8 @@ export interface ChatMessageProps {
   isLoading?: boolean
   onRetry?: () => void
   retryLabel?: string
+  assistantModelLabel?: string
+  usedModelLabel?: string
   reasoningTitle?: string
   reasoningThinkingLabel?: string
   reasoningDoneLabel?: string
@@ -136,6 +139,8 @@ function ChatMessageInner({
   isLoading = false,
   onRetry,
   retryLabel = 'Retry',
+  assistantModelLabel,
+  usedModelLabel = 'Model',
   reasoningTitle = 'Reasoning',
   reasoningThinkingLabel = 'Thinking',
   reasoningDoneLabel = 'Done',
@@ -247,19 +252,13 @@ function ChatMessageInner({
                       key={`text-${id}-${index}`}
                       className='max-w-none text-sm leading-relaxed'
                     >
-                      {isLoading ? (
-                        <p className='whitespace-pre-wrap break-words'>
-                          {part.text}
-                        </p>
-                      ) : (
-                        <div
-                          className={cn(
-                            'chat-assistant-markdown prose prose-sm dark:prose-invert'
-                          )}
-                        >
-                          <MarkdownContent content={part.text} />
-                        </div>
-                      )}
+                      <div
+                        className={cn(
+                          'chat-assistant-markdown prose prose-sm dark:prose-invert'
+                        )}
+                      >
+                        <MarkdownContent content={part.text} />
+                      </div>
                     </div>
                   )
                 })}
@@ -269,19 +268,13 @@ function ChatMessageInner({
                 key={`${id}-content`}
                 className='max-w-none text-sm leading-relaxed'
               >
-                {isLoading ? (
-                  <p className='whitespace-pre-wrap break-words'>
-                    {safeContent}
-                  </p>
-                ) : (
-                  <div
-                    className={cn(
-                      'chat-assistant-markdown prose prose-sm dark:prose-invert'
-                    )}
-                  >
-                    <MarkdownContent content={safeContent} />
-                  </div>
-                )}
+                <div
+                  className={cn(
+                    'chat-assistant-markdown prose prose-sm dark:prose-invert'
+                  )}
+                >
+                  <MarkdownContent content={safeContent} />
+                </div>
               </div>
             ) : null}
           </div>
@@ -359,6 +352,11 @@ function ChatMessageInner({
                     {retryLabel}
                   </Button>
                 )}
+                {assistantModelLabel ? (
+                  <span className='ml-1 inline-flex h-7 items-center rounded-md px-2 text-xs text-muted-foreground ring-1 ring-border/60'>
+                    {usedModelLabel}: {assistantModelLabel}
+                  </span>
+                ) : null}
               </>
             ) : null}
           </div>
@@ -376,8 +374,11 @@ function ChatMessageInner({
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent
           showCloseButton
-          className='max-w-[92vw] border-none bg-transparent p-0 shadow-none sm:max-w-4xl'
+          className='max-w-[92vw] border-none bg-transparent p-0 shadow-none sm:max-w-4xl [&_[data-slot=dialog-close]]:top-3 [&_[data-slot=dialog-close]]:right-3 [&_[data-slot=dialog-close]]:bg-black/55 [&_[data-slot=dialog-close]]:text-white [&_[data-slot=dialog-close]]:opacity-100 [&_[data-slot=dialog-close]]:shadow-md [&_[data-slot=dialog-close]]:hover:bg-black/70'
         >
+          <DialogTitle className='sr-only'>
+            {`${imagePreviewLabel} ${previewIndex + 1}/${safeImages.length}`}
+          </DialogTitle>
           <div className='relative flex items-center justify-center'>
             {safeImages[previewIndex] && (
               <div className='relative h-[72vh] w-full overflow-hidden rounded-xl bg-black/70'>
@@ -443,6 +444,8 @@ function areEqual(prev: ChatMessageProps, next: ChatMessageProps): boolean {
   }
   if (prev.isLoading !== next.isLoading) return false
   if (prev.retryLabel !== next.retryLabel) return false
+  if (prev.assistantModelLabel !== next.assistantModelLabel) return false
+  if (prev.usedModelLabel !== next.usedModelLabel) return false
   if (prev.reasoningTitle !== next.reasoningTitle) return false
   if (prev.reasoningThinkingLabel !== next.reasoningThinkingLabel) return false
   if (prev.reasoningDoneLabel !== next.reasoningDoneLabel) return false

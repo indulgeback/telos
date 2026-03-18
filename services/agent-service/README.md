@@ -64,6 +64,9 @@ DEEPSEEK_BASE_URL="https://api.deepseek.com/v1"
 # 可选：字节 Seed 配置
 # SEED_API_KEY="xxxxxxxxxxxxxx"
 # SEED_BASE_URL="https://ark.cn-beijing.volces.com/api/v3"
+# 可选：阿里百炼（DashScope OpenAI 兼容）配置
+# BAILIAN_API_KEY="sk-xxxxxxxxxxxxxx"
+# BAILIAN_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 PORT=3001
 NODE_ENV="development"
 LOG_LEVEL="info"
@@ -110,7 +113,7 @@ npm run dev
 - `doubao-seed-2-0-pro-260215`
 - `doubao-seed-2-0-mini-260215`
 - `glm-4-7-251222`
-- `kimi-k2-thinking-251104`
+- `qwen3.5-plus`
 
 **GET** `/api/agent/models`
 
