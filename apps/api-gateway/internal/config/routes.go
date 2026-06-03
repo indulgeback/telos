@@ -53,16 +53,22 @@ func SaveRoutesToFile(routes []proxy.RouteConfig, filePath string) error {
 func GetDefaultRoutes() []proxy.RouteConfig {
 	return []proxy.RouteConfig{
 		{
-			Path:        "/api/auth",
-			ServiceName: "auth-service",
+			Path:        "/api/tools",
+			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     10,
 		},
 		{
-			Path:        "/api/users",
-			ServiceName: "user-service",
+			Path:        "/api/agents",
+			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     10,
+		},
+		{
+			Path:        "/api/agent",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     60,
 		},
 	}
 }

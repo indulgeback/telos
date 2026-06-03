@@ -34,22 +34,11 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navLinks = [
-    { href: '/features', label: t('features') },
-    { href: '/workflow-templates', label: t('workflowTemplates') },
-    { href: '/integrations', label: t('integrations') },
-    { href: '/real-world-use-cases', label: t('useCases') },
-    { href: '/showcase', label: t('showcase') },
-    { href: '/roadmap', label: t('roadmap') },
-    { href: '/comparison', label: t('comparison') },
-    { href: '/pricing', label: t('pricing') },
-    { href: '/about', label: t('about') },
-    { href: '/contact', label: t('contact') },
-  ]
+  const navLinks: { href: string; label: string }[] = []
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${
+      className={`fixed top-0 z-50 w-full border-b transition-colors duration-300 ${
         scrolled
           ? 'border-border bg-background/60 shadow-md'
           : 'border-border/50 bg-background/80'

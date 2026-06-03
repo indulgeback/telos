@@ -196,19 +196,10 @@ export function HeroSection() {
         >
           {session ? (
             <>
-              <CustomLink href='/dashboard'>
+              <CustomLink href='/chat'>
                 <Button size='lg' className='group font-body font-semibold'>
                   {t('dashboard')}
                   <ArrowRight className='ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform' />
-                </Button>
-              </CustomLink>
-              <CustomLink href='/workflows'>
-                <Button
-                  variant='outline'
-                  size='lg'
-                  className='font-body font-medium'
-                >
-                  {t('viewWorkflows')}
                 </Button>
               </CustomLink>
             </>

@@ -53,24 +53,6 @@ func main() {
 	// 注意：更具体的路由应该放在前面，避免前缀匹配冲突
 	routes := []proxy.RouteConfig{
 		{
-			Path:        "/api/auth",
-			ServiceName: "auth-service",
-			StripPrefix: false,
-			Timeout:     10,
-		},
-		{
-			Path:        "/api/user",
-			ServiceName: "user-service",
-			StripPrefix: false,
-			Timeout:     10,
-		},
-		{
-			Path:        "/api/workflow",
-			ServiceName: "workflow-service",
-			StripPrefix: false,
-			Timeout:     10,
-		},
-		{
 			// 工具管理 API - 必须在 /api/agent 之前，避免前缀匹配冲突
 			Path:        "/api/tools",
 			ServiceName: "agent-service",

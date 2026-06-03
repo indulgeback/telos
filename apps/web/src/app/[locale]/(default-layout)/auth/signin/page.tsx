@@ -26,7 +26,7 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const callbackUrl = searchParams.get('callbackUrl') || '/chat'
 
   // 如果用户已经登录，直接跳转到目标页面
   useEffect(() => {

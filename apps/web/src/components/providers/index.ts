@@ -2,3 +2,4 @@
 export { ThemeProvider } from './ThemeProvider'
 export { MDXProseProvider } from './MdxProseProvider'
 export { LenisProvider } from './lenis-provider'
+export { OverlayScrollbarProvider } from './overlay-scrollbar-provider'

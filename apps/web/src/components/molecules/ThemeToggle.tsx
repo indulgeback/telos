@@ -35,7 +35,7 @@ function ThemeToggle() {
   const current = theme === 'system' ? systemTheme : theme
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant='outline'

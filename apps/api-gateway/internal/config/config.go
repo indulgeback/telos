@@ -10,7 +10,6 @@ import (
 type Config struct {
 	Port               string
 	RegistryServiceURL string
-	AuthServiceURL     string
 	CORSOrigins        []string
 	LogLevel           string
 	RateLimitRequests  int
@@ -31,7 +30,6 @@ func LoadConfig() *Config {
 	cfg := &Config{
 		Port:               viper.GetString("GATEWAY_PORT"),
 		RegistryServiceURL: viper.GetString("REGISTRY_SERVICE_URL"),
-		AuthServiceURL:     viper.GetString("AUTH_SERVICE_URL"),
 		LogLevel:           viper.GetString("LOG_LEVEL"),
 		LogFormat:          viper.GetString("LOG_FORMAT"),
 		LogOutput:          viper.GetString("LOG_OUTPUT"),
@@ -44,9 +42,6 @@ func LoadConfig() *Config {
 	}
 	if cfg.RegistryServiceURL == "" {
 		cfg.RegistryServiceURL = "http://localhost:8080"
-	}
-	if cfg.AuthServiceURL == "" {
-		cfg.AuthServiceURL = "http://localhost:5501"
 	}
 	if cfg.LogLevel == "" {
 		cfg.LogLevel = "info"

@@ -1,100 +1,20 @@
 package middleware
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
 	"github.com/indulgeback/telos/pkg/tlog"
 )
-
-// contextKey 自定义 context key 类型，避免字符串冲突
-type contextKey string
-
-const (
-	userIDKey contextKey = "user_id"
-)
-
-// VerifyRequest 用于向 auth-service 发送 token 校验请求
-// token 字段为待校验的 JWT 或其他令牌
-type VerifyRequest struct {
-	Token string `json:"token"`
-}
-
-// VerifyResponse 表示 auth-service 返回的校验结果
-// Valid 表示 token 是否有效，UserID 可选返回用户ID
-type VerifyResponse struct {
-	Valid  bool   `json:"valid"`
-	UserID string `json:"user_id"`
-}
 
 // ErrorResponse 统一错误响应格式
 type ErrorResponse struct {
 	Error   string `json:"error"`
 	Message string `json:"message"`
 	Code    int    `json:"code"`
-}
-
-// AuthMiddleware 认证中间件，调用 auth-service 校验 token
-// 拦截请求，读取 Authorization 头部，远程校验
-// 校验失败返回 401
-func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := r.Header.Get("Authorization") // 获取 token
-			if token == "" {
-				writeErrorResponse(w, "未提供认证令牌", http.StatusUnauthorized)
-				return
-			}
-
-			// 去掉 Bearer 前缀
-			if len(token) > 7 && token[:7] == "Bearer " {
-				token = token[7:]
-			}
-
-			authServiceURL := cfg.AuthServiceURL // 认证服务地址
-			if authServiceURL == "" {
-				writeErrorResponse(w, "未配置认证服务地址", http.StatusInternalServerError)
-				return
-			}
-
-			verifyURL := authServiceURL + "/api/v1/auth/verify"
-			body, _ := json.Marshal(VerifyRequest{Token: token})
-			resp, err := http.Post(verifyURL, "application/json", bytes.NewReader(body))
-			if err != nil {
-				writeErrorResponse(w, "认证服务不可用", http.StatusInternalServerError)
-				return
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode != http.StatusOK {
-				writeErrorResponse(w, "token 无效", http.StatusUnauthorized)
-				return
-			}
-
-			respBody, _ := io.ReadAll(resp.Body)
-			var verifyResp VerifyResponse
-			if err := json.Unmarshal(respBody, &verifyResp); err != nil {
-				writeErrorResponse(w, "token校验失败", http.StatusUnauthorized)
-				return
-			}
-
-			if !verifyResp.Valid {
-				writeErrorResponse(w, "token校验失败", http.StatusUnauthorized)
-				return
-			}
-
-			// 可将 user_id 写入 context，供后续 handler 使用
-			ctx := context.WithValue(r.Context(), userIDKey, verifyResp.UserID)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
 }
 
 // LoggingMiddleware 日志中间件，记录请求和响应信息

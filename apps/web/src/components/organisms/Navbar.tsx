@@ -18,8 +18,6 @@ export function Navbar() {
 
   const navigation = [
     { name: t('home'), href: '/' },
-    { name: t('workflows'), href: '/workflows' },
-    { name: t('dashboard'), href: '/dashboard' },
     { name: t('chat'), href: '/chat' },
     { name: t('agents'), href: '/agents' },
     { name: t('tools'), href: '/tools' },

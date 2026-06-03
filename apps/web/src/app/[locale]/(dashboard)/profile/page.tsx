@@ -138,7 +138,7 @@ export default function ProfilePage() {
                 </CustomLink>
               </Button>
               <Button asChild variant='outline'>
-                <CustomLink href='/workflows'>查看工作流</CustomLink>
+                <CustomLink href='/chat'>查看对话</CustomLink>
               </Button>
             </div>
           </CardContent>
