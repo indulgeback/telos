@@ -74,7 +74,8 @@
       "group": {
         "deepseek": "深尋",
         "seed": "火山方舟",
-        "bailian": "阿里百鍊"
+        "bailian": "阿里百鍊",
+        "gcloud": "Google Gemini"
       }
     },
     "reasoningEffort": {

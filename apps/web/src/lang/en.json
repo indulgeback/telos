@@ -3,7 +3,8 @@
     "home": "Home",
     "chat": "AI Assistant",
     "agents": "Agent",
-    "tools": "Tool"
+    "tools": "Tool",
+    "settings": "Settings"
   },
   "Chat": {
     "title": "AI Assistant",
@@ -74,7 +75,10 @@
       "group": {
         "deepseek": "DeepSeek",
         "seed": "Volcano Ark",
-        "bailian": "Alibaba Bailing"
+        "bailian": "Alibaba Bailing",
+        "gcloud": "Google Gemini",
+        "openai": "OpenAI",
+        "shortapi": "ShortAPI"
       }
     },
     "reasoningEffort": {
@@ -90,6 +94,29 @@
       "reasoning": "Depth of thought:",
       "mcp": "MCP",
       "canvas": "Canvas"
+    },
+    "voice": {
+      "title": "Realtime voice",
+      "shortLabel": "Voice",
+      "toggle": "Toggle realtime voice mode",
+      "loading": "Checking configuration",
+      "ready": "Volc realtime voice is configured",
+      "demo": "Demo mode",
+      "unconfigured": "Volc realtime voice is not configured",
+      "textChannel": "Text channel",
+      "audioChannel": "Audio channel",
+      "modelLabel": "Volc Realtime",
+      "start": "Start talking",
+      "stop": "Stop",
+      "idle": "Idle",
+      "connecting": "Connecting",
+      "listening": "Listening",
+      "speaking": "Speaking",
+      "error": "Connection issue",
+      "missingConfig": "{count} missing settings",
+      "voiceInputMessage": "(Voice input)",
+      "microphoneError": "Unable to start the microphone. Check browser permissions.",
+      "socketError": "Realtime voice connection failed. Please try again."
     },
     "reasoning": {
       "title": "Reasoning process",
@@ -112,7 +139,28 @@
     "error": {
       "message": "Sorry, something went wrong. Please try again later."
     },
-    "disclaimer": "AI assistants may make mistakes, please verify important information."
+    "disclaimer": "AI assistants may make mistakes, please verify important information.",
+    "threads": {
+      "title": "Chat History",
+      "noAgent": "No agent selected",
+      "new": "New chat",
+      "search": "Search chats...",
+      "loading": "Loading...",
+      "empty": "No chats yet",
+      "noResults": "No chats found",
+      "rename": "Rename",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "deleting": "Deleting...",
+      "renamePrompt": "Enter a new chat title",
+      "renameTitle": "Rename chat",
+      "renameDescription": "Give this chat a title that is easier to recognize.",
+      "renamePlaceholder": "Enter chat title",
+      "deleteTitle": "Delete chat",
+      "deleteConfirm": "Delete “{title}”? It will no longer appear in the chat list."
+    }
   },
   "Common": {
     "theme": {
@@ -279,6 +327,13 @@
       "namePlaceholder": "e.g.: Code Assistant",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Describe the role and capabilities of this Agent...",
+      "instructions": "Instructions",
+      "instructionsPlaceholder": "Describe the role, boundaries, and execution style this Agent should follow during the loop...",
+      "modelKey": "Model",
+      "maxTurns": "Max turns",
+      "loopMode": "Loop mode",
+      "loopAuto": "Auto",
+      "loopSingleTurn": "Single turn",
       "typeLabel": "Type",
       "typePrivate": "Private",
       "typePrivateDesc": "Only visible to you",
@@ -430,5 +485,81 @@
     "noParameters": "This tool does not have defined parameters",
     "endpoint": "API Endpoint",
     "parameters": "Parameter"
+  },
+  "McpSettings": {
+    "title": "MCP Server Settings",
+    "description": "Configure MCP server connections here, including create, edit, delete, and connectivity test.",
+    "serverCount": "{count} MCP Servers",
+    "add": "Add MCP Server",
+    "createTitle": "Add MCP Server",
+    "editTitle": "Edit MCP Server",
+    "empty": "No MCP server configured yet. Add one first.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "edit": "Edit",
+    "delete": "Delete",
+    "test": "Test",
+    "cancel": "Cancel",
+    "create": "Create",
+    "update": "Save",
+    "saving": "Saving...",
+    "lastTest": "Last available tools: {count}",
+    "transportHint": {
+      "stdio": "Start command",
+      "network": "URL"
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "transport": "Transport",
+      "command": "Command",
+      "args": "Arguments (one per line)",
+      "url": "Endpoint URL",
+      "env": "Environment Variables (KEY=VALUE per line)",
+      "approvalPolicy": "Approval Policy",
+      "enabled": "Enabled"
+    },
+    "placeholders": {
+      "name": "my-mcp-server",
+      "description": "Briefly describe this MCP server",
+      "command": "Example: node",
+      "args": "Example: main.js",
+      "url": "https://example.com/mcp",
+      "env": "API_TOKEN=abcdef"
+    },
+    "approvalPolicy": {
+      "none": "None",
+      "all": "Approve All",
+      "sensitive": "Approve Sensitive Tools"
+    },
+    "transportValues": {
+      "stdio": "stdio",
+      "streamable_http": "Streamable HTTP",
+      "sse": "SSE"
+    },
+    "approval": {
+      "none": "None",
+      "all": "Approve All",
+      "sensitive": "Approve Sensitive Tools"
+    },
+    "validation": {
+      "nameRequired": "Please enter a name",
+      "descriptionRequired": "Please enter a description",
+      "commandRequired": "Please enter the command",
+      "urlRequired": "Please enter the server URL"
+    },
+    "errors": {
+      "loadFailed": "Failed to load MCP configurations",
+      "saveFailed": "Failed to save MCP configuration",
+      "deleteFailed": "Failed to delete MCP configuration",
+      "testFailed": "MCP connection test failed"
+    },
+    "messages": {
+      "created": "MCP server created successfully",
+      "updated": "MCP server updated successfully",
+      "deleted": "MCP server deleted successfully",
+      "testSuccess": "Test succeeded, {count} tools found",
+      "deleteConfirm": "Delete this MCP server?"
+    }
   }
 }

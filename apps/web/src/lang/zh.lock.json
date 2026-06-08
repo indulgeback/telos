@@ -42,6 +42,7 @@
   "Chat.model.group.deepseek": "DeepSeek",
   "Chat.model.group.seed": "火山方舟",
   "Chat.model.group.bailian": "阿里百炼",
+  "Chat.model.group.gcloud": "Google Gemini",
   "Chat.reasoningEffort.label": "思考强度",
   "Chat.reasoningEffort.hint": "仅豆包模型生效",
   "Chat.reasoningEffort.minimal": "关闭",

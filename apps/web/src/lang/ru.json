@@ -74,7 +74,8 @@
       "group": {
         "deepseek": "ГлубокийПоиск",
         "seed": "Вулканический ковчег",
-        "bailian": "Али Байлянь"
+        "bailian": "Али Байлянь",
+        "gcloud": "Google Gemini"
       }
     },
     "reasoningEffort": {

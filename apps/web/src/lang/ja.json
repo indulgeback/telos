@@ -74,7 +74,8 @@
       "group": {
         "deepseek": "ディープシーク",
         "seed": "火山の方舟",
-        "bailian": "アリババ百錬"
+        "bailian": "アリババ百錬",
+        "gcloud": "Google Gemini"
       }
     },
     "reasoningEffort": {

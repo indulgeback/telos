@@ -74,7 +74,8 @@
       "group": {
         "deepseek": "딥시크",
         "seed": "화산 방주",
-        "bailian": "알리바이렌"
+        "bailian": "알리바이렌",
+        "gcloud": "Google Gemini"
       }
     },
     "reasoningEffort": {

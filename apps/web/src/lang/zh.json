@@ -3,7 +3,8 @@
     "home": "首页",
     "chat": "AI 助手",
     "agents": "智能体",
-    "tools": "工具"
+    "tools": "工具",
+    "settings": "设置"
   },
   "Chat": {
     "title": "AI 助手",
@@ -74,7 +75,10 @@
       "group": {
         "deepseek": "DeepSeek",
         "seed": "火山方舟",
-        "bailian": "阿里百炼"
+        "bailian": "阿里百炼",
+        "gcloud": "Google Gemini",
+        "openai": "OpenAI",
+        "shortapi": "ShortAPI"
       }
     },
     "reasoningEffort": {
@@ -90,6 +94,29 @@
       "reasoning": "思考深度:",
       "mcp": "MCP",
       "canvas": "Canvas"
+    },
+    "voice": {
+      "title": "实时语音",
+      "shortLabel": "语音",
+      "toggle": "切换实时语音模式",
+      "loading": "检查配置中",
+      "ready": "已连接火山实时语音配置",
+      "demo": "Demo 模式",
+      "unconfigured": "未配置火山实时语音",
+      "textChannel": "文本通道",
+      "audioChannel": "音频通道",
+      "modelLabel": "Volc Realtime",
+      "start": "开始说话",
+      "stop": "停止",
+      "idle": "待命",
+      "connecting": "连接中",
+      "listening": "收音中",
+      "speaking": "播放中",
+      "error": "连接异常",
+      "missingConfig": "缺少 {count} 项配置",
+      "voiceInputMessage": "（语音输入）",
+      "microphoneError": "无法启动麦克风，请检查浏览器权限。",
+      "socketError": "实时语音连接异常，请稍后重试。"
     },
     "reasoning": {
       "title": "推理过程",
@@ -112,7 +139,28 @@
     "error": {
       "message": "抱歉，发生了一些错误。请稍后再试。"
     },
-    "disclaimer": "AI 助手可能会产生错误，请核实重要信息"
+    "disclaimer": "AI 助手可能会产生错误，请核实重要信息",
+    "threads": {
+      "title": "会话历史",
+      "noAgent": "未选择 Agent",
+      "new": "新建会话",
+      "search": "搜索会话...",
+      "loading": "加载中...",
+      "empty": "暂无会话",
+      "noResults": "未找到会话",
+      "rename": "重命名",
+      "delete": "删除",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中...",
+      "deleting": "删除中...",
+      "renamePrompt": "输入新的会话标题",
+      "renameTitle": "重命名会话",
+      "renameDescription": "给这个会话换一个更容易识别的标题。",
+      "renamePlaceholder": "输入会话标题",
+      "deleteTitle": "删除会话",
+      "deleteConfirm": "确定删除“{title}”吗？删除后不会再出现在会话列表中。"
+    }
   },
   "Common": {
     "theme": {
@@ -279,6 +327,13 @@
       "namePlaceholder": "例如：代码助手",
       "descriptionLabel": "描述",
       "descriptionPlaceholder": "描述这个 Agent 的角色和能力...",
+      "instructions": "运行指令",
+      "instructionsPlaceholder": "写下这个 Agent 在 loop 中需要遵守的角色、边界和执行方式...",
+      "modelKey": "模型",
+      "maxTurns": "最大轮次",
+      "loopMode": "Loop 模式",
+      "loopAuto": "自动",
+      "loopSingleTurn": "单轮",
       "typeLabel": "类型",
       "typePrivate": "私有",
       "typePrivateDesc": "仅自己可见",
@@ -430,5 +485,81 @@
     "noParameters": "此工具没有定义参数",
     "endpoint": "API 端点",
     "parameters": "参数"
+  },
+  "McpSettings": {
+    "title": "MCP 服务器配置",
+    "description": "在这里配置 MCP 服务器连接，支持新增、编辑、删除和连通性测试。",
+    "serverCount": "共 {count} 台 MCP 服务器",
+    "add": "新增 MCP 服务器",
+    "createTitle": "新增 MCP 服务器",
+    "editTitle": "编辑 MCP 服务器",
+    "empty": "暂无 MCP 服务器配置，点击下方新增一条",
+    "enabled": "已启用",
+    "disabled": "已停用",
+    "edit": "编辑",
+    "delete": "删除",
+    "test": "测试",
+    "cancel": "取消",
+    "create": "创建",
+    "update": "保存",
+    "saving": "保存中...",
+    "lastTest": "最近可用工具数：{count}",
+    "transportHint": {
+      "stdio": "启动命令",
+      "network": "连接地址"
+    },
+    "fields": {
+      "name": "名称",
+      "description": "描述",
+      "transport": "传输方式",
+      "command": "启动命令",
+      "args": "启动参数（每行一个）",
+      "url": "服务地址",
+      "env": "环境变量（KEY=VALUE，每行一条）",
+      "approvalPolicy": "审批策略",
+      "enabled": "启用"
+    },
+    "placeholders": {
+      "name": "my-mcp-server",
+      "description": "填写服务器用途说明",
+      "command": "例如：node",
+      "args": "例如：main.js",
+      "url": "https://example.com/mcp",
+      "env": "API_TOKEN=abcdef"
+    },
+    "approvalPolicy": {
+      "none": "无",
+      "all": "全部审批",
+      "sensitive": "仅敏感工具审批"
+    },
+    "transportValues": {
+      "stdio": "stdio",
+      "streamable_http": "Streamable HTTP",
+      "sse": "SSE"
+    },
+    "approval": {
+      "none": "无",
+      "all": "全部审批",
+      "sensitive": "仅敏感工具审批"
+    },
+    "validation": {
+      "nameRequired": "请填写名称",
+      "descriptionRequired": "请填写描述",
+      "commandRequired": "请填写启动命令",
+      "urlRequired": "请填写服务地址"
+    },
+    "errors": {
+      "loadFailed": "加载 MCP 配置失败",
+      "saveFailed": "保存 MCP 配置失败",
+      "deleteFailed": "删除 MCP 配置失败",
+      "testFailed": "测试 MCP 连接失败"
+    },
+    "messages": {
+      "created": "MCP 服务器创建成功",
+      "updated": "MCP 服务器更新成功",
+      "deleted": "MCP 服务器删除成功",
+      "testSuccess": "测试成功，发现 {count} 个可用工具",
+      "deleteConfirm": "确认删除该 MCP 服务器吗？"
+    }
   }
 }

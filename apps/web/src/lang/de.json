@@ -74,7 +74,8 @@
       "group": {
         "deepseek": "Tiefesuchen",
         "seed": "Vulkan-Arche",
-        "bailian": "Ali Bai Lian"
+        "bailian": "Ali Bai Lian",
+        "gcloud": "Google Gemini"
       }
     },
     "reasoningEffort": {
