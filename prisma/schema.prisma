@@ -14,16 +14,16 @@ datasource db {
 // ============================================================
 
 model user {
-  id            String    @id @default(cuid())
-  email         String?   @unique
-  emailVerified Boolean?  @default(false)
+  id            String   @id @default(cuid())
+  email         String?  @unique
+  emailVerified Boolean? @default(false)
   name          String?
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  accounts  account[]
-  sessions  session[]
+  accounts account[]
+  sessions session[]
 }
 
 model account {
@@ -67,8 +67,8 @@ model verification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([identifier, value])
 }
@@ -78,16 +78,279 @@ model verification {
 // ============================================================
 
 model Agent {
-  id            String              @id @default(uuid())
-  name          String              @unique
-  description   String
-  type          AgentType           @default(public)
-  ownerId       String?             @map("owner_id")
-  isDefault     Boolean             @map("is_default") @default(false)
-  createdAt     DateTime            @default(now()) @map("created_at")
-  updatedAt     DateTime            @updatedAt @map("updated_at")
+  id           String        @id @default(uuid())
+  name         String        @unique
+  description  String
+  instructions String        @default("")
+  type         AgentType     @default(public)
+  modelKey     String        @default("deepseek-v4-flash") @map("model_key")
+  temperature  Float         @default(0.7)
+  maxTurns     Int           @default(8) @map("max_turns")
+  loopMode     AgentLoopMode @default(auto) @map("loop_mode")
+  status       AgentStatus   @default(active)
+  ownerId      String?       @map("owner_id")
+  metadata     Json          @default("{}")
+  isDefault    Boolean       @default(false) @map("is_default")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  skillsAsAgent     AgentSkill[]     @relation("AgentSkills")
+  toolsAsAgent      AgentTool[]      @relation("AgentTools")
+  mcpServersAsAgent AgentMcpServer[] @relation("AgentMcpServers")
+  subagentsAsParent AgentRelation[]  @relation("ParentAgentRelations")
+  parentsAsSubagent AgentRelation[]  @relation("SubagentAgentRelations")
+  threads           AgentThread[]
+  memories          AgentMemory[]
+  runs              AgentRun[]
 
   @@map("agents")
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  content     String
+  enabled     Boolean  @default(true)
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  agents AgentSkill[]
+
+  @@map("skills")
+}
+
+model AgentSkill {
+  id        String   @id @default(uuid())
+  agentId   String   @map("agent_id")
+  skillId   String   @map("skill_id")
+  enabled   Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  agent Agent @relation("AgentSkills", fields: [agentId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, skillId])
+  @@map("agent_skills")
+}
+
+model Tool {
+  id                String   @id
+  name              String   @unique
+  type              ToolType @default(invokable)
+  displayName       String   @map("display_name")
+  description       String
+  category          String
+  endpoint          Json
+  parameters        Json
+  responseTransform Json     @default("{}") @map("response_transform")
+  rateLimit         Json?    @map("rate_limit")
+  enabled           Boolean  @default(true)
+  version           String   @default("1.0.0")
+  tags              Json     @default("[]")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  agents AgentTool[]
+
+  @@map("tools")
+}
+
+model AgentTool {
+  id        String   @id @default(uuid())
+  agentId   String   @map("agent_id")
+  toolId    String   @map("tool_id")
+  enabled   Boolean  @default(true)
+  config    Json     @default("{}")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  agent Agent @relation("AgentTools", fields: [agentId], references: [id], onDelete: Cascade)
+  tool  Tool  @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, toolId])
+  @@map("agent_tools")
+}
+
+model McpServer {
+  id                String            @id @default(uuid())
+  name              String            @unique
+  description       String
+  transport         McpTransport
+  command           String?
+  args              Json              @default("[]")
+  url               String?
+  env               Json              @default("{}")
+  allowedTools      Json              @default("[]") @map("allowed_tools")
+  approvalPolicy    McpApprovalPolicy @default(none) @map("approval_policy")
+  enabled           Boolean           @default(true)
+  metadata          Json              @default("{}")
+  lastToolsSnapshot Json              @default("[]") @map("last_tools_snapshot")
+  lastConnectedAt   DateTime?         @map("last_connected_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  agents AgentMcpServer[]
+
+  @@map("mcp_servers")
+}
+
+model AgentMcpServer {
+  id           String   @id @default(uuid())
+  agentId      String   @map("agent_id")
+  mcpServerId  String   @map("mcp_server_id")
+  enabled      Boolean  @default(true)
+  allowedTools Json     @default("[]") @map("allowed_tools")
+  config       Json     @default("{}")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  agent     Agent     @relation("AgentMcpServers", fields: [agentId], references: [id], onDelete: Cascade)
+  mcpServer McpServer @relation(fields: [mcpServerId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, mcpServerId])
+  @@map("agent_mcp_servers")
+}
+
+model AgentRelation {
+  id          String            @id @default(uuid())
+  parentId    String            @map("parent_id")
+  subagentId  String            @map("subagent_id")
+  mode        AgentRelationMode @default(as_tool)
+  name        String?
+  description String
+  enabled     Boolean           @default(true)
+  sortOrder   Int               @default(0) @map("sort_order")
+  metadata    Json              @default("{}")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  parent   Agent @relation("ParentAgentRelations", fields: [parentId], references: [id], onDelete: Cascade)
+  subagent Agent @relation("SubagentAgentRelations", fields: [subagentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, subagentId, mode])
+  @@map("agent_relations")
+}
+
+model AgentThread {
+  id            String            @id @default(uuid())
+  agentId       String            @map("agent_id")
+  ownerId       String?           @map("owner_id")
+  title         String
+  status        AgentThreadStatus @default(active)
+  summary       String?
+  metadata      Json              @default("{}")
+  lastMessageAt DateTime?         @map("last_message_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  agent    Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  messages AgentMessage[]
+  runs     AgentRun[]
+
+  @@index([agentId, ownerId, status, lastMessageAt])
+  @@map("agent_threads")
+}
+
+model AgentMessage {
+  id        String           @id @default(uuid())
+  threadId  String           @map("thread_id")
+  runId     String?          @map("run_id")
+  role      AgentMessageRole
+  content   String
+  parts     Json             @default("[]")
+  metadata  Json             @default("{}")
+  sequence  Int
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  thread AgentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  run    AgentRun?   @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  @@unique([threadId, sequence])
+  @@index([threadId, createdAt])
+  @@index([runId])
+  @@map("agent_messages")
+}
+
+model AgentMemory {
+  id          String   @id @default(uuid())
+  agentId     String   @map("agent_id")
+  ownerId     String   @map("owner_id")
+  summary     String   @default("")
+  facts       Json     @default("[]")
+  preferences Json     @default("[]")
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, agentId])
+  @@map("agent_memories")
+}
+
+model AgentRun {
+  id             String         @id @default(uuid())
+  agentId        String         @map("agent_id")
+  threadId       String?        @map("thread_id")
+  status         AgentRunStatus @default(running)
+  input          Json
+  finalOutput    String?        @map("final_output")
+  lastAgentName  String?        @map("last_agent_name")
+  lastResponseId String?        @map("last_response_id")
+  error          String?
+  metadata       Json           @default("{}")
+  startedAt      DateTime       @default(now()) @map("started_at")
+  completedAt    DateTime?      @map("completed_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  agent    Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  thread   AgentThread?    @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  messages AgentMessage[]
+  steps    AgentRunStep[]
+  events   AgentRunEvent[]
+
+  @@index([agentId, createdAt])
+  @@index([threadId])
+  @@map("agent_runs")
+}
+
+model AgentRunStep {
+  id        String   @id @default(uuid())
+  runId     String   @map("run_id")
+  index     Int
+  agentName String   @map("agent_name")
+  type      String
+  input     Json?
+  output    Json?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  run AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, index])
+  @@map("agent_run_steps")
+}
+
+model AgentRunEvent {
+  id        String   @id @default(uuid())
+  runId     String   @map("run_id")
+  sequence  Int
+  type      String
+  agentName String?  @map("agent_name")
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  run AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, sequence])
+  @@map("agent_run_events")
 }
 
 model ChatModel {
@@ -110,8 +373,64 @@ enum AgentType {
   system
 }
 
+enum AgentLoopMode {
+  auto
+  single_turn
+}
+
+enum AgentStatus {
+  active
+  archived
+  disabled
+}
+
+enum ToolType {
+  invokable
+  streamable
+}
+
+enum McpTransport {
+  stdio
+  streamable_http
+  sse
+}
+
+enum McpApprovalPolicy {
+  none
+  all
+  sensitive
+}
+
+enum AgentRelationMode {
+  as_tool
+  handoff
+}
+
+enum AgentRunStatus {
+  running
+  completed
+  failed
+  cancelled
+}
+
+enum AgentThreadStatus {
+  active
+  archived
+  deleted
+}
+
+enum AgentMessageRole {
+  user
+  assistant
+  tool
+  system
+}
+
 enum ChatModelProvider {
   deepseek
   seed
   bailian
+  gcloud
+  openai
+  shortapi
 }
