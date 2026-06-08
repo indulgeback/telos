@@ -1,253 +1,368 @@
-import { Router, Request, Response } from "express";
-import { prisma } from "../services/db.js";
-import { randomUUID } from "node:crypto";
-import { logger } from "../config/index.js";
-import type { ApiResponse } from "../types/index.js";
-import { serializeAgent, serializeAgents } from "../utils/serializer.js";
+import { Hono } from 'hono'
+import { prisma } from '../services/db.js'
+import { config } from '../config/index.js'
+import { created, fail, ok, parseJson } from '../http/response.js'
+import {
+  serializeAgent,
+  serializeAgents,
+  toSnakeCase,
+} from '../utils/serializer.js'
+import { asStringArray } from '../utils/json.js'
+import { createAgentRun } from '../services/persistence.js'
+import { agentSessionService } from '../services/session.js'
+import { agentRuntimeService } from '../services/runtime.js'
+import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
+import {
+  attachBuiltinToolsToAgent,
+  ensureBuiltinTools,
+} from '../services/builtin-tools.js'
 
-export const agentsRouter = Router();
+export const agentsRouter = new Hono()
 
-// 辅助函数：从路径参数中提取字符串
-function getParamString(req: Request, key: string): string {
-  const value = req.params[key];
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) return value[0];
-  return String(value);
+function normalizeAgentType(value: unknown): 'public' | 'private' | 'system' {
+  return value === 'private' || value === 'system' ? value : 'public'
 }
 
-function normalizeAgentType(
-  value: unknown
-): "public" | "private" | "system" {
-  if (typeof value !== "string") return "public";
-  const normalized = value.toLowerCase();
+function normalizeLoopMode(value: unknown): 'auto' | 'single_turn' {
+  return value === 'single_turn' ? 'single_turn' : 'auto'
+}
 
+function normalizeStatus(value: unknown): 'active' | 'archived' | 'disabled' {
+  if (value === 'archived' || value === 'disabled') return value
+  return 'active'
+}
+
+function normalizeReasoningEffort(value: unknown) {
   if (
-    normalized === "public" ||
-    normalized === "private" ||
-    normalized === "system"
+    value === 'minimal' ||
+    value === 'low' ||
+    value === 'medium' ||
+    value === 'high'
   ) {
-    return normalized;
+    return value
   }
-
-  return "public";
+  return null
 }
 
-/**
- * GET /api/agents
- * 获取 Agent 列表
- */
-agentsRouter.get("/", async (req: Request, res: Response) => {
-  try {
-    const agents = await prisma.agent.findMany({
-      orderBy: {
-        createdAt: "desc",
+async function replaceBindings(
+  agentId: string,
+  ids: string[],
+  modelName: 'agentSkill' | 'agentTool' | 'agentMcpServer',
+  fieldName: 'skillId' | 'toolId' | 'mcpServerId'
+) {
+  const model = (prisma as any)[modelName]
+  await model.deleteMany({ where: { agentId } })
+  if (!ids.length) return
+  await model.createMany({
+    data: ids.map((id, index) => ({
+      agentId,
+      [fieldName]: id,
+      enabled: true,
+      sortOrder: index,
+    })),
+    skipDuplicates: true,
+  })
+}
+
+agentsRouter.get('/', async c => {
+  const agents = await prisma.agent.findMany({
+    orderBy: { createdAt: 'desc' },
+  })
+  return ok(c, serializeAgents(agents))
+})
+
+agentsRouter.get('/default', async c => {
+  const agent = await prisma.agent.findFirst({
+    where: { isDefault: true, status: 'active' },
+  })
+  if (!agent) return fail(c, 404, '默认 Agent 不存在')
+  return ok(c, serializeAgent(agent))
+})
+
+agentsRouter.post('/', async c => {
+  const body = await parseJson(c)
+  const userId = getCurrentUserId(c)
+  const name = typeof body.name === 'string' ? body.name.trim() : ''
+  const description =
+    typeof body.description === 'string' ? body.description.trim() : ''
+
+  if (!name || !description) {
+    return fail(c, 400, 'Agent name and description are required')
+  }
+
+  const agent = await prisma.agent.create({
+    data: {
+      name,
+      description,
+      instructions:
+        typeof body.instructions === 'string' ? body.instructions : description,
+      type: normalizeAgentType(body.type),
+      modelKey:
+        typeof body.modelKey === 'string' && body.modelKey.trim()
+          ? body.modelKey.trim()
+          : config.defaultModel,
+      temperature:
+        typeof body.temperature === 'number' ? body.temperature : 0.7,
+      maxTurns: typeof body.maxTurns === 'number' ? body.maxTurns : 8,
+      loopMode: normalizeLoopMode(body.loopMode),
+      status: normalizeStatus(body.status),
+      ownerId: userId,
+      metadata: (body.metadata ?? {}) as any,
+      isDefault: Boolean(body.isDefault),
+    },
+  })
+  await ensureBuiltinTools()
+  await attachBuiltinToolsToAgent(agent.id)
+
+  return created(c, serializeAgent(agent))
+})
+
+agentsRouter.get('/:id', async c => {
+  const agent = await prisma.agent.findUnique({
+    where: { id: c.req.param('id') },
+    include: {
+      skillsAsAgent: {
+        include: { skill: true },
+        orderBy: { sortOrder: 'asc' },
       },
-    });
-
-    // 转换为 snake_case 以匹配 Go 版本
-    const serializedAgents = serializeAgents(agents);
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: serializedAgents,
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error({
-      msg: "List agents error",
-      err: error,
-    });
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "获取 Agent 列表失败",
-    });
-  }
-});
-
-/**
- * GET /api/agents/:id
- * 获取 Agent 详情
- */
-agentsRouter.get("/:id", async (req: Request, res: Response) => {
-  try {
-    const agent = await prisma.agent.findUnique({
-      where: { id: getParamString(req, "id") },
-    });
-
-    if (!agent) {
-      return res.status(404).json({
-        code: 404,
-        message: "Agent 不存在",
-      });
-    }
-
-    // 转换为 snake_case 以匹配 Go 版本
-    const serializedAgent = serializeAgent(agent);
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: serializedAgent,
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error({
-      msg: "Get agent error",
-      agentId: getParamString(req, "id"),
-      err: error,
-    });
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "获取 Agent 详情失败",
-    });
-  }
-});
-
-/**
- * GET /api/agents/default
- * 获取默认 Agent
- */
-agentsRouter.get("/default", async (req: Request, res: Response) => {
-  try {
-    const agent = await prisma.agent.findFirst({
-      where: {
-        isDefault: true,
+      toolsAsAgent: { include: { tool: true } },
+      mcpServersAsAgent: { include: { mcpServer: true } },
+      subagentsAsParent: {
+        include: { subagent: true },
+        orderBy: { sortOrder: 'asc' },
       },
-    });
+    },
+  })
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+  return ok(c, toSnakeCase(agent))
+})
 
-    if (!agent) {
-      return res.status(404).json({
-        code: 404,
-        message: "默认 Agent 不存在",
-      });
-    }
+agentsRouter.put('/:id', async c => {
+  const body = await parseJson(c)
+  const agent = await prisma.agent.update({
+    where: { id: c.req.param('id') },
+    data: {
+      name: typeof body.name === 'string' ? body.name.trim() : undefined,
+      description:
+        typeof body.description === 'string'
+          ? body.description.trim()
+          : undefined,
+      instructions:
+        typeof body.instructions === 'string' ? body.instructions : undefined,
+      type:
+        typeof body.type === 'string'
+          ? normalizeAgentType(body.type)
+          : undefined,
+      modelKey:
+        typeof body.modelKey === 'string' && body.modelKey.trim()
+          ? body.modelKey.trim()
+          : undefined,
+      temperature:
+        typeof body.temperature === 'number' ? body.temperature : undefined,
+      maxTurns: typeof body.maxTurns === 'number' ? body.maxTurns : undefined,
+      loopMode:
+        typeof body.loopMode === 'string'
+          ? normalizeLoopMode(body.loopMode)
+          : undefined,
+      status:
+        typeof body.status === 'string'
+          ? normalizeStatus(body.status)
+          : undefined,
+      metadata:
+        body.metadata === undefined ? undefined : (body.metadata as any),
+      isDefault:
+        typeof body.isDefault === 'boolean' ? body.isDefault : undefined,
+    },
+  })
+  return ok(c, serializeAgent(agent))
+})
 
-    // 转换为 snake_case 以匹配 Go 版本
-    const serializedAgent = serializeAgent(agent);
+agentsRouter.delete('/:id', async c => {
+  await prisma.agent.delete({ where: { id: c.req.param('id') } })
+  return ok(c, { deleted: true })
+})
 
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: serializedAgent,
-    };
+agentsRouter.get('/:id/skills', async c => {
+  const rows = await prisma.agentSkill.findMany({
+    where: { agentId: c.req.param('id') },
+    include: { skill: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+  return ok(c, { skills: toSnakeCase(rows) })
+})
 
-    res.json(response);
-  } catch (error) {
-    logger.error({
-      msg: "Get default agent error",
-      err: error,
-    });
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "获取默认 Agent 失败",
-    });
-  }
-});
+agentsRouter.put('/:id/skills', async c => {
+  const body = await parseJson(c)
+  await replaceBindings(
+    c.req.param('id'),
+    asStringArray(body.skill_ids ?? body.skillIds),
+    'agentSkill',
+    'skillId'
+  )
+  return ok(c, { message: 'skills configured' })
+})
 
-/**
- * POST /api/agents
- * 创建新 Agent
- */
-agentsRouter.post("/", async (req: Request, res: Response) => {
-  try {
-    const { name, description, type } = req.body;
+agentsRouter.get('/:id/tools', async c => {
+  const rows = await prisma.agentTool.findMany({
+    where: { agentId: c.req.param('id') },
+    include: { tool: true },
+  })
+  return ok(c, { tools: toSnakeCase(rows) })
+})
 
-    const agent = await prisma.agent.create({
+agentsRouter.put('/:id/tools', async c => {
+  const body = await parseJson(c)
+  await replaceBindings(
+    c.req.param('id'),
+    asStringArray(body.tool_ids ?? body.toolIds),
+    'agentTool',
+    'toolId'
+  )
+  return ok(c, { message: 'tools configured' })
+})
+
+agentsRouter.patch('/:id/tools/:toolId/toggle', async c => {
+  const body = await parseJson(c)
+  await prisma.agentTool.updateMany({
+    where: { agentId: c.req.param('id'), toolId: c.req.param('toolId') },
+    data: { enabled: Boolean(body.enabled) },
+  })
+  return ok(c, { message: 'tool toggled' })
+})
+
+agentsRouter.get('/:id/mcp-servers', async c => {
+  const rows = await prisma.agentMcpServer.findMany({
+    where: { agentId: c.req.param('id') },
+    include: { mcpServer: true },
+  })
+  return ok(c, { mcp_servers: toSnakeCase(rows) })
+})
+
+agentsRouter.put('/:id/mcp-servers', async c => {
+  const body = await parseJson(c)
+  await replaceBindings(
+    c.req.param('id'),
+    asStringArray(body.mcp_server_ids ?? body.mcpServerIds),
+    'agentMcpServer',
+    'mcpServerId'
+  )
+  return ok(c, { message: 'mcp servers configured' })
+})
+
+agentsRouter.get('/:id/subagents', async c => {
+  const rows = await prisma.agentRelation.findMany({
+    where: { parentId: c.req.param('id') },
+    include: { subagent: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+  return ok(c, { subagents: toSnakeCase(rows) })
+})
+
+agentsRouter.put('/:id/subagents', async c => {
+  const body = await parseJson(c)
+  const parentId = c.req.param('id')
+  const relations = Array.isArray(body.relations) ? body.relations : []
+
+  await prisma.agentRelation.deleteMany({ where: { parentId } })
+  for (let index = 0; index < relations.length; index += 1) {
+    const relation = relations[index] as Record<string, unknown>
+    const subagentId =
+      typeof relation.subagent_id === 'string'
+        ? relation.subagent_id
+        : typeof relation.subagentId === 'string'
+          ? relation.subagentId
+          : ''
+    if (!subagentId || subagentId === parentId) continue
+
+    await prisma.agentRelation.create({
       data: {
-        id: randomUUID(),
-        name,
-        description,
-        type: normalizeAgentType(type),
-        ownerId: req.body.ownerId || null,
-        isDefault: false,
+        parentId,
+        subagentId,
+        mode: relation.mode === 'handoff' ? 'handoff' : 'as_tool',
+        name: typeof relation.name === 'string' ? relation.name : null,
+        description:
+          typeof relation.description === 'string'
+            ? relation.description
+            : 'Specialist subagent',
+        sortOrder: index,
+        enabled: relation.enabled !== false,
+        metadata: (relation.metadata ?? {}) as any,
       },
-    });
-
-    // 转换为 snake_case 以匹配 Go 版本
-    const serializedAgent = serializeAgent(agent);
-
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: serializedAgent,
-    };
-
-    res.status(201).json(response);
-  } catch (error) {
-    logger.error({
-      msg: "Create agent error",
-      agentName: req.body.name,
-      err: error,
-    });
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "创建 Agent 失败",
-    });
+    })
   }
-});
 
-/**
- * PUT /api/agents/:id
- * 更新 Agent
- */
-agentsRouter.put("/:id", async (req: Request, res: Response) => {
-  try {
-    const { name, description } = req.body;
+  return ok(c, { message: 'subagents configured' })
+})
 
-    const agent = await prisma.agent.update({
-      where: { id: getParamString(req, "id") },
-      data: {
-        name,
-        description,
-      },
-    });
+agentsRouter.post('/:id/runs', async c => {
+  const body = await parseJson(c)
+  const input = typeof body.input === 'string' ? body.input.trim() : ''
+  if (!input) return fail(c, 400, 'input is required')
+  const agentId = c.req.param('id')
+  const ownerId = getCurrentUserId(c)
+  const thread = await agentSessionService.ensureThread({
+    agentId,
+    threadId: typeof body.threadId === 'string' ? body.threadId : null,
+    ownerId,
+    firstInput: input,
+    metadata: { source: 'run_api' },
+  })
+  const userMessage = await agentSessionService.appendUserMessage(
+    thread.id,
+    input
+  )
+  const runtimeContext = await agentSessionService.buildRuntimeInput(thread.id)
 
-    // 转换为 snake_case 以匹配 Go 版本
-    const serializedAgent = serializeAgent(agent);
+  const run = await createAgentRun({
+    agentId,
+    threadId: thread.id,
+    input: { input },
+    metadata: { source: 'run_api', userMessageId: userMessage.id },
+  })
 
-    const response: ApiResponse = {
-      code: 0,
-      message: "success",
-      data: serializedAgent,
-    };
-
-    res.json(response);
-  } catch (error) {
-    logger.error({
-      msg: "Update agent error",
-      agentId: getParamString(req, "id"),
-      err: error,
-    });
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "更新 Agent 失败",
-    });
+  if (body.stream === true) {
+    const { createAgentStreamResponse } = await import('./chat.js')
+    return createAgentStreamResponse(c, {
+      agentId: c.req.param('id'),
+      runId: run.id,
+      input,
+      threadId: thread.id,
+      ownerId,
+      runtimeInput: runtimeContext.input,
+      memoryInstructions: runtimeContext.memoryInstructions,
+      modelOverride:
+        typeof body.model === 'string' && body.model.trim()
+          ? body.model.trim()
+          : null,
+      reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
+    })
   }
-});
 
-/**
- * DELETE /api/agents/:id
- * 删除 Agent
- */
-agentsRouter.delete("/:id", async (req: Request, res: Response) => {
-  try {
-    await prisma.agent.delete({
-      where: { id: getParamString(req, "id") },
-    });
+  const { result, persistence } = await agentRuntimeService.run(
+    agentId,
+    {
+      runId: run.id,
+      input: runtimeContext.input,
+      threadId: thread.id,
+      memoryInstructions: runtimeContext.memoryInstructions,
+      modelOverride:
+        typeof body.model === 'string' && body.model.trim()
+          ? body.model.trim()
+          : null,
+      reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
+    }
+  )
+  await persistence.complete(
+    String(result.finalOutput ?? ''),
+    result.lastAgent?.name,
+    result.lastResponseId
+  )
+  await agentSessionService.appendAssistantMessage(
+    thread.id,
+    run.id,
+    String(result.finalOutput ?? '')
+  )
+  agentSessionService.scheduleSummaries(thread.id, agentId, ownerId)
 
-    res.status(204).send();
-  } catch (error) {
-    logger.error({
-      msg: "Delete agent error",
-      agentId: getParamString(req, "id"),
-      err: error,
-    });
-    res.status(500).json({
-      code: 500,
-      message: error instanceof Error ? error.message : "删除 Agent 失败",
-    });
-  }
-});
+  return ok(c, { run_id: run.id, thread_id: thread.id, status: 'completed' })
+})

@@ -17,6 +17,7 @@
 - ✅ 简单聊天（AI SDK UI Message stream）
 - ✅ 内置工具（计算器、时间）
 - ✅ Agent 管理
+- ✅ 火山引擎豆包实时语音（文本/音频 WebSocket，见 [VOLC_REALTIME.md](./VOLC_REALTIME.md)）
 
 ## 项目结构
 
@@ -208,6 +209,20 @@ npm run dev
 ```bash
 npm run build
 ```
+
+### 测试
+
+```bash
+pnpm --filter ./services/agent-service test
+```
+
+### 火山实时语音 smoke
+
+```bash
+pnpm --filter ./services/agent-service smoke:volc-realtime
+```
+
+如果未配置真实火山凭证，该命令会明确输出缺失的 env 名称。完整配置、诊断接口和验收流程见 [VOLC_REALTIME.md](./VOLC_REALTIME.md)。
 
 ### 生产运行
 

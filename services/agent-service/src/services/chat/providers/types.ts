@@ -1,6 +1,12 @@
 import { ChatOpenAI } from '@langchain/openai'
 
-export type ChatProvider = 'deepseek' | 'seed' | 'bailian'
+export type ChatProvider =
+  | 'openai'
+  | 'deepseek'
+  | 'seed'
+  | 'bailian'
+  | 'gcloud'
+  | 'shortapi'
 
 export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
 

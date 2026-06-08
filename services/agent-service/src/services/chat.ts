@@ -32,6 +32,41 @@ const REASONING_EFFORT_VALUES: ReasoningEffort[] = [
 
 const DEFAULT_CHAT_MODELS = [
   {
+    modelKey: 'deepseek-v4-flash',
+    displayName: 'DeepSeek V4 Flash',
+    provider: 'deepseek',
+    isReasoning: false,
+    sortOrder: 1,
+  },
+  {
+    modelKey: 'openai/gpt-5.5',
+    displayName: 'GPT-5.5',
+    provider: 'shortapi',
+    isReasoning: true,
+    sortOrder: 5,
+  },
+  {
+    modelKey: 'google/gemini-3.5-flash',
+    displayName: 'Gemini 3.5 Flash',
+    provider: 'gcloud',
+    isReasoning: true,
+    sortOrder: 6,
+  },
+  {
+    modelKey: 'google/gemini-3.1-flash-lite',
+    displayName: 'Gemini 3.1 Flash-Lite',
+    provider: 'gcloud',
+    isReasoning: true,
+    sortOrder: 7,
+  },
+  {
+    modelKey: 'google/gemini-2.5-pro',
+    displayName: 'Gemini 2.5 Pro',
+    provider: 'gcloud',
+    isReasoning: true,
+    sortOrder: 8,
+  },
+  {
     modelKey: 'deepseek-chat',
     displayName: 'DeepSeek Chat',
     provider: 'deepseek',
@@ -65,6 +100,13 @@ const DEFAULT_CHAT_MODELS = [
     provider: 'seed',
     isReasoning: true,
     sortOrder: 50,
+  },
+  {
+    modelKey: 'doubao-seed-character-251128',
+    displayName: 'Doubao Seed Character',
+    provider: 'seed',
+    isReasoning: true,
+    sortOrder: 55,
   },
   {
     modelKey: 'glm-4-7-251222',
@@ -139,7 +181,11 @@ function toChatModelOption(raw: {
   isReasoning: boolean
 }): ChatModelOption {
   const provider: ChatProvider =
-    raw.provider === 'seed' || raw.provider === 'bailian'
+    raw.provider === 'openai' ||
+    raw.provider === 'shortapi' ||
+    raw.provider === 'seed' ||
+    raw.provider === 'gcloud' ||
+    raw.provider === 'bailian'
       ? raw.provider
       : 'deepseek'
 
@@ -505,9 +551,12 @@ function normalizeImageUrls(raw: unknown): string[] {
     .map(item => (typeof item === 'string' ? item.trim() : ''))
     .filter(Boolean)
     .filter(
-      url => /^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url)
+      url =>
+        /^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url)
     )
-    .map(url => (url.startsWith('http://') ? url.replace(/^http:\/\//i, 'https://') : url))
+    .map(url =>
+      url.startsWith('http://') ? url.replace(/^http:\/\//i, 'https://') : url
+    )
     .slice(0, 3)
 }
 
@@ -620,7 +669,9 @@ export async function runChatWithBuiltInTools(
   const hasImages = options?.hasImages === true
   // Some OpenAI-compatible vision endpoints reject tool schema in the same turn.
   // For image turns, run direct model stream without binding tools.
-  const model = hasImages ? modelRuntime.model : modelRuntime.model.bindTools(tools)
+  const model = hasImages
+    ? modelRuntime.model
+    : modelRuntime.model.bindTools(tools)
   const toolMap = new Map(tools.map(tool => [tool.name, tool]))
   const createPartId = (prefix: string) =>
     `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
