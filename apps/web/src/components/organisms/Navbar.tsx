@@ -9,8 +9,8 @@ import {
   LocaleToggle,
   CustomLink,
 } from '@/components/molecules'
+import { TelosLogo } from '@/components/atoms'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
 
 export function Navbar() {
   const t = useTranslations('Navbar')
@@ -28,15 +28,8 @@ export function Navbar() {
       <div className='px-4'>
         <div className='flex h-16 items-center justify-between'>
           <div className='flex items-center space-x-8'>
-            <CustomLink href='/' className='flex items-center space-x-2'>
-              <Image
-                src='/favicon.png'
-                alt='Telos'
-                width={32}
-                height={32}
-                className='rounded-lg'
-              />
-              <span className='font-bold text-xl'>Telos</span>
+            <CustomLink href='/'>
+              <TelosLogo />
             </CustomLink>
 
             <div className='hidden md:flex items-center space-x-6'>

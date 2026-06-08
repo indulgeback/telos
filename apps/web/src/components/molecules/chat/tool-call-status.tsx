@@ -1,7 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, Wrench } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronRight,
+  Loader2,
+  Wrench,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ToolCallPreview {
@@ -48,7 +53,6 @@ function compactText(input?: string) {
 }
 
 export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
-  const [isExpanded, setIsExpanded] = useState(false)
   const meta = getStateMeta(tool.state)
   const Icon = meta.icon
   const input = tool.inputText ?? ''
@@ -57,22 +61,20 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
   const summaryInput = compactText(input)
   const summaryOutput = compactText(output)
   const summaryError = compactText(errorText)
-  const hasDetail = useMemo(() => {
-    const values = [input, output, errorText].filter(Boolean)
-    if (values.length === 0) return false
-    return values.some(value => value.length > 90 || value.includes('\n'))
-  }, [errorText, input, output])
+  const hasDetail = Boolean(input || output || errorText)
 
   return (
-    <div className='rounded-lg border border-border/60 bg-card/70 px-3 py-2 shadow-sm'>
-      <div className='flex items-center gap-2 text-xs'>
-        <Wrench className='size-3.5 text-muted-foreground' />
-        <span className='font-medium text-foreground/90'>
+    <details className='chat-tool-details text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'>
+      <summary className='inline-flex cursor-pointer list-none items-center gap-2 rounded-md py-0.5 pr-2 transition-colors hover:text-foreground'>
+        <ChevronRight className='chat-tool-chevron size-3.5' />
+        <span className='inline-flex items-center gap-1.5 font-medium text-foreground/85'>
+          <Wrench className='size-3.5 text-muted-foreground' />
           {formatToolName(tool.toolName)}
         </span>
+        <span className='h-1 w-1 rounded-full bg-current opacity-35' />
         <span
           className={cn(
-            'ml-auto inline-flex items-center gap-1',
+            'inline-flex items-center gap-1 text-[11px]',
             meta.textClass
           )}
         >
@@ -84,38 +86,30 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
           />
           {meta.label}
         </span>
-      </div>
+      </summary>
 
-      {summaryInput && (
-        <p className='mt-1 text-[11px] text-muted-foreground line-clamp-1'>
-          输入：{summaryInput}
-        </p>
-      )}
-
-      {tool.state === 'success' && summaryOutput && (
-        <p className='mt-1 text-[11px] text-foreground/80 line-clamp-2'>
-          输出：{summaryOutput}
-        </p>
-      )}
-
-      {tool.state === 'error' && summaryError && (
-        <p className='mt-1 text-[11px] text-destructive line-clamp-2'>
-          错误：{summaryError}
-        </p>
+      {(summaryInput || summaryOutput || summaryError) && (
+        <div className='ml-[7px] mt-1 border-l border-border/70 pl-4 text-[11px] leading-relaxed'>
+          {summaryInput && (
+            <p className='line-clamp-1 text-muted-foreground'>
+              输入：{summaryInput}
+            </p>
+          )}
+          {tool.state === 'success' && summaryOutput && (
+            <p className='line-clamp-2 text-foreground/75'>
+              输出：{summaryOutput}
+            </p>
+          )}
+          {tool.state === 'error' && summaryError && (
+            <p className='line-clamp-2 text-destructive'>
+              错误：{summaryError}
+            </p>
+          )}
+        </div>
       )}
 
       {hasDetail && (
-        <button
-          type='button'
-          onClick={() => setIsExpanded(prev => !prev)}
-          className='mt-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors'
-        >
-          {isExpanded ? '收起详情' : '展开详情'}
-        </button>
-      )}
-
-      {isExpanded && (
-        <div className='mt-2 space-y-2 border-t border-border/60 pt-2'>
+        <div className='ml-[7px] mt-2 space-y-2 border-l border-border/70 pl-4'>
           {input && (
             <div>
               <p className='text-[11px] text-muted-foreground'>输入</p>
@@ -142,6 +136,6 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
           )}
         </div>
       )}
-    </div>
+    </details>
   )
 }

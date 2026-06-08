@@ -14,7 +14,14 @@ import {
 } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
 import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
-import { Copy, Check, RotateCcw, ChevronRight, ChevronLeft } from 'lucide-react'
+import {
+  Copy,
+  Check,
+  RotateCcw,
+  ChevronRight,
+  ChevronLeft,
+  Mic2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type AssistantContentPart =
@@ -53,6 +60,7 @@ export interface ChatMessageProps {
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
+  isVoiceTranscript?: boolean
 }
 
 function compareToolPreview(
@@ -149,6 +157,7 @@ function ChatMessageInner({
   imageNextLabel = 'Next image',
   userAvatarUrl,
   userInitials,
+  isVoiceTranscript = false,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
   const safeImages = images ?? []
@@ -227,20 +236,21 @@ function ChatMessageInner({
                     return (
                       <details
                         key={`reasoning-${id}-${index}`}
-                        className='chat-reasoning-details rounded-xl border border-border/70 bg-muted/35 px-3 py-2 text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'
+                        className='chat-reasoning-details text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'
                       >
-                        <summary className='flex cursor-pointer list-none items-center justify-between gap-2'>
-                          <span className='flex items-center gap-1.5 font-medium'>
+                        <summary className='inline-flex cursor-pointer list-none items-center gap-2 rounded-md py-0.5 pr-2 transition-colors hover:text-foreground'>
+                          <span className='inline-flex items-center gap-1.5 font-medium'>
                             <ChevronRight className='chat-reasoning-chevron size-3.5' />
                             {reasoningTitle}
                           </span>
-                          <span className='text-[11px]'>
+                          <span className='h-1 w-1 rounded-full bg-current opacity-35' />
+                          <span className='text-[11px] text-muted-foreground/80'>
                             {part.reasoning.state === 'streaming'
                               ? reasoningThinkingLabel
                               : reasoningDoneLabel}
                           </span>
                         </summary>
-                        <div className='mt-2 whitespace-pre-wrap text-xs leading-relaxed text-foreground/80'>
+                        <div className='ml-[7px] mt-2 border-l border-border/70 pl-4 whitespace-pre-wrap text-xs leading-relaxed text-foreground/75'>
                           {part.reasoning.text}
                         </div>
                       </details>
@@ -279,40 +289,48 @@ function ChatMessageInner({
             ) : null}
           </div>
         ) : (
-          <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>
-            {hasImages && (
-              <div className='mb-2 grid max-w-[360px] grid-cols-3 gap-2'>
-                {safeImages.map((src, index) => (
-                  <button
-                    type='button'
-                    key={`${id}-img-${index}`}
-                    className='relative aspect-square overflow-hidden rounded-md bg-primary-foreground/10'
-                    onClick={() => {
-                      setPreviewIndex(index)
-                      setPreviewOpen(true)
-                    }}
-                    aria-label={imagePreviewLabel}
-                  >
-                    <Image
-                      src={src}
-                      alt={`user-image-${index + 1}`}
-                      fill
-                      unoptimized
-                      sizes='120px'
-                      className='object-cover'
-                    />
-                  </button>
-                ))}
-              </div>
+          <div className='flex max-w-full flex-col items-end gap-1.5'>
+            <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>
+              {hasImages && (
+                <div className='mb-2 grid max-w-[360px] grid-cols-3 gap-2'>
+                  {safeImages.map((src, index) => (
+                    <button
+                      type='button'
+                      key={`${id}-img-${index}`}
+                      className='relative aspect-square overflow-hidden rounded-md bg-primary-foreground/10'
+                      onClick={() => {
+                        setPreviewIndex(index)
+                        setPreviewOpen(true)
+                      }}
+                      aria-label={imagePreviewLabel}
+                    >
+                      <Image
+                        src={src}
+                        alt={`user-image-${index + 1}`}
+                        fill
+                        unoptimized
+                        sizes='120px'
+                        className='object-cover'
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {hasContent ? (
+                <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
+                  {safeContent}
+                </p>
+              ) : (
+                <TypingIndicator />
+              )}
+            </Card>
+            {isVoiceTranscript && hasContent && (
+              <span className='inline-flex items-center gap-1 text-[11px] text-muted-foreground'>
+                <Mic2 className='size-3' />
+                Live transcript
+              </span>
             )}
-            {hasContent ? (
-              <p className='whitespace-pre-wrap break-words text-sm leading-relaxed'>
-                {safeContent}
-              </p>
-            ) : (
-              <TypingIndicator />
-            )}
-          </Card>
+          </div>
         )}
 
         {isAssistant && (

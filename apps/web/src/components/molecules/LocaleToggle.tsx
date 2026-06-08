@@ -40,7 +40,7 @@ function LocaleToggle() {
         <Button
           variant='outline'
           size='icon'
-          className='relative w-full md:w-9'
+          className='relative w-full border-transparent bg-muted/45 shadow-none hover:bg-background/80 md:size-10'
         >
           <Globe className='h-4 w-4' />
           <span className='md:hidden block'>{t('toggleLanguage')}</span>

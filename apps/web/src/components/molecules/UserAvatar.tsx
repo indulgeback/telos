@@ -53,7 +53,10 @@ export function UserAvatar() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
+        <Button
+          variant='ghost'
+          className='relative size-10 rounded-md bg-muted/45 p-0 hover:bg-background/80'
+        >
           <Avatar className='h-8 w-8'>
             <AvatarImage src={user.image || ''} alt={user.name || ''} />
             <AvatarFallback>{userInitials}</AvatarFallback>

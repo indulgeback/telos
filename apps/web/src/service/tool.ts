@@ -139,6 +139,29 @@ export interface ToolListOptions {
   page_size?: number
 }
 
+interface ApiEnvelope<T> {
+  code: number
+  message?: string
+  data?: T
+}
+
+function unwrapApiResponse<T>(payload: T | ApiEnvelope<T>): T {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'code' in payload &&
+    typeof (payload as ApiEnvelope<T>).code === 'number'
+  ) {
+    const wrapped = payload as ApiEnvelope<T>
+    if (wrapped.code !== 0) {
+      throw new Error(wrapped.message || 'Request failed')
+    }
+    return wrapped.data as T
+  }
+
+  return payload as T
+}
+
 // ============ Tool Service ============
 
 export class ToolService {
@@ -156,46 +179,62 @@ export class ToolService {
       params.append('page_size', String(options.page_size))
 
     const query = params.toString()
-    return requestService.get<ToolsListResponse>(
-      `/api/tools${query ? `?${query}` : ''}`
-    )
+    const payload = await requestService.get<
+      ToolsListResponse | ApiEnvelope<ToolsListResponse>
+    >(`/api/tools${query ? `?${query}` : ''}`)
+    return unwrapApiResponse(payload)
   }
 
   /**
    * 获取工具详情
    */
   async getTool(id: string): Promise<Tool> {
-    return requestService.get<Tool>(`/api/tools/${id}`)
+    const payload = await requestService.get<Tool | ApiEnvelope<Tool>>(
+      `/api/tools/${id}`
+    )
+    return unwrapApiResponse(payload)
   }
 
   /**
    * 创建新工具
    */
   async createTool(data: CreateToolRequest): Promise<Tool> {
-    return requestService.post<Tool>(`/api/tools`, data)
+    const payload = await requestService.post<Tool | ApiEnvelope<Tool>>(
+      `/api/tools`,
+      data
+    )
+    return unwrapApiResponse(payload)
   }
 
   /**
    * 更新工具
    */
   async updateTool(id: string, data: UpdateToolRequest): Promise<Tool> {
-    return requestService.put<Tool>(`/api/tools/${id}`, data)
+    const payload = await requestService.put<Tool | ApiEnvelope<Tool>>(
+      `/api/tools/${id}`,
+      data
+    )
+    return unwrapApiResponse(payload)
   }
 
   /**
    * 删除工具
    */
   async deleteTool(id: string): Promise<void> {
-    return requestService.delete<void>(`/api/tools/${id}`)
+    const payload = await requestService.delete<void | ApiEnvelope<unknown>>(
+      `/api/tools/${id}`
+    )
+    unwrapApiResponse(payload)
   }
 
   /**
    * 获取 Agent 的工具列表
    */
   async getAgentTools(agentId: string): Promise<AgentToolsResponse> {
-    return requestService.get<AgentToolsResponse>(
-      `/api/agents/${agentId}/tools`
-    )
+    const payload = await requestService.get<
+      AgentToolsResponse | ApiEnvelope<AgentToolsResponse>
+    >(`/api/agents/${agentId}/tools`)
+    return unwrapApiResponse(payload)
   }
 
   /**
@@ -205,12 +244,12 @@ export class ToolService {
     agentId: string,
     toolIds: string[]
   ): Promise<{ message: string }> {
-    return requestService.put<{ message: string }>(
-      `/api/agents/${agentId}/tools`,
-      {
-        tool_ids: toolIds,
-      }
-    )
+    const payload = await requestService.put<
+      { message: string } | ApiEnvelope<{ message: string }>
+    >(`/api/agents/${agentId}/tools`, {
+      tool_ids: toolIds,
+    })
+    return unwrapApiResponse(payload)
   }
 
   /**
@@ -221,10 +260,10 @@ export class ToolService {
     toolId: string,
     enabled: boolean
   ): Promise<{ message: string }> {
-    return requestService.patch<{ message: string }>(
-      `/api/agents/${agentId}/tools/${toolId}/toggle`,
-      { enabled }
-    )
+    const payload = await requestService.patch<
+      { message: string } | ApiEnvelope<{ message: string }>
+    >(`/api/agents/${agentId}/tools/${toolId}/toggle`, { enabled })
+    return unwrapApiResponse(payload)
   }
 
   /**

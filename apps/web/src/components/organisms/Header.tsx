@@ -14,9 +14,9 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
+  TelosLogo,
 } from '@/components/atoms'
 import { Github, Menu } from 'lucide-react'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useState, useEffect } from 'react'
 import { Link } from '@/i18n/navigation'
@@ -46,15 +46,8 @@ export function Header() {
     >
       <div className='px-4'>
         <div className='flex h-16 items-center justify-between'>
-          <Link href='/' className='flex items-center space-x-2 cursor-pointer'>
-            <Image
-              src='/favicon.png'
-              alt='Telos'
-              width={32}
-              height={32}
-              className='rounded-lg'
-            />
-            <span className='font-bold text-xl text-foreground'>Telos</span>
+          <Link href='/' className='cursor-pointer'>
+            <TelosLogo />
           </Link>
 
           <NavigationMenu className='hidden md:flex items-center gap-3'>

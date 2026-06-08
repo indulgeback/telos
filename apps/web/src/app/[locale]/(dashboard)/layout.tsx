@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { redirect } from '@/i18n/navigation'
 import { ReactNode } from 'react'
-import { Navbar } from '@/components/organisms'
+import { AppRail } from '@/components/organisms'
 
 interface Iprops {
   children: ReactNode
@@ -22,9 +22,9 @@ export default async function DashboardLayout({ children, params }: Iprops) {
   }
 
   return (
-    <div className='flex h-screen flex-col bg-background'>
-      <Navbar />
-      <main className='flex-1 overflow-hidden'>{children}</main>
+    <div className='flex h-screen bg-background'>
+      <AppRail />
+      <main className='min-w-0 flex-1 overflow-hidden'>{children}</main>
     </div>
   )
 }

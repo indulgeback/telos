@@ -53,7 +53,40 @@ export function ChatInputActions({
   }
 
   return (
-    <div className='flex w-full flex-wrap items-center gap-2'>
+    <div className='flex min-w-0 flex-wrap items-center gap-2'>
+      {showReasoningEffort && (
+        <Select
+          value={reasoningEffort}
+          onValueChange={value =>
+            onReasoningEffortChange(
+              value as 'minimal' | 'low' | 'medium' | 'high'
+            )
+          }
+          disabled={disableReasoningEffort}
+        >
+          <SelectTrigger
+            size='sm'
+            className='h-8 w-[168px] max-w-full overflow-hidden rounded-md border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 sm:w-[190px]'
+          >
+            <div className='flex min-w-0 items-center gap-1.5'>
+              <BrainCircuit className='size-3.5 shrink-0' />
+              <span className='min-w-0 truncate text-muted-foreground'>
+                {reasoningEffortLabel}
+              </span>
+              <span className='min-w-0 truncate'>
+                <SelectValue />
+              </span>
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='minimal'>{reasoningEffortMinimal}</SelectItem>
+            <SelectItem value='low'>{reasoningEffortLow}</SelectItem>
+            <SelectItem value='medium'>{reasoningEffortMedium}</SelectItem>
+            <SelectItem value='high'>{reasoningEffortHigh}</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
       {showImageUpload && (
         <>
           <input
@@ -74,7 +107,7 @@ export function ChatInputActions({
                 variant='outline'
                 size='icon'
                 radius='md'
-                className='h-8 w-8'
+                className='h-8 w-8 border-border/70 bg-background shadow-none hover:bg-accent/50'
                 aria-label={imageUploadLabel}
                 title={imageUploadLabel}
               >
@@ -89,34 +122,6 @@ export function ChatInputActions({
             </DropdownMenuContent>
           </DropdownMenu>
         </>
-      )}
-
-      {showReasoningEffort && (
-        <Select
-          value={reasoningEffort}
-          onValueChange={value =>
-            onReasoningEffortChange(
-              value as 'minimal' | 'low' | 'medium' | 'high'
-            )
-          }
-          disabled={disableReasoningEffort}
-        >
-          <SelectTrigger className='h-8 w-[190px] rounded-md text-xs'>
-            <div className='flex items-center gap-1.5'>
-              <BrainCircuit className='size-3.5' />
-              <span className='text-muted-foreground'>
-                {reasoningEffortLabel}
-              </span>
-              <SelectValue />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='minimal'>{reasoningEffortMinimal}</SelectItem>
-            <SelectItem value='low'>{reasoningEffortLow}</SelectItem>
-            <SelectItem value='medium'>{reasoningEffortMedium}</SelectItem>
-            <SelectItem value='high'>{reasoningEffortHigh}</SelectItem>
-          </SelectContent>
-        </Select>
       )}
     </div>
   )

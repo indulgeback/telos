@@ -33,6 +33,10 @@ export function CreateAgentModal({
   const t = useTranslations('Agent')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [instructions, setInstructions] = useState('')
+  const [modelKey, setModelKey] = useState('deepseek-v4-flash')
+  const [maxTurns, setMaxTurns] = useState(8)
+  const [loopMode, setLoopMode] = useState<'auto' | 'single_turn'>('auto')
   const [type, setType] = useState<AgentTypeOption>('private')
   const [isCreating, setIsCreating] = useState(false)
 
@@ -49,11 +53,19 @@ export function CreateAgentModal({
       await agentService.createAgent({
         name: name.trim(),
         description: description.trim(),
+        instructions: instructions.trim() || description.trim(),
         type,
+        modelKey: modelKey.trim() || 'deepseek-v4-flash',
+        maxTurns,
+        loopMode,
       })
       toast.success(t('messages.createSuccess'))
       setName('')
       setDescription('')
+      setInstructions('')
+      setModelKey('deepseek-v4-flash')
+      setMaxTurns(8)
+      setLoopMode('auto')
       setType('private')
       onSuccess()
     } catch (error) {
@@ -87,7 +99,7 @@ export function CreateAgentModal({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-[500px]'>
+      <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-[640px]'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2'>
             <Sparkles className='size-5 text-primary' />
@@ -132,6 +144,61 @@ export function CreateAgentModal({
             <p className='text-xs text-muted-foreground'>
               {description.length}/500
             </p>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='instructions'>{t('form.instructions')}</Label>
+            <Textarea
+              id='instructions'
+              value={instructions}
+              onChange={e => setInstructions(e.target.value)}
+              placeholder={t('form.instructionsPlaceholder')}
+              disabled={isCreating}
+              rows={5}
+              className='resize-none'
+            />
+          </div>
+
+          <div className='grid gap-4 md:grid-cols-[1fr_140px_160px]'>
+            <div className='space-y-2'>
+              <Label htmlFor='modelKey'>{t('form.modelKey')}</Label>
+              <Input
+                id='modelKey'
+                value={modelKey}
+                onChange={e => setModelKey(e.target.value)}
+                placeholder='deepseek-v4-flash'
+                disabled={isCreating}
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label htmlFor='maxTurns'>{t('form.maxTurns')}</Label>
+              <Input
+                id='maxTurns'
+                type='number'
+                min={1}
+                max={20}
+                value={maxTurns}
+                onChange={e => setMaxTurns(Number(e.target.value) || 8)}
+                disabled={isCreating}
+              />
+            </div>
+            <div className='space-y-2'>
+              <Label htmlFor='loopMode'>{t('form.loopMode')}</Label>
+              <select
+                id='loopMode'
+                value={loopMode}
+                onChange={e =>
+                  setLoopMode(
+                    e.target.value === 'single_turn' ? 'single_turn' : 'auto'
+                  )
+                }
+                disabled={isCreating}
+                className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm'
+              >
+                <option value='auto'>{t('form.loopAuto')}</option>
+                <option value='single_turn'>{t('form.loopSingleTurn')}</option>
+              </select>
+            </div>
           </div>
 
           {/* Type Selection */}

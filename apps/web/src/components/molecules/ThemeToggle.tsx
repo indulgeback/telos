@@ -40,7 +40,7 @@ function ThemeToggle() {
         <Button
           variant='outline'
           size='icon'
-          className='relative w-full md:w-9'
+          className='relative w-full border-transparent bg-muted/45 shadow-none hover:bg-background/80 md:size-10'
         >
           {current === 'light' && <Sun className='h-4 w-4' />}
           {current === 'dark' && <Moon className='h-4 w-4' />}

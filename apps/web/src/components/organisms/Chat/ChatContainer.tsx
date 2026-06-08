@@ -1,6 +1,13 @@
 'use client'
 
-import { type RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import Image from 'next/image'
 import {
   AiLottieIcon,
@@ -77,6 +84,12 @@ function getCardTransform(
 }
 
 function getModelIconName(modelKey: string) {
+  if (modelKey.startsWith('gemini-') || modelKey.startsWith('google/gemini-')) {
+    return 'chat-models-gemini'
+  }
+  if (modelKey.startsWith('openai/') || modelKey.startsWith('gpt-')) {
+    return 'chat-models-openai'
+  }
   if (modelKey.startsWith('deepseek-')) return 'chat-models-deepseek'
   if (modelKey.startsWith('qwen')) return 'chat-models-qwen'
   if (modelKey.startsWith('glm-')) return 'chat-models-glm'
@@ -96,12 +109,13 @@ export interface Message {
   toolCalls?: ToolCallPreview[]
   modelLabel?: string
   createdAt?: Date
+  isVoiceTranscript?: boolean
 }
 
 export interface ChatModelOption {
   model: string
   label: string
-  provider: 'deepseek' | 'seed' | 'bailian'
+  provider: 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'openai' | 'shortapi'
   isReasoning: boolean
 }
 
@@ -140,6 +154,9 @@ export interface ChatContainerProps {
   modelGroupDeepseekLabel?: string
   modelGroupSeedLabel?: string
   modelGroupBailianLabel?: string
+  modelGroupGcloudLabel?: string
+  modelGroupOpenAILabel?: string
+  modelGroupShortApiLabel?: string
   reasoningEffortLabel: string
   reasoningEffortMinimal: string
   reasoningEffortLow: string
@@ -173,6 +190,8 @@ export interface ChatContainerProps {
   disableModelSelect?: boolean
   disableReasoningEffort?: boolean
   isUploadingImages?: boolean
+  toolbarLeading?: ReactNode
+  realtimeStatusPanel?: ReactNode
   // 用户头像相关
   userAvatarUrl?: string | null
   userInitials?: string | null
@@ -207,6 +226,9 @@ export function ChatContainer({
   modelGroupDeepseekLabel = 'DeepSeek',
   modelGroupSeedLabel = 'Seed',
   modelGroupBailianLabel = 'Bailian',
+  modelGroupGcloudLabel = 'Google Gemini',
+  modelGroupOpenAILabel = 'OpenAI',
+  modelGroupShortApiLabel = 'ShortAPI',
   reasoningEffortLabel,
   reasoningEffortMinimal,
   reasoningEffortLow,
@@ -240,6 +262,8 @@ export function ChatContainer({
   disableModelSelect = false,
   disableReasoningEffort = false,
   isUploadingImages = false,
+  toolbarLeading,
+  realtimeStatusPanel,
   userAvatarUrl,
   userInitials,
 }: ChatContainerProps) {
@@ -281,6 +305,9 @@ export function ChatContainer({
       deepseek: modelOptions.filter(option => option.provider === 'deepseek'),
       seed: modelOptions.filter(option => option.provider === 'seed'),
       bailian: modelOptions.filter(option => option.provider === 'bailian'),
+      gcloud: modelOptions.filter(option => option.provider === 'gcloud'),
+      openai: modelOptions.filter(option => option.provider === 'openai'),
+      shortapi: modelOptions.filter(option => option.provider === 'shortapi'),
     }),
     [modelOptions]
   )
@@ -306,102 +333,156 @@ export function ChatContainer({
       setIsShuffling(false)
     }, SHUFFLE_END_MS)
   }
+
+  const modelSelector = (
+    <div className='flex min-w-0 items-center gap-1.5'>
+      <span className='sr-only'>{modelLabel}</span>
+      <Select
+        value={selectedModel || undefined}
+        onValueChange={onModelChange}
+        disabled={disableModelSelect}
+      >
+        <SelectTrigger
+          size='sm'
+          className='h-8 w-[210px] max-w-full overflow-hidden rounded-md border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 sm:w-[220px]'
+        >
+          {selectedModelOption ? (
+            <span className='flex min-w-0 items-center gap-1.5'>
+              <ModelIcon modelKey={selectedModelOption.model} />
+              <span className='truncate'>{selectedModelOption.label}</span>
+            </span>
+          ) : (
+            <SelectValue placeholder={modelEmptyLabel} />
+          )}
+        </SelectTrigger>
+        <SelectContent>
+          {groupedModelOptions.deepseek.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>{modelGroupDeepseekLabel}</SelectLabel>
+              {groupedModelOptions.deepseek.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span className='flex min-w-0 items-center gap-1.5'>
+                      <ModelIcon modelKey={option.model} />
+                      <span className='truncate'>{option.label}</span>
+                    </span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+          {groupedModelOptions.seed.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>{modelGroupSeedLabel}</SelectLabel>
+              {groupedModelOptions.seed.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span className='flex min-w-0 items-center gap-1.5'>
+                      <ModelIcon modelKey={option.model} />
+                      <span className='truncate'>{option.label}</span>
+                    </span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+          {groupedModelOptions.bailian.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>{modelGroupBailianLabel}</SelectLabel>
+              {groupedModelOptions.bailian.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span className='flex min-w-0 items-center gap-1.5'>
+                      <ModelIcon modelKey={option.model} />
+                      <span className='truncate'>{option.label}</span>
+                    </span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+          {groupedModelOptions.gcloud.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>{modelGroupGcloudLabel}</SelectLabel>
+              {groupedModelOptions.gcloud.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span className='flex min-w-0 items-center gap-1.5'>
+                      <ModelIcon modelKey={option.model} />
+                      <span className='truncate'>{option.label}</span>
+                    </span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+          {groupedModelOptions.openai.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>{modelGroupOpenAILabel}</SelectLabel>
+              {groupedModelOptions.openai.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span className='flex min-w-0 items-center gap-1.5'>
+                      <ModelIcon modelKey={option.model} />
+                      <span className='truncate'>{option.label}</span>
+                    </span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+          {groupedModelOptions.shortapi.length > 0 && (
+            <SelectGroup>
+              <SelectLabel>{modelGroupShortApiLabel}</SelectLabel>
+              {groupedModelOptions.shortapi.map(option => (
+                <SelectItem key={option.model} value={option.model}>
+                  <div className='flex w-full items-center justify-between gap-2'>
+                    <span className='flex min-w-0 items-center gap-1.5'>
+                      <ModelIcon modelKey={option.model} />
+                      <span className='truncate'>{option.label}</span>
+                    </span>
+                    {option.isReasoning && (
+                      <span className='text-[10px] text-muted-foreground'>
+                        {modelReasoningLabel}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          )}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+
   return (
     <div className='relative flex h-full w-full flex-col overflow-hidden bg-background'>
-      <div className='absolute right-4 top-4 z-30'>
-        <div className='flex items-center gap-2 rounded-md bg-background/90 px-2 py-1 shadow-sm ring-1 ring-border/60 backdrop-blur'>
-          <span className='text-[11px] text-muted-foreground'>
-            {modelLabel}
-          </span>
-          <Select
-            value={selectedModel || undefined}
-            onValueChange={onModelChange}
-            disabled={disableModelSelect}
-          >
-            <SelectTrigger
-              size='sm'
-              className='h-7 w-[220px] rounded-md border-border/70 bg-transparent text-xs shadow-none'
-            >
-              {selectedModelOption ? (
-                <span className='flex min-w-0 items-center gap-1.5'>
-                  <ModelIcon modelKey={selectedModelOption.model} />
-                  <span className='truncate'>{selectedModelOption.label}</span>
-                </span>
-              ) : (
-                <SelectValue placeholder={modelEmptyLabel} />
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              {groupedModelOptions.deepseek.length > 0 && (
-                <SelectGroup>
-                  <SelectLabel>{modelGroupDeepseekLabel}</SelectLabel>
-                  {groupedModelOptions.deepseek.map(option => (
-                    <SelectItem key={option.model} value={option.model}>
-                      <div className='flex w-full items-center justify-between gap-2'>
-                        <span className='flex items-center gap-1.5'>
-                          <ModelIcon modelKey={option.model} />
-                          {option.label}
-                        </span>
-                        {option.isReasoning && (
-                          <span className='text-[10px] text-muted-foreground'>
-                            {modelReasoningLabel}
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              )}
-              {groupedModelOptions.seed.length > 0 && (
-                <SelectGroup>
-                  <SelectLabel>{modelGroupSeedLabel}</SelectLabel>
-                  {groupedModelOptions.seed.map(option => (
-                    <SelectItem key={option.model} value={option.model}>
-                      <div className='flex w-full items-center justify-between gap-2'>
-                        <span className='flex items-center gap-1.5'>
-                          <ModelIcon modelKey={option.model} />
-                          {option.label}
-                        </span>
-                        {option.isReasoning && (
-                          <span className='text-[10px] text-muted-foreground'>
-                            {modelReasoningLabel}
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              )}
-              {groupedModelOptions.bailian.length > 0 && (
-                <SelectGroup>
-                  <SelectLabel>{modelGroupBailianLabel}</SelectLabel>
-                  {groupedModelOptions.bailian.map(option => (
-                    <SelectItem key={option.model} value={option.model}>
-                      <div className='flex w-full items-center justify-between gap-2'>
-                        <span className='flex items-center gap-1.5'>
-                          <ModelIcon modelKey={option.model} />
-                          {option.label}
-                        </span>
-                        {option.isReasoning && (
-                          <span className='text-[10px] text-muted-foreground'>
-                            {modelReasoningLabel}
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className='pointer-events-none absolute inset-0'>
-        <div className='absolute -top-48 left-1/2 h-[560px] w-[820px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(66,133,244,0.1),transparent_65%)] blur-3xl' />
-        <div className='absolute top-24 right-[-12%] h-[520px] w-[620px] rounded-full bg-[radial-gradient(circle_at_center,rgba(155,81,224,0.1),transparent_65%)] blur-3xl' />
-        <div className='absolute bottom-[-10%] left-[-18%] h-[520px] w-[680px] rounded-full bg-[radial-gradient(circle_at_center,rgba(52,168,83,0.08),transparent_65%)] blur-3xl' />
-      </div>
       {/* Messages Area */}
       <div className='relative z-20 flex-1 min-h-0'>
         <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
@@ -505,6 +586,7 @@ export function ChatContainer({
                       imageNextLabel={imageNextLabel}
                       userAvatarUrl={userAvatarUrl}
                       userInitials={userInitials}
+                      isVoiceTranscript={message.isVoiceTranscript}
                     />
                   )
                 })}
@@ -553,7 +635,7 @@ export function ChatContainer({
 
       {/* Input Area */}
       <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-10'>
-        <div className='mx-auto max-w-4xl px-4 py-4'>
+        <div className='mx-auto max-w-5xl px-4 py-4'>
           {showImageUpload && imagePreviews.length > 0 && (
             <div className='mb-2 flex items-center gap-2 overflow-x-auto py-2'>
               {imagePreviews.map((src, index) => (
@@ -582,6 +664,9 @@ export function ChatContainer({
               ))}
             </div>
           )}
+          {realtimeStatusPanel && (
+            <div className='mb-2'>{realtimeStatusPanel}</div>
+          )}
           <ChatInput
             ref={textareaRef}
             value={safeInput}
@@ -595,20 +680,38 @@ export function ChatContainer({
             sendAriaLabel={sendAriaLabel}
             stopAriaLabel={stopAriaLabel}
             actions={
-              <ChatInputActions
-                showImageUpload={showImageUpload}
-                showReasoningEffort={showReasoningEffort}
-                imageUploadLabel={imageUploadLabel}
-                reasoningEffort={reasoningEffort}
-                reasoningEffortLabel={reasoningEffortLabel}
-                reasoningEffortMinimal={reasoningEffortMinimal}
-                reasoningEffortLow={reasoningEffortLow}
-                reasoningEffortMedium={reasoningEffortMedium}
-                reasoningEffortHigh={reasoningEffortHigh}
-                disableReasoningEffort={disableReasoningEffort}
-                onPickImages={onPickImages}
-                onReasoningEffortChange={onReasoningEffortChange}
-              />
+              <div className='flex min-w-0 flex-wrap items-center gap-2'>
+                <ChatInputActions
+                  showImageUpload={showImageUpload}
+                  showReasoningEffort={false}
+                  imageUploadLabel={imageUploadLabel}
+                  reasoningEffort={reasoningEffort}
+                  reasoningEffortLabel={reasoningEffortLabel}
+                  reasoningEffortMinimal={reasoningEffortMinimal}
+                  reasoningEffortLow={reasoningEffortLow}
+                  reasoningEffortMedium={reasoningEffortMedium}
+                  reasoningEffortHigh={reasoningEffortHigh}
+                  disableReasoningEffort={disableReasoningEffort}
+                  onPickImages={onPickImages}
+                  onReasoningEffortChange={onReasoningEffortChange}
+                />
+                {toolbarLeading}
+                {modelSelector}
+                <ChatInputActions
+                  showImageUpload={false}
+                  showReasoningEffort={showReasoningEffort}
+                  imageUploadLabel={imageUploadLabel}
+                  reasoningEffort={reasoningEffort}
+                  reasoningEffortLabel={reasoningEffortLabel}
+                  reasoningEffortMinimal={reasoningEffortMinimal}
+                  reasoningEffortLow={reasoningEffortLow}
+                  reasoningEffortMedium={reasoningEffortMedium}
+                  reasoningEffortHigh={reasoningEffortHigh}
+                  disableReasoningEffort={disableReasoningEffort}
+                  onPickImages={onPickImages}
+                  onReasoningEffortChange={onReasoningEffortChange}
+                />
+              </div>
             }
           />
           <p className='mt-2 text-center text-[11px] text-muted-foreground'>

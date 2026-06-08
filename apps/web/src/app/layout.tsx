@@ -73,7 +73,9 @@ export default async function RootLayout({ children }: Iprops) {
   return (
     <html lang={lang} suppressHydrationWarning>
       <head>
+        <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
         <link rel='icon' type='image/png' href='/favicon.png' />
+        <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
         <link
           rel='preconnect'
           href='https://fonts.googleapis.com'
