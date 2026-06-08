@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -11,36 +12,53 @@ import (
 	"strings"
 	"time"
 
+	gatewayauth "github.com/indulgeback/telos/apps/api-gateway/internal/auth"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/service"
 	"github.com/indulgeback/telos/pkg/tlog"
 	"github.com/labstack/echo/v4"
 )
 
+type AuthMode string
+
+const (
+	AuthModePublic   AuthMode = "public"
+	AuthModeRequired AuthMode = "required"
+)
+
 // RouteConfig 路由配置
 type RouteConfig struct {
-	Path        string `json:"path"`        // 路径前缀，如 /api/auth
-	ServiceName string `json:"service"`     // 服务名称
-	StripPrefix bool   `json:"stripPrefix"` // 是否去掉路径前缀
-	Timeout     int    `json:"timeout"`     // 超时时间（秒）
+	Path        string   `json:"path"`        // 路径前缀，如 /api/auth
+	ServiceName string   `json:"service"`     // 服务名称
+	StripPrefix bool     `json:"stripPrefix"` // 是否去掉路径前缀
+	Timeout     int      `json:"timeout"`     // 超时时间（秒）
+	AuthMode    AuthMode `json:"authMode"`    // public 或 required
 }
 
 // ProxyManager 代理管理器
 type ProxyManager struct {
-	routes    []RouteConfig
-	discovery service.ServiceDiscovery
-	proxies   map[string]*httputil.ReverseProxy
+	routes        []RouteConfig
+	discovery     service.ServiceDiscovery
+	proxies       map[string]*httputil.ReverseProxy
+	authenticator *gatewayauth.Authenticator
 }
 
 // NewProxyManager 创建代理管理器
-func NewProxyManager(discovery service.ServiceDiscovery) *ProxyManager {
+func NewProxyManager(discovery service.ServiceDiscovery, authenticator *gatewayauth.Authenticator) *ProxyManager {
 	return &ProxyManager{
-		discovery: discovery,
-		proxies:   make(map[string]*httputil.ReverseProxy),
+		discovery:     discovery,
+		proxies:       make(map[string]*httputil.ReverseProxy),
+		authenticator: authenticator,
 	}
 }
 
 // EchoHandler 返回一个 Echo handler，使用原始 ResponseWriter 支持流式响应
 func (pm *ProxyManager) EchoHandler(c echo.Context) error {
+	// WebSocket 握手必须走 ReverseProxy；StreamProxy 使用 http.Client
+	// 拉取响应体，无法完成 HTTP upgrade。
+	if isWebSocketUpgrade(c.Request()) {
+		pm.ServeHTTP(c.Response().Writer, c.Request())
+		return nil
+	}
 	// 判断是否为流式请求路径
 	if isStreamPath(c.Request().URL.Path) {
 		return pm.StreamProxy(c)
@@ -63,6 +81,11 @@ func isStreamPath(path string) bool {
 	return false
 }
 
+func isWebSocketUpgrade(r *http.Request) bool {
+	return strings.EqualFold(r.Header.Get("Upgrade"), "websocket") &&
+		strings.Contains(strings.ToLower(r.Header.Get("Connection")), "upgrade")
+}
+
 // StreamProxy 流式代理处理器（SSE）
 // 使用 io.Copy 将后端流式数据实时传输到前端，避免 httputil.ReverseProxy 的 Flush 问题
 func (pm *ProxyManager) StreamProxy(c echo.Context) error {
@@ -71,6 +94,12 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 	if route == nil {
 		tlog.Warn("未找到匹配路由", "path", c.Request().URL.Path)
 		return echo.NewHTTPError(http.StatusNotFound, "未找到匹配的服务路由")
+	}
+
+	identity, err := pm.authenticateRequest(c.Request(), route)
+	if err != nil {
+		writeUnauthorized(c.Response().Writer)
+		return nil
 	}
 
 	// 2. 服务发现
@@ -114,10 +143,14 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 			req.Header.Add(name, value)
 		}
 	}
+	sanitizeIdentityHeaders(req.Header)
 	// 更新 Host 头
 	req.Host = ""
 	req.Header.Set("X-Forwarded-Host", c.Request().Host)
 	req.Header.Set("X-Forwarded-Proto", getScheme(c.Request()))
+	if err := pm.injectIdentityHeaders(req, route, identity, requestPath); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "注入身份信息失败")
+	}
 
 	// 5. 发起请求
 	client := &http.Client{
@@ -225,9 +258,21 @@ func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	identity, err := pm.authenticateRequest(r, route)
+	if err != nil {
+		writeUnauthorized(w)
+		return
+	}
+
+	sanitizeIdentityHeaders(r.Header)
+
 	// 设置请求头
 	r.Header.Set("X-Forwarded-Host", r.Host)
 	r.Header.Set("X-Forwarded-Proto", getScheme(r))
+	if err := pm.injectIdentityHeaders(r, route, identity, r.URL.Path); err != nil {
+		writeErrorResponse(w, "注入身份信息失败", http.StatusInternalServerError)
+		return
+	}
 
 	// 记录请求详情（特别是 /api/agent 路径）
 	if r.URL.Path == "/api/agent" {
@@ -242,6 +287,65 @@ func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 转发请求
 	proxy.ServeHTTP(w, r)
+}
+
+func (pm *ProxyManager) authenticateRequest(r *http.Request, route *RouteConfig) (*gatewayauth.Identity, error) {
+	if route.AuthMode == "" || route.AuthMode == AuthModePublic {
+		return nil, nil
+	}
+	if route.AuthMode != AuthModeRequired {
+		return nil, gatewayauth.ErrUnauthorized
+	}
+	if pm.authenticator == nil {
+		return nil, gatewayauth.ErrUnauthorized
+	}
+	identity, err := pm.authenticator.Authenticate(r.Context(), r.Header.Get("Cookie"))
+	if err != nil {
+		if errors.Is(err, gatewayauth.ErrUnauthorized) {
+			tlog.Warn("[API Gateway] 认证失败", "path", r.URL.Path)
+			return nil, err
+		}
+		tlog.Error("[API Gateway] 认证服务异常", "path", r.URL.Path, "error", err)
+		return nil, err
+	}
+	return identity, nil
+}
+
+func (pm *ProxyManager) injectIdentityHeaders(r *http.Request, route *RouteConfig, identity *gatewayauth.Identity, path string) error {
+	if route.AuthMode != AuthModeRequired || identity == nil {
+		return nil
+	}
+	timestamp, nonce, signature, err := pm.authenticator.Sign(r.Method, path, identity.UserID)
+	if err != nil {
+		return err
+	}
+	r.Header.Set("X-User-ID", identity.UserID)
+	r.Header.Set("X-Gateway-Timestamp", timestamp)
+	r.Header.Set("X-Gateway-Nonce", nonce)
+	r.Header.Set("X-Gateway-Signature", signature)
+	return nil
+}
+
+func sanitizeIdentityHeaders(header http.Header) {
+	header.Del("X-User-ID")
+	header.Del("X-User-Id")
+	header.Del("X-User-Email")
+	header.Del("X-Owner-ID")
+	header.Del("X-Owner-Id")
+	for name := range header {
+		if strings.HasPrefix(strings.ToLower(name), "x-gateway-") {
+			header.Del(name)
+		}
+	}
+}
+
+func writeUnauthorized(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnauthorized)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"code":    http.StatusUnauthorized,
+		"message": "unauthorized",
+	})
 }
 
 // findRoute 查找匹配的路由

@@ -8,12 +8,17 @@ import (
 
 // Config 结构体用于存储配置信息
 type Config struct {
-	Port               string
-	RegistryServiceURL string
-	CORSOrigins        []string
-	LogLevel           string
-	RateLimitRequests  int
-	RateLimitWindow    int
+	Port                  string
+	RegistryServiceURL    string
+	CORSOrigins           []string
+	LogLevel              string
+	RateLimitRequests     int
+	RateLimitWindow       int
+	BetterAuthBaseURL     string
+	BetterAuthSessionPath string
+	GatewayInternalSecret string
+	AuthCacheTTLSeconds   int
+	AuthClockSkewSeconds  int
 
 	// 日志配置
 	LogFormat string
@@ -28,13 +33,18 @@ func LoadConfig() *Config {
 	viper.AutomaticEnv()
 
 	cfg := &Config{
-		Port:               viper.GetString("GATEWAY_PORT"),
-		RegistryServiceURL: viper.GetString("REGISTRY_SERVICE_URL"),
-		LogLevel:           viper.GetString("LOG_LEVEL"),
-		LogFormat:          viper.GetString("LOG_FORMAT"),
-		LogOutput:          viper.GetString("LOG_OUTPUT"),
-		RateLimitRequests:  viper.GetInt("RATE_LIMIT_REQUESTS"),
-		RateLimitWindow:    viper.GetInt("RATE_LIMIT_WINDOW"),
+		Port:                  viper.GetString("GATEWAY_PORT"),
+		RegistryServiceURL:    viper.GetString("REGISTRY_SERVICE_URL"),
+		LogLevel:              viper.GetString("LOG_LEVEL"),
+		LogFormat:             viper.GetString("LOG_FORMAT"),
+		LogOutput:             viper.GetString("LOG_OUTPUT"),
+		RateLimitRequests:     viper.GetInt("RATE_LIMIT_REQUESTS"),
+		RateLimitWindow:       viper.GetInt("RATE_LIMIT_WINDOW"),
+		BetterAuthBaseURL:     viper.GetString("BETTER_AUTH_BASE_URL"),
+		BetterAuthSessionPath: viper.GetString("BETTER_AUTH_SESSION_PATH"),
+		GatewayInternalSecret: viper.GetString("GATEWAY_INTERNAL_SECRET"),
+		AuthCacheTTLSeconds:   viper.GetInt("AUTH_CACHE_TTL_SECONDS"),
+		AuthClockSkewSeconds:  viper.GetInt("AUTH_CLOCK_SKEW_SECONDS"),
 	}
 
 	if cfg.Port == "" {
@@ -57,6 +67,21 @@ func LoadConfig() *Config {
 	}
 	if cfg.RateLimitWindow == 0 {
 		cfg.RateLimitWindow = 60
+	}
+	if cfg.BetterAuthBaseURL == "" {
+		cfg.BetterAuthBaseURL = "http://localhost:8800"
+	}
+	if cfg.BetterAuthSessionPath == "" {
+		cfg.BetterAuthSessionPath = "/api/auth/get-session"
+	}
+	if cfg.GatewayInternalSecret == "" {
+		cfg.GatewayInternalSecret = "dev-gateway-internal-secret-change-me"
+	}
+	if cfg.AuthCacheTTLSeconds == 0 {
+		cfg.AuthCacheTTLSeconds = 60
+	}
+	if cfg.AuthClockSkewSeconds == 0 {
+		cfg.AuthClockSkewSeconds = 300
 	}
 
 	corsOrigins := viper.GetString("CORS_ORIGINS")

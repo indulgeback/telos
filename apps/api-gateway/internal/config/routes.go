@@ -65,6 +65,24 @@ func GetDefaultRoutes() []proxy.RouteConfig {
 			Timeout:     10,
 		},
 		{
+			Path:        "/api/skills",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     10,
+		},
+		{
+			Path:        "/api/mcp-servers",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     30,
+		},
+		{
+			Path:        "/api/runs",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     30,
+		},
+		{
 			Path:        "/api/agent",
 			ServiceName: "agent-service",
 			StripPrefix: false,

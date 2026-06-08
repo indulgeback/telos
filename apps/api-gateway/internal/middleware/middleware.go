@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"bufio"
 	"encoding/json"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -147,7 +149,7 @@ func (rw *responseWriter) Flush() {
 }
 
 // Hijack 实现 http.Hijacker 接口，支持 WebSocket
-func (rw *responseWriter) Hijack() (c any, rw2 any, err error) {
+func (rw *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if hijacker, ok := rw.ResponseWriter.(http.Hijacker); ok {
 		return hijacker.Hijack()
 	}

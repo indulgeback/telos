@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	gatewayauth "github.com/indulgeback/telos/apps/api-gateway/internal/auth"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/config"
 	apimiddleware "github.com/indulgeback/telos/apps/api-gateway/internal/middleware"
 	"github.com/indulgeback/telos/apps/api-gateway/internal/proxy"
@@ -46,8 +47,16 @@ func main() {
 	lb := service.NewRoundRobinLoadBalancer()
 	discovery := service.NewRegistryServiceDiscovery(cfg.RegistryServiceURL, lb)
 
+	authenticator := gatewayauth.NewAuthenticator(gatewayauth.Config{
+		BetterAuthBaseURL:     cfg.BetterAuthBaseURL,
+		BetterAuthSessionPath: cfg.BetterAuthSessionPath,
+		GatewayInternalSecret: cfg.GatewayInternalSecret,
+		CacheTTL:              time.Duration(cfg.AuthCacheTTLSeconds) * time.Second,
+		ClockSkew:             time.Duration(cfg.AuthClockSkewSeconds) * time.Second,
+	})
+
 	// 初始化代理管理器
-	proxyManager := proxy.NewProxyManager(discovery)
+	proxyManager := proxy.NewProxyManager(discovery, authenticator)
 
 	// 加载路由配置
 	// 注意：更具体的路由应该放在前面，避免前缀匹配冲突
@@ -58,6 +67,7 @@ func main() {
 			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     10,
+			AuthMode:    proxy.AuthModeRequired,
 		},
 		{
 			// Agent 管理 API
@@ -65,6 +75,31 @@ func main() {
 			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     10,
+			AuthMode:    proxy.AuthModeRequired,
+		},
+		{
+			// Skill 管理 API
+			Path:        "/api/skills",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     10,
+			AuthMode:    proxy.AuthModeRequired,
+		},
+		{
+			// MCP Server 管理 API
+			Path:        "/api/mcp-servers",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     30,
+			AuthMode:    proxy.AuthModeRequired,
+		},
+		{
+			// Agent Run Trace API
+			Path:        "/api/runs",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     30,
+			AuthMode:    proxy.AuthModeRequired,
 		},
 		{
 			// 聊天 API - 必须放在最后，因为 /api/agent 是 /api/agents 的前缀
@@ -72,6 +107,7 @@ func main() {
 			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     60,
+			AuthMode:    proxy.AuthModeRequired,
 		},
 	}
 	proxyManager.LoadRoutes(routes)
