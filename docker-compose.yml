@@ -75,7 +75,14 @@ services:
     environment:
       - PORT=8890
       - REGISTRY_URL=http://registry:8090
+      - GATEWAY_PORT=8890
+      - REGISTRY_SERVICE_URL=http://registry:8090
       - NODE_ENV=production
+      - BETTER_AUTH_BASE_URL=${BETTER_AUTH_BASE_URL:-http://host.docker.internal:8800}
+      - BETTER_AUTH_SESSION_PATH=${BETTER_AUTH_SESSION_PATH:-/api/auth/get-session}
+      - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:-dev-gateway-internal-secret-change-me}
+      - AUTH_CACHE_TTL_SECONDS=${AUTH_CACHE_TTL_SECONDS:-60}
+      - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
     depends_on:
       registry:
         condition: service_healthy
@@ -110,8 +117,18 @@ services:
       - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
       - SEED_API_KEY=${SEED_API_KEY:-}
       - SEED_BASE_URL=${SEED_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+      - BAILIAN_API_KEY=${BAILIAN_API_KEY:-}
+      - BAILIAN_BASE_URL=${BAILIAN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - SHORTAPI_API_KEY=${SHORTAPI_API_KEY:-}
+      - SHORTAPI_BASE_URL=${SHORTAPI_BASE_URL:-https://api.shortapi.ai/v1}
+      - DEFAULT_AGENT_MODEL=${DEFAULT_AGENT_MODEL:-deepseek-v4-flash}
       - DATABASE_URL=${DATABASE_URL:-postgresql://telos:telos123@postgres:5432/telos?schema=public}
       - REGISTRY_URL=http://registry:8090
+      - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:-dev-gateway-internal-secret-change-me}
+      - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
+      - ALLOW_ANONYMOUS_OWNER=${ALLOW_ANONYMOUS_OWNER:-false}
     depends_on:
       registry:
         condition: service_healthy

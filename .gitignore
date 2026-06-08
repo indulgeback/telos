@@ -440,3 +440,4 @@ app-example
 /ios
 /android
 .gstack/
+tmp-*.png
