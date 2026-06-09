@@ -221,6 +221,98 @@
     },
     "gsap": {
       "animation": "クールな入場アニメーションは GSAP が駆動しています！"
+    },
+    "landing": {
+      "hero": {
+        "subtitle": "チームの AI Agent を作成、接続、実行、統制するためのワークスペース。",
+        "description": "Telos は会話、ツール、ワークフロー、長期記憶、ID 権限をひとつの画面にまとめ、Agent が回答だけでなく安全に実務を完了できるようにします。"
+      },
+      "stats": {
+        "create": {
+          "value": "Create",
+          "label": "Agent の役割を定義"
+        },
+        "connect": {
+          "value": "Connect",
+          "label": "ツールとチャネルを接続"
+        },
+        "run": {
+          "value": "Run",
+          "label": "ワークフローを編成"
+        },
+        "govern": {
+          "value": "Govern",
+          "label": "権限、記憶、監査"
+        }
+      },
+      "product": {
+        "surfaceLabel": "telos control surface",
+        "workspaceLabel": "agent workspace",
+        "agentName": "Operator",
+        "quick": {
+          "tools": "tools",
+          "memory": "memory",
+          "workflow": "workflow",
+          "access": "access"
+        },
+        "events": {
+          "create": {
+            "label": "Agent を作成",
+            "value": "役割、モデル、能力境界"
+          },
+          "connect": {
+            "label": "ツールを接続",
+            "value": "メール、カレンダー、Slack、内部 API"
+          },
+          "run": {
+            "label": "フローを実行",
+            "value": "トリガー、分岐、複数ステップ"
+          },
+          "remember": {
+            "label": "記憶を保存",
+            "value": "好み、履歴、タスク文脈"
+          }
+        }
+      },
+      "capabilities": {
+        "eyebrow": "主な機能",
+        "title": "ひとつの会話から、実行可能な Agent ワークシステムへ。",
+        "agentStudio": {
+          "title": "Agent Studio",
+          "description": "専用 Agent を作成し、役割、モデル、口調、ツール権限、作業境界を設定して、各 Agent を実際の職務に対応させます。"
+        },
+        "toolRegistry": {
+          "title": "Tool Registry",
+          "description": "メール、カレンダー、Slack、Discord、ブラウザ操作、内部 API を呼び出し可能なツールとして接続し、Agent が実務を処理できるようにします。"
+        },
+        "workflowRuns": {
+          "title": "Workflow Runs",
+          "description": "トリガー、条件分岐、複数ステップの操作、人による確認をつなぎ、依頼から完了まで自動で実行します。"
+        },
+        "scopedMemory": {
+          "title": "Scoped Memory",
+          "description": "長期記憶をユーザー、Agent、ワークスペースごとに分離し、好み、履歴、タスク状態を安全に保持します。"
+        },
+        "teamControl": {
+          "title": "Team Control",
+          "description": "OAuth と組織 ID で、Agent、ツール、実行記録を作成、呼び出し、確認、監査できる人を管理します。"
+        }
+      },
+      "governance": {
+        "eyebrow": "ガバナンス構造",
+        "title": "すべての Agent 実行を承認済み、追跡可能、再利用可能に。",
+        "description": "ユーザー ID が Agent の閲覧範囲と呼び出せるツールを決めます。実行ごとに文脈と記録が残るため、次のタスクを最初からやり直す必要がありません。",
+        "layers": {
+          "identity": "ID 境界",
+          "tools": "ツール呼び出し",
+          "memory": "長期記憶"
+        }
+      },
+      "cta": {
+        "eyebrow": "クイックスタート",
+        "title": "最初の Agent を実際のワークフローにつなげる。",
+        "description": "Agent を作成し、ツールと記憶を接続します。Telos は会話を、継続実行、監査、拡張ができる自動化能力に変えます。"
+      }
     }
   },
   "Header": {

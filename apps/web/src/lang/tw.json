@@ -221,6 +221,98 @@
     },
     "gsap": {
       "animation": "炫酷的入場動畫由 GSAP 驅動！"
+    },
+    "landing": {
+      "hero": {
+        "subtitle": "為團隊建立、連接、執行與治理 AI Agent 的工作台。",
+        "description": "Telos 將對話、工具、工作流、長期記憶與身份權限收束在同一個介面，讓 Agent 不只會回答，也能安全地完成真實任務。"
+      },
+      "stats": {
+        "create": {
+          "value": "Create",
+          "label": "定義 Agent 角色"
+        },
+        "connect": {
+          "value": "Connect",
+          "label": "接入工具與渠道"
+        },
+        "run": {
+          "value": "Run",
+          "label": "編排自動化流程"
+        },
+        "govern": {
+          "value": "Govern",
+          "label": "權限、記憶與稽核"
+        }
+      },
+      "product": {
+        "surfaceLabel": "telos control surface",
+        "workspaceLabel": "agent workspace",
+        "agentName": "Operator",
+        "quick": {
+          "tools": "tools",
+          "memory": "memory",
+          "workflow": "workflow",
+          "access": "access"
+        },
+        "events": {
+          "create": {
+            "label": "建立 Agent",
+            "value": "角色、模型與能力邊界"
+          },
+          "connect": {
+            "label": "接入工具",
+            "value": "郵件、日曆、Slack、內部 API"
+          },
+          "run": {
+            "label": "執行流程",
+            "value": "觸發器、分支、多步任務"
+          },
+          "remember": {
+            "label": "沉澱記憶",
+            "value": "偏好、歷史與任務上下文"
+          }
+        }
+      },
+      "capabilities": {
+        "eyebrow": "核心能力",
+        "title": "從一段對話，走到一套可執行的 Agent 工作系統。",
+        "agentStudio": {
+          "title": "Agent Studio",
+          "description": "建立專屬 Agent，設定角色、模型、語氣、工具權限與工作邊界，讓每個 Agent 對應一個真實職能。"
+        },
+        "toolRegistry": {
+          "title": "Tool Registry",
+          "description": "把郵件、日曆、Slack、Discord、瀏覽器或內部 API 接成可呼叫工具，讓 Agent 能處理真實任務。"
+        },
+        "workflowRuns": {
+          "title": "Workflow Runs",
+          "description": "把觸發器、條件分支、多步動作與人工確認串成流程，從請求進入到結果交付自動運行。"
+        },
+        "scopedMemory": {
+          "title": "Scoped Memory",
+          "description": "按使用者、Agent 與工作區隔離長期記憶，保留偏好、歷史與任務狀態，避免串號與越權。"
+        },
+        "teamControl": {
+          "title": "Team Control",
+          "description": "用 OAuth 與組織身份管理存取權限，控制誰能建立、呼叫、查看 Agent、工具與執行記錄。"
+        }
+      },
+      "governance": {
+        "eyebrow": "治理架構",
+        "title": "讓每次 Agent 執行都能被授權、追蹤和復用。",
+        "description": "使用者身份決定 Agent 能看什麼、能呼叫什麼工具；執行過程會留下上下文與記錄，下一次任務可以延續，而不是重新開始。",
+        "layers": {
+          "identity": "身份邊界",
+          "tools": "工具呼叫",
+          "memory": "長期記憶"
+        }
+      },
+      "cta": {
+        "eyebrow": "快速上手",
+        "title": "把你的第一個 Agent 接進真實工作流。",
+        "description": "先建立一個 Agent，再給它連接工具與記憶。Telos 會把對話變成可以持續運行、可以稽核、可以擴展的自動化能力。"
+      }
     }
   },
   "Header": {

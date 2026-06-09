@@ -268,6 +268,98 @@
     },
     "gsap": {
       "animation": "Cool admission animations powered by GSAP!"
+    },
+    "landing": {
+      "hero": {
+        "subtitle": "The workspace to create, connect, run, and govern AI agents for your team.",
+        "description": "Telos brings conversations, tools, workflows, long-term memory, and identity controls into one surface, so agents can do more than answer. They can safely complete real work."
+      },
+      "stats": {
+        "create": {
+          "value": "Create",
+          "label": "Define agent roles"
+        },
+        "connect": {
+          "value": "Connect",
+          "label": "Attach tools and channels"
+        },
+        "run": {
+          "value": "Run",
+          "label": "Orchestrate workflows"
+        },
+        "govern": {
+          "value": "Govern",
+          "label": "Access, memory, and audit"
+        }
+      },
+      "product": {
+        "surfaceLabel": "telos control surface",
+        "workspaceLabel": "agent workspace",
+        "agentName": "Operator",
+        "quick": {
+          "tools": "tools",
+          "memory": "memory",
+          "workflow": "workflow",
+          "access": "access"
+        },
+        "events": {
+          "create": {
+            "label": "Create agent",
+            "value": "Role, model, and capability boundary"
+          },
+          "connect": {
+            "label": "Connect tools",
+            "value": "Mail, calendar, Slack, internal APIs"
+          },
+          "run": {
+            "label": "Run workflow",
+            "value": "Triggers, branches, multi-step tasks"
+          },
+          "remember": {
+            "label": "Persist memory",
+            "value": "Preferences, history, task context"
+          }
+        }
+      },
+      "capabilities": {
+        "eyebrow": "Core capabilities",
+        "title": "Move from a conversation to an executable agent operating system.",
+        "agentStudio": {
+          "title": "Agent Studio",
+          "description": "Create dedicated agents with roles, models, tone, tool permissions, and working boundaries so each agent maps to a real job."
+        },
+        "toolRegistry": {
+          "title": "Tool Registry",
+          "description": "Connect mail, calendar, Slack, Discord, browser actions, or internal APIs as callable tools so agents can handle real work."
+        },
+        "workflowRuns": {
+          "title": "Workflow Runs",
+          "description": "Chain triggers, conditional branches, multi-step actions, and human approvals into flows that run from request to delivery."
+        },
+        "scopedMemory": {
+          "title": "Scoped Memory",
+          "description": "Separate long-term memory by user, agent, and workspace, preserving preferences, history, and task state without cross-account leakage."
+        },
+        "teamControl": {
+          "title": "Team Control",
+          "description": "Use OAuth and organizational identity to control who can create, call, inspect, and audit agents, tools, and runs."
+        }
+      },
+      "governance": {
+        "eyebrow": "Governance architecture",
+        "title": "Make every agent run authorized, traceable, and reusable.",
+        "description": "User identity determines what an agent can see and which tools it can call. Each run leaves context and records, so the next task can continue instead of starting over.",
+        "layers": {
+          "identity": "Identity boundary",
+          "tools": "Tool calls",
+          "memory": "Long-term memory"
+        }
+      },
+      "cta": {
+        "eyebrow": "Quick start",
+        "title": "Connect your first agent to a real workflow.",
+        "description": "Create an agent, then attach tools and memory. Telos turns conversations into automation that can keep running, be audited, and scale with your team."
+      }
     }
   },
   "Header": {
@@ -291,7 +383,15 @@
       "noAccount": "Don't have an account yet?",
       "signUp": "Register now",
       "loginFailed": "Login failed",
-      "github": "Sign in with GitHub"
+      "github": "Sign in with GitHub",
+      "google": "Sign in with Google",
+      "discord": "Sign in with Discord",
+      "slack": "Sign in with Slack",
+      "magicLinkTitle": "Sign in with Email (Passwordless)",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "name@example.com",
+      "sendMagicLink": "Send Magic Link",
+      "magicLinkSent": "A sign-in link has been sent to your email. Check your inbox!"
     },
     "error": {
       "title": "Authentication errors",

@@ -37,16 +37,16 @@ export function Header() {
   const navLinks: { href: string; label: string }[] = []
 
   return (
-    <header
-      className={`fixed top-0 z-50 w-full border-b transition-colors duration-300 ${
-        scrolled
-          ? 'border-border bg-background/60 shadow-md'
-          : 'border-border/50 bg-background/80'
-      } backdrop-blur-xs`}
-    >
-      <div className='px-4'>
-        <div className='flex h-16 items-center justify-between'>
-          <Link href='/' className='cursor-pointer'>
+    <header className='fixed inset-x-0 top-0 z-40 px-3 pt-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]'>
+      <div
+        className={`mx-auto max-w-7xl rounded-full border px-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          scrolled
+            ? 'border-border/70 bg-background/78 shadow-[0_18px_70px_hsl(var(--foreground)/0.08)] supports-[backdrop-filter]:bg-background/72'
+            : 'border-foreground/10 bg-background/36 shadow-[0_12px_48px_hsl(var(--foreground)/0.05)] supports-[backdrop-filter]:bg-background/32'
+        } backdrop-blur-xl`}
+      >
+        <div className='flex h-12 items-center justify-between'>
+          <Link href='/' className='cursor-pointer flex items-center'>
             <TelosLogo />
           </Link>
 
@@ -73,7 +73,11 @@ export function Header() {
               target='_blank'
               rel='noopener noreferrer'
             >
-              <Button variant='outline' size='sm'>
+              <Button
+                variant='outline'
+                size='sm'
+                className='rounded-full border-foreground/10 bg-background/35 shadow-none hover:bg-background/70'
+              >
                 <Github className='h-4 w-4 mr-2' />
                 {t('github')}
               </Button>
@@ -86,7 +90,12 @@ export function Header() {
           <div className='md:hidden flex items-center'>
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant='outline' size='icon' aria-label='Open menu'>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  aria-label='Open menu'
+                  className='rounded-full border-foreground/10 bg-background/35 shadow-none hover:bg-background/70'
+                >
                   <Menu className='h-6 w-6' />
                 </Button>
               </SheetTrigger>

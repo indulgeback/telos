@@ -37,7 +37,7 @@ export function TelosLogo({
     <span className={cn('inline-flex items-center gap-2', className)}>
       <TelosMark className='size-8 shrink-0' title={title} />
       {showWordmark && (
-        <span className='font-semibold text-xl leading-none text-foreground'>
+        <span className='font-semibold text-xl leading-none text-foreground relative top-[1px]'>
           Telos
         </span>
       )}

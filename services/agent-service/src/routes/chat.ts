@@ -12,6 +12,10 @@ import { listChatModels } from '../services/chat.js'
 import { toSnakeCase } from '../utils/serializer.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
 import { safeJsonStringify } from '../utils/json.js'
+import {
+  findAccessibleAgent,
+  findDefaultAccessibleAgent,
+} from '../services/agent-access.js'
 
 export const chatRouter = new Hono()
 
@@ -197,7 +201,9 @@ function createOpenAiStyleStreamResponse(
       const write: OpenAiStyleStreamWriter = (type, event = {}) => {
         const payload: OpenAiStyleStreamEvent = { ...event, type }
         controller.enqueue(
-          encoder.encode(`event: ${type}\ndata: ${safeJsonStringify(payload)}\n\n`)
+          encoder.encode(
+            `event: ${type}\ndata: ${safeJsonStringify(payload)}\n\n`
+          )
         )
       }
 
@@ -472,13 +478,20 @@ async function handleChat(c: Context) {
   const input = extractPromptFromBody(body)
   if (!input) return fail(c, 400, '消息不能为空')
 
+  const ownerId = getCurrentUserId(c)
+  const defaultAgent =
+    typeof body.agentId === 'string' && body.agentId.trim()
+      ? null
+      : await findDefaultAccessibleAgent(ownerId)
   const agentId =
     typeof body.agentId === 'string' && body.agentId.trim()
       ? body.agentId.trim()
-      : await agentRuntimeService.getDefaultAgentId()
+      : defaultAgent?.id
   if (!agentId) return fail(c, 400, '未配置默认 Agent')
 
-  const ownerId = getCurrentUserId(c)
+  const agent = await findAccessibleAgent(agentId, ownerId)
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+
   const thread = await agentSessionService.ensureThread({
     agentId,
     threadId: typeof body.threadId === 'string' ? body.threadId : null,
@@ -542,15 +555,22 @@ chatRouter.get('/threads', async c => {
 
 chatRouter.post('/threads', async c => {
   const body = await parseJson(c)
+  const ownerId = getCurrentUserId(c)
+  const defaultAgent =
+    typeof body.agentId === 'string' && body.agentId.trim()
+      ? null
+      : await findDefaultAccessibleAgent(ownerId)
   const agentId =
     typeof body.agentId === 'string' && body.agentId.trim()
       ? body.agentId.trim()
-      : await agentRuntimeService.getDefaultAgentId()
+      : defaultAgent?.id
   if (!agentId) return fail(c, 400, '未配置默认 Agent')
+  const agent = await findAccessibleAgent(agentId, ownerId)
+  if (!agent) return fail(c, 404, 'Agent 不存在')
 
   const thread = await agentSessionService.createThread({
     agentId,
-    ownerId: getCurrentUserId(c),
+    ownerId,
     title: typeof body.title === 'string' ? body.title : undefined,
     metadata: body.metadata,
   })

@@ -13,6 +13,12 @@ import { agentSessionService } from '../services/session.js'
 import { agentRuntimeService } from '../services/runtime.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
 import {
+  agentAccessWhere,
+  findAccessibleAgent,
+  findDefaultAccessibleAgent,
+  findEditableAgent,
+} from '../services/agent-access.js'
+import {
   attachBuiltinToolsToAgent,
   ensureBuiltinTools,
 } from '../services/builtin-tools.js'
@@ -65,16 +71,16 @@ async function replaceBindings(
 }
 
 agentsRouter.get('/', async c => {
+  const userId = getCurrentUserId(c)
   const agents = await prisma.agent.findMany({
+    where: agentAccessWhere(userId),
     orderBy: { createdAt: 'desc' },
   })
   return ok(c, serializeAgents(agents))
 })
 
 agentsRouter.get('/default', async c => {
-  const agent = await prisma.agent.findFirst({
-    where: { isDefault: true, status: 'active' },
-  })
+  const agent = await findDefaultAccessibleAgent(getCurrentUserId(c))
   if (!agent) return fail(c, 404, '默认 Agent 不存在')
   return ok(c, serializeAgent(agent))
 })
@@ -118,27 +124,36 @@ agentsRouter.post('/', async c => {
 })
 
 agentsRouter.get('/:id', async c => {
-  const agent = await prisma.agent.findUnique({
-    where: { id: c.req.param('id') },
-    include: {
-      skillsAsAgent: {
-        include: { skill: true },
-        orderBy: { sortOrder: 'asc' },
+  const agent = await findAccessibleAgent(
+    c.req.param('id'),
+    getCurrentUserId(c),
+    {
+      include: {
+        skillsAsAgent: {
+          include: { skill: true },
+          orderBy: { sortOrder: 'asc' },
+        },
+        toolsAsAgent: { include: { tool: true } },
+        mcpServersAsAgent: { include: { mcpServer: true } },
+        subagentsAsParent: {
+          include: { subagent: true },
+          orderBy: { sortOrder: 'asc' },
+        },
       },
-      toolsAsAgent: { include: { tool: true } },
-      mcpServersAsAgent: { include: { mcpServer: true } },
-      subagentsAsParent: {
-        include: { subagent: true },
-        orderBy: { sortOrder: 'asc' },
-      },
-    },
-  })
+    }
+  )
   if (!agent) return fail(c, 404, 'Agent 不存在')
   return ok(c, toSnakeCase(agent))
 })
 
 agentsRouter.put('/:id', async c => {
   const body = await parseJson(c)
+  const editableAgent = await findEditableAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
   const agent = await prisma.agent.update({
     where: { id: c.req.param('id') },
     data: {
@@ -178,11 +193,23 @@ agentsRouter.put('/:id', async c => {
 })
 
 agentsRouter.delete('/:id', async c => {
+  const editableAgent = await findEditableAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!editableAgent) return fail(c, 403, 'Agent 不可删除')
+
   await prisma.agent.delete({ where: { id: c.req.param('id') } })
   return ok(c, { deleted: true })
 })
 
 agentsRouter.get('/:id/skills', async c => {
+  const agent = await findAccessibleAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+
   const rows = await prisma.agentSkill.findMany({
     where: { agentId: c.req.param('id') },
     include: { skill: true },
@@ -193,6 +220,12 @@ agentsRouter.get('/:id/skills', async c => {
 
 agentsRouter.put('/:id/skills', async c => {
   const body = await parseJson(c)
+  const editableAgent = await findEditableAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
   await replaceBindings(
     c.req.param('id'),
     asStringArray(body.skill_ids ?? body.skillIds),
@@ -203,6 +236,12 @@ agentsRouter.put('/:id/skills', async c => {
 })
 
 agentsRouter.get('/:id/tools', async c => {
+  const agent = await findAccessibleAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+
   const rows = await prisma.agentTool.findMany({
     where: { agentId: c.req.param('id') },
     include: { tool: true },
@@ -212,6 +251,12 @@ agentsRouter.get('/:id/tools', async c => {
 
 agentsRouter.put('/:id/tools', async c => {
   const body = await parseJson(c)
+  const editableAgent = await findEditableAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
   await replaceBindings(
     c.req.param('id'),
     asStringArray(body.tool_ids ?? body.toolIds),
@@ -223,6 +268,12 @@ agentsRouter.put('/:id/tools', async c => {
 
 agentsRouter.patch('/:id/tools/:toolId/toggle', async c => {
   const body = await parseJson(c)
+  const editableAgent = await findEditableAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
   await prisma.agentTool.updateMany({
     where: { agentId: c.req.param('id'), toolId: c.req.param('toolId') },
     data: { enabled: Boolean(body.enabled) },
@@ -231,6 +282,12 @@ agentsRouter.patch('/:id/tools/:toolId/toggle', async c => {
 })
 
 agentsRouter.get('/:id/mcp-servers', async c => {
+  const agent = await findAccessibleAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+
   const rows = await prisma.agentMcpServer.findMany({
     where: { agentId: c.req.param('id') },
     include: { mcpServer: true },
@@ -240,6 +297,12 @@ agentsRouter.get('/:id/mcp-servers', async c => {
 
 agentsRouter.put('/:id/mcp-servers', async c => {
   const body = await parseJson(c)
+  const editableAgent = await findEditableAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
   await replaceBindings(
     c.req.param('id'),
     asStringArray(body.mcp_server_ids ?? body.mcpServerIds),
@@ -250,6 +313,12 @@ agentsRouter.put('/:id/mcp-servers', async c => {
 })
 
 agentsRouter.get('/:id/subagents', async c => {
+  const agent = await findAccessibleAgent(
+    c.req.param('id'),
+    getCurrentUserId(c)
+  )
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+
   const rows = await prisma.agentRelation.findMany({
     where: { parentId: c.req.param('id') },
     include: { subagent: true },
@@ -261,6 +330,10 @@ agentsRouter.get('/:id/subagents', async c => {
 agentsRouter.put('/:id/subagents', async c => {
   const body = await parseJson(c)
   const parentId = c.req.param('id')
+  const userId = getCurrentUserId(c)
+  const editableAgent = await findEditableAgent(parentId, userId)
+  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
   const relations = Array.isArray(body.relations) ? body.relations : []
 
   await prisma.agentRelation.deleteMany({ where: { parentId } })
@@ -273,6 +346,8 @@ agentsRouter.put('/:id/subagents', async c => {
           ? relation.subagentId
           : ''
     if (!subagentId || subagentId === parentId) continue
+    const subagent = await findAccessibleAgent(subagentId, userId)
+    if (!subagent) continue
 
     await prisma.agentRelation.create({
       data: {
@@ -300,6 +375,9 @@ agentsRouter.post('/:id/runs', async c => {
   if (!input) return fail(c, 400, 'input is required')
   const agentId = c.req.param('id')
   const ownerId = getCurrentUserId(c)
+  const agent = await findAccessibleAgent(agentId, ownerId)
+  if (!agent) return fail(c, 404, 'Agent 不存在')
+
   const thread = await agentSessionService.ensureThread({
     agentId,
     threadId: typeof body.threadId === 'string' ? body.threadId : null,
@@ -338,20 +416,17 @@ agentsRouter.post('/:id/runs', async c => {
     })
   }
 
-  const { result, persistence } = await agentRuntimeService.run(
-    agentId,
-    {
-      runId: run.id,
-      input: runtimeContext.input,
-      threadId: thread.id,
-      memoryInstructions: runtimeContext.memoryInstructions,
-      modelOverride:
-        typeof body.model === 'string' && body.model.trim()
-          ? body.model.trim()
-          : null,
-      reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
-    }
-  )
+  const { result, persistence } = await agentRuntimeService.run(agentId, {
+    runId: run.id,
+    input: runtimeContext.input,
+    threadId: thread.id,
+    memoryInstructions: runtimeContext.memoryInstructions,
+    modelOverride:
+      typeof body.model === 'string' && body.model.trim()
+        ? body.model.trim()
+        : null,
+    reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
+  })
   await persistence.complete(
     String(result.finalOutput ?? ''),
     result.lastAgent?.name,

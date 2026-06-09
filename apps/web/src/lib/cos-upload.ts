@@ -1,140 +1,47 @@
 'use client'
 
-interface CosUploadConfig {
-  secretId: string
-  secretKey: string
-  securityToken?: string
-  bucket: string
-  region: string
-  prefix: string
-  publicBaseUrl?: string
-}
-
-declare global {
-  interface Window {
-    COS?: new (options: {
-      SecretId: string
-      SecretKey: string
-      SecurityToken?: string
-    }) => {
-      putObject: (
-        params: {
-          Bucket: string
-          Region: string
-          Key: string
-          Body: File
-          ContentType?: string
-          ACL?: 'private' | 'public-read'
-        },
-        callback: (err: Error | null, data: { statusCode?: number }) => void
-      ) => void
-    }
-  }
-}
-
-function readCosConfig(): CosUploadConfig {
-  const secretId = process.env.NEXT_PUBLIC_COS_SECRET_ID || ''
-  const secretKey = process.env.NEXT_PUBLIC_COS_SECRET_KEY || ''
-  const securityToken = process.env.NEXT_PUBLIC_COS_SECURITY_TOKEN || ''
-  const bucket = process.env.NEXT_PUBLIC_COS_BUCKET || ''
-  const region = process.env.NEXT_PUBLIC_COS_REGION || ''
-  const prefix = process.env.NEXT_PUBLIC_COS_PREFIX || 'chat-images'
-  const publicBaseUrl = process.env.NEXT_PUBLIC_COS_PUBLIC_BASE_URL || ''
-
-  if (!secretId || !secretKey || !bucket || !region) {
-    throw new Error(
-      'COS config missing. Required: NEXT_PUBLIC_COS_SECRET_ID, NEXT_PUBLIC_COS_SECRET_KEY, NEXT_PUBLIC_COS_BUCKET, NEXT_PUBLIC_COS_REGION'
-    )
-  }
-
-  return {
-    secretId,
-    secretKey,
-    securityToken: securityToken || undefined,
-    bucket,
-    region,
-    prefix,
-    publicBaseUrl: publicBaseUrl || undefined,
-  }
-}
-
-function ensureCosSdkLoaded(): Promise<void> {
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('COS SDK is only available in browser'))
-  }
-
-  if (window.COS) return Promise.resolve()
-
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(
-      'script[data-sdk=\"cos-js-sdk-v5\"]'
-    ) as HTMLScriptElement | null
-    if (existing) {
-      existing.addEventListener('load', () => resolve())
-      existing.addEventListener('error', () =>
-        reject(new Error('Failed to load COS SDK'))
-      )
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src =
-      'https://cdn.jsdelivr.net/npm/cos-js-sdk-v5/dist/cos-js-sdk-v5.min.js'
-    script.async = true
-    script.setAttribute('data-sdk', 'cos-js-sdk-v5')
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error('Failed to load COS SDK'))
-    document.head.appendChild(script)
-  })
-}
-
-function buildFileKey(prefix: string, filename: string): string {
-  const ext = filename.includes('.') ? filename.split('.').pop() : 'jpg'
-  const day = new Date().toISOString().slice(0, 10)
-  const random = Math.random().toString(36).slice(2, 10)
-  return `${prefix.replace(/\/$/, '')}/${day}/${Date.now()}-${random}.${ext}`
-}
-
+/**
+ * 将图片上传至腾讯云 COS（安全模式）
+ * 首先向 Next.js 服务端接口申请预签名的上传链接，接着使用 PUT 直传。
+ *
+ * @param file 待上传的文件对象
+ * @returns 最终可公开访问的公网 URL
+ */
 export async function uploadImageToCos(file: File): Promise<string> {
-  const cfg = readCosConfig()
-  await ensureCosSdkLoaded()
-  if (!window.COS) throw new Error('COS SDK is not available')
-
-  const cos = new window.COS({
-    SecretId: cfg.secretId,
-    SecretKey: cfg.secretKey,
-    SecurityToken: cfg.securityToken,
+  // 1. 调用 Next.js 服务端接口获取预签名 URL 及文件访问 URL
+  const res = await fetch('/api/cos/presigned-url', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type || 'application/octet-stream',
+    }),
   })
 
-  const key = buildFileKey(cfg.prefix, file.name)
-
-  await new Promise<void>((resolve, reject) => {
-    cos.putObject(
-      {
-        Bucket: cfg.bucket,
-        Region: cfg.region,
-        Key: key,
-        Body: file,
-        ContentType: file.type || 'application/octet-stream',
-        // Vision models fetch image from provider-side servers, so object must be readable.
-        ACL: 'public-read',
-      },
-      (err, data) => {
-        if (err) return reject(err)
-        if (
-          data?.statusCode &&
-          data.statusCode >= 200 &&
-          data.statusCode < 300
-        ) {
-          return resolve()
-        }
-        reject(new Error(`COS upload failed: ${data?.statusCode ?? 'unknown'}`))
-      }
-    )
-  })
-
-  if (cfg.publicBaseUrl) {
-    return `${cfg.publicBaseUrl.replace(/\/$/, '')}/${key}`
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}))
+    throw new Error(errData.error || `获取预签名链接失败: ${res.status}`)
   }
-  return `https://${cfg.bucket}.cos.${cfg.region}.myqcloud.com/${key}`
+
+  const { uploadUrl, publicUrl } = await res.json()
+
+  // 2. 通过 PUT 直传至腾讯云 COS
+  // 注：服务端生成预签名 URL 时绑定了以下 Headers，客户端发起 PUT 时必须完全匹配，否则会报 403 签名不匹配
+  const uploadRes = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: {
+      'x-cos-acl': 'public-read',
+      'Content-Type': file.type || 'application/octet-stream',
+    },
+  })
+
+  if (!uploadRes.ok) {
+    throw new Error(`直传 COS 失败 (状态码: ${uploadRes.status})`)
+  }
+
+  // 3. 返回供前端展示的公网访问 URL
+  return publicUrl
 }

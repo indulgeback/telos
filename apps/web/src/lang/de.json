@@ -221,6 +221,98 @@
     },
     "gsap": {
       "animation": "Coole Einlassanimationen powered by GSAP!"
+    },
+    "landing": {
+      "hero": {
+        "subtitle": "Der Workspace, um AI Agents für dein Team zu erstellen, zu verbinden, auszuführen und zu steuern.",
+        "description": "Telos bündelt Gespräche, Tools, Workflows, Langzeitgedächtnis und Identitätsrechte in einer Oberfläche, damit Agents nicht nur antworten, sondern reale Arbeit sicher erledigen."
+      },
+      "stats": {
+        "create": {
+          "value": "Create",
+          "label": "Agent-Rollen definieren"
+        },
+        "connect": {
+          "value": "Connect",
+          "label": "Tools und Kanäle anbinden"
+        },
+        "run": {
+          "value": "Run",
+          "label": "Workflows orchestrieren"
+        },
+        "govern": {
+          "value": "Govern",
+          "label": "Zugriff, Gedächtnis, Audit"
+        }
+      },
+      "product": {
+        "surfaceLabel": "telos control surface",
+        "workspaceLabel": "agent workspace",
+        "agentName": "Operator",
+        "quick": {
+          "tools": "tools",
+          "memory": "memory",
+          "workflow": "workflow",
+          "access": "access"
+        },
+        "events": {
+          "create": {
+            "label": "Agent erstellen",
+            "value": "Rolle, Modell und Fähigkeitsgrenzen"
+          },
+          "connect": {
+            "label": "Tools verbinden",
+            "value": "Mail, Kalender, Slack, interne APIs"
+          },
+          "run": {
+            "label": "Workflow ausführen",
+            "value": "Trigger, Verzweigungen, Mehrschritt-Aufgaben"
+          },
+          "remember": {
+            "label": "Gedächtnis sichern",
+            "value": "Präferenzen, Verlauf, Aufgaben-Kontext"
+          }
+        }
+      },
+      "capabilities": {
+        "eyebrow": "Kernfunktionen",
+        "title": "Vom Gespräch zu einem ausführbaren Agent-Arbeitssystem.",
+        "agentStudio": {
+          "title": "Agent Studio",
+          "description": "Erstelle dedizierte Agents mit Rollen, Modellen, Tonalität, Tool-Rechten und Arbeitsgrenzen, sodass jeder Agent einer echten Aufgabe entspricht."
+        },
+        "toolRegistry": {
+          "title": "Tool Registry",
+          "description": "Binde Mail, Kalender, Slack, Discord, Browser-Aktionen oder interne APIs als aufrufbare Tools an, damit Agents echte Arbeit erledigen."
+        },
+        "workflowRuns": {
+          "title": "Workflow Runs",
+          "description": "Verbinde Trigger, Bedingungen, Mehrschritt-Aktionen und menschliche Freigaben zu Abläufen vom Eingang bis zur Lieferung."
+        },
+        "scopedMemory": {
+          "title": "Scoped Memory",
+          "description": "Trenne Langzeitgedächtnis nach Nutzer, Agent und Workspace, damit Präferenzen, Verlauf und Aufgabenstatus sicher erhalten bleiben."
+        },
+        "teamControl": {
+          "title": "Team Control",
+          "description": "Steuere mit OAuth und Organisationsidentität, wer Agents, Tools und Ausführungen erstellen, aufrufen, prüfen und auditieren darf."
+        }
+      },
+      "governance": {
+        "eyebrow": "Governance-Architektur",
+        "title": "Jede Agent-Ausführung wird autorisiert, nachvollziehbar und wiederverwendbar.",
+        "description": "Die Nutzeridentität bestimmt, was ein Agent sehen und welche Tools er aufrufen darf. Jede Ausführung hinterlässt Kontext und Aufzeichnungen, damit die nächste Aufgabe fortgesetzt werden kann.",
+        "layers": {
+          "identity": "Identitätsgrenze",
+          "tools": "Tool-Aufrufe",
+          "memory": "Langzeitgedächtnis"
+        }
+      },
+      "cta": {
+        "eyebrow": "Schnellstart",
+        "title": "Verbinde deinen ersten Agent mit einem echten Workflow.",
+        "description": "Erstelle einen Agent und verbinde Tools und Gedächtnis. Telos macht aus Gesprächen Automatisierung, die weiterläuft, auditierbar ist und mit deinem Team skaliert."
+      }
     }
   },
   "Header": {
