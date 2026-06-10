@@ -1,7 +1,5 @@
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
 import nextTypescript from 'eslint-config-next/typescript'
-// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
-import storybook from 'eslint-plugin-storybook'
 import prettier from 'eslint-plugin-prettier'
 
 const eslintConfig = [
@@ -44,7 +42,6 @@ const eslintConfig = [
       'react/no-unescaped-entities': 'off', // 允许在JSX中使用未转义的引号
     },
   },
-  ...storybook.configs['flat/recommended'],
 ]
 
 export default eslintConfig
