@@ -18,10 +18,28 @@ import { config } from '../config/index.js'
 import { asRecord, asStringArray, safeJsonStringify } from '../utils/json.js'
 import { buildBuiltinTool } from './builtin-tools.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
+import { Prisma, Tool as DbTool, McpServer as DbMcpServer } from '@prisma/client'
 
-type LoadedAgent = any
-type LoadedTool = any
-type LoadedMcpServer = any
+export type LoadedAgent = Prisma.AgentGetPayload<{
+  include: {
+    skillsAsAgent: {
+      include: { skill: true }
+    }
+    toolsAsAgent: {
+      include: { tool: true }
+    }
+    mcpServersAsAgent: {
+      include: { mcpServer: true }
+    }
+    subagentsAsParent: {
+      include: { subagent: true }
+    }
+  }
+}>
+
+export type LoadedTool = DbTool
+
+export type LoadedMcpServer = DbMcpServer
 
 export interface RuntimeBuildResult {
   agent: Agent
