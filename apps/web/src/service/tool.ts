@@ -196,38 +196,6 @@ export class ToolService {
   }
 
   /**
-   * 创建新工具
-   */
-  async createTool(data: CreateToolRequest): Promise<Tool> {
-    const payload = await requestService.post<Tool | ApiEnvelope<Tool>>(
-      `/api/tools`,
-      data
-    )
-    return unwrapApiResponse(payload)
-  }
-
-  /**
-   * 更新工具
-   */
-  async updateTool(id: string, data: UpdateToolRequest): Promise<Tool> {
-    const payload = await requestService.put<Tool | ApiEnvelope<Tool>>(
-      `/api/tools/${id}`,
-      data
-    )
-    return unwrapApiResponse(payload)
-  }
-
-  /**
-   * 删除工具
-   */
-  async deleteTool(id: string): Promise<void> {
-    const payload = await requestService.delete<void | ApiEnvelope<unknown>>(
-      `/api/tools/${id}`
-    )
-    unwrapApiResponse(payload)
-  }
-
-  /**
    * 获取 Agent 的工具列表
    */
   async getAgentTools(agentId: string): Promise<AgentToolsResponse> {

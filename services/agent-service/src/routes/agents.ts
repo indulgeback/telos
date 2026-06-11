@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from '../services/db.js'
-import { config } from '../config/index.js'
+import { config, logger } from '../config/index.js'
 import { created, fail, ok, parseJson } from '../http/response.js'
 import {
   serializeAgent,
@@ -22,6 +22,7 @@ import {
   attachBuiltinToolsToAgent,
   ensureBuiltinTools,
 } from '../services/builtin-tools.js'
+import { generateAgentInstructions } from '../services/chat.js'
 
 export const agentsRouter = new Hono()
 
@@ -96,12 +97,26 @@ agentsRouter.post('/', async c => {
     return fail(c, 400, 'Agent name and description are required')
   }
 
+  // 调用大模型基于描述生成系统提示词
+  let instructions = description
+  try {
+    const modelKey =
+      typeof body.modelKey === 'string' && body.modelKey.trim()
+        ? body.modelKey.trim()
+        : undefined
+    instructions = await generateAgentInstructions(description, modelKey)
+  } catch (err) {
+    logger.warn({
+      msg: 'Failed to generate agent instructions using LLM, fallback to description',
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+
   const agent = await prisma.agent.create({
     data: {
       name,
       description,
-      instructions:
-        typeof body.instructions === 'string' ? body.instructions : description,
+      instructions,
       type: normalizeAgentType(body.type),
       modelKey:
         typeof body.modelKey === 'string' && body.modelKey.trim()

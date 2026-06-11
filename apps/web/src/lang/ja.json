@@ -3,7 +3,7 @@
     "home": "ホームページ",
     "chat": "AIアシスタント",
     "agents": "エージェント",
-    "tools": "工具"
+    "settings": "設定"
   },
   "Chat": {
     "title": "AIアシスタント",
@@ -75,7 +75,9 @@
         "deepseek": "ディープシーク",
         "seed": "火山の方舟",
         "bailian": "アリババ百錬",
-        "gcloud": "Google Gemini"
+        "gcloud": "Google Gemini",
+        "openai": "オープンAI",
+        "shortapi": "ショートAPI"
       }
     },
     "reasoningEffort": {
@@ -92,6 +94,29 @@
       "mcp": "MCP",
       "canvas": "キャンバス"
     },
+    "voice": {
+      "title": "リアルタイム音声",
+      "shortLabel": "音声",
+      "toggle": "リアルタイム音声モードに切り替える",
+      "loading": "設定を確認中",
+      "ready": "火山リアルタイム音声設定に接続済み",
+      "demo": "デモモード",
+      "unconfigured": "未設定の火山リアルタイム音声",
+      "textChannel": "テキストチャネル",
+      "audioChannel": "オーディオチャンネル",
+      "modelLabel": "ボルクリアルタイム",
+      "start": "話し始める",
+      "stop": "停止",
+      "idle": "待機",
+      "connecting": "接続中",
+      "listening": "受信中",
+      "speaking": "再生中",
+      "error": "接続異常",
+      "missingConfig": "欠けている設定が {count} 件あります",
+      "voiceInputMessage": "（音声入力）",
+      "microphoneError": "マイクを起動できません。ブラウザの権限を確認してください。",
+      "socketError": "リアルタイム音声接続に異常が発生しました。後でもう一度お試しください。"
+    },
     "reasoning": {
       "title": "推論過程",
       "thinking": "推理中",
@@ -102,18 +127,39 @@
       "copied": "コピーしました",
       "stop": "生成を停止",
       "retry": "再試行",
+      "usedModel": "模型",
       "tools": "ツール呼び出し",
       "refresh": "別のものに換える",
       "scrollToBottom": "一番下まで戻る",
       "previewImage": "プレビュー画像",
       "prevImage": "前の一枚",
-      "nextImage": "次のページ",
-      "usedModel": "模型"
+      "nextImage": "次のページ"
     },
     "error": {
       "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
     },
-    "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください"
+    "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください",
+    "threads": {
+      "title": "会話履歴",
+      "noAgent": "Agentが選択されていません",
+      "new": "新しい会話を作成",
+      "search": "会話を検索中...",
+      "loading": "読み込み中...",
+      "empty": "会話はありません",
+      "noResults": "会話が見つかりません",
+      "rename": "名前を変更する",
+      "delete": "削除",
+      "cancel": "キャンセル",
+      "save": "保存",
+      "saving": "保存中...",
+      "deleting": "削除中...",
+      "renamePrompt": "新しい会話のタイトルを入力",
+      "renameTitle": "セッションの名前を変更",
+      "renameDescription": "この会話にもっと識別しやすいタイトルを付けてください。",
+      "renamePlaceholder": "会話のタイトルを入力",
+      "deleteTitle": "会話を削除",
+      "deleteConfirm": "「{title}」を削除してもよろしいですか？削除すると、会話一覧に表示されなくなります。"
+    }
   },
   "Common": {
     "theme": {
@@ -131,7 +177,7 @@
     "description": "自動化タスクのスケジューリングと管理をサポートし、フロントエンドとバックエンドの分離およびマイクロサービスアーキテクチャを採用し、企業レベルの自動化シナリオ専用に設計されています。",
     "badge": "スマートワークフローオーケストレーション",
     "github": "ギットハブ",
-    "dashboard": "チャットを始める",
+    "dashboard": "会話を始める",
     "viewWorkflows": "ワークフローを確認",
     "techStackSupport": "技術スタックのサポート",
     "flowSection": {
@@ -336,7 +382,15 @@
       "noAccount": "まだアカウントをお持ちではありませんか？",
       "signUp": "今すぐ登録する",
       "loginFailed": "ログイン失敗",
-      "github": "GitHubでログイン"
+      "github": "GitHubでログイン",
+      "google": "Googleでログイン",
+      "discord": "Discordでログイン",
+      "slack": "Slackでログイン",
+      "magicLinkTitle": "メールでログイン（パスワード不要）",
+      "emailLabel": "電子メール",
+      "emailPlaceholder": "name@example.com",
+      "sendMagicLink": "ログインリンクを送信する",
+      "magicLinkSent": "ログインリンクはあなたのメールに送信されましたので、ご確認ください！"
     },
     "error": {
       "title": "認証エラー",
@@ -372,6 +426,13 @@
       "namePlaceholder": "例えば：コードアシスタント",
       "descriptionLabel": "説明",
       "descriptionPlaceholder": "このエージェントの役割と能力を説明する...",
+      "instructions": "コマンドを実行する",
+      "instructionsPlaceholder": "このエージェントがループ内で従うべき役割、境界、および実行方法を書き留めてください...",
+      "modelKey": "模型",
+      "maxTurns": "最大ラウンド",
+      "loopMode": "ループモード",
+      "loopAuto": "自動",
+      "loopSingleTurn": "単輪",
       "typeLabel": "タイプ",
       "typePrivate": "私有",
       "typePrivateDesc": "自分のみが見える",
@@ -523,5 +584,117 @@
     "noParameters": "このツールにはパラメータが定義されていません",
     "endpoint": "API エンドポイント",
     "parameters": "パラメータ"
+  },
+  "McpSettings": {
+    "title": "MCP サーバー設定",
+    "description": "ここで MCP サーバー接続を設定でき、新規追加、編集、削除、および接続テストがサポートされています。",
+    "serverCount": "共 {count} 台 MCP サーバー",
+    "add": "MCPサーバーを追加",
+    "createTitle": "MCPサーバーを追加",
+    "editTitle": "MCP サーバーを編集",
+    "empty": "MCPサーバーの設定はありません。下の「新規追加」をクリックしてください。",
+    "enabled": "有効になりました",
+    "disabled": "無効になっています",
+    "edit": "編集",
+    "delete": "削除",
+    "test": "テスト",
+    "cancel": "キャンセル",
+    "create": "作成する",
+    "update": "保存",
+    "saving": "保存中...",
+    "lastTest": "最近使用可能なツールの数：{count}",
+    "transportHint": {
+      "stdio": "起動コマンド",
+      "network": "接続アドレス"
+    },
+    "fields": {
+      "name": "名称",
+      "description": "記述",
+      "transport": "伝送方式",
+      "command": "起動コマンド",
+      "args": "起動パラメータ（1行に1つずつ）",
+      "url": "サービス住所",
+      "env": "環境変数（KEY=VALUE、1行に1つずつ）",
+      "approvalPolicy": "承認方針",
+      "enabled": "有効にする"
+    },
+    "placeholders": {
+      "name": "マイ-MCP-サーバー",
+      "description": "サーバーの使用目的を記入する",
+      "command": "例えば：node",
+      "args": "例えば：main.js",
+      "url": "https://example.com/mcp",
+      "env": "API_TOKEN=abcdef"
+    },
+    "approvalPolicy": {
+      "none": "なし",
+      "all": "すべて承認",
+      "sensitive": "敏感ツールのみ承認"
+    },
+    "transportValues": {
+      "stdio": "標準入出力",
+      "streamable_http": "ストリーム可能なHTTP",
+      "sse": "SSE"
+    },
+    "approval": {
+      "none": "なし",
+      "all": "すべて承認",
+      "sensitive": "敏感なツールのみ承認"
+    },
+    "validation": {
+      "nameRequired": "名前を記入してください",
+      "descriptionRequired": "説明を記入してください",
+      "commandRequired": "起動コマンドを入力してください",
+      "urlRequired": "サービスの住所を入力してください"
+    },
+    "errors": {
+      "loadFailed": "MCP の設定の読み込みに失敗しました",
+      "saveFailed": "保存 MCP の設定に失敗しました",
+      "deleteFailed": "MCP の設定の削除に失敗しました",
+      "testFailed": "MCP接続失敗をテスト"
+    },
+    "messages": {
+      "created": "MCPサーバーの作成に成功しました",
+      "updated": "MCPサーバーの更新に成功しました",
+      "deleted": "MCPサーバーが正常に削除されました",
+      "testSuccess": "テスト成功、{count} 個の利用可能なツールが見つかりました",
+      "deleteConfirm": "この MCP サーバーを削除してもよろしいですか？"
+    }
+  },
+  "SystemSettings": {
+    "title": "システム設定",
+    "description": "個人アカウント、システムの設定、および MCP プラグインサービスを管理します。",
+    "tabs": {
+      "preferences": "設定",
+      "account": "アカウントの安全",
+      "mcp": "MCP プラグイン",
+      "danger": "危険な赤区"
+    },
+    "preferences": {
+      "themeLabel": "ダークモード",
+      "themeDesc": "お好みのテーマの外観を選択してください。",
+      "langLabel": "インターフェース言語",
+      "langDesc": "アプリケーションの表示言語を変更する。",
+      "pushLabel": "プッシュ通知",
+      "pushDesc": "アプリがシステムを通じて通知メッセージを送信することを許可します。",
+      "emailLabel": "メール通知",
+      "emailDesc": "システムや製品の更新に関するメールを受け取る。"
+    },
+    "account": {
+      "name": "表示名",
+      "email": "電子メール",
+      "id": "アカウントID",
+      "method": "認証方式",
+      "methodDesc": "現在バインドされている安全なログイン方法",
+      "activeSessions": "アクティブセッション",
+      "viewSessions": "セッション管理"
+    },
+    "danger": {
+      "title": "危険操作区域",
+      "desc": "以下の操作は、データが永久に失われて復元できなくなる可能性がありますので、慎重に操作してください。",
+      "alertText": "アカウントの削除は不可逆の操作です。一度アカウントを削除すると、すべての会話履歴、エージェント設定、およびツールの紐付けが永久に消去されます。",
+      "deleteBtn": "現在のアカウントを物理的に削除する",
+      "deleteConfirm": "【警告】本当にこのアカウントを完全に削除しますか？この操作は取り消せません。すべてのデータが失われます！"
+    }
   }
 }

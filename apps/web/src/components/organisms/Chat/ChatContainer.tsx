@@ -347,10 +347,12 @@ export function ChatContainer({
           className='h-8 w-[210px] max-w-full overflow-hidden rounded-md border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 sm:w-[220px]'
         >
           {selectedModelOption ? (
-            <span className='flex min-w-0 items-center gap-1.5'>
-              <ModelIcon modelKey={selectedModelOption.model} />
-              <span className='truncate'>{selectedModelOption.label}</span>
-            </span>
+            <SelectValue>
+              <span className='flex min-w-0 items-center gap-1.5'>
+                <ModelIcon modelKey={selectedModelOption.model} />
+                <span className='truncate'>{selectedModelOption.label}</span>
+              </span>
+            </SelectValue>
           ) : (
             <SelectValue placeholder={modelEmptyLabel} />
           )}

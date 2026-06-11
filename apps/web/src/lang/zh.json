@@ -3,7 +3,6 @@
     "home": "首页",
     "chat": "AI 助手",
     "agents": "智能体",
-    "tools": "工具",
     "settings": "设置"
   },
   "Chat": {
@@ -660,6 +659,48 @@
       "deleted": "MCP 服务器删除成功",
       "testSuccess": "测试成功，发现 {count} 个可用工具",
       "deleteConfirm": "确认删除该 MCP 服务器吗？"
+    }
+  },
+  "SystemSettings": {
+    "title": "系统设置",
+    "description": "管理您的个人账户、系统偏好和 MCP 插件服务。",
+    "tabs": {
+      "preferences": "偏好设置",
+      "account": "账户安全",
+      "mcp": "MCP 插件",
+      "danger": "危险红区"
+    },
+    "preferences": {
+      "themeLabel": "深色模式",
+      "themeDesc": "选择您喜欢的主题外观。",
+      "langLabel": "界面语言",
+      "langDesc": "更改应用程序的显示语言。",
+      "pushLabel": "推送通知",
+      "pushDesc": "允许应用通过系统向您推送通知消息。",
+      "emailLabel": "邮件通知",
+      "emailDesc": "接收系统和产品的更新订阅邮件。"
+    },
+    "account": {
+      "name": "显示名称",
+      "email": "电子邮箱",
+      "id": "账户 ID",
+      "method": "认证方式",
+      "methodDesc": "您当前绑定的安全登录方式",
+      "authMethod": "本地魔术链接 / 社交授权",
+      "magicLinkProvider": "邮箱魔术链接",
+      "loadingSessions": "正在加载活跃设备列表...",
+      "noSessions": "暂无活跃会话记录",
+      "currentDevice": "当前设备",
+      "revokeBtn": "强制下线",
+      "activeSessions": "活跃会话",
+      "viewSessions": "管理会话"
+    },
+    "danger": {
+      "title": "危险操作区域",
+      "desc": "以下操作可能导致您的数据永久丢失且无法恢复，请谨慎操作。",
+      "alertText": "删除账户是不可逆的操作。一旦您删除账户，您所有的对话历史、智能体配置和工具绑定都将被永久清除。",
+      "deleteBtn": "物理删除当前账户",
+      "deleteConfirm": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！"
     }
   }
 }

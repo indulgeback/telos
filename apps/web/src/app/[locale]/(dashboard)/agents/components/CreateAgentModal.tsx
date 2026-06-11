@@ -33,7 +33,6 @@ export function CreateAgentModal({
   const t = useTranslations('Agent')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [instructions, setInstructions] = useState('')
   const [modelKey, setModelKey] = useState('deepseek-v4-flash')
   const [maxTurns, setMaxTurns] = useState(8)
   const [loopMode, setLoopMode] = useState<'auto' | 'single_turn'>('auto')
@@ -53,7 +52,6 @@ export function CreateAgentModal({
       await agentService.createAgent({
         name: name.trim(),
         description: description.trim(),
-        instructions: instructions.trim() || description.trim(),
         type,
         modelKey: modelKey.trim() || 'deepseek-v4-flash',
         maxTurns,
@@ -62,7 +60,6 @@ export function CreateAgentModal({
       toast.success(t('messages.createSuccess'))
       setName('')
       setDescription('')
-      setInstructions('')
       setModelKey('deepseek-v4-flash')
       setMaxTurns(8)
       setLoopMode('auto')
@@ -144,19 +141,6 @@ export function CreateAgentModal({
             <p className='text-xs text-muted-foreground'>
               {description.length}/500
             </p>
-          </div>
-
-          <div className='space-y-2'>
-            <Label htmlFor='instructions'>{t('form.instructions')}</Label>
-            <Textarea
-              id='instructions'
-              value={instructions}
-              onChange={e => setInstructions(e.target.value)}
-              placeholder={t('form.instructionsPlaceholder')}
-              disabled={isCreating}
-              rows={5}
-              className='resize-none'
-            />
           </div>
 
           <div className='grid gap-4 md:grid-cols-[1fr_140px_160px]'>

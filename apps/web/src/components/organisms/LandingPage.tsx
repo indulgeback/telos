@@ -14,19 +14,6 @@ gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 const ease = 'power3.out'
 
-interface ProductEvent {
-  label: string
-  value: string
-}
-
-interface ProductObjectProps {
-  agentName: string
-  events: ProductEvent[]
-  quickItems: string[]
-  surfaceLabel: string
-  workspaceLabel: string
-}
-
 function ArrowGlyph() {
   return (
     <span
@@ -38,76 +25,23 @@ function ArrowGlyph() {
   )
 }
 
-function ProductObject({
-  agentName,
-  events,
-  quickItems,
-  surfaceLabel,
-  workspaceLabel,
-}: ProductObjectProps) {
+function ProductVideo() {
   return (
-    <div className='landing-object pointer-events-none relative mx-auto w-full max-w-[680px]'>
+    <div className='landing-object relative mx-auto w-full max-w-[680px]'>
       <div className='rounded-lg border border-background/45 bg-background/20 p-1.5 shadow-[0_34px_120px_hsl(var(--foreground)/0.16)]'>
-        <div className='overflow-hidden rounded-md border border-background/30 bg-foreground text-background'>
-          <div className='flex items-center justify-between border-b border-background/10 px-4 py-3'>
-            <div className='flex items-center gap-2'>
-              <span className='size-2 rounded-full bg-background/35' />
-              <span className='size-2 rounded-full bg-background/25' />
-              <span className='size-2 rounded-full bg-background/15' />
-            </div>
-            <span className='font-mono text-[10px] uppercase tracking-[0.22em] text-background/55'>
-              {surfaceLabel}
-            </span>
-          </div>
-
-          <div className='grid gap-px bg-background/10 md:grid-cols-[0.9fr_1.1fr]'>
-            <div className='bg-foreground p-5'>
-              <p className='font-mono text-[10px] uppercase tracking-[0.22em] text-background/45'>
-                {workspaceLabel}
-              </p>
-              <p className='mt-3 text-4xl font-semibold tracking-[-0.06em]'>
-                {agentName}
-              </p>
-              <div className='mt-12 h-px bg-background/15' />
-              <div className='mt-5 grid grid-cols-2 gap-4'>
-                {quickItems.map(item => (
-                  <p
-                    key={item}
-                    className='font-mono text-[11px] uppercase text-background/58'
-                  >
-                    {item}
-                  </p>
-                ))}
-              </div>
-            </div>
-
-            <div className='bg-foreground p-5'>
-              <div className='relative min-h-[270px]'>
-                <div className='absolute left-[18px] top-4 h-[225px] w-px bg-background/14' />
-                {events.map(({ label, value }, index) => (
-                  <div
-                    key={label}
-                    className='relative ml-10 border-b border-background/10 py-4 last:border-b-0'
-                  >
-                    <span className='absolute -left-[28px] top-5 size-3 rounded-full border border-background/25 bg-foreground' />
-                    <div className='flex items-start justify-between gap-4'>
-                      <div>
-                        <p className='text-sm font-medium tracking-[-0.02em]'>
-                          {label}
-                        </p>
-                        <p className='mt-1 font-mono text-[11px] text-background/48'>
-                          {value}
-                        </p>
-                      </div>
-                      <span className='font-mono text-[10px] text-background/35'>
-                        0{index + 1}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className='overflow-hidden rounded-md border border-background/30 bg-foreground'>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload='metadata'
+            poster='/landing/telos-promo-poster.jpg'
+            aria-label='Telos product promotional video'
+            className='aspect-video w-full object-cover'
+          >
+            <source src='/landing/telos-promo.mp4' type='video/mp4' />
+          </video>
         </div>
       </div>
     </div>
@@ -166,15 +100,6 @@ export function LandingPage() {
       })
     },
     { scope: root }
-  )
-
-  const productEvents = ['create', 'connect', 'run', 'remember'].map(key => ({
-    label: t(`landing.product.events.${key}.label`),
-    value: t(`landing.product.events.${key}.value`),
-  }))
-
-  const productQuickItems = ['tools', 'memory', 'workflow', 'access'].map(key =>
-    t(`landing.product.quick.${key}`)
   )
 
   const capabilities = [
@@ -265,13 +190,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          <ProductObject
-            agentName={t('landing.product.agentName')}
-            events={productEvents}
-            quickItems={productQuickItems}
-            surfaceLabel={t('landing.product.surfaceLabel')}
-            workspaceLabel={t('landing.product.workspaceLabel')}
-          />
+          <ProductVideo />
         </div>
       </section>
 

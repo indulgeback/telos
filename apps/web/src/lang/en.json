@@ -3,7 +3,6 @@
     "home": "Home",
     "chat": "AI Assistant",
     "agents": "Agent",
-    "tools": "Tool",
     "settings": "Settings"
   },
   "Chat": {
@@ -96,27 +95,27 @@
       "canvas": "Canvas"
     },
     "voice": {
-      "title": "Realtime voice",
+      "title": "Real-time voice",
       "shortLabel": "Voice",
-      "toggle": "Toggle realtime voice mode",
+      "toggle": "Switch to real-time voice mode",
       "loading": "Checking configuration",
-      "ready": "Volc realtime voice is configured",
-      "demo": "Demo mode",
-      "unconfigured": "Volc realtime voice is not configured",
-      "textChannel": "Text channel",
+      "ready": "Volcano real-time voice configuration connected",
+      "demo": "Demo Mode",
+      "unconfigured": "Volcano real-time voice not configured",
+      "textChannel": "Text Channel",
       "audioChannel": "Audio channel",
       "modelLabel": "Volc Realtime",
-      "start": "Start talking",
+      "start": "Start speaking",
       "stop": "Stop",
-      "idle": "Idle",
+      "idle": "On standby",
       "connecting": "Connecting",
-      "listening": "Listening",
-      "speaking": "Speaking",
-      "error": "Connection issue",
-      "missingConfig": "{count} missing settings",
+      "listening": "Recording",
+      "speaking": "Playing",
+      "error": "Connection exception",
+      "missingConfig": "Missing {count} configuration items",
       "voiceInputMessage": "(Voice input)",
-      "microphoneError": "Unable to start the microphone. Check browser permissions.",
-      "socketError": "Realtime voice connection failed. Please try again."
+      "microphoneError": "Unable to start the microphone, please check the browser permissions.",
+      "socketError": "Real-time voice connection is abnormal, please try again later."
     },
     "reasoning": {
       "title": "Reasoning process",
@@ -128,38 +127,38 @@
       "copied": "Copied",
       "stop": "Stop generation",
       "retry": "Retry",
+      "usedModel": "model",
       "tools": "Tool invocation",
       "refresh": "Change batch",
       "scrollToBottom": "Go back to the bottom",
       "previewImage": "Preview Image",
       "prevImage": "Previous one",
-      "nextImage": "Next",
-      "usedModel": "model"
+      "nextImage": "Next"
     },
     "error": {
       "message": "Sorry, something went wrong. Please try again later."
     },
     "disclaimer": "AI assistants may make mistakes, please verify important information.",
     "threads": {
-      "title": "Chat History",
-      "noAgent": "No agent selected",
-      "new": "New chat",
-      "search": "Search chats...",
+      "title": "Conversation History",
+      "noAgent": "No Agent Selected",
+      "new": "New Conversation",
+      "search": "Searching conversation...",
       "loading": "Loading...",
-      "empty": "No chats yet",
-      "noResults": "No chats found",
+      "empty": "No conversations for now",
+      "noResults": "Session not found",
       "rename": "Rename",
       "delete": "Delete",
       "cancel": "Cancel",
       "save": "Save",
       "saving": "Saving...",
       "deleting": "Deleting...",
-      "renamePrompt": "Enter a new chat title",
-      "renameTitle": "Rename chat",
-      "renameDescription": "Give this chat a title that is easier to recognize.",
-      "renamePlaceholder": "Enter chat title",
-      "deleteTitle": "Delete chat",
-      "deleteConfirm": "Delete “{title}”? It will no longer appear in the chat list."
+      "renamePrompt": "Enter new session title",
+      "renameTitle": "Rename Session",
+      "renameDescription": "Give this conversation a more easily recognizable title.",
+      "renamePlaceholder": "Enter session title",
+      "deleteTitle": "Delete conversation",
+      "deleteConfirm": "Are you sure you want to delete \"{title}\"? It will no longer appear in the conversation list after deletion."
     }
   },
   "Common": {
@@ -178,7 +177,7 @@
     "description": "It supports automatic task scheduling and management, adopts front-end and back-end separation and microservice architecture, and is designed for enterprise-level automation scenarios.",
     "badge": "Intelligent Workflow Orchestration",
     "github": "GitHub",
-    "dashboard": "Start Chat",
+    "dashboard": "Start the conversation",
     "viewWorkflows": "View Workflow",
     "techStackSupport": "Technical stack support",
     "flowSection": {
@@ -385,13 +384,13 @@
       "loginFailed": "Login failed",
       "github": "Sign in with GitHub",
       "google": "Sign in with Google",
-      "discord": "Sign in with Discord",
+      "discord": "Log in with Discord",
       "slack": "Sign in with Slack",
-      "magicLinkTitle": "Sign in with Email (Passwordless)",
-      "emailLabel": "Email Address",
+      "magicLinkTitle": "Log in with email (password-free)",
+      "emailLabel": "Email",
       "emailPlaceholder": "name@example.com",
-      "sendMagicLink": "Send Magic Link",
-      "magicLinkSent": "A sign-in link has been sent to your email. Check your inbox!"
+      "sendMagicLink": "Send login link",
+      "magicLinkSent": "The login link has been sent to your email, please check it!"
     },
     "error": {
       "title": "Authentication errors",
@@ -427,13 +426,13 @@
       "namePlaceholder": "e.g.: Code Assistant",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Describe the role and capabilities of this Agent...",
-      "instructions": "Instructions",
-      "instructionsPlaceholder": "Describe the role, boundaries, and execution style this Agent should follow during the loop...",
+      "instructions": "Run command",
+      "instructionsPlaceholder": "Write down the roles, boundaries, and execution methods that this Agent needs to follow in the loop...",
       "modelKey": "Model",
-      "maxTurns": "Max turns",
-      "loopMode": "Loop mode",
-      "loopAuto": "Auto",
-      "loopSingleTurn": "Single turn",
+      "maxTurns": "Maximum round",
+      "loopMode": "Loop Mode",
+      "loopAuto": "Automatic",
+      "loopSingleTurn": "Single wheel",
       "typeLabel": "Type",
       "typePrivate": "Private",
       "typePrivateDesc": "Only visible to you",
@@ -587,13 +586,13 @@
     "parameters": "Parameter"
   },
   "McpSettings": {
-    "title": "MCP Server Settings",
-    "description": "Configure MCP server connections here, including create, edit, delete, and connectivity test.",
-    "serverCount": "{count} MCP Servers",
-    "add": "Add MCP Server",
-    "createTitle": "Add MCP Server",
+    "title": "MCP Server Configuration",
+    "description": "Configure the MCP server connection here, supporting adding, editing, deleting, and connectivity testing.",
+    "serverCount": "A total of {count} MCP servers",
+    "add": "Add new MCP server",
+    "createTitle": "Add new MCP server",
     "editTitle": "Edit MCP Server",
-    "empty": "No MCP server configured yet. Add one first.",
+    "empty": "No MCP server configuration for now, click below to add one",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "edit": "Edit",
@@ -603,34 +602,34 @@
     "create": "Create",
     "update": "Save",
     "saving": "Saving...",
-    "lastTest": "Last available tools: {count}",
+    "lastTest": "Number of tools available recently: {count}",
     "transportHint": {
-      "stdio": "Start command",
-      "network": "URL"
+      "stdio": "Startup command",
+      "network": "Connection address"
     },
     "fields": {
       "name": "Name",
       "description": "Description",
-      "transport": "Transport",
-      "command": "Command",
-      "args": "Arguments (one per line)",
-      "url": "Endpoint URL",
-      "env": "Environment Variables (KEY=VALUE per line)",
-      "approvalPolicy": "Approval Policy",
-      "enabled": "Enabled"
+      "transport": "Transmission method",
+      "command": "Startup command",
+      "args": "Startup parameters (one per line)",
+      "url": "Service Address",
+      "env": "Environment variables (KEY=VALUE, one per line)",
+      "approvalPolicy": "Approval strategy",
+      "enabled": "Enable"
     },
     "placeholders": {
       "name": "my-mcp-server",
-      "description": "Briefly describe this MCP server",
-      "command": "Example: node",
-      "args": "Example: main.js",
+      "description": "Fill in the server usage description",
+      "command": "For example: node",
+      "args": "For example: main.js",
       "url": "https://example.com/mcp",
       "env": "API_TOKEN=abcdef"
     },
     "approvalPolicy": {
       "none": "None",
-      "all": "Approve All",
-      "sensitive": "Approve Sensitive Tools"
+      "all": "All approvals",
+      "sensitive": "Approval for sensitive tools only"
     },
     "transportValues": {
       "stdio": "stdio",
@@ -639,27 +638,69 @@
     },
     "approval": {
       "none": "None",
-      "all": "Approve All",
-      "sensitive": "Approve Sensitive Tools"
+      "all": "Approve all",
+      "sensitive": "Approval for sensitive tools only"
     },
     "validation": {
-      "nameRequired": "Please enter a name",
-      "descriptionRequired": "Please enter a description",
-      "commandRequired": "Please enter the command",
-      "urlRequired": "Please enter the server URL"
+      "nameRequired": "Please fill in the name",
+      "descriptionRequired": "Please fill in the description",
+      "commandRequired": "Please enter the startup command",
+      "urlRequired": "Please fill in the service address"
     },
     "errors": {
-      "loadFailed": "Failed to load MCP configurations",
+      "loadFailed": "Failed to load MCP configuration",
       "saveFailed": "Failed to save MCP configuration",
       "deleteFailed": "Failed to delete MCP configuration",
-      "testFailed": "MCP connection test failed"
+      "testFailed": "Test MCP connection failed"
     },
     "messages": {
       "created": "MCP server created successfully",
       "updated": "MCP server updated successfully",
       "deleted": "MCP server deleted successfully",
-      "testSuccess": "Test succeeded, {count} tools found",
-      "deleteConfirm": "Delete this MCP server?"
+      "testSuccess": "Test successful, found {count} available tools",
+      "deleteConfirm": "Are you sure you want to delete this MCP server?"
+    }
+  },
+  "SystemSettings": {
+    "title": "System Settings",
+    "description": "Manage your personal account, system preferences, and MCP plugin services.",
+    "tabs": {
+      "preferences": "Preferences",
+      "account": "Account Security",
+      "mcp": "MCP Plugin",
+      "danger": "Danger Zone"
+    },
+    "preferences": {
+      "themeLabel": "Dark Mode",
+      "themeDesc": "Choose the theme appearance you like.",
+      "langLabel": "Interface Language",
+      "langDesc": "Change the display language of the application.",
+      "pushLabel": "Push Notification",
+      "pushDesc": "Allow the app to push notification messages to you through the system.",
+      "emailLabel": "Email Notification",
+      "emailDesc": "Receive update subscription emails for systems and products."
+    },
+    "account": {
+      "name": "Display Name",
+      "email": "Email",
+      "id": "Account ID",
+      "method": "Authentication method",
+      "methodDesc": "Your currently linked secure login method",
+      "authMethod": "Magic Link / Social Auth",
+      "magicLinkProvider": "Email Magic Link",
+      "loadingSessions": "Loading active devices...",
+      "noSessions": "No active sessions found",
+      "currentDevice": "Current device",
+      "revokeBtn": "Force logout",
+      "activeSessions": "Active Session",
+      "viewSessions": "Manage Session"
+    },
+    "danger": {
+      "title": "Dangerous Operation Area",
+      "desc": "The following actions may cause your data to be permanently lost and unrecoverable, please proceed with caution.",
+      "alertText": "Deleting an account is an irreversible action. Once you delete your account, all your conversation history, agent configurations, and tool bindings will be permanently erased.",
+      "deleteBtn": "Permanently delete the current account",
+      "deleteConfirm": "[Warning] Are you sure you want to permanently delete this account? This action cannot be undone, and all data will be lost!"
     }
   }
 }

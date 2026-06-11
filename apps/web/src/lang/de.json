@@ -3,7 +3,7 @@
     "home": "Startseite",
     "chat": "KI-Assistent",
     "agents": "Agent",
-    "tools": "Werkzeug"
+    "settings": "Einstellungen"
   },
   "Chat": {
     "title": "KI-Assistent",
@@ -75,7 +75,9 @@
         "deepseek": "Tiefesuchen",
         "seed": "Vulkan-Arche",
         "bailian": "Ali Bai Lian",
-        "gcloud": "Google Gemini"
+        "gcloud": "Google Gemini",
+        "openai": "OpenAI",
+        "shortapi": "KurzeAPI"
       }
     },
     "reasoningEffort": {
@@ -92,6 +94,29 @@
       "mcp": "MCP",
       "canvas": "Leinwand"
     },
+    "voice": {
+      "title": "Echtzeit-Spracherkennung",
+      "shortLabel": "Sprache",
+      "toggle": "In den Echtzeit-Sprachmodus wechseln",
+      "loading": "In der Konfiguration prüfen",
+      "ready": "Volcano Live-Voice-Konfiguration verbunden",
+      "demo": "Demo-Modus",
+      "unconfigured": "Vulkan-Live-Sprachkommunikation nicht konfiguriert",
+      "textChannel": "Textkanal",
+      "audioChannel": "Audiokanal",
+      "modelLabel": "Volc Echtzeit",
+      "start": "Anfangen zu sprechen",
+      "stop": "Anhalten",
+      "idle": "Bereitstehen",
+      "connecting": "Verbinden",
+      "listening": "Aufnahme läuft",
+      "speaking": "Wird abgespielt",
+      "error": "Verbindungsfehler",
+      "missingConfig": "Fehlen {count} Konfigurationen",
+      "voiceInputMessage": "(Spracheingabe)",
+      "microphoneError": "Das Mikrofon kann nicht gestartet werden. Bitte überprüfen Sie die Berechtigungen des Browsers.",
+      "socketError": "Echtzeit-Sprachverbindung gestört, bitte versuchen Sie es später erneut."
+    },
     "reasoning": {
       "title": "Schlussfolgerungsprozess",
       "thinking": "Beim Nachdenken",
@@ -102,18 +127,39 @@
       "copied": "Kopiert",
       "stop": "Generierung stoppen",
       "retry": "Erneut versuchen",
+      "usedModel": "Modell",
       "tools": "Werkzeugaufruf",
       "refresh": "Wechsle eine neue Charge",
       "scrollToBottom": "Zum Ende zurückkehren",
       "previewImage": "Bildvorschau",
       "prevImage": "Vorheriges",
-      "nextImage": "Nächstes Blatt",
-      "usedModel": "Modell"
+      "nextImage": "Nächstes Blatt"
     },
     "error": {
       "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
     },
-    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen."
+    "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen.",
+    "threads": {
+      "title": "Verlauf der Gespräche",
+      "noAgent": "Agent nicht ausgewählt",
+      "new": "Neue Sitzung erstellen",
+      "search": "Gespräch suchen...",
+      "loading": "Lädt...",
+      "empty": "Keine Unterhaltung",
+      "noResults": "Sitzung nicht gefunden",
+      "rename": "Umbenennen",
+      "delete": "Löschen",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "saving": "Speichern...",
+      "deleting": "Löschen...",
+      "renamePrompt": "Geben Sie den neuen Sitzungstitel ein",
+      "renameTitle": "Sitzung umbenennen",
+      "renameDescription": "Gib diesem Gespräch einen leichter erkennbaren Titel.",
+      "renamePlaceholder": "Geben Sie den Sitzungstitel ein",
+      "deleteTitle": "Konversation löschen",
+      "deleteConfirm": "Möchten Sie „{title}“ wirklich löschen? Nach dem Löschen wird es nicht mehr in der Gesprächsliste angezeigt."
+    }
   },
   "Common": {
     "theme": {
@@ -131,7 +177,7 @@
     "description": "Es unterstützt die automatische Aufgabenplanung und -verwaltung, verwendet die Front-End- und Back-End-Trennung sowie die Microservice-Architektur und ist für Automatisierungsszenarien auf Unternehmensebene konzipiert.",
     "badge": "Intelligente Workflow-Orchestrierung",
     "github": "GitHub",
-    "dashboard": "Chat starten",
+    "dashboard": "Gespräch beginnen",
     "viewWorkflows": "Workflow anzeigen",
     "techStackSupport": "Technologiestapel-Unterstützung",
     "flowSection": {
@@ -336,7 +382,15 @@
       "noAccount": "Sie haben noch kein Konto?",
       "signUp": "Jetzt anmelden",
       "loginFailed": "Anmeldung fehlgeschlagen",
-      "github": "Mit GitHub anmelden"
+      "github": "Mit GitHub anmelden",
+      "google": "Mit Google anmelden",
+      "discord": "Mit Discord anmelden",
+      "slack": "Mit Slack anmelden",
+      "magicLinkTitle": "Mit E-Mail anmelden (Passwortfrei)",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "name@example.com",
+      "sendMagicLink": "Anmeldelink senden",
+      "magicLinkSent": "Der Login-Link wurde an Ihre E-Mail gesendet, bitte überprüfen Sie Ihr Postfach!"
     },
     "error": {
       "title": "Fehler bei der Authentifizierung",
@@ -372,6 +426,13 @@
       "namePlaceholder": "Zum Beispiel: Code-Assistent",
       "descriptionLabel": "Beschreibung",
       "descriptionPlaceholder": "Beschreiben Sie die Rolle und Fähigkeiten dieses Agenten...",
+      "instructions": "Befehl ausführen",
+      "instructionsPlaceholder": "Schreiben Sie die Rolle, die Grenzen und die Vorgehensweise, die dieser Agent in der Schleife einhalten muss...",
+      "modelKey": "Modell",
+      "maxTurns": "Maximale Runden",
+      "loopMode": "Loop-Modus",
+      "loopAuto": "automatisch",
+      "loopSingleTurn": "Einzelrad",
       "typeLabel": "Typ",
       "typePrivate": "Privat",
       "typePrivateDesc": "Nur für mich sichtbar",
@@ -523,5 +584,117 @@
     "noParameters": "Dieses Werkzeug hat keine definierten Parameter",
     "endpoint": "API-Endpunkt",
     "parameters": "Parameter"
+  },
+  "McpSettings": {
+    "title": "MCP Server-Konfiguration",
+    "description": "Konfigurieren Sie hier die MCP-Serververbindung, mit Unterstützung für Hinzufügen, Bearbeiten, Löschen und Verbindungstest.",
+    "serverCount": "Insgesamt {count} MCP-Server",
+    "add": "Neuen MCP-Server hinzufügen",
+    "createTitle": "Neuen MCP-Server hinzufügen",
+    "editTitle": "MCP-Server bearbeiten",
+    "empty": "Es gibt derzeit keine MCP-Serverkonfiguration. Klicken Sie unten, um eine neue hinzuzufügen.",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "test": "Test",
+    "cancel": "Abbrechen",
+    "create": "Erstellen",
+    "update": "Speichern",
+    "saving": "Speichern...",
+    "lastTest": "Anzahl der kürzlich verfügbaren Werkzeuge: {count}",
+    "transportHint": {
+      "stdio": "Startbefehl",
+      "network": "Verbindungsadresse"
+    },
+    "fields": {
+      "name": "Name",
+      "description": "beschreiben",
+      "transport": "Übertragungsart",
+      "command": "Startbefehl",
+      "args": "Startparameter (jeweils einer pro Zeile)",
+      "url": "Serviceradresse",
+      "env": "Umgebungsvariable (KEY=VALUE, eine pro Zeile)",
+      "approvalPolicy": "Genehmigungsstrategie",
+      "enabled": "Aktivieren"
+    },
+    "placeholders": {
+      "name": "mein-mcp-server",
+      "description": "Serververwendungszweck ausfüllen",
+      "command": "Zum Beispiel: Knoten",
+      "args": "Zum Beispiel: main.js",
+      "url": "https://example.com/mcp",
+      "env": "API_TOKEN=abcdef"
+    },
+    "approvalPolicy": {
+      "none": "Keine",
+      "all": "Alle Genehmigungen",
+      "sensitive": "Nur Genehmigung für sensible Werkzeuge"
+    },
+    "transportValues": {
+      "stdio": "stdio",
+      "streamable_http": "Streamebares HTTP",
+      "sse": "SSE"
+    },
+    "approval": {
+      "none": "Keine",
+      "all": "Alle Genehmigungen",
+      "sensitive": "Nur Genehmigung für sensible Werkzeuge"
+    },
+    "validation": {
+      "nameRequired": "Bitte geben Sie den Namen ein",
+      "descriptionRequired": "Bitte Beschreibung ausfüllen",
+      "commandRequired": "Bitte geben Sie den Startbefehl ein",
+      "urlRequired": "Bitte geben Sie die Serviceadresse ein"
+    },
+    "errors": {
+      "loadFailed": "Laden der MCP-Konfiguration fehlgeschlagen",
+      "saveFailed": "Speichern der MCP-Konfiguration fehlgeschlagen",
+      "deleteFailed": "Fehler beim Löschen der MCP-Konfiguration",
+      "testFailed": "Test MCP-Verbindung fehlgeschlagen"
+    },
+    "messages": {
+      "created": "MCP server created successfully",
+      "updated": "MCP server updated successfully",
+      "deleted": "MCP-Server erfolgreich gelöscht",
+      "testSuccess": "Test erfolgreich, {count} verfügbare Werkzeuge gefunden",
+      "deleteConfirm": "Möchten Sie diesen MCP-Server wirklich löschen?"
+    }
+  },
+  "SystemSettings": {
+    "title": "Systemeinstellungen",
+    "description": "Verwalten Sie Ihr persönliches Konto, Systemeinstellungen und MCP-Plugin-Dienste.",
+    "tabs": {
+      "preferences": "Einstellungen",
+      "account": "Kontosicherheit",
+      "mcp": "MCP-Plugin",
+      "danger": "Gefährliche Rotzone"
+    },
+    "preferences": {
+      "themeLabel": "Dunkler Modus",
+      "themeDesc": "Wählen Sie das Themenlayout, das Ihnen gefällt.",
+      "langLabel": "Benutzerschnittstellensprache",
+      "langDesc": "Ändern Sie die Anzeigesprache der Anwendung.",
+      "pushLabel": "Push-Benachrichtigung",
+      "pushDesc": "Erlauben Sie der App, Ihnen über das System Benachrichtigungsnachrichten zu senden.",
+      "emailLabel": "E-Mail-Benachrichtigung",
+      "emailDesc": "Erhalten Sie Update-Abonnement-E-Mails für Systeme und Produkte."
+    },
+    "account": {
+      "name": "Anzeigename",
+      "email": "E-Mail",
+      "id": "Konten-ID",
+      "method": "Authentifizierungsmethode",
+      "methodDesc": "Die derzeit mit Ihnen verknüpfte sichere Anmeldemethode",
+      "activeSessions": "Aktive Sitzung",
+      "viewSessions": "Sitzung verwalten"
+    },
+    "danger": {
+      "title": "Gefahrenbereich für den Betrieb",
+      "desc": "Die folgenden Vorgänge können dazu führen, dass Ihre Daten dauerhaft verloren gehen und nicht wiederhergestellt werden können. Bitte gehen Sie vorsichtig vor.",
+      "alertText": "Das Löschen des Kontos ist ein irreversibler Vorgang. Sobald Sie Ihr Konto löschen, werden alle Ihre Gesprächshistorien, Agentenkonfigurationen und Tool-Zuordnungen dauerhaft gelöscht.",
+      "deleteBtn": "Konto dauerhaft löschen",
+      "deleteConfirm": "【Warnung】Sind Sie sicher, dass Sie dieses Konto endgültig löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden, alle Daten gehen verloren!"
+    }
   }
 }

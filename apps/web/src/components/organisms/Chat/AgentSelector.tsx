@@ -83,19 +83,18 @@ export function AgentSelector({
       >
         <span className='sr-only'>{t('selector.label')}</span>
         {selectedAgent ? (
-          <span className='flex min-w-0 items-center gap-1.5'>
-            {getTypeIcon(selectedAgent.type)}
-            <span className='truncate'>{selectedAgent.name}</span>
-          </span>
+          <SelectValue>
+            <span className='flex min-w-0 items-center gap-1.5'>
+              {getTypeIcon(selectedAgent.type)}
+              <span className='truncate'>{selectedAgent.name}</span>
+            </span>
+          </SelectValue>
         ) : (
-          <span className='flex min-w-0 items-center gap-1.5'>
-            <Sparkles className='size-3.5 shrink-0' />
-            <SelectValue
-              placeholder={
-                loading ? t('selector.loading') : t('selector.selectAgent')
-              }
-            />
-          </span>
+          <SelectValue
+            placeholder={
+              loading ? t('selector.loading') : t('selector.selectAgent')
+            }
+          />
         )}
       </SelectTrigger>
       <SelectContent>

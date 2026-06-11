@@ -132,8 +132,6 @@ export function ConfigureToolsModal({
         return 'bg-green-500/10 text-green-500 border-green-500/20'
       case 'database':
         return 'bg-purple-500/10 text-purple-500 border-purple-500/20'
-      case 'custom':
-        return 'bg-orange-500/10 text-orange-500 border-orange-500/20'
       default:
         return 'bg-gray-500/10 text-gray-500 border-gray-500/20'
     }
@@ -254,10 +252,6 @@ export function ConfigureToolsModal({
                 <span className='flex items-center gap-1'>
                   <div className='size-2 rounded-full bg-purple-500' />
                   Database
-                </span>
-                <span className='flex items-center gap-1'>
-                  <div className='size-2 rounded-full bg-orange-500' />
-                  Custom
                 </span>
               </div>
             </div>

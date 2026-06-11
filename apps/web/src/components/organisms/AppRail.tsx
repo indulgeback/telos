@@ -9,8 +9,8 @@ import {
   TooltipTrigger,
 } from '@/components/atoms'
 import { LocaleToggle, ThemeToggle, UserAvatar } from '@/components/molecules'
-import { McpServersModal } from '@/components/molecules/McpServersModal'
-import { Bot, Home, Settings, Sparkles, Wrench } from 'lucide-react'
+import { SystemSettingsModal } from '@/components/molecules/SystemSettingsModal'
+import { Bot, Home, Settings, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -18,14 +18,13 @@ import { cn } from '@/lib/utils'
 const normalizePath = (path: string) => path.replace(/\/$/, '') || '/'
 
 export function AppRail() {
-  const [showMcpModal, setShowMcpModal] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const t = useTranslations('Navbar')
   const pathname = normalizePath(usePathname())
   const navigation = [
     { label: t('home'), href: '/', icon: Home },
     { label: t('chat'), href: '/chat', icon: Sparkles },
     { label: t('agents'), href: '/agents', icon: Bot },
-    { label: t('tools'), href: '/tools', icon: Wrench },
   ]
 
   return (
@@ -74,7 +73,7 @@ export function AppRail() {
           <TooltipTrigger asChild>
             <button
               type='button'
-              onClick={() => setShowMcpModal(true)}
+              onClick={() => setShowSettingsModal(true)}
               aria-label={t('settings')}
               className='flex size-10 items-center justify-center rounded-md bg-muted/45 text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground'
             >
@@ -88,8 +87,8 @@ export function AppRail() {
         <UserAvatar />
       </div>
 
-      {showMcpModal && (
-        <McpServersModal onClose={() => setShowMcpModal(false)} />
+      {showSettingsModal && (
+        <SystemSettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
     </aside>
   )

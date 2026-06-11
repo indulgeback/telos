@@ -3,7 +3,7 @@
     "home": "首頁",
     "chat": "AI 助手",
     "agents": "智慧型代理",
-    "tools": "工具"
+    "settings": "設定"
   },
   "Chat": {
     "title": "AI 助手",
@@ -75,7 +75,9 @@
         "deepseek": "深尋",
         "seed": "火山方舟",
         "bailian": "阿里百鍊",
-        "gcloud": "Google Gemini"
+        "gcloud": "Google Gemini",
+        "openai": "OpenAI",
+        "shortapi": "ShortAPI"
       }
     },
     "reasoningEffort": {
@@ -92,6 +94,29 @@
       "mcp": "MCP",
       "canvas": "畫布"
     },
+    "voice": {
+      "title": "即時語音",
+      "shortLabel": "語音",
+      "toggle": "切換即時語音模式",
+      "loading": "檢查配置中",
+      "ready": "已連接火山即時語音配置",
+      "demo": "演示模式",
+      "unconfigured": "未配置火山即時語音",
+      "textChannel": "文本通道",
+      "audioChannel": "音訊通道",
+      "modelLabel": "火山即時",
+      "start": "開始說話",
+      "stop": "停止",
+      "idle": "待命",
+      "connecting": "連接中",
+      "listening": "收音中",
+      "speaking": "播放中",
+      "error": "連接異常",
+      "missingConfig": "缺少 {count} 項配置",
+      "voiceInputMessage": "（語音輸入）",
+      "microphoneError": "無法啟動麥克風，請檢查瀏覽器權限。",
+      "socketError": "即時語音連接異常，請稍後重試。"
+    },
     "reasoning": {
       "title": "推理過程",
       "thinking": "推理中",
@@ -102,18 +127,39 @@
       "copied": "已複製",
       "stop": "停止生成",
       "retry": "重試",
+      "usedModel": "模型",
       "tools": "工具調用",
       "refresh": "換一批",
       "scrollToBottom": "回到底部",
       "previewImage": "預覽圖片",
       "prevImage": "上一張",
-      "nextImage": "下一張",
-      "usedModel": "模型"
+      "nextImage": "下一張"
     },
     "error": {
       "message": "抱歉，發生了一些錯誤。請稍後再試。"
     },
-    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊"
+    "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊",
+    "threads": {
+      "title": "會話歷史",
+      "noAgent": "未選擇代理",
+      "new": "新建會話",
+      "search": "搜尋會話...",
+      "loading": "加載中...",
+      "empty": "暫無會話",
+      "noResults": "未找到會話",
+      "rename": "重命名",
+      "delete": "刪除",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中...",
+      "deleting": "刪除中...",
+      "renamePrompt": "輸入新的會話標題",
+      "renameTitle": "重新命名會話",
+      "renameDescription": "給這個會話換一個更容易識別的標題。",
+      "renamePlaceholder": "輸入會話標題",
+      "deleteTitle": "刪除會話",
+      "deleteConfirm": "Are you sure you want to delete “{title}”? It will no longer appear in the conversation list after deletion."
+    }
   },
   "Common": {
     "theme": {
@@ -336,7 +382,15 @@
       "noAccount": "還沒有帳戶？",
       "signUp": "立即註冊",
       "loginFailed": "登錄失敗",
-      "github": "使用 GitHub 登入"
+      "github": "使用 GitHub 登入",
+      "google": "使用 Google 登入",
+      "discord": "使用 Discord 登入",
+      "slack": "使用 Slack 登入",
+      "magicLinkTitle": "使用郵箱登入 (免密)",
+      "emailLabel": "電子郵箱",
+      "emailPlaceholder": "name@example.com",
+      "sendMagicLink": "發送登錄連結",
+      "magicLinkSent": "登錄連結已發送至您的郵箱，請注意查收！"
     },
     "error": {
       "title": "認證錯誤",
@@ -372,6 +426,13 @@
       "namePlaceholder": "例如：程式碼助手",
       "descriptionLabel": "描述",
       "descriptionPlaceholder": "描述這個 Agent 的角色和能力...",
+      "instructions": "運行指令",
+      "instructionsPlaceholder": "Write down the roles, boundaries, and execution methods that this Agent needs to follow in the loop...",
+      "modelKey": "模型",
+      "maxTurns": "最大輪次",
+      "loopMode": "循環模式",
+      "loopAuto": "自動",
+      "loopSingleTurn": "單輪",
       "typeLabel": "類型",
       "typePrivate": "私有",
       "typePrivateDesc": "僅自己可見",
@@ -523,5 +584,117 @@
     "noParameters": "此工具沒有定義參數",
     "endpoint": "API 端點",
     "parameters": "參數"
+  },
+  "McpSettings": {
+    "title": "MCP 伺服器配置",
+    "description": "在這裡配置 MCP 伺服器連接，支援新增、編輯、刪除和連通性測試。",
+    "serverCount": "共 {count} 台 MCP 伺服器",
+    "add": "新增 MCP 伺服器",
+    "createTitle": "新增 MCP 伺服器",
+    "editTitle": "編輯 MCP 伺服器",
+    "empty": "暫無 MCP 伺服器配置，點擊下方新增一條",
+    "enabled": "已啟用",
+    "disabled": "已停用",
+    "edit": "編輯",
+    "delete": "刪除",
+    "test": "測試",
+    "cancel": "取消",
+    "create": "創建",
+    "update": "保存",
+    "saving": "保存中...",
+    "lastTest": "最近可用工具數：{count}",
+    "transportHint": {
+      "stdio": "啟動命令",
+      "network": "連接地址"
+    },
+    "fields": {
+      "name": "名稱",
+      "description": "描述",
+      "transport": "傳輸方式",
+      "command": "啟動命令",
+      "args": "啟動參數（每行一個）",
+      "url": "服務地址",
+      "env": "環境變量（KEY=VALUE，每行一條）",
+      "approvalPolicy": "審批策略",
+      "enabled": "啟用"
+    },
+    "placeholders": {
+      "name": "我的-MCP-伺服器",
+      "description": "填寫伺服器用途說明",
+      "command": "例如：node",
+      "args": "例如：main.js",
+      "url": "https://example.com/mcp",
+      "env": "API_TOKEN=abcdef"
+    },
+    "approvalPolicy": {
+      "none": "無",
+      "all": "全部審批",
+      "sensitive": "僅敏感工具審批"
+    },
+    "transportValues": {
+      "stdio": "標準輸入輸出",
+      "streamable_http": "可串流的 HTTP",
+      "sse": "SSE"
+    },
+    "approval": {
+      "none": "無",
+      "all": "全部審批",
+      "sensitive": "僅敏感工具審批"
+    },
+    "validation": {
+      "nameRequired": "請填寫名稱",
+      "descriptionRequired": "請填寫描述",
+      "commandRequired": "請填寫啟動命令",
+      "urlRequired": "請填寫服務地址"
+    },
+    "errors": {
+      "loadFailed": "加载 MCP 配置失败",
+      "saveFailed": "保存 MCP 配置失敗",
+      "deleteFailed": "刪除 MCP 配置失敗",
+      "testFailed": "測試 MCP 連接失敗"
+    },
+    "messages": {
+      "created": "MCP 伺服器創建成功",
+      "updated": "MCP 伺服器更新成功",
+      "deleted": "MCP 伺服器刪除成功",
+      "testSuccess": "測試成功，發現 {count} 個可用工具",
+      "deleteConfirm": "確認刪除該 MCP 伺服器嗎？"
+    }
+  },
+  "SystemSettings": {
+    "title": "系統設定",
+    "description": "管理您的個人帳戶、系統偏好和 MCP 插件服務。",
+    "tabs": {
+      "preferences": "偏好設定",
+      "account": "帳戶安全",
+      "mcp": "MCP 插件",
+      "danger": "危險紅區"
+    },
+    "preferences": {
+      "themeLabel": "深色模式",
+      "themeDesc": "選擇您喜歡的主題外觀。",
+      "langLabel": "介面語言",
+      "langDesc": "更改應用程式的顯示語言。",
+      "pushLabel": "推送通知",
+      "pushDesc": "允許應用透過系統向您推送通知消息。",
+      "emailLabel": "郵件通知",
+      "emailDesc": "接收系統和產品的更新訂閱郵件。"
+    },
+    "account": {
+      "name": "顯示名稱",
+      "email": "電子郵箱",
+      "id": "帳戶 ID",
+      "method": "認證方式",
+      "methodDesc": "您當前綁定的安全登入方式",
+      "activeSessions": "活躍會話",
+      "viewSessions": "管理會話"
+    },
+    "danger": {
+      "title": "危險操作區域",
+      "desc": "以下操作可能導致您的資料永久丟失且無法恢復，請謹慎操作。",
+      "alertText": "刪除帳戶是不可逆的操作。一旦您刪除帳戶，您所有的對話歷史、智能體配置和工具綁定都將被永久清除。",
+      "deleteBtn": "物理刪除當前帳戶",
+      "deleteConfirm": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！"
+    }
   }
 }

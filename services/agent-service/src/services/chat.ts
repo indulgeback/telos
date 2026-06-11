@@ -3,12 +3,13 @@ import {
   AIMessageChunk,
   BaseMessage,
   HumanMessage,
+  SystemMessage,
   ToolMessage,
 } from '@langchain/core/messages'
 import { DynamicTool } from '@langchain/core/tools'
 import { toBaseMessages } from '@ai-sdk/langchain'
 import { createUIMessageStream, type UIMessageChunk } from 'ai'
-import { logger } from '../config/index.js'
+import { logger, config } from '../config/index.js'
 import { prisma } from './db.js'
 import {
   createModelByProvider,
@@ -972,4 +973,27 @@ export async function runChatWithBuiltInTools(
       return '聊天服务错误'
     },
   })
+}
+
+export async function generateAgentInstructions(
+  description: string,
+  modelKey?: string
+): Promise<string> {
+  const selectedModel = modelKey || 'deepseek-v4-flash'
+  const selected = await resolveSelectedModel(selectedModel)
+  const modelRuntime = await createModelByProvider(selected.provider, {
+    model: selected.model,
+    reasoningEffort: 'medium',
+  })
+
+  const response = await modelRuntime.model.invoke([
+    new SystemMessage(
+      '你是一个专家级 AI Agent 系统提示词（System Prompt）设计大师。请根据用户提供的 Agent 功能描述，为该 Agent 撰写一份专业、严谨、逻辑清晰且实用的系统提示词（System Prompt）。要求：\n1. 明确角色定位、工作流和交互规范；\n2. 结构合理，直接输出生成的提示词内容，绝对不要包含任何包裹用的 Markdown 格式代码块（如 ```）或多余的解释性前言/后记。'
+    ),
+    new HumanMessage(`以下是该 Agent 的功能与角色描述：\n${description}`),
+  ])
+
+  return typeof response.content === 'string'
+    ? response.content.trim()
+    : description
 }

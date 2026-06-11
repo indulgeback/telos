@@ -150,6 +150,25 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* 统一可交互元素的鼠标指针样式 */
+  a,
+  button,
+  select,
+  input[type='submit'],
+  input[type='button'],
+  input[type='reset'],
+  input[type='file'],
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  /* 统一禁用状态元素的鼠标指针样式 */
+  [disabled],
+  .disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed !important;
+  }
 }
 
 /* Task list styles - convert checkboxes to icons */

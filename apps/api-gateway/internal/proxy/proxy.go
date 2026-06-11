@@ -123,10 +123,14 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 		}
 	}
 	targetURL := target + requestPath
+	if c.Request().URL.RawQuery != "" {
+		targetURL = targetURL + "?" + c.Request().URL.RawQuery
+	}
 
 	tlog.Info("[API Gateway] 流式代理请求",
 		"method", c.Request().Method,
 		"path", c.Request().URL.Path,
+		"query", c.Request().URL.RawQuery,
 		"target", targetURL,
 		"strip_prefix", route.StripPrefix,
 	)
