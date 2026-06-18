@@ -11,10 +11,11 @@
     "mobile:start": "pnpm --filter ./apps/mobile start",
     "mobile:android": "pnpm --filter ./apps/mobile android",
     "mobile:ios": "pnpm --filter ./apps/mobile ios",
-    "install:go": "echo 'Installing Go dependencies...' && go mod tidy -C apps/api-gateway && go mod tidy -C apps/registry && go mod tidy -C services/auth-service && go mod tidy -C services/user-service && go mod tidy -C services/workflow-service && go mod tidy -C services/agent-service && go mod tidy -C pkg/tlog && echo 'All Go dependencies installed successfully!'",
+    "install:go": "echo 'Installing Go dependencies...' && go mod tidy -C apps/api-gateway && go mod tidy -C apps/registry && go mod tidy -C pkg/tlog && echo 'All Go dependencies installed successfully!'",
     "install:all": "pnpm install && npm run install:go",
     "stat:front": "npx cloc --include-lang=JavaScript,TypeScript,SCSS,CSS --exclude-dir='node_modules,dist,build,.next,vendor' .",
-    "stat:back": "npx cloc --include-lang=go --exclude-dir='node_modules,dist,build,.next,vendor' ."
+    "stat:back": "npx cloc --include-lang=go --exclude-dir='node_modules,dist,build,.next,vendor' .",
+    "db:push": "npx prisma db push"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

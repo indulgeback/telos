@@ -2,11 +2,13 @@
 // 合并了 web (Better-Auth) 和 agent-service 的数据模型
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [pgvector(map: "vector")]
 }
 
 // ============================================================
@@ -24,6 +26,9 @@ model user {
 
   accounts account[]
   sessions session[]
+
+  defaultAgentId String? @map("default_agent_id")
+  defaultAgent   Agent?  @relation("UserDefaultAgent", fields: [defaultAgentId], references: [id], onDelete: SetNull)
 }
 
 model account {
@@ -90,18 +95,20 @@ model Agent {
   status       AgentStatus   @default(active)
   ownerId      String?       @map("owner_id")
   metadata     Json          @default("{}")
-  isDefault    Boolean       @default(false) @map("is_default")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  isDefault         Boolean       @default(false) @map("is_default")
+  instructionStatus String        @default("pending") @map("instruction_status")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
 
   skillsAsAgent     AgentSkill[]     @relation("AgentSkills")
   toolsAsAgent      AgentTool[]      @relation("AgentTools")
   mcpServersAsAgent AgentMcpServer[] @relation("AgentMcpServers")
   subagentsAsParent AgentRelation[]  @relation("ParentAgentRelations")
   parentsAsSubagent AgentRelation[]  @relation("SubagentAgentRelations")
-  threads           AgentThread[]
   memories          AgentMemory[]
+  threads           AgentThread[]
   runs              AgentRun[]
+  defaultUsers      user[]        @relation("UserDefaultAgent")
 
   @@map("agents")
 }
@@ -278,19 +285,19 @@ model AgentMessage {
 }
 
 model AgentMemory {
-  id          String   @id @default(uuid())
-  agentId     String   @map("agent_id")
-  ownerId     String   @map("owner_id")
-  summary     String   @default("")
-  facts       Json     @default("[]")
-  preferences Json     @default("[]")
-  metadata    Json     @default("{}")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id        String                      @id @default(uuid())
+  agentId   String                      @map("agent_id")
+  ownerId   String                      @map("owner_id")
+  content   String                      @default("")
+  category  String                      @default("general") // "user_preference" | "task_history" | "domain_fact"
+  embedding Unsupported("vector(1536)")?
+  metadata  Json                        @default("{}")
+  createdAt DateTime                    @default(now()) @map("created_at")
+  updatedAt DateTime                    @updatedAt @map("updated_at")
 
   agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
-  @@unique([ownerId, agentId])
+  @@index([agentId, ownerId])
   @@map("agent_memories")
 }
 
@@ -354,15 +361,17 @@ model AgentRunEvent {
 }
 
 model ChatModel {
-  id          String            @id @default(uuid())
-  modelKey    String            @unique @map("model_key")
-  displayName String            @map("display_name")
-  provider    ChatModelProvider
-  isReasoning Boolean           @default(false) @map("is_reasoning")
-  isEnabled   Boolean           @default(true) @map("is_enabled")
-  sortOrder   Int               @default(0) @map("sort_order")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
+  id                      String            @id @default(uuid())
+  modelKey                String            @unique @map("model_key")
+  displayName             String            @map("display_name")
+  provider                ChatModelProvider
+  isReasoning             Boolean           @default(false) @map("is_reasoning")
+  isEnabled               Boolean           @default(true) @map("is_enabled")
+  sortOrder               Int               @default(0) @map("sort_order")
+  createdAt               DateTime          @default(now()) @map("created_at")
+  updatedAt               DateTime          @updatedAt @map("updated_at")
+  supportVision           Boolean           @default(false) @map("support_vision")
+  supportReasoningControl Boolean           @default(false) @map("support_reasoning_control")
 
   @@map("chat_models")
 }

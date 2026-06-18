@@ -3,7 +3,7 @@ version: "3.8"
 services:
   # 数据库服务
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg18
     container_name: telos-postgres-dev
     environment:
       POSTGRES_DB: telos_dev
@@ -12,8 +12,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres_dev_data:/var/lib/postgresql
     networks:
       - telos-dev-network
 
