@@ -292,25 +292,22 @@ function ChatMessageInner({
           <div className='flex max-w-full flex-col items-end gap-1.5'>
             <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>
               {hasImages && (
-                <div className='mb-2 grid max-w-[360px] grid-cols-3 gap-2'>
+                <div className='mb-2 flex flex-col gap-2 max-w-[400px] w-full'>
                   {safeImages.map((src, index) => (
                     <button
                       type='button'
                       key={`${id}-img-${index}`}
-                      className='relative aspect-square overflow-hidden rounded-md bg-primary-foreground/10'
+                      className='relative flex overflow-hidden rounded-md bg-primary-foreground/10 transition-opacity hover:opacity-90'
                       onClick={() => {
                         setPreviewIndex(index)
                         setPreviewOpen(true)
                       }}
                       aria-label={imagePreviewLabel}
                     >
-                      <Image
+                      <img
                         src={src}
                         alt={`user-image-${index + 1}`}
-                        fill
-                        unoptimized
-                        sizes='120px'
-                        className='object-cover'
+                        className='max-w-full h-auto max-h-[280px] rounded-md object-contain'
                       />
                     </button>
                   ))}

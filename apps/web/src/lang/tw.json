@@ -1,11 +1,28 @@
 {
   "Navbar": {
     "home": "首頁",
-    "chat": "AI 助手",
-    "agents": "智慧型代理",
+    "chat": "對話",
+    "agents": "代理人",
     "settings": "設定"
   },
   "Chat": {
+    "toolCall": {
+      "status": {
+        "success": "完成",
+        "error": "失敗",
+        "running": "正在運行..."
+      },
+      "input": "輸入",
+      "output": "輸出",
+      "error": "錯誤"
+    },
+    "voiceChat": "語音聊天",
+    "voiceInput": "語音輸入",
+    "voiceError": "即時語音服務錯誤：{error}",
+    "chatError": "聊天服務錯誤：{error}",
+    "reconnecting": "重新連線中…",
+    "imageUploadLabel": "上傳圖片",
+    "imageRemoveLabel": "移除圖片",
     "title": "AI 助手",
     "subtitle": "隨時為您服務",
     "clearConversation": "清空對話",
@@ -115,7 +132,9 @@
       "missingConfig": "缺少 {count} 項配置",
       "voiceInputMessage": "（語音輸入）",
       "microphoneError": "無法啟動麥克風，請檢查瀏覽器權限。",
-      "socketError": "即時語音連接異常，請稍後重試。"
+      "socketError": "即時語音連接異常，請稍後重試。",
+      "mute": "靜音麥克風",
+      "unmute": "取消靜音麥克風"
     },
     "reasoning": {
       "title": "推理過程",
@@ -390,7 +409,8 @@
       "emailLabel": "電子郵箱",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "發送登錄連結",
-      "magicLinkSent": "登錄連結已發送至您的郵箱，請注意查收！"
+      "magicLinkSent": "登錄連結已發送至您的郵箱，請注意查收！",
+      "orSocial": "或使用社交帳號登入"
     },
     "error": {
       "title": "認證錯誤",
@@ -418,7 +438,8 @@
     "types": {
       "public": "公開",
       "private": "私有",
-      "system": "系統"
+      "system": "系統",
+      "systemReadOnly": "系統唯讀代理"
     },
     "form": {
       "description": "填寫 Agent 資訊",
@@ -438,7 +459,26 @@
       "typePrivateDesc": "僅自己可見",
       "typePublic": "公開",
       "typePublicDesc": "所有人可用",
-      "required": "請填寫所有必填欄位"
+      "required": "請填寫所有必填欄位",
+      "systemPrompt": "代理系統提示",
+      "instructionsDesc": "提示是指導代理行為的核心邏輯。您可以手動編輯它，或點擊卡片上的「優化提示」以使用 AI 生成它。",
+      "typePublicSelect": "公開（所有人可使用）",
+      "typePrivateSelect": "私人（僅你可見）",
+      "voiceSettingsTitle": "即時語音直播設定",
+      "voiceEnabled": "啟用自訂語音設定",
+      "voiceEnabledDesc": "打開以為此代理指派個人化的說話風格、語音和進階功能",
+      "voiceSpeaker": "語音預設",
+      "voiceStyle": "說話風格",
+      "voiceWebSearch": "網頁搜尋功能",
+      "voiceWebSearchDesc": "啟用後，代理可以使用搜尋工具來回答即時問題",
+      "voiceSinging": "歌唱與音樂互動",
+      "voiceSingingDesc": "啟用時，若用戶要求，代理將直接唱歌",
+      "voiceDetails": "語音情感與語調細節"
+    },
+    "speakers": {
+      "cancan": "康康舞（活潑溫暖的女性）",
+      "audrey": "奧黛麗（溫柔且成熟的女性）",
+      "ajie": "阿傑（冷靜明亮的男性）"
     },
     "selector": {
       "label": "選擇 Agent",
@@ -456,7 +496,14 @@
       "deleteConfirm": {
         "title": "確認刪除",
         "description": "刪除後無法恢復，確定要刪除這個 Agent 嗎？"
-      }
+      },
+      "cancelDefaultSuccess": "已取消個人預設代理，系統預設已恢復",
+      "setDefaultSuccess": "已成功將「{name}」設為您的預設代理",
+      "setDefaultError": "無法設置預設代理",
+      "enhancePromptStart": "已在背景中開始提示優化",
+      "enhancePromptError": "未能優化提示",
+      "updateSuccess": "代理更新成功",
+      "updateError": "更新代理失敗"
     },
     "empty": {
       "title": "還沒有 Agent",
@@ -464,7 +511,26 @@
     },
     "created": "創建於",
     "systemAgentReadOnly": "系統 Agent 不可編輯",
-    "configureTools": "配置工具"
+    "configureTools": "配置工具",
+    "isUserDefault": "目前預設",
+    "systemDefault": "系統預設",
+    "setUserDefault": "設為預設代理",
+    "cancelUserDefault": "取消預設代理",
+    "editPrompt": "修改提示",
+    "viewPrompt": "查看提示",
+    "view": "檢視",
+    "saveChanges": "保存變更",
+    "close": "關閉",
+    "editTitle": "編輯代理",
+    "viewTitle": "代理人詳情",
+    "editDesc": "修改當前代理的名稱、描述、運行指令和語音設置。",
+    "viewDesc": "查看當前代理的角色描述、運行說明和語音詳情。",
+    "enhancePrompt": "優化提示",
+    "enhancing": "優化中...",
+    "promptStatus": {
+      "generating": "AI 提示正在背景中生成…",
+      "failed": "提示生成失敗，使用描述作為備用。"
+    }
   },
   "Tool": {
     "title": "工具管理",
@@ -663,6 +729,7 @@
   },
   "SystemSettings": {
     "title": "系統設定",
+    "modalTitle": "Telos v0.1.0 · 全域系統設定",
     "description": "管理您的個人帳戶、系統偏好和 MCP 插件服務。",
     "tabs": {
       "preferences": "偏好設定",
@@ -687,14 +754,58 @@
       "method": "認證方式",
       "methodDesc": "您當前綁定的安全登入方式",
       "activeSessions": "活躍會話",
-      "viewSessions": "管理會話"
+      "viewSessions": "管理會話",
+      "authMethod": "本地魔術連結 / 社交授權",
+      "magicLinkProvider": "郵箱魔術連結",
+      "loadingSessions": "正在加載活躍設備列表...",
+      "noSessions": "暫無活躍會話記錄",
+      "currentDevice": "當前設備",
+      "revokeBtn": "強制下線",
+      "notSetName": "未設定使用者名稱",
+      "notConfigured": "未配置",
+      "unknown": "未知",
+      "createdAt": "創建於"
     },
     "danger": {
       "title": "危險操作區域",
       "desc": "以下操作可能導致您的資料永久丟失且無法恢復，請謹慎操作。",
       "alertText": "刪除帳戶是不可逆的操作。一旦您刪除帳戶，您所有的對話歷史、智能體配置和工具綁定都將被永久清除。",
       "deleteBtn": "物理刪除當前帳戶",
-      "deleteConfirm": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！"
+      "deleteConfirm": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！",
+      "deleteNotice": "帳號刪除動作已被觸發，但為了開發環境的安全，尚未寫入資料庫以進行實體刪除。"
+    },
+    "messages": {
+      "revokeSuccess": "成功將裝置強制離線",
+      "revokeError": "操作失敗，請再試一次",
+      "pushUpdateSuccess": "推播通知偏好設定已更新",
+      "emailUpdateSuccess": "電子郵件通知偏好已更新",
+      "langUpdateSuccess": "介面語言已更新"
+    },
+    "ua": {
+      "unknownOS": "未知作業系統",
+      "unknownBrowser": "未知瀏覽器"
     }
+  },
+  "Profile": {
+    "title": "個人資料",
+    "subtitle": "管理您的帳戶資訊和偏好設定",
+    "basicInfo": "基本資訊",
+    "basicInfoDesc": "您的基本帳戶資訊",
+    "unknownUser": "未知使用者",
+    "platformUser": "平台用戶",
+    "username": "使用者名稱",
+    "email": "電子郵件地址",
+    "userId": "用戶 ID",
+    "regTime": "註冊時間",
+    "notSet": "未設定",
+    "localAccount": "本地帳戶",
+    "actions": "帳戶操作",
+    "actionsDesc": "管理您的帳戶設定",
+    "settingsBtn": "帳戶設定",
+    "viewChatBtn": "查看對話"
+  },
+  "Pricing": {
+    "popular": "最受歡迎",
+    "monthlyPeriod": "/mo"
   }
 }

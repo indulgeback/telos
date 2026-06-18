@@ -12,16 +12,28 @@ export interface Agent {
   name: string
   description: string
   instructions?: string
+  instruction_status?: 'pending' | 'generating' | 'completed' | 'failed'
   type: AgentType
   owner_id: string | null
   owner_name?: string
   is_default: boolean
+  is_user_default?: boolean
   model_key?: string
   temperature?: number
   max_turns?: number
   loop_mode?: AgentLoopMode
   status?: AgentStatus
-  metadata?: Record<string, unknown>
+  metadata?: {
+    voice?: {
+      enabled?: boolean
+      speakingStyle?: string
+      characterDetails?: string
+      webSearchEnabled?: boolean
+      singingEnabled?: boolean
+      speaker?: string
+    }
+    [key: string]: any
+  }
   created_at: string
   updated_at: string
 }
@@ -207,6 +219,18 @@ export class AgentService {
 
   getDefaultAgent(): Promise<Agent> {
     return this.request<Agent>('/api/agents/default')
+  }
+
+  setUserDefaultAgent(
+    agentId: string | null
+  ): Promise<{ success: boolean; default_agent_id: string | null }> {
+    return this.request<{ success: boolean; default_agent_id: string | null }>(
+      '/api/agents/default',
+      {
+        method: 'POST',
+        body: JSON.stringify({ agentId }),
+      }
+    )
   }
 
   createAgent(data: CreateAgentRequest): Promise<Agent> {
@@ -406,6 +430,15 @@ export class AgentService {
     await this.request<unknown>(`/api/mcp-servers/${id}`, {
       method: 'DELETE',
     })
+  }
+
+  regenerateInstructions(agentId: string): Promise<Agent> {
+    return this.request<Agent>(
+      `/api/agents/${agentId}/regenerate-instructions`,
+      {
+        method: 'POST',
+      }
+    )
   }
 }
 

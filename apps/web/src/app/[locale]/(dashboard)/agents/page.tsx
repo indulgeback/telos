@@ -16,8 +16,10 @@ export default function AgentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadAgents = async () => {
-    setLoading(true)
+  const loadAgents = async (silent = false) => {
+    if (!silent) {
+      setLoading(true)
+    }
     setError(null)
     try {
       const data = await agentService.listAgents()
@@ -25,13 +27,29 @@ export default function AgentsPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load agents')
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
 
   useEffect(() => {
     loadAgents()
   }, [])
+
+  // 轮询生成中的 Agent 提示词状态
+  useEffect(() => {
+    const hasGenerating = agents.some(
+      agent => agent.instruction_status === 'generating'
+    )
+    if (!hasGenerating) return
+
+    const timer = setInterval(() => {
+      loadAgents(true)
+    }, 3000)
+
+    return () => clearInterval(timer)
+  }, [agents])
 
   return (
     <div className='container mx-auto py-8'>

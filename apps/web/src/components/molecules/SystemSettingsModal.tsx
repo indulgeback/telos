@@ -176,16 +176,16 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
   const handleRevokeSession = async (token: string) => {
     try {
       await authClient.revokeSession({ token })
-      toast.success('已将该设备强制下线')
+      toast.success(t('messages.revokeSuccess'))
       loadSessions()
     } catch (err) {
       console.error('Failed to revoke session:', err)
-      toast.error('操作失败，请重试')
+      toast.error(t('messages.revokeError'))
     }
   }
 
   const parseUserAgent = (ua: string) => {
-    if (!ua) return { os: '未知系统', browser: '未知浏览器' }
+    if (!ua) return { os: t('ua.unknownOS'), browser: t('ua.unknownBrowser') }
     const uaLower = ua.toLowerCase()
     let os = 'Unknown OS'
     let browser = 'Unknown Browser'
@@ -227,18 +227,18 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
   const handlePushChange = (val: boolean) => {
     setNotifications(val)
     localStorage.setItem('pref_push_notifications', String(val))
-    toast.success('推送通知偏好已更新')
+    toast.success(t('messages.pushUpdateSuccess'))
   }
 
   const handleEmailChange = (val: boolean) => {
     setEmailUpdates(val)
     localStorage.setItem('pref_email_updates', String(val))
-    toast.success('邮件通知偏好已更新')
+    toast.success(t('messages.emailUpdateSuccess'))
   }
 
   const handleLocaleChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale })
-    toast.success('界面语言已更新')
+    toast.success(t('messages.langUpdateSuccess'))
   }
 
   const getLocaleName = (code: string) => {
@@ -424,9 +424,7 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
   // 4. 危险操作
   const handleDeleteAccount = async () => {
     if (!confirm(t('danger.deleteConfirm'))) return
-    toast.error(
-      '删除账户操作已触发，但为了开发环境安全，暂未写入底座物理清除。'
-    )
+    toast.error(t('danger.deleteNotice'))
   }
 
   const userInitials = user?.name
@@ -489,7 +487,7 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
             </div>
 
             <div className='text-[10px] text-muted-foreground/60 px-2 mt-auto hidden md:block'>
-              Telos v0.1.0 · 全局系统设置
+              {t('modalTitle')}
             </div>
           </div>
 
@@ -621,7 +619,7 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
                   </Avatar>
                   <div className='space-y-1'>
                     <h3 className='text-md font-semibold text-foreground'>
-                      {user?.name || '未设置用户名'}
+                      {user?.name || t('account.notSetName')}
                     </h3>
                     <p className='text-xs text-muted-foreground flex items-center gap-1.5'>
                       <Mail className='h-3.5 w-3.5' />
@@ -636,7 +634,7 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
                       {t('account.name')}
                     </label>
                     <p className='text-sm font-medium text-foreground'>
-                      {user?.name || '未配置'}
+                      {user?.name || t('account.notConfigured')}
                     </p>
                   </div>
                   <div className='space-y-1.5 p-3 rounded-lg border bg-background/25 border-foreground/5'>
@@ -644,7 +642,7 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
                       {t('account.email')}
                     </label>
                     <p className='text-sm font-medium text-foreground'>
-                      {user?.email || '未配置'}
+                      {user?.email || t('account.notConfigured')}
                     </p>
                   </div>
                   <div className='space-y-1.5 p-3 rounded-lg border bg-background/25 border-foreground/5 md:col-span-2'>
@@ -731,10 +729,11 @@ export function SystemSettingsModal({ onClose }: SystemSettingsModalProps) {
                                   )}
                                 </p>
                                 <p className='text-[10px] text-muted-foreground mt-0.5 truncate'>
-                                  IP: {s.ipAddress || '未知'} · 创建于{' '}
+                                  IP: {s.ipAddress || t('account.unknown')} ·{' '}
+                                  {t('account.createdAt')}{' '}
                                   {s.createdAt
                                     ? new Date(s.createdAt).toLocaleDateString()
-                                    : '未知'}
+                                    : t('account.unknown')}
                                 </p>
                               </div>
                             </div>

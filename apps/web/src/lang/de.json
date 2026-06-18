@@ -1,11 +1,28 @@
 {
   "Navbar": {
     "home": "Startseite",
-    "chat": "KI-Assistent",
-    "agents": "Agent",
+    "chat": "Gespräch",
+    "agents": "Agenten",
     "settings": "Einstellungen"
   },
   "Chat": {
+    "toolCall": {
+      "status": {
+        "success": "Vollständig",
+        "error": "Fehlgeschlagen",
+        "running": "Läuft..."
+      },
+      "input": "Eingabe",
+      "output": "Ausgabe",
+      "error": "Fehler"
+    },
+    "voiceChat": "Sprachchat",
+    "voiceInput": "Sprachsteuerung",
+    "voiceError": "Echtzeit-Sprachdienstfehler: {error}",
+    "chatError": "Chat-Dienstfehler: {error}",
+    "reconnecting": "Wiederverbinden...",
+    "imageUploadLabel": "Bild hochladen",
+    "imageRemoveLabel": "Bild entfernen",
     "title": "KI-Assistent",
     "subtitle": "Jederzeit zu Ihren Diensten",
     "clearConversation": "Chat leeren",
@@ -115,7 +132,9 @@
       "missingConfig": "Fehlen {count} Konfigurationen",
       "voiceInputMessage": "(Spracheingabe)",
       "microphoneError": "Das Mikrofon kann nicht gestartet werden. Bitte überprüfen Sie die Berechtigungen des Browsers.",
-      "socketError": "Echtzeit-Sprachverbindung gestört, bitte versuchen Sie es später erneut."
+      "socketError": "Echtzeit-Sprachverbindung gestört, bitte versuchen Sie es später erneut.",
+      "mute": "Mikrofon stummschalten",
+      "unmute": "Mikrofon einschalten"
     },
     "reasoning": {
       "title": "Schlussfolgerungsprozess",
@@ -390,7 +409,8 @@
       "emailLabel": "E-Mail",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "Anmeldelink senden",
-      "magicLinkSent": "Der Login-Link wurde an Ihre E-Mail gesendet, bitte überprüfen Sie Ihr Postfach!"
+      "magicLinkSent": "Der Login-Link wurde an Ihre E-Mail gesendet, bitte überprüfen Sie Ihr Postfach!",
+      "orSocial": "oder mit sozialen Konten anmelden"
     },
     "error": {
       "title": "Fehler bei der Authentifizierung",
@@ -418,7 +438,8 @@
     "types": {
       "public": "öffentlich",
       "private": "Privat",
-      "system": "System"
+      "system": "System",
+      "systemReadOnly": "System Nur-Lese-Agent"
     },
     "form": {
       "description": "Agenteninformationen ausfüllen",
@@ -438,7 +459,26 @@
       "typePrivateDesc": "Nur für mich sichtbar",
       "typePublic": "öffentlich",
       "typePublicDesc": "Für alle verfügbar",
-      "required": "Bitte füllen Sie alle Pflichtfelder aus"
+      "required": "Bitte füllen Sie alle Pflichtfelder aus",
+      "systemPrompt": "Agentensystem-Eingabeaufforderung",
+      "instructionsDesc": "Der Prompt ist die Kernlogik, die das Verhalten des Agenten steuert. Sie können ihn manuell bearbeiten oder auf der Karte auf 'Prompt optimieren' klicken, um ihn mit KI zu erstellen.",
+      "typePublicSelect": "Öffentlich (Für alle verfügbar)",
+      "typePrivateSelect": "Privat (Nur für Sie sichtbar)",
+      "voiceSettingsTitle": "Echtzeit-Sprach-Live-Einstellungen",
+      "voiceEnabled": "Benutzerdefinierte Sprachkonfiguration aktivieren",
+      "voiceEnabledDesc": "Einschalten, um diesem Agenten einen personalisierten Sprechstil, eine Stimme und erweiterte Funktionen zuzuweisen",
+      "voiceSpeaker": "Sprachvorgabe",
+      "voiceStyle": "Sprechstil",
+      "voiceWebSearch": "Web-Suchfunktion",
+      "voiceWebSearchDesc": "Wenn aktiviert, kann der Agent Suchwerkzeuge aufrufen, um Echtzeitfragen zu beantworten",
+      "voiceSinging": "Singen & Musikinteraktion",
+      "voiceSingingDesc": "Wenn aktiviert, wird der Agent auf Wunsch des Benutzers direkt singen",
+      "voiceDetails": "Stimmemotion- und Toninformationen"
+    },
+    "speakers": {
+      "cancan": "Cancan (lebhaft & warm weiblich)",
+      "audrey": "Audrey (Sanft & Reif Weiblich)",
+      "ajie": "Ajie (Ruhiger & Heller Mann)"
     },
     "selector": {
       "label": "Agent auswählen",
@@ -456,7 +496,14 @@
       "deleteConfirm": {
         "title": "Löschen bestätigen",
         "description": "Nach dem Löschen kann nicht wiederhergestellt werden. Möchten Sie diesen Agenten wirklich löschen?"
-      }
+      },
+      "cancelDefaultSuccess": "Persönlicher Standardagent storniert, Systemsstandard wiederhergestellt",
+      "setDefaultSuccess": "„{name}“ erfolgreich als Ihren Standardagenten festgelegt",
+      "setDefaultError": "Fehler beim Festlegen des Standard-Agenten",
+      "enhancePromptStart": "Prompt-Optimierung im Hintergrund gestartet",
+      "enhancePromptError": "Fehler beim Optimieren der Eingabeaufforderung",
+      "updateSuccess": "Agent erfolgreich aktualisiert",
+      "updateError": "Aktualisierung des Agenten fehlgeschlagen"
     },
     "empty": {
       "title": "Noch kein Agent",
@@ -464,7 +511,26 @@
     },
     "created": "Gegründet in",
     "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden",
-    "configureTools": "Konfigurationstool"
+    "configureTools": "Konfigurationstool",
+    "isUserDefault": "Aktuell Standard",
+    "systemDefault": "Systemstandard",
+    "setUserDefault": "Als Standard-Agent festlegen",
+    "cancelUserDefault": "Standardagent abbrechen",
+    "editPrompt": "Eingabeaufforderung ändern",
+    "viewPrompt": "Eingabeaufforderung anzeigen",
+    "view": "Ansehen",
+    "saveChanges": "Änderungen speichern",
+    "close": "Schließen",
+    "editTitle": "Agent bearbeiten",
+    "viewTitle": "Agentendetails",
+    "editDesc": "Ändern Sie den Namen, die Beschreibung, die Anweisungen zur Ausführung und die Stimmeinstellungen für den aktuellen Agenten.",
+    "viewDesc": "Siehe die Rollenbeschreibung, die Ausführungsanweisungen und die Sprachdetails für den aktuellen Agenten.",
+    "enhancePrompt": "Eingabeaufforderung optimieren",
+    "enhancing": "Optimieren...",
+    "promptStatus": {
+      "generating": "KI-Aufforderung wird im Hintergrund generiert...",
+      "failed": "Die Aufforderungserstellung ist fehlgeschlagen, die Beschreibung wurde als Backup verwendet."
+    }
   },
   "Tool": {
     "title": "Werkzeugverwaltung",
@@ -663,6 +729,7 @@
   },
   "SystemSettings": {
     "title": "Systemeinstellungen",
+    "modalTitle": "Telos v0.1.0 · Globale Systemeinstellungen",
     "description": "Verwalten Sie Ihr persönliches Konto, Systemeinstellungen und MCP-Plugin-Dienste.",
     "tabs": {
       "preferences": "Einstellungen",
@@ -687,14 +754,58 @@
       "method": "Authentifizierungsmethode",
       "methodDesc": "Die derzeit mit Ihnen verknüpfte sichere Anmeldemethode",
       "activeSessions": "Aktive Sitzung",
-      "viewSessions": "Sitzung verwalten"
+      "viewSessions": "Sitzung verwalten",
+      "authMethod": "Lokaler magischer Link / Soziale Authentifizierung",
+      "magicLinkProvider": "E-Mail-Zauberlink",
+      "loadingSessions": "Aktive Geräteliste wird geladen...",
+      "noSessions": "Keine aktiven Sitzungsaufzeichnungen",
+      "currentDevice": "Aktuelles Gerät",
+      "revokeBtn": "zwangsweise abmelden",
+      "notSetName": "Benutzername nicht gesetzt",
+      "notConfigured": "Nicht konfiguriert",
+      "unknown": "Unbekannt",
+      "createdAt": "Erstellt am"
     },
     "danger": {
       "title": "Gefahrenbereich für den Betrieb",
       "desc": "Die folgenden Vorgänge können dazu führen, dass Ihre Daten dauerhaft verloren gehen und nicht wiederhergestellt werden können. Bitte gehen Sie vorsichtig vor.",
       "alertText": "Das Löschen des Kontos ist ein irreversibler Vorgang. Sobald Sie Ihr Konto löschen, werden alle Ihre Gesprächshistorien, Agentenkonfigurationen und Tool-Zuordnungen dauerhaft gelöscht.",
       "deleteBtn": "Konto dauerhaft löschen",
-      "deleteConfirm": "【Warnung】Sind Sie sicher, dass Sie dieses Konto endgültig löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden, alle Daten gehen verloren!"
+      "deleteConfirm": "【Warnung】Sind Sie sicher, dass Sie dieses Konto endgültig löschen möchten? Dieser Vorgang kann nicht rückgängig gemacht werden, alle Daten gehen verloren!",
+      "deleteNotice": "Die Aktion zum Löschen des Kontos wurde ausgelöst, aber aus Sicherheitsgründen in der Entwicklungsumgebung wurde sie nicht zur physischen Löschung in die Datenbank geschrieben."
+    },
+    "messages": {
+      "revokeSuccess": "Gerät erfolgreich offline gezwungen",
+      "revokeError": "Aktion fehlgeschlagen, bitte versuchen Sie es erneut",
+      "pushUpdateSuccess": "Push-Benachrichtigungseinstellungen aktualisiert",
+      "emailUpdateSuccess": "E-Mail-Benachrichtigungseinstellungen aktualisiert",
+      "langUpdateSuccess": "Sprache der Benutzeroberfläche aktualisiert"
+    },
+    "ua": {
+      "unknownOS": "Unbekanntes Betriebssystem",
+      "unknownBrowser": "Unbekannter Browser"
     }
+  },
+  "Profile": {
+    "title": "Profil",
+    "subtitle": "Verwalten Sie Ihre Kontoinformationen und Einstellungen",
+    "basicInfo": "Grundinformationen",
+    "basicInfoDesc": "Ihre grundlegenden Kontoinformationen",
+    "unknownUser": "Unbekannter Benutzer",
+    "platformUser": "Plattformbenutzer",
+    "username": "Benutzername",
+    "email": "E-Mail-Adresse",
+    "userId": "Benutzer-ID",
+    "regTime": "Registrierungszeit",
+    "notSet": "Nicht festgelegt",
+    "localAccount": "Lokales Konto",
+    "actions": "Kontohandlungen",
+    "actionsDesc": "Verwalten Sie Ihre Kontoeinstellungen",
+    "settingsBtn": "Kontoeinstellungen",
+    "viewChatBtn": "Konversationen anzeigen"
+  },
+  "Pricing": {
+    "popular": "Am beliebtesten",
+    "monthlyPeriod": "/mo"
   }
 }

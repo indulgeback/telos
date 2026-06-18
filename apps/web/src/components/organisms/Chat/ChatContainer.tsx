@@ -117,6 +117,8 @@ export interface ChatModelOption {
   label: string
   provider: 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'openai' | 'shortapi'
   isReasoning: boolean
+  supportVision?: boolean
+  supportReasoningControl?: boolean
 }
 
 export interface ChatContainerProps {
@@ -185,6 +187,7 @@ export interface ChatContainerProps {
   imageRemoveLabel?: string
   showScrollToBottom: boolean
   showReasoningEffort?: boolean
+  showReasoningControl?: boolean
   showImageUpload?: boolean
   imagePreviews?: string[]
   disableModelSelect?: boolean
@@ -239,7 +242,7 @@ export function ChatContainer({
   scrollToBottomLabel,
   inputPlaceholder,
   sendAriaLabel,
-  stopAriaLabel = '停止生成',
+  stopAriaLabel = 'Stop generating',
   disclaimer,
   emptyStateTitle,
   emptyStateDescription,
@@ -257,6 +260,7 @@ export function ChatContainer({
   imageRemoveLabel = 'Remove image',
   showScrollToBottom,
   showReasoningEffort = false,
+  showReasoningControl = false,
   showImageUpload = false,
   imagePreviews = [],
   disableModelSelect = false,
@@ -636,7 +640,7 @@ export function ChatContainer({
       </div>
 
       {/* Input Area */}
-      <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-10'>
+      <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-30'>
         <div className='mx-auto max-w-5xl px-4 py-4'>
           {showImageUpload && imagePreviews.length > 0 && (
             <div className='mb-2 flex items-center gap-2 overflow-x-auto py-2'>
@@ -702,6 +706,7 @@ export function ChatContainer({
                 <ChatInputActions
                   showImageUpload={false}
                   showReasoningEffort={showReasoningEffort}
+                  showReasoningControl={showReasoningControl}
                   imageUploadLabel={imageUploadLabel}
                   reasoningEffort={reasoningEffort}
                   reasoningEffortLabel={reasoningEffortLabel}

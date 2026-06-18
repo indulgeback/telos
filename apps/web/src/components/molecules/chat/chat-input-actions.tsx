@@ -18,6 +18,7 @@ import { BrainCircuit, ImagePlus, Plus } from 'lucide-react'
 export interface ChatInputActionsProps {
   showImageUpload: boolean
   showReasoningEffort: boolean
+  showReasoningControl?: boolean
   imageUploadLabel: string
   reasoningEffort: 'minimal' | 'low' | 'medium' | 'high'
   reasoningEffortLabel: string
@@ -35,10 +36,9 @@ export interface ChatInputActionsProps {
 export function ChatInputActions({
   showImageUpload,
   showReasoningEffort,
+  showReasoningControl = false,
   imageUploadLabel,
   reasoningEffort,
-  reasoningEffortLabel,
-  reasoningEffortMinimal,
   reasoningEffortLow,
   reasoningEffortMedium,
   reasoningEffortHigh,
@@ -55,36 +55,54 @@ export function ChatInputActions({
   return (
     <div className='flex min-w-0 flex-wrap items-center gap-2'>
       {showReasoningEffort && (
-        <Select
-          value={reasoningEffort}
-          onValueChange={value =>
-            onReasoningEffortChange(
-              value as 'minimal' | 'low' | 'medium' | 'high'
-            )
-          }
-          disabled={disableReasoningEffort}
-        >
-          <SelectTrigger
-            size='sm'
-            className='h-8 w-[168px] max-w-full overflow-hidden rounded-md border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 sm:w-[190px]'
+        <div className='flex items-center gap-1.5 shrink-0'>
+          <button
+            type='button'
+            onClick={() =>
+              onReasoningEffortChange(
+                reasoningEffort !== 'minimal' ? 'minimal' : 'medium'
+              )
+            }
+            disabled={disableReasoningEffort}
+            className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors ${
+              reasoningEffort !== 'minimal'
+                ? 'border-primary/50 bg-primary/10 text-primary'
+                : 'border-border/70 bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+            } ${disableReasoningEffort ? 'opacity-60' : ''}`}
+            aria-pressed={reasoningEffort !== 'minimal'}
+            title='Thinking Mode'
           >
-            <div className='flex min-w-0 items-center gap-1.5'>
-              <BrainCircuit className='size-3.5 shrink-0' />
-              <span className='min-w-0 truncate text-muted-foreground'>
-                {reasoningEffortLabel}
-              </span>
-              <span className='min-w-0 truncate'>
-                <SelectValue />
-              </span>
+            <BrainCircuit className='size-3.5 shrink-0' />
+            <span className='truncate'>Thinking</span>
+          </button>
+          {reasoningEffort !== 'minimal' && showReasoningControl && (
+            <div className='flex items-center rounded-md border border-border/70 bg-background h-8 px-2 text-xs shadow-xs'>
+              <Select
+                value={reasoningEffort}
+                onValueChange={value =>
+                  onReasoningEffortChange(
+                    value as 'minimal' | 'low' | 'medium' | 'high'
+                  )
+                }
+                disabled={disableReasoningEffort}
+              >
+                <SelectTrigger
+                  size='sm'
+                  className='h-6 border-none bg-transparent p-0 text-xs shadow-none hover:bg-transparent focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 w-[48px]'
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='low'>{reasoningEffortLow}</SelectItem>
+                  <SelectItem value='medium'>
+                    {reasoningEffortMedium}
+                  </SelectItem>
+                  <SelectItem value='high'>{reasoningEffortHigh}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='minimal'>{reasoningEffortMinimal}</SelectItem>
-            <SelectItem value='low'>{reasoningEffortLow}</SelectItem>
-            <SelectItem value='medium'>{reasoningEffortMedium}</SelectItem>
-            <SelectItem value='high'>{reasoningEffortHigh}</SelectItem>
-          </SelectContent>
-        </Select>
+          )}
+        </div>
       )}
 
       {showImageUpload && (

@@ -36,7 +36,7 @@ export function AgentSelector({
       setAgents(data)
       // Set default agent if none selected
       if (!selectedAgentId && data.length > 0) {
-        const defaultAgent = data.find(a => a.is_default) || data[0]
+        const defaultAgent = data.find(a => a.is_user_default) || data[0]
         onAgentChange(defaultAgent)
       }
     } catch (error) {
@@ -110,9 +110,9 @@ export function AgentSelector({
                   {getTypeIcon(agent.type)}
                   <span className='truncate'>{agent.name}</span>
                 </span>
-                {agent.is_default && (
+                {agent.is_user_default && (
                   <span className='text-[10px] text-muted-foreground'>
-                    {t('default')}
+                    {t('systemDefault')}
                   </span>
                 )}
               </div>

@@ -297,3 +297,14 @@ html {
 .chat-reasoning-details[open] .chat-reasoning-chevron {
   transform: rotate(90deg);
 }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Scoped to ThemeToggle — the toggler sets the data-attribute and the variable only during a theme toggle. */
+html[data-magicui-theme-vt='active']::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
+}

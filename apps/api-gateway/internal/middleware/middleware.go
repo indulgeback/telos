@@ -101,6 +101,15 @@ func RateLimitMiddleware(requests int, window time.Duration) func(http.Handler) 
 		mu:       &sync.RWMutex{},
 	}
 
+	// 启动定期清理过期令牌桶的 goroutine，每 5 分钟执行一次
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			limiter.cleanup()
+		}
+	}()
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// 使用客户端 IP 作为限流键
@@ -190,6 +199,18 @@ func (rl *rateLimiter) Allow(key string) bool {
 	// 添加新令牌
 	rl.tokens[key] = append(rl.tokens[key], now)
 	return true
+}
+
+func (rl *rateLimiter) cleanup() {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	cutoff := time.Now().Add(-10 * time.Minute)
+	for key, times := range rl.tokens {
+		if len(times) == 0 || times[len(times)-1].Before(cutoff) {
+			delete(rl.tokens, key)
+		}
+	}
 }
 
 // getClientIP 获取客户端真实 IP

@@ -8,6 +8,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 export interface ToolCallPreview {
   toolCallId: string
@@ -18,23 +19,23 @@ export interface ToolCallPreview {
   errorText?: string
 }
 
-function getStateMeta(state: ToolCallPreview['state']) {
+function getStateMeta(state: ToolCallPreview['state'], t: any) {
   switch (state) {
     case 'success':
       return {
-        label: '完成',
+        label: t('toolCall.status.success'),
         icon: CheckCircle2,
         textClass: 'text-emerald-600 dark:text-emerald-400',
       }
     case 'error':
       return {
-        label: '失败',
+        label: t('toolCall.status.error'),
         icon: AlertCircle,
         textClass: 'text-destructive',
       }
     default:
       return {
-        label: '调用中',
+        label: t('toolCall.status.running'),
         icon: Loader2,
         textClass: 'text-muted-foreground',
       }
@@ -53,7 +54,8 @@ function compactText(input?: string) {
 }
 
 export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
-  const meta = getStateMeta(tool.state)
+  const t = useTranslations('Chat')
+  const meta = getStateMeta(tool.state, t)
   const Icon = meta.icon
   const input = tool.inputText ?? ''
   const output = tool.outputText ?? ''
@@ -92,17 +94,17 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
         <div className='ml-[7px] mt-1 border-l border-border/70 pl-4 text-[11px] leading-relaxed'>
           {summaryInput && (
             <p className='line-clamp-1 text-muted-foreground'>
-              输入：{summaryInput}
+              {t('toolCall.input')}: {summaryInput}
             </p>
           )}
           {tool.state === 'success' && summaryOutput && (
             <p className='line-clamp-2 text-foreground/75'>
-              输出：{summaryOutput}
+              {t('toolCall.output')}: {summaryOutput}
             </p>
           )}
           {tool.state === 'error' && summaryError && (
             <p className='line-clamp-2 text-destructive'>
-              错误：{summaryError}
+              {t('toolCall.error')}: {summaryError}
             </p>
           )}
         </div>
@@ -112,7 +114,9 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
         <div className='ml-[7px] mt-2 space-y-2 border-l border-border/70 pl-4'>
           {input && (
             <div>
-              <p className='text-[11px] text-muted-foreground'>输入</p>
+              <p className='text-[11px] text-muted-foreground'>
+                {t('toolCall.input')}
+              </p>
               <pre className='mt-1 whitespace-pre-wrap break-words rounded-md bg-muted/60 p-2 text-[11px] text-foreground'>
                 {input}
               </pre>
@@ -120,7 +124,9 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
           )}
           {tool.state === 'success' && output && (
             <div>
-              <p className='text-[11px] text-muted-foreground'>输出</p>
+              <p className='text-[11px] text-muted-foreground'>
+                {t('toolCall.output')}
+              </p>
               <pre className='mt-1 whitespace-pre-wrap break-words rounded-md bg-muted/60 p-2 text-[11px] text-foreground'>
                 {output}
               </pre>
@@ -128,7 +134,9 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
           )}
           {tool.state === 'error' && errorText && (
             <div>
-              <p className='text-[11px] text-muted-foreground'>错误</p>
+              <p className='text-[11px] text-muted-foreground'>
+                {t('toolCall.error')}
+              </p>
               <pre className='mt-1 whitespace-pre-wrap break-words rounded-md bg-destructive/10 p-2 text-[11px] text-destructive'>
                 {errorText}
               </pre>

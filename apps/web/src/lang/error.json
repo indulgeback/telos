@@ -1,20 +1,14 @@
 [
   {
-    "lang": "tw",
-    "key": "SystemSettings.danger.deleteConfirm",
-    "value": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！",
+    "lang": "ko",
+    "key": "Chat.reconnecting",
+    "value": "Reconnecting...",
     "error": "Cannot read properties of undefined (reading 'body')"
   },
   {
-    "lang": "ru",
-    "key": "McpSettings.create",
-    "value": "创建",
-    "error": "Cannot read properties of undefined (reading 'body')"
-  },
-  {
-    "lang": "ru",
-    "key": "SystemSettings.preferences.emailDesc",
-    "value": "接收系统和产品的更新订阅邮件。",
-    "error": "Cannot read properties of undefined (reading 'body')"
+    "lang": "ko",
+    "key": "Chat.imageUploadLabel",
+    "value": "Upload Image",
+    "error": "Failed to request translation service"
   }
 ]

@@ -230,7 +230,7 @@ export default function SignInPage() {
           <div className='relative flex items-center justify-center'>
             <span className='h-px flex-1 bg-border' />
             <span className='bg-card px-3 text-xs text-muted-foreground'>
-              或社交账号登录
+              {t('orSocial')}
             </span>
             <span className='h-px flex-1 bg-border' />
           </div>

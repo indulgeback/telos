@@ -21,6 +21,7 @@ type ServiceDiscovery interface {
 	FetchInstances(serviceName string) []string
 	ListInstances(serviceName string) []string
 	Discover(serviceName string) (string, error)
+	InvalidateCache(serviceName string)
 }
 
 // RegistryServiceDiscovery 通过 registry 服务发现
@@ -41,7 +42,7 @@ func NewRegistryServiceDiscovery(registryAddr string, lb LoadBalancer) *Registry
 		RegistryAddr: registryAddr,
 		LB:           lb,
 		cache:        make(map[string][]string),
-		refreshIntvl: 30 * time.Second, // 默认30秒刷新一次
+		refreshIntvl: 10 * time.Second, // 默认10秒刷新一次
 		stopCh:       make(chan struct{}),
 	}
 	rsd.refreshAllServices()
@@ -62,17 +63,54 @@ func (r *RegistryServiceDiscovery) startAutoRefresh() {
 	}
 }
 
+func (r *RegistryServiceDiscovery) FetchAllServiceNames() []string {
+	url := fmt.Sprintf("%s/api/services", r.RegistryAddr)
+	resp, err := http.Get(url)
+	if err != nil {
+		tlog.Error("获取服务列表失败", "error", err, "url", url)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Services []string `json:"services"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		tlog.Error("解析服务列表失败", "error", err)
+		return nil
+	}
+	return result.Services
+}
+
 func (r *RegistryServiceDiscovery) refreshAllServices() {
-	// 这里可以维护一个服务名列表，或每次刷新时动态获取
-	// 简单实现：假设有一组常用服务名
-	serviceNames := []string{"agent-service"}
+	serviceNames := r.FetchAllServiceNames()
+	if len(serviceNames) == 0 {
+		serviceNames = []string{"agent-service"}
+	}
+	r.cacheLock.Lock()
+	defer r.cacheLock.Unlock()
+
+	activeServices := make(map[string]bool)
 	for _, name := range serviceNames {
+		activeServices[name] = true
 		instances := r.FetchInstances(name)
-		r.cacheLock.Lock()
 		r.cache[name] = instances
-		r.cacheLock.Unlock()
 		tlog.Info("服务发现刷新", "service", name, "instances", instances, "count", len(instances))
 	}
+
+	for k := range r.cache {
+		if !activeServices[k] {
+			delete(r.cache, k)
+		}
+	}
+}
+
+func (r *RegistryServiceDiscovery) InvalidateCache(serviceName string) {
+	tlog.Info("主动失效服务实例缓存并触发刷新", "service", serviceName)
+	instances := r.FetchInstances(serviceName)
+	r.cacheLock.Lock()
+	r.cache[serviceName] = instances
+	r.cacheLock.Unlock()
 }
 
 func (r *RegistryServiceDiscovery) FetchInstances(serviceName string) []string {
@@ -125,14 +163,14 @@ func (r *RegistryServiceDiscovery) Discover(serviceName string) (string, error) 
 	if len(instances) == 0 {
 		return "", errors.New("无可用实例")
 	}
-	return r.LB.Select(instances), nil
+	return r.LB.Select(serviceName, instances), nil
 }
 
 // LoadBalancer 负载均衡接口
 // Select 根据策略从实例列表中选择一个
 
 type LoadBalancer interface {
-	Select(instances []string) string
+	Select(serviceName string, instances []string) string
 }
 
 // RoundRobinLoadBalancer 轮询负载均衡实现
@@ -148,13 +186,13 @@ func NewRoundRobinLoadBalancer() *RoundRobinLoadBalancer {
 	}
 }
 
-func (r *RoundRobinLoadBalancer) Select(instances []string) string {
+func (r *RoundRobinLoadBalancer) Select(serviceName string, instances []string) string {
 	if len(instances) == 0 {
 		return ""
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	key := "default"
+	key := serviceName
 	idx := r.index[key]
 	selected := instances[idx%len(instances)]
 	r.index[key] = (idx + 1) % len(instances)

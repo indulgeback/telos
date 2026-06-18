@@ -1,11 +1,28 @@
 {
   "Navbar": {
     "home": "首页",
-    "chat": "AI 助手",
-    "agents": "智能体",
+    "chat": "对话",
+    "agents": "代理人",
     "settings": "设置"
   },
   "Chat": {
+    "toolCall": {
+      "status": {
+        "success": "完成",
+        "error": "失败",
+        "running": "运行中..."
+      },
+      "input": "输入",
+      "output": "输出",
+      "error": "错误"
+    },
+    "voiceChat": "语音聊天",
+    "voiceInput": "语音输入",
+    "voiceError": "实时语音服务错误：{error}",
+    "chatError": "聊天服务错误：{error}",
+    "reconnecting": "重新连接中...",
+    "imageUploadLabel": "上传图片",
+    "imageRemoveLabel": "移除图片",
     "title": "AI 助手",
     "subtitle": "随时为您服务",
     "clearConversation": "清空对话",
@@ -115,7 +132,9 @@
       "missingConfig": "缺少 {count} 项配置",
       "voiceInputMessage": "（语音输入）",
       "microphoneError": "无法启动麦克风，请检查浏览器权限。",
-      "socketError": "实时语音连接异常，请稍后重试。"
+      "socketError": "实时语音连接异常，请稍后重试。",
+      "mute": "静音麦克风",
+      "unmute": "取消静音麦克风"
     },
     "reasoning": {
       "title": "推理过程",
@@ -390,7 +409,8 @@
       "emailLabel": "电子邮箱",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "发送登录链接",
-      "magicLinkSent": "登录链接已发送至您的邮箱，请注意查收！"
+      "magicLinkSent": "登录链接已发送至您的邮箱，请注意查收！",
+      "orSocial": "或使用社交账户登录"
     },
     "error": {
       "title": "认证错误",
@@ -418,7 +438,8 @@
     "types": {
       "public": "公开",
       "private": "私有",
-      "system": "系统"
+      "system": "系统",
+      "systemReadOnly": "系统只读代理"
     },
     "form": {
       "description": "填写 Agent 信息",
@@ -438,7 +459,30 @@
       "typePrivateDesc": "仅自己可见",
       "typePublic": "公开",
       "typePublicDesc": "所有人可用",
-      "required": "请填写所有必填字段"
+      "required": "请填写所有必填字段",
+      "systemPrompt": "代理系统提示",
+      "instructionsDesc": "提示是指导代理行为的核心逻辑。你可以手动编辑它，或者点击卡片上的“优化提示”使用 AI 生成它。",
+      "typePublicSelect": "公开（所有人可用）",
+      "typePrivateSelect": "私人（仅你可见）",
+      "voiceSettingsTitle": "实时语音直播设置",
+      "voiceEnabled": "启用自定义语音配置",
+      "voiceEnabledDesc": "开启以为此代理分配个性化的说话风格、声音和高级功能",
+      "voiceSpeaker": "语音预设",
+      "voiceStyle": "说话风格",
+      "voiceWebSearch": "网页搜索功能",
+      "voiceWebSearchDesc": "启用后，代理可以调用搜索工具来回答实时问题",
+      "voiceSinging": "歌唱与音乐互动",
+      "voiceSingingDesc": "启用后，如果用户请求，代理将直接唱歌",
+      "voiceDetails": "语音情感与语调详情"
+    },
+    "speakers": {
+      "vv": "Vivi 唯唯 (精品女声 - 推荐)",
+      "xiaohe": "Xiaohe 小何 (精品女声)",
+      "yunzhou": "Yunzhou 云舟 (精品男声)",
+      "xiaotian": "Xiaotian 小天 (精品男声)",
+      "tim": "Tim (精品英文男声)",
+      "dacey": "Dacey (精品英文女声)",
+      "stokie": "Stokie (精品英文女声)"
     },
     "selector": {
       "label": "选择 Agent",
@@ -456,7 +500,14 @@
       "deleteConfirm": {
         "title": "确认删除",
         "description": "删除后无法恢复，确定要删除这个 Agent 吗？"
-      }
+      },
+      "cancelDefaultSuccess": "已取消个人默认代理，已恢复系统默认",
+      "setDefaultSuccess": "已成功将“{name}”设置为您的默认代理",
+      "setDefaultError": "设置默认代理失败",
+      "enhancePromptStart": "已在后台启动提示优化",
+      "enhancePromptError": "未能优化提示",
+      "updateSuccess": "代理更新成功",
+      "updateError": "未能更新代理"
     },
     "empty": {
       "title": "还没有 Agent",
@@ -464,7 +515,26 @@
     },
     "created": "创建于",
     "systemAgentReadOnly": "系统 Agent 不可编辑",
-    "configureTools": "配置工具"
+    "configureTools": "配置工具",
+    "isUserDefault": "当前默认",
+    "systemDefault": "系统默认",
+    "setUserDefault": "设为默认 Agent",
+    "cancelUserDefault": "取消默认 Agent",
+    "editPrompt": "修改提示词",
+    "viewPrompt": "查看提示词",
+    "view": "查看",
+    "saveChanges": "保存修改",
+    "close": "关闭",
+    "editTitle": "编辑 Agent",
+    "viewTitle": "Agent 详情",
+    "editDesc": "修改当前代理的名称、描述、运行指令和语音设置。",
+    "viewDesc": "查看当前代理的角色描述、运行说明和语音详情。",
+    "enhancePrompt": "优化提示",
+    "enhancing": "优化中...",
+    "promptStatus": {
+      "generating": "AI 提示正在后台生成...",
+      "failed": "提示生成失败，使用描述作为备用。"
+    }
   },
   "Tool": {
     "title": "工具管理",
@@ -663,6 +733,7 @@
   },
   "SystemSettings": {
     "title": "系统设置",
+    "modalTitle": "Telos v0.1.0 · 全局系统设置",
     "description": "管理您的个人账户、系统偏好和 MCP 插件服务。",
     "tabs": {
       "preferences": "偏好设置",
@@ -686,21 +757,59 @@
       "id": "账户 ID",
       "method": "认证方式",
       "methodDesc": "您当前绑定的安全登录方式",
+      "activeSessions": "活跃会话",
+      "viewSessions": "管理会话",
       "authMethod": "本地魔术链接 / 社交授权",
       "magicLinkProvider": "邮箱魔术链接",
       "loadingSessions": "正在加载活跃设备列表...",
       "noSessions": "暂无活跃会话记录",
       "currentDevice": "当前设备",
       "revokeBtn": "强制下线",
-      "activeSessions": "活跃会话",
-      "viewSessions": "管理会话"
+      "notSetName": "用户名未设置",
+      "notConfigured": "未配置",
+      "unknown": "未知",
+      "createdAt": "创建于"
     },
     "danger": {
       "title": "危险操作区域",
       "desc": "以下操作可能导致您的数据永久丢失且无法恢复，请谨慎操作。",
       "alertText": "删除账户是不可逆的操作。一旦您删除账户，您所有的对话历史、智能体配置和工具绑定都将被永久清除。",
       "deleteBtn": "物理删除当前账户",
-      "deleteConfirm": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！"
+      "deleteConfirm": "【警告】确认彻底删除该账户吗？此操作无法撤销，所有数据都将丢失！",
+      "deleteNotice": "账户删除操作已被触发，但出于开发环境安全考虑，它尚未被写入数据库以进行物理删除。"
+    },
+    "messages": {
+      "revokeSuccess": "成功将设备强制下线",
+      "revokeError": "操作失败，请重试",
+      "pushUpdateSuccess": "推送通知偏好已更新",
+      "emailUpdateSuccess": "电子邮件通知偏好已更新",
+      "langUpdateSuccess": "界面语言已更新"
+    },
+    "ua": {
+      "unknownOS": "未知操作系统",
+      "unknownBrowser": "未知浏览器"
     }
+  },
+  "Profile": {
+    "title": "个人资料",
+    "subtitle": "管理您的账户信息和偏好设置",
+    "basicInfo": "基本信息",
+    "basicInfoDesc": "您的基本账户信息",
+    "unknownUser": "未知用户",
+    "platformUser": "平台用户",
+    "username": "用户名",
+    "email": "电子邮件地址",
+    "userId": "用户ID",
+    "regTime": "注册时间",
+    "notSet": "未设置",
+    "localAccount": "本地账户",
+    "actions": "账户操作",
+    "actionsDesc": "管理你的账户设置",
+    "settingsBtn": "账户设置",
+    "viewChatBtn": "查看对话"
+  },
+  "Pricing": {
+    "popular": "最受欢迎",
+    "monthlyPeriod": "/mo"
   }
 }

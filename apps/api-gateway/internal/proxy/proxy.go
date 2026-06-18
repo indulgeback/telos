@@ -163,6 +163,7 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 	resp, err := client.Do(req)
 	if err != nil {
 		tlog.Error("[API Gateway] 流式代理请求失败", "error", err)
+		pm.discovery.InvalidateCache(route.ServiceName)
 		return echo.NewHTTPError(http.StatusBadGateway, "后端服务请求失败")
 	}
 	defer resp.Body.Close()
@@ -418,6 +419,7 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 	// 设置错误处理
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		tlog.Error("代理请求失败", "target", target, "path", r.URL.Path, "error", err)
+		pm.discovery.InvalidateCache(route.ServiceName)
 		writeErrorResponse(w, "后端服务错误", http.StatusBadGateway)
 	}
 

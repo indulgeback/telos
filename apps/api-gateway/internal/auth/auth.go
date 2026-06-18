@@ -54,12 +54,29 @@ type sessionResponse struct {
 }
 
 func NewAuthenticator(cfg Config) *Authenticator {
-	return &Authenticator{
+	a := &Authenticator{
 		cfg: cfg,
 		client: &http.Client{
 			Timeout: 5 * time.Second,
 		},
 		cache: make(map[string]cacheEntry),
+	}
+	go a.cleanupLoop()
+	return a
+}
+
+func (a *Authenticator) cleanupLoop() {
+	ticker := time.NewTicker(60 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		a.mu.Lock()
+		now := time.Now()
+		for k, entry := range a.cache {
+			if now.After(entry.expiresAt) {
+				delete(a.cache, k)
+			}
+		}
+		a.mu.Unlock()
 	}
 }
 
@@ -172,11 +189,31 @@ func (a *Authenticator) setCached(key string, identity *Identity) {
 		return
 	}
 	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	if len(a.cache) >= 10000 {
+		now := time.Now()
+		for k, entry := range a.cache {
+			if now.After(entry.expiresAt) {
+				delete(a.cache, k)
+			}
+		}
+		if len(a.cache) >= 10000 {
+			count := 0
+			for k := range a.cache {
+				delete(a.cache, k)
+				count++
+				if count >= 1000 {
+					break
+				}
+			}
+		}
+	}
+
 	a.cache[key] = cacheEntry{
 		userID:    identity.UserID,
 		expiresAt: time.Now().Add(a.cfg.CacheTTL),
 	}
-	a.mu.Unlock()
 }
 
 func hashString(value string) string {

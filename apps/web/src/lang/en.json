@@ -1,11 +1,28 @@
 {
   "Navbar": {
     "home": "Home",
-    "chat": "AI Assistant",
-    "agents": "Agent",
+    "chat": "Conversation",
+    "agents": "Agents",
     "settings": "Settings"
   },
   "Chat": {
+    "toolCall": {
+      "status": {
+        "success": "Complete",
+        "error": "Failed",
+        "running": "Running..."
+      },
+      "input": "Input",
+      "output": "Output",
+      "error": "Error"
+    },
+    "voiceChat": "Voice Chat",
+    "voiceInput": "Voice Input",
+    "voiceError": "Real-time voice service error: {error}",
+    "chatError": "Chat service error: {error}",
+    "reconnecting": "Reconnecting...",
+    "imageUploadLabel": "Upload Image",
+    "imageRemoveLabel": "Remove Image",
     "title": "AI Assistant",
     "subtitle": "Always at your service",
     "clearConversation": "Clear conversation",
@@ -115,7 +132,9 @@
       "missingConfig": "Missing {count} configuration items",
       "voiceInputMessage": "(Voice input)",
       "microphoneError": "Unable to start the microphone, please check the browser permissions.",
-      "socketError": "Real-time voice connection is abnormal, please try again later."
+      "socketError": "Real-time voice connection is abnormal, please try again later.",
+      "mute": "Mute Microphone",
+      "unmute": "Unmute Microphone"
     },
     "reasoning": {
       "title": "Reasoning process",
@@ -390,7 +409,8 @@
       "emailLabel": "Email",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "Send login link",
-      "magicLinkSent": "The login link has been sent to your email, please check it!"
+      "magicLinkSent": "The login link has been sent to your email, please check it!",
+      "orSocial": "or sign in with social accounts"
     },
     "error": {
       "title": "Authentication errors",
@@ -418,7 +438,8 @@
     "types": {
       "public": "Public",
       "private": "Private",
-      "system": "System"
+      "system": "System",
+      "systemReadOnly": "System Read-only Agent"
     },
     "form": {
       "description": "Fill in Agent information",
@@ -438,7 +459,30 @@
       "typePrivateDesc": "Only visible to you",
       "typePublic": "Public",
       "typePublicDesc": "Available to everyone",
-      "required": "Please fill in all required fields"
+      "required": "Please fill in all required fields",
+      "systemPrompt": "Agent System Prompt",
+      "instructionsDesc": "The prompt is the core logic guiding the Agent's behavior. You can edit it manually or click 'Optimize Prompt' on the card to generate it with AI.",
+      "typePublicSelect": "Public (Available to everyone)",
+      "typePrivateSelect": "Private (Visible only to you)",
+      "voiceSettingsTitle": "Realtime Voice Live Settings",
+      "voiceEnabled": "Enable Custom Voice Config",
+      "voiceEnabledDesc": "Turn on to assign personalized speaking style, voice, and advanced features for this agent",
+      "voiceSpeaker": "Voice Preset",
+      "voiceStyle": "Speaking Style",
+      "voiceWebSearch": "Web Search Feature",
+      "voiceWebSearchDesc": "When enabled, the agent can call search tools to answer real-time questions",
+      "voiceSinging": "Singing & Music Interaction",
+      "voiceSingingDesc": "When enabled, the agent will sing directly if requested by the user",
+      "voiceDetails": "Voice Emotion & Tone Details"
+    },
+    "speakers": {
+      "vv": "Vivi (Premium Female - Recommended)",
+      "xiaohe": "Xiaohe (Premium Female)",
+      "yunzhou": "Yunzhou (Premium Male)",
+      "xiaotian": "Xiaotian (Premium Male)",
+      "tim": "Tim (Premium English Male)",
+      "dacey": "Dacey (Premium English Female)",
+      "stokie": "Stokie (Premium English Female)"
     },
     "selector": {
       "label": "Select Agent",
@@ -451,12 +495,19 @@
     "messages": {
       "createSuccess": "Agent created successfully",
       "createError": "Failed to create Agent",
+      "updateSuccess": "Agent updated successfully",
+      "updateError": "Failed to update Agent",
       "deleteSuccess": "Agent deleted successfully",
       "deleteError": "Failed to delete Agent",
       "deleteConfirm": {
         "title": "Confirm Delete",
         "description": "This cannot be undone. Are you sure you want to delete this Agent?"
-      }
+      },
+      "cancelDefaultSuccess": "Cancelled personal default Agent, system default restored",
+      "setDefaultSuccess": "Successfully set \"{name}\" as your default Agent",
+      "setDefaultError": "Failed to set default Agent",
+      "enhancePromptStart": "Started prompt optimization in the background",
+      "enhancePromptError": "Failed to optimize prompt"
     },
     "empty": {
       "title": "No agents yet",
@@ -464,7 +515,26 @@
     },
     "created": "Created at",
     "systemAgentReadOnly": "System agents cannot be edited",
-    "configureTools": "Configuration Tool"
+    "configureTools": "Configuration Tool",
+    "isUserDefault": "Current Default",
+    "systemDefault": "System Default",
+    "setUserDefault": "Set as Default Agent",
+    "cancelUserDefault": "Cancel Default Agent",
+    "editPrompt": "Modify Prompt",
+    "viewPrompt": "View Prompt",
+    "view": "View",
+    "saveChanges": "Save Changes",
+    "close": "Close",
+    "editTitle": "Edit Agent",
+    "viewTitle": "Agent Details",
+    "editDesc": "Modify the name, description, running instructions, and voice settings for the current Agent.",
+    "viewDesc": "View the role description, running instructions, and voice details for the current Agent.",
+    "enhancePrompt": "Optimize Prompt",
+    "enhancing": "Optimizing...",
+    "promptStatus": {
+      "generating": "AI Prompt is being generated in the background...",
+      "failed": "Prompt generation failed, description used as backup."
+    }
   },
   "Tool": {
     "title": "Tool Management",
@@ -663,6 +733,7 @@
   },
   "SystemSettings": {
     "title": "System Settings",
+    "modalTitle": "Telos v0.1.0 · Global System Settings",
     "description": "Manage your personal account, system preferences, and MCP plugin services.",
     "tabs": {
       "preferences": "Preferences",
@@ -686,21 +757,59 @@
       "id": "Account ID",
       "method": "Authentication method",
       "methodDesc": "Your currently linked secure login method",
-      "authMethod": "Magic Link / Social Auth",
-      "magicLinkProvider": "Email Magic Link",
-      "loadingSessions": "Loading active devices...",
-      "noSessions": "No active sessions found",
-      "currentDevice": "Current device",
-      "revokeBtn": "Force logout",
       "activeSessions": "Active Session",
-      "viewSessions": "Manage Session"
+      "viewSessions": "Manage Session",
+      "authMethod": "Local Magic Link / Social Authorization",
+      "magicLinkProvider": "Email magic link",
+      "loadingSessions": "Loading active device list...",
+      "noSessions": "No active session records",
+      "currentDevice": "Current device",
+      "revokeBtn": "Forced offline",
+      "notSetName": "Username not set",
+      "notConfigured": "Not configured",
+      "unknown": "Unknown",
+      "createdAt": "Created at"
     },
     "danger": {
       "title": "Dangerous Operation Area",
       "desc": "The following actions may cause your data to be permanently lost and unrecoverable, please proceed with caution.",
       "alertText": "Deleting an account is an irreversible action. Once you delete your account, all your conversation history, agent configurations, and tool bindings will be permanently erased.",
       "deleteBtn": "Permanently delete the current account",
-      "deleteConfirm": "[Warning] Are you sure you want to permanently delete this account? This action cannot be undone, and all data will be lost!"
+      "deleteConfirm": "[Warning] Are you sure you want to permanently delete this account? This action cannot be undone, and all data will be lost!",
+      "deleteNotice": "The account deletion action has been triggered, but for development environment safety, it has not been written into the base for physical deletion."
+    },
+    "messages": {
+      "revokeSuccess": "Successfully forced the device offline",
+      "revokeError": "Action failed, please try again",
+      "pushUpdateSuccess": "Push notification preferences updated",
+      "emailUpdateSuccess": "Email notification preferences updated",
+      "langUpdateSuccess": "Interface language updated"
+    },
+    "ua": {
+      "unknownOS": "Unknown OS",
+      "unknownBrowser": "Unknown Browser"
     }
+  },
+  "Profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account information and preferences",
+    "basicInfo": "Basic Information",
+    "basicInfoDesc": "Your basic account information",
+    "unknownUser": "Unknown User",
+    "platformUser": "Platform User",
+    "username": "Username",
+    "email": "Email Address",
+    "userId": "User ID",
+    "regTime": "Registration Time",
+    "notSet": "Not Set",
+    "localAccount": "Local Account",
+    "actions": "Account Actions",
+    "actionsDesc": "Manage your account settings",
+    "settingsBtn": "Account Settings",
+    "viewChatBtn": "View Conversations"
+  },
+  "Pricing": {
+    "popular": "Most Popular",
+    "monthlyPeriod": "/mo"
   }
 }

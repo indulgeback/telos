@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { cn } from '@/lib/utils'
 import { Button, Badge } from '@/components/atoms'
 import { Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface PricingCardProps {
   name: string
@@ -21,7 +22,7 @@ interface PricingCardProps {
 export function PricingCard({
   name,
   price,
-  period = '/月',
+  period,
   description,
   features,
   cta,
@@ -30,6 +31,7 @@ export function PricingCard({
   className,
   onSelect,
 }: PricingCardProps) {
+  const t = useTranslations('Pricing')
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -48,7 +50,7 @@ export function PricingCard({
     >
       {popular && (
         <Badge className='absolute -top-3 left-1/2 -translate-x-1/2'>
-          最受欢迎
+          {t('popular')}
         </Badge>
       )}
       <div className='mb-6'>
@@ -61,7 +63,9 @@ export function PricingCard({
         <span className='text-4xl font-display font-bold text-foreground'>
           {price}
         </span>
-        <span className='text-muted-foreground'>{period}</span>
+        <span className='text-muted-foreground'>
+          {period || t('monthlyPeriod')}
+        </span>
       </div>
       <ul className='space-y-3 mb-8 flex-1'>
         {features.map((feature, i) => (

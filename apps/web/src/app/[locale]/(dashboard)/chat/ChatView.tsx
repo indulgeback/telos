@@ -24,9 +24,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
   Input,
   type SuggestionPrompt,
 } from '@/components/atoms'
+import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { uploadImageToCos } from '@/lib/cos-upload'
 import { API_BASE_URL } from '@/service/request'
@@ -38,6 +43,7 @@ import {
 } from '@/service/agent'
 import {
   MessageSquare,
+  Mic,
   Mic2,
   MicOff,
   PhoneOff,
@@ -47,10 +53,12 @@ import {
   Square,
   Trash2,
   Volume2,
+  MoreHorizontal,
 } from 'lucide-react'
+import { VoiceAuraOrb } from '@/components/molecules/chat/VoiceAuraOrb'
 
 const AUTO_SCROLL_THRESHOLD_PX = 120
-const IMAGE_PLACEHOLDER_PROMPT = '请描述这张图片'
+const IMAGE_PLACEHOLDER_PROMPT = 'Please describe this image'
 const MAX_IMAGE_ATTACHMENTS = 3
 
 const isTextPart = (part: unknown): part is { type: 'text'; text: string } => {
@@ -90,6 +98,7 @@ type ChatStatus = 'ready' | 'submitted' | 'streaming'
 type RealtimeMicState =
   | 'idle'
   | 'connecting'
+  | 'reconnecting'
   | 'listening'
   | 'speaking'
   | 'error'
@@ -134,23 +143,9 @@ const normalizeModelProvider = (
   return 'deepseek'
 }
 
-const supportsReasoningEffortControl = (
-  modelOption: ChatModelOption | undefined
-) => {
+const supportsVision = (modelOption: ChatModelOption | undefined) => {
   if (!modelOption) return false
-  return (
-    modelOption.provider === 'seed' &&
-    modelOption.isReasoning &&
-    modelOption.model.startsWith('doubao-')
-  )
-}
-
-const supportsSeedVision = (modelOption: ChatModelOption | undefined) => {
-  if (!modelOption) return false
-  return (
-    modelOption.provider === 'seed' &&
-    modelOption.model.startsWith('doubao-seed-')
-  )
+  return !!modelOption.supportVision
 }
 
 const messageToUiMessage = (message: AgentMessage) => {
@@ -225,10 +220,13 @@ const formatElapsedSeconds = (seconds: number) => {
   return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`
 }
 
-const getDisplayThreadTitle = (title?: string | null) => {
+const getDisplayThreadTitle = (
+  title?: string | null,
+  voiceLabel: string = 'Voice Chat'
+) => {
   const safeTitle = title?.trim()
   if (!safeTitle || isVoicePlaceholder(safeTitle)) {
-    return '语音对话'
+    return voiceLabel
   }
   return safeTitle
 }
@@ -238,8 +236,11 @@ const isVoicePlaceholder = (value?: string | null) => {
   return safeValue === '(Voice input)' || safeValue === '（语音输入）'
 }
 
-const getDisplayMessageContent = (content: string) => {
-  if (isVoicePlaceholder(content)) return '语音输入'
+const getDisplayMessageContent = (
+  content: string,
+  voiceInputLabel: string = 'Voice Input'
+) => {
+  if (isVoicePlaceholder(content)) return voiceInputLabel
   return content
 }
 
@@ -617,6 +618,11 @@ export function ChatView() {
   const [realtimeErrorText, setRealtimeErrorText] = useState<string | null>(
     null
   )
+  const [realtimeVolumeAmplitude, setRealtimeVolumeAmplitude] = useState(0)
+  const [realtimeMuted, setRealtimeMuted] = useState(false)
+  const realtimeMutedRef = useRef(false)
+  realtimeMutedRef.current = realtimeMuted
+
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([])
   const [isUploadingImages, setIsUploadingImages] = useState(false)
@@ -643,6 +649,7 @@ export function ChatView() {
   const realtimeAvailable = Boolean(realtimeConfig?.configured)
   const isRealtimeMicActive =
     realtimeMicState === 'connecting' ||
+    realtimeMicState === 'reconnecting' ||
     realtimeMicState === 'listening' ||
     realtimeMicState === 'speaking'
 
@@ -683,6 +690,8 @@ export function ChatView() {
             label?: unknown
             provider?: unknown
             isReasoning?: unknown
+            supportVision?: unknown
+            supportReasoningControl?: unknown
           }>
         }
 
@@ -701,6 +710,8 @@ export function ChatView() {
                 label: item.label as string,
                 provider: normalizeModelProvider(item.provider),
                 isReasoning: Boolean(item.isReasoning),
+                supportVision: Boolean(item.supportVision),
+                supportReasoningControl: Boolean(item.supportReasoningControl),
               }))
           : []
 
@@ -919,9 +930,26 @@ export function ChatView() {
   }, [])
 
   const resetRealtimeTurnMessages = useCallback(() => {
+    const userId = realtimeUserIdRef.current
+    const assistantId = realtimeAssistantIdRef.current
+
+    if (userId || assistantId) {
+      setMessages(prev =>
+        prev.filter(message => {
+          if (message.id === userId && !message.content?.trim()) {
+            return false
+          }
+          if (message.id === assistantId && !message.content?.trim()) {
+            return false
+          }
+          return true
+        })
+      )
+    }
+
     realtimeUserIdRef.current = null
     realtimeAssistantIdRef.current = null
-  }, [])
+  }, [setMessages])
 
   const applyAgentStreamChunk = useCallback(
     (
@@ -965,7 +993,7 @@ export function ChatView() {
           return
         }
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(`实时语音服务错误：${errorText}`))
+          parts.push(createTextPart(t('voiceError', { error: errorText })))
         })
         return
       }
@@ -1185,7 +1213,7 @@ export function ChatView() {
         if (error instanceof Error && error.name === 'AbortError') return
         const message = error instanceof Error ? error.message : String(error)
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(`聊天服务错误：${message}`))
+          parts.push(createTextPart(t('chatError', { error: message })))
         })
       } finally {
         abortControllerRef.current = null
@@ -1253,7 +1281,7 @@ export function ChatView() {
         if (error instanceof Error && error.name === 'AbortError') return
         const message = error instanceof Error ? error.message : String(error)
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(`实时语音服务错误：${message}`))
+          parts.push(createTextPart(t('voiceError', { error: message })))
         })
       } finally {
         abortControllerRef.current = null
@@ -1303,6 +1331,26 @@ export function ChatView() {
       source.buffer = buffer
       source.connect(audioContext.destination)
 
+      // 计算输出音频数据帧的音量振幅 (RMS)
+      let sum = 0
+      for (let i = 0; i < floatData.length; i++) {
+        sum += floatData[i] * floatData[i]
+      }
+      const rms = Math.sqrt(sum / floatData.length)
+      const normalizedAmp = Math.min(Math.max(rms * 3.5, 0), 1)
+      setRealtimeVolumeAmplitude(normalizedAmp)
+
+      // 注册播放结束回调
+      source.onended = () => {
+        const currentCtx = realtimeAudioContextRef.current
+        if (
+          currentCtx &&
+          currentCtx.currentTime >= realtimePlaybackTimeRef.current - 0.05
+        ) {
+          setRealtimeVolumeAmplitude(0)
+        }
+      }
+
       const startAt = Math.max(
         audioContext.currentTime,
         realtimePlaybackTimeRef.current
@@ -1314,15 +1362,23 @@ export function ChatView() {
   )
 
   const stopRealtimeMic = useCallback(() => {
-    realtimeSocketRef.current?.send(JSON.stringify({ type: 'client.stop' }))
-    realtimeSocketRef.current?.close(1000, 'client stopped')
-    realtimeSocketRef.current = null
+    if (realtimeSocketRef.current) {
+      realtimeSocketRef.current.onclose = null
+      realtimeSocketRef.current.onerror = null
+      try {
+        realtimeSocketRef.current.send(JSON.stringify({ type: 'client.stop' }))
+        realtimeSocketRef.current.close(1000, 'client stopped')
+      } catch {}
+      realtimeSocketRef.current = null
+    }
     stopRealtimeAudioResources()
     resetRealtimeTurnMessages()
     setRealtimeStartedAt(null)
     setRealtimeErrorText(null)
     setRealtimeMicState('idle')
     setStatus('ready')
+    setRealtimeVolumeAmplitude(0)
+    setRealtimeMuted(false)
   }, [resetRealtimeTurnMessages, stopRealtimeAudioResources])
 
   const startRealtimeMic = useCallback(async () => {
@@ -1355,103 +1411,173 @@ export function ChatView() {
       const audioContext = new AudioContextClass()
       const source = audioContext.createMediaStreamSource(stream)
       const processor = audioContext.createScriptProcessor(4096, 1, 1)
-      const socket = new WebSocket(getRealtimeWebSocketUrl())
-      socket.binaryType = 'arraybuffer'
 
       realtimeStreamRef.current = stream
       realtimeAudioContextRef.current = audioContext
       realtimeSourceRef.current = source
       realtimeProcessorRef.current = processor
-      realtimeSocketRef.current = socket
       realtimePlaybackTimeRef.current = 0
 
-      socket.onopen = () => {
-        if (realtimeSocketRef.current !== socket) return
-        socket.send(
-          JSON.stringify({
-            type: 'client.start',
-            agentId: selectedAgent?.id,
-            threadId: currentThreadIdRef.current,
-          })
-        )
-        setRealtimeStartedAt(Date.now())
-        setRealtimeMicState('listening')
-      }
-      socket.onmessage = event => {
-        if (realtimeSocketRef.current !== socket) return
-        if (typeof event.data !== 'string') return
-        const chunk = parseUiMessageStreamChunk(event.data)
-        if (!chunk) return
-        if (chunk.type === 'response.audio.delta') {
-          const audioChunk = chunk as unknown as {
-            audio?: unknown
-            format?: unknown
-            sampleRate?: unknown
-          }
-          const audio = audioChunk.audio
-          if (typeof audio === 'string') {
-            setRealtimeMicState('speaking')
-            void playRealtimePcmAudio(
-              audio,
-              typeof audioChunk.format === 'string'
-                ? audioChunk.format
-                : undefined,
-              typeof audioChunk.sampleRate === 'number'
-                ? audioChunk.sampleRate
-                : undefined
-            )
-          }
-          return
+      let reconnectCount = 0
+      let isReconnecting = false
+
+      const connectSocket = () => {
+        const socket = new WebSocket(getRealtimeWebSocketUrl())
+        socket.binaryType = 'arraybuffer'
+        realtimeSocketRef.current = socket
+
+        socket.onopen = () => {
+          if (realtimeSocketRef.current !== socket) return
+          reconnectCount = 0
+          isReconnecting = false
+          socket.send(
+            JSON.stringify({
+              type: 'client.start',
+              agentId: selectedAgent?.id,
+              threadId: currentThreadIdRef.current,
+            })
+          )
+          setRealtimeStartedAt(Date.now())
+          setRealtimeMicState('listening')
+          setStatus('streaming')
         }
 
-        if (
-          chunk.type === 'response.input_audio_transcription.delta' ||
-          chunk.type === 'response.input_audio_transcription.completed'
-        ) {
-          if (typeof chunk.transcript === 'string' && chunk.transcript.trim()) {
-            const { userId } = ensureRealtimeTurnMessages()
-            updateUserTranscript(userId, chunk.transcript)
+        socket.onmessage = event => {
+          if (realtimeSocketRef.current !== socket) return
+          if (typeof event.data !== 'string') return
+          const chunk = parseUiMessageStreamChunk(event.data)
+          if (!chunk) return
+
+          if (chunk.type === 'ping') {
+            socket.send(JSON.stringify({ type: 'pong' }))
+            return
           }
-          return
-        }
 
-        if (chunk.type === 'response.created') return
+          if (chunk.type === 'reconnecting') {
+            setRealtimeMicState('reconnecting')
+            return
+          }
 
-        if (chunk.type === 'response.completed') {
-          resetRealtimeTurnMessages()
-          if (realtimeSocketRef.current === socket) {
+          if (chunk.type === 'reconnected') {
             setRealtimeMicState('listening')
-            setStatus('streaming')
+            return
           }
-          return
+
+          if (chunk.type === 'response.audio.delta') {
+            const audioChunk = chunk as unknown as {
+              audio?: unknown
+              format?: unknown
+              sampleRate?: unknown
+            }
+            const audio = audioChunk.audio
+            if (typeof audio === 'string') {
+              setRealtimeMicState('speaking')
+              void playRealtimePcmAudio(
+                audio,
+                typeof audioChunk.format === 'string'
+                  ? audioChunk.format
+                  : undefined,
+                typeof audioChunk.sampleRate === 'number'
+                  ? audioChunk.sampleRate
+                  : undefined
+              )
+            }
+            return
+          }
+
+          if (
+            chunk.type === 'response.input_audio_transcription.delta' ||
+            chunk.type === 'response.input_audio_transcription.completed'
+          ) {
+            if (
+              typeof chunk.transcript === 'string' &&
+              chunk.transcript.trim()
+            ) {
+              const { userId } = ensureRealtimeTurnMessages()
+              updateUserTranscript(userId, chunk.transcript)
+            }
+            return
+          }
+
+          if (chunk.type === 'response.created') return
+
+          if (chunk.type === 'response.completed') {
+            resetRealtimeTurnMessages()
+            if (realtimeSocketRef.current === socket) {
+              setRealtimeMicState('listening')
+              setStatus('streaming')
+            }
+            return
+          }
+
+          const { assistantId } = ensureRealtimeTurnMessages()
+          applyAgentStreamChunk(assistantId, chunk, {
+            suppressTextOnFailure: true,
+          })
         }
 
-        const { assistantId } = ensureRealtimeTurnMessages()
-        applyAgentStreamChunk(assistantId, chunk, {
-          suppressTextOnFailure: true,
-        })
-      }
-      socket.onerror = () => {
-        if (realtimeSocketRef.current !== socket) return
-        setRealtimeMicState('error')
-        setRealtimeErrorText(t('voice.socketError'))
-      }
-      socket.onclose = () => {
-        if (realtimeSocketRef.current && realtimeSocketRef.current !== socket) {
-          return
+        socket.onerror = () => {
+          if (realtimeSocketRef.current !== socket) return
+          if (!isReconnecting) {
+            setRealtimeMicState('error')
+            setRealtimeErrorText(t('voice.socketError'))
+          }
         }
-        realtimeSocketRef.current = null
-        stopRealtimeAudioResources()
-        setStatus('ready')
-        setRealtimeStartedAt(null)
-        setRealtimeMicState(prev => (prev === 'error' ? 'error' : 'idle'))
+
+        socket.onclose = () => {
+          if (
+            !realtimeSocketRef.current ||
+            realtimeSocketRef.current !== socket
+          ) {
+            return
+          }
+
+          if (reconnectCount < 5) {
+            isReconnecting = true
+            reconnectCount++
+            setRealtimeMicState('reconnecting')
+            const delay = Math.pow(2, reconnectCount - 1) * 1000
+            setTimeout(() => {
+              if (realtimeSocketRef.current === socket) {
+                connectSocket()
+              }
+            }, delay)
+          } else {
+            realtimeSocketRef.current = null
+            stopRealtimeAudioResources()
+            setStatus('ready')
+            setRealtimeStartedAt(null)
+            setRealtimeMicState(prev => (prev === 'error' ? 'error' : 'idle'))
+          }
+        }
       }
+
+      connectSocket()
 
       processor.onaudioprocess = event => {
-        if (socket.readyState !== WebSocket.OPEN) return
+        const currentSocket = realtimeSocketRef.current
+        if (!currentSocket || currentSocket.readyState !== WebSocket.OPEN)
+          return
         const inputBuffer = event.inputBuffer.getChannelData(0)
+
+        // 实时采样录音端分贝振幅 (RMS)，用于呼吸球能量动态
+        let sum = 0
+        for (let i = 0; i < inputBuffer.length; i++) {
+          sum += inputBuffer[i] * inputBuffer[i]
+        }
+        const rms = Math.sqrt(sum / inputBuffer.length)
+        const normalizedAmp = realtimeMutedRef.current
+          ? 0
+          : Math.min(Math.max(rms * 4.5, 0), 1)
+        setRealtimeVolumeAmplitude(normalizedAmp)
+
+        // 如果静音，则拦截发送
+        if (realtimeMutedRef.current) {
+          return
+        }
+
         const pcm = downsampleToPcm16(inputBuffer, audioContext.sampleRate)
-        socket.send(pcm)
+        currentSocket.send(pcm)
       }
       source.connect(processor)
       processor.connect(audioContext.destination)
@@ -1484,6 +1610,14 @@ export function ChatView() {
       void realtimeAudioContextRef.current?.close()
     }
   }, [stopRealtimeAudioResources])
+
+  useEffect(() => {
+    if (realtimeEnabled) {
+      void startRealtimeMic()
+    } else {
+      stopRealtimeMic()
+    }
+  }, [realtimeEnabled, startRealtimeMic, stopRealtimeMic])
 
   const suggestionPrompts = useMemo(
     (): SuggestionPrompt[] => [
@@ -1562,9 +1696,10 @@ export function ChatView() {
   const selectedModelDisplayLabel = useMemo(() => {
     return selectedModelOption?.label || selectedModel || ''
   }, [selectedModelOption, selectedModel])
-  const supportsReasoningEffort =
-    supportsReasoningEffortControl(selectedModelOption)
-  const supportsImageUpload = supportsSeedVision(selectedModelOption)
+  const supportsReasoning = selectedModelOption?.isReasoning ?? false
+  const supportsReasoningControl =
+    selectedModelOption?.supportReasoningControl ?? false
+  const supportsImageUpload = supportsVision(selectedModelOption)
 
   const handleAgentChange = useCallback((agent: Agent) => {
     threadsLoadRequestRef.current += 1
@@ -1650,7 +1785,7 @@ export function ChatView() {
     if (selectedModel) {
       body.model = selectedModel
     }
-    if (supportsReasoningEffort) {
+    if (supportsReasoning) {
       body.reasoningEffort = reasoningEffort
     }
     if (supportsImageUpload && images && images.length > 0) {
@@ -1669,7 +1804,10 @@ export function ChatView() {
         : ''
       const fallbackText = extractLegacyContent(message)
       const rawTextContent = textFromParts || fallbackText
-      const textContent = getDisplayMessageContent(rawTextContent)
+      const textContent = getDisplayMessageContent(
+        rawTextContent,
+        t('voiceInput')
+      )
 
       const assistantContentParts =
         message.role === 'assistant' && Array.isArray(message.parts)
@@ -2060,7 +2198,7 @@ export function ChatView() {
 
   const handleRenameThread = async (thread: AgentThread) => {
     setThreadToRename(thread)
-    setRenameThreadTitle(getDisplayThreadTitle(thread.title))
+    setRenameThreadTitle(getDisplayThreadTitle(thread.title, t('voiceChat')))
   }
 
   const handleConfirmRenameThread = async () => {
@@ -2111,13 +2249,15 @@ export function ChatView() {
   const realtimeMicLabel =
     realtimeMicState === 'connecting'
       ? t('voice.connecting')
-      : realtimeMicState === 'listening'
-        ? t('voice.listening')
-        : realtimeMicState === 'speaking'
-          ? t('voice.speaking')
-          : realtimeMicState === 'error'
-            ? t('voice.error')
-            : t('voice.idle')
+      : realtimeMicState === 'reconnecting'
+        ? t('reconnecting')
+        : realtimeMicState === 'listening'
+          ? t('voice.listening')
+          : realtimeMicState === 'speaking'
+            ? t('voice.speaking')
+            : realtimeMicState === 'error'
+              ? t('voice.error')
+              : t('voice.idle')
   const realtimeElapsedLabel = formatElapsedSeconds(realtimeElapsedSeconds)
   const realtimeWaveHeights = [10, 18, 26, 15, 32, 22, 14, 28, 18, 24, 12, 20]
   const realtimeToolbarControl = (
@@ -2127,7 +2267,7 @@ export function ChatView() {
       disabled={isLoading || realtimeConfigLoading}
       className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors ${
         realtimeEnabled
-          ? 'border-emerald-400/60 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+          ? 'border-primary/50 bg-primary/10 text-primary'
           : 'border-border/70 bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground'
       } ${isLoading || realtimeConfigLoading ? 'opacity-60' : ''}`}
       aria-pressed={realtimeEnabled}
@@ -2138,18 +2278,42 @@ export function ChatView() {
       <span className='truncate'>{t('voice.shortLabel')}</span>
     </button>
   )
+  const getAuraState = () => {
+    if (realtimeMicState === 'connecting') return 'connecting'
+    if (realtimeMicState === 'listening') return 'listening'
+    if (realtimeMicState === 'speaking') return 'speaking'
+    return 'idle'
+  }
+
+  const getAuraStatusText = () => {
+    switch (realtimeMicState) {
+      case 'connecting':
+        return t('voice.connecting') || 'Connecting...'
+      case 'listening':
+        return t('voice.listening') || 'Listening...'
+      case 'speaking':
+        return t('voice.speaking') || 'Speaking...'
+      case 'idle':
+      default:
+        return t('voice.idle') || 'Ready'
+    }
+  }
+
   const realtimeStatusPanel = realtimeEnabled ? (
     <div className='overflow-hidden rounded-xl border border-border/70 bg-background/95 p-3 text-xs shadow-sm backdrop-blur-xl'>
       <div className='flex min-w-0 items-center gap-3'>
         <div className='flex min-w-0 items-center gap-2'>
           <span
-            className={`inline-flex size-2 shrink-0 rounded-full ${
-              isRealtimeMicActive
-                ? 'animate-pulse bg-emerald-500'
-                : realtimeAvailable
-                  ? 'bg-emerald-500'
-                  : 'bg-amber-500'
-            }`}
+            className={cn(
+              'inline-flex size-2 shrink-0 rounded-full transition-all duration-300',
+              realtimeMicState === 'error'
+                ? 'bg-destructive'
+                : isRealtimeMicActive
+                  ? 'animate-pulse bg-emerald-500'
+                  : realtimeAvailable
+                    ? 'bg-emerald-500'
+                    : 'bg-amber-500'
+            )}
           />
           <span className='font-medium text-foreground'>
             {isRealtimeMicActive ? 'Live connected' : t('voice.title')}
@@ -2159,19 +2323,18 @@ export function ChatView() {
           </span>
         </div>
 
-        <div className='flex h-8 min-w-[150px] flex-1 items-center justify-center gap-1 rounded-lg border border-border/60 bg-muted/20 px-3'>
-          {realtimeWaveHeights.map((height, index) => (
-            <span
-              key={index}
-              className={`w-1 rounded-full bg-emerald-500/70 ${
-                isRealtimeMicActive ? 'animate-pulse' : 'opacity-35'
-              }`}
-              style={{ height }}
-            />
-          ))}
+        {/* SiriWave 经典彩虹流光声纹条 */}
+        <div className='flex h-8 min-w-[200px] flex-1 items-center justify-center gap-1 rounded-lg border border-border/60 bg-muted/20 px-2 overflow-hidden relative'>
+          <VoiceAuraOrb
+            state={getAuraState()}
+            amplitude={realtimeVolumeAmplitude}
+            className='h-8 w-64 border-none bg-transparent shadow-none scale-100'
+            width={256}
+            height={32}
+          />
         </div>
 
-        <span className='hidden min-w-20 text-muted-foreground sm:inline'>
+        <span className='hidden min-w-20 text-muted-foreground sm:inline truncate'>
           {isRealtimeMicActive ? realtimeMicLabel : t('voice.audioChannel')}
         </span>
 
@@ -2193,49 +2356,47 @@ export function ChatView() {
             {realtimeErrorText}
           </span>
         )}
+
+        {/* 控制按钮组 */}
         <button
           type='button'
-          className='inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
-          aria-label='Mute'
-          title='Mute'
+          onClick={() => setRealtimeMuted(prev => !prev)}
+          className={cn(
+            'inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+            realtimeMuted &&
+              'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
+          )}
+          title={realtimeMuted ? t('voice.unmute') : t('voice.mute')}
         >
-          <MicOff className='size-3.5' />
+          {realtimeMuted ? (
+            <MicOff className='size-3.5' />
+          ) : (
+            <Mic className='size-3.5' />
+          )}
         </button>
         <button
           type='button'
           onClick={handleStop}
-          disabled={!isLoading}
+          disabled={!isLoading || realtimeMicState !== 'speaking'}
           className='inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border/70 bg-background px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-45'
         >
           <Square className='size-3' />
-          Interrupt
+          {t('actions.stop') || 'Interrupt'}
         </button>
         <button
           type='button'
-          onClick={() =>
-            isRealtimeMicActive ? stopRealtimeMic() : void startRealtimeMic()
-          }
-          disabled={!realtimeAvailable || realtimeConfigLoading}
-          className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-colors ${
-            isRealtimeMicActive
-              ? 'bg-red-500 text-white hover:bg-red-600'
-              : 'bg-foreground text-background hover:bg-foreground/90'
-          } ${!realtimeAvailable || realtimeConfigLoading ? 'opacity-50' : ''}`}
-          aria-label={isRealtimeMicActive ? t('voice.stop') : t('voice.start')}
-          title={isRealtimeMicActive ? t('voice.stop') : t('voice.start')}
+          onClick={() => setRealtimeEnabled(false)}
+          className='inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 transition-colors'
+          title={t('actions.stop') || 'Disconnect'}
         >
-          {isRealtimeMicActive ? (
-            <PhoneOff className='size-4' />
-          ) : (
-            <Volume2 className='size-4' />
-          )}
+          <PhoneOff className='size-4' />
         </button>
       </div>
     </div>
   ) : null
 
   const filteredThreads = threads.filter(thread => {
-    const title = getDisplayThreadTitle(thread.title)
+    const title = getDisplayThreadTitle(thread.title, t('voiceChat'))
     if (!threadSearch.trim()) return true
     return title.toLowerCase().includes(threadSearch.trim().toLowerCase())
   })
@@ -2278,8 +2439,10 @@ export function ChatView() {
           </div>
           <div className='min-h-0 flex-1 overflow-y-auto p-2'>
             {threadsLoading ? (
-              <div className='px-2 py-6 text-center text-sm text-muted-foreground'>
-                {t('threads.loading')}
+              <div className='space-y-2.5 px-2 py-3 animate-pulse'>
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className='h-9 w-full rounded-md bg-muted/40' />
+                ))}
               </div>
             ) : filteredThreads.length === 0 ? (
               <div className='px-2 py-6 text-center text-sm text-muted-foreground'>
@@ -2292,39 +2455,55 @@ export function ChatView() {
                 {filteredThreads.map(thread => (
                   <div
                     key={thread.id}
-                    className={`group flex h-10 items-center gap-2 rounded-md px-2 text-sm transition-colors ${
+                    className={`group flex h-10 items-center gap-2 rounded-md px-3 text-sm transition-colors ${
                       thread.id === currentThreadId
                         ? 'bg-background text-foreground shadow-sm ring-1 ring-border/60'
-                        : 'bg-muted/45 text-muted-foreground hover:bg-muted/75 hover:text-foreground'
+                        : 'bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                     }`}
                   >
                     <button
                       type='button'
-                      className='flex h-full min-w-0 flex-1 items-center gap-2 text-left'
+                      className='flex h-full min-w-0 flex-1 items-center text-left'
                       onClick={() => void handleSelectThread(thread.id)}
                     >
-                      <MessageSquare className='size-4 shrink-0' />
                       <span className='truncate'>
-                        {getDisplayThreadTitle(thread.title)}
+                        {getDisplayThreadTitle(thread.title, t('voiceChat'))}
                       </span>
                     </button>
-                    <div className='flex w-14 shrink-0 justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'>
-                      <button
-                        type='button'
-                        className='inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background/90 hover:text-foreground'
-                        onClick={() => void handleRenameThread(thread)}
-                        aria-label={t('threads.rename')}
-                      >
-                        <Pencil className='size-3.5' />
-                      </button>
-                      <button
-                        type='button'
-                        className='inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background/90 hover:text-destructive'
-                        onClick={() => void handleDeleteThread(thread)}
-                        aria-label={t('threads.delete')}
-                      >
-                        <Trash2 className='size-3.5' />
-                      </button>
+                    <div className='flex shrink-0 justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type='button'
+                            onClick={e => e.stopPropagation()}
+                            className='inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background/90 hover:text-foreground'
+                            aria-label='More actions'
+                          >
+                            <MoreHorizontal className='size-4' />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end' className='w-28'>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation()
+                              handleRenameThread(thread)
+                            }}
+                          >
+                            <Pencil className='mr-2 size-3.5' />
+                            <span>{t('threads.rename')}</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation()
+                              handleDeleteThread(thread)
+                            }}
+                            className='text-destructive focus:bg-destructive/10 focus:text-destructive'
+                          >
+                            <Trash2 className='mr-2 size-3.5' />
+                            <span>{t('threads.delete')}</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 ))}
@@ -2385,13 +2564,14 @@ export function ChatView() {
             reasoningThinkingLabel={t('reasoning.thinking')}
             reasoningDoneLabel={t('reasoning.done')}
             showScrollToBottom={showScrollToBottom}
-            showReasoningEffort={supportsReasoningEffort}
+            showReasoningEffort={supportsReasoning}
+            showReasoningControl={supportsReasoningControl}
             showImageUpload={supportsImageUpload}
             imagePreviews={imagePreviews}
             onPickImages={handlePickImages}
             onRemoveImage={handleRemoveImage}
-            imageUploadLabel='上传图片'
-            imageRemoveLabel='移除图片'
+            imageUploadLabel={t('imageUploadLabel')}
+            imageRemoveLabel={t('imageRemoveLabel')}
             imagePreviewLabel={t('actions.previewImage')}
             imagePrevLabel={t('actions.prevImage')}
             imageNextLabel={t('actions.nextImage')}
@@ -2470,7 +2650,10 @@ export function ChatView() {
             <AlertDialogTitle>{t('threads.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
               {t('threads.deleteConfirm', {
-                title: getDisplayThreadTitle(threadToDelete?.title),
+                title: getDisplayThreadTitle(
+                  threadToDelete?.title,
+                  t('voiceChat')
+                ),
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>

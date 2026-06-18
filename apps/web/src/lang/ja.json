@@ -1,11 +1,28 @@
 {
   "Navbar": {
     "home": "ホームページ",
-    "chat": "AIアシスタント",
-    "agents": "エージェント",
+    "chat": "会話",
+    "agents": "代理人",
     "settings": "設定"
   },
   "Chat": {
+    "toolCall": {
+      "status": {
+        "success": "完了",
+        "error": "失敗",
+        "running": "実行中..."
+      },
+      "input": "入力",
+      "output": "出力",
+      "error": "エラー"
+    },
+    "voiceChat": "ボイスチャット",
+    "voiceInput": "音声入力",
+    "voiceError": "リアルタイム音声サービスエラー: {error}",
+    "chatError": "チャットサービスエラー: {error}",
+    "reconnecting": "再接続中...",
+    "imageUploadLabel": "画像をアップロード",
+    "imageRemoveLabel": "画像を削除",
     "title": "AIアシスタント",
     "subtitle": "いつでもご利用いただけます",
     "clearConversation": "会話をクリア",
@@ -115,7 +132,9 @@
       "missingConfig": "欠けている設定が {count} 件あります",
       "voiceInputMessage": "（音声入力）",
       "microphoneError": "マイクを起動できません。ブラウザの権限を確認してください。",
-      "socketError": "リアルタイム音声接続に異常が発生しました。後でもう一度お試しください。"
+      "socketError": "リアルタイム音声接続に異常が発生しました。後でもう一度お試しください。",
+      "mute": "マイクをミュート",
+      "unmute": "マイクのミュートを解除"
     },
     "reasoning": {
       "title": "推論過程",
@@ -390,7 +409,8 @@
       "emailLabel": "電子メール",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "ログインリンクを送信する",
-      "magicLinkSent": "ログインリンクはあなたのメールに送信されましたので、ご確認ください！"
+      "magicLinkSent": "ログインリンクはあなたのメールに送信されましたので、ご確認ください！",
+      "orSocial": "またはソーシャルアカウントでサインイン"
     },
     "error": {
       "title": "認証エラー",
@@ -418,7 +438,8 @@
     "types": {
       "public": "公開",
       "private": "私有",
-      "system": "システム"
+      "system": "システム",
+      "systemReadOnly": "システム読み取り専用エージェント"
     },
     "form": {
       "description": "エージェント情報を入力する",
@@ -438,7 +459,26 @@
       "typePrivateDesc": "自分のみが見える",
       "typePublic": "公開",
       "typePublicDesc": "すべての人が利用可能",
-      "required": "すべての必須項目を入力してください"
+      "required": "すべての必須項目を入力してください",
+      "systemPrompt": "エージェントシステムプロンプト",
+      "instructionsDesc": "プロンプトはエージェントの行動を導く核心的なロジックです。手動で編集することもできますし、カード上の「プロンプトを最適化」をクリックしてAIで生成することもできます。",
+      "typePublicSelect": "公開（誰でも利用可能）",
+      "typePrivateSelect": "プライベート（あなただけに表示されます）",
+      "voiceSettingsTitle": "リアルタイムボイスライブ設定",
+      "voiceEnabled": "カスタム音声設定を有効にする",
+      "voiceEnabledDesc": "このエージェントのために、個別の話し方、声、そして高度な機能を割り当てるには、オンにしてください",
+      "voiceSpeaker": "ボイスプリセット",
+      "voiceStyle": "話し方",
+      "voiceWebSearch": "ウェブ検索機能",
+      "voiceWebSearchDesc": "有効にすると、エージェントはリアルタイムの質問に答えるために検索ツールを呼び出すことができます",
+      "voiceSinging": "歌と音楽の交流",
+      "voiceSingingDesc": "有効にすると、ユーザーの要求に応じてエージェントが直接歌います",
+      "voiceDetails": "声の感情とトーンの詳細"
+    },
+    "speakers": {
+      "cancan": "カンカン（活発で温かい女性）",
+      "audrey": "オードリー（穏やかで成熟した女性）",
+      "ajie": "アジエ（落ち着いて明るい男性）"
     },
     "selector": {
       "label": "エージェントを選択",
@@ -456,7 +496,14 @@
       "deleteConfirm": {
         "title": "削除を確認",
         "description": "削除すると復元できません。このエージェントを削除してもよろしいですか？"
-      }
+      },
+      "cancelDefaultSuccess": "個人用のデフォルトエージェントをキャンセルし、システムのデフォルトを復元しました",
+      "setDefaultSuccess": "「{name}」をデフォルトのエージェントとして正常に設定しました",
+      "setDefaultError": "デフォルトのエージェントの設定に失敗しました",
+      "enhancePromptStart": "バックグラウンドでプロンプトの最適化を開始しました",
+      "enhancePromptError": "プロンプトの最適化に失敗しました",
+      "updateSuccess": "エージェントが正常に更新されました",
+      "updateError": "エージェントの更新に失敗しました"
     },
     "empty": {
       "title": "まだエージェントがいません",
@@ -464,7 +511,26 @@
     },
     "created": "作成日",
     "systemAgentReadOnly": "システムエージェントは編集できません",
-    "configureTools": "配置ツール"
+    "configureTools": "配置ツール",
+    "isUserDefault": "現在のデフォルト",
+    "systemDefault": "システムデフォルト",
+    "setUserDefault": "デフォルトエージェントに設定",
+    "cancelUserDefault": "デフォルトエージェントをキャンセル",
+    "editPrompt": "プロンプトを変更",
+    "viewPrompt": "プロンプトを見る",
+    "view": "表示",
+    "saveChanges": "変更を保存",
+    "close": "閉じる",
+    "editTitle": "エージェントを編集",
+    "viewTitle": "エージェントの詳細",
+    "editDesc": "現在のエージェントの名前、説明、実行手順、および音声設定を変更します。",
+    "viewDesc": "現在のエージェントの役割の説明、実行手順、およびボイスの詳細を表示します。",
+    "enhancePrompt": "プロンプトを最適化する",
+    "enhancing": "最適化中...",
+    "promptStatus": {
+      "generating": "AIプロンプトがバックグラウンドで生成されています...",
+      "failed": "プロンプトの生成に失敗しました。説明文がバックアップとして使用されました。"
+    }
   },
   "Tool": {
     "title": "工具管理",
@@ -663,6 +729,7 @@
   },
   "SystemSettings": {
     "title": "システム設定",
+    "modalTitle": "Telos v0.1.0 · グローバルシステム設定",
     "description": "個人アカウント、システムの設定、および MCP プラグインサービスを管理します。",
     "tabs": {
       "preferences": "設定",
@@ -687,14 +754,58 @@
       "method": "認証方式",
       "methodDesc": "現在バインドされている安全なログイン方法",
       "activeSessions": "アクティブセッション",
-      "viewSessions": "セッション管理"
+      "viewSessions": "セッション管理",
+      "authMethod": "ローカルマジックリンク / ソーシャル認証",
+      "magicLinkProvider": "メールマジックリンク",
+      "loadingSessions": "アクティブデバイスのリストを読み込み中...",
+      "noSessions": "現在アクティブな会話記録はありません",
+      "currentDevice": "現在のデバイス",
+      "revokeBtn": "強制ログアウト",
+      "notSetName": "ユーザー名が設定されていません",
+      "notConfigured": "未設定",
+      "unknown": "不明",
+      "createdAt": "作成日"
     },
     "danger": {
       "title": "危険操作区域",
       "desc": "以下の操作は、データが永久に失われて復元できなくなる可能性がありますので、慎重に操作してください。",
       "alertText": "アカウントの削除は不可逆の操作です。一度アカウントを削除すると、すべての会話履歴、エージェント設定、およびツールの紐付けが永久に消去されます。",
       "deleteBtn": "現在のアカウントを物理的に削除する",
-      "deleteConfirm": "【警告】本当にこのアカウントを完全に削除しますか？この操作は取り消せません。すべてのデータが失われます！"
+      "deleteConfirm": "【警告】本当にこのアカウントを完全に削除しますか？この操作は取り消せません。すべてのデータが失われます！",
+      "deleteNotice": "アカウント削除の操作は実行されましたが、開発環境の安全性のため、物理的な削除としてデータベースには書き込まれていません。"
+    },
+    "messages": {
+      "revokeSuccess": "デバイスを強制的にオフラインにしました",
+      "revokeError": "操作に失敗しました。もう一度お試しください。",
+      "pushUpdateSuccess": "プッシュ通知の設定が更新されました",
+      "emailUpdateSuccess": "メール通知の設定が更新されました",
+      "langUpdateSuccess": "インターフェースの言語が更新されました"
+    },
+    "ua": {
+      "unknownOS": "不明なOS",
+      "unknownBrowser": "不明なブラウザ"
     }
+  },
+  "Profile": {
+    "title": "プロフィール",
+    "subtitle": "アカウント情報と設定を管理する",
+    "basicInfo": "基本情報",
+    "basicInfoDesc": "あなたの基本アカウント情報",
+    "unknownUser": "不明なユーザー",
+    "platformUser": "プラットフォームユーザー",
+    "username": "ユーザー名",
+    "email": "メールアドレス",
+    "userId": "ユーザーID",
+    "regTime": "登録時間",
+    "notSet": "未設定",
+    "localAccount": "ローカルアカウント",
+    "actions": "アカウント操作",
+    "actionsDesc": "アカウント設定を管理する",
+    "settingsBtn": "アカウント設定",
+    "viewChatBtn": "会話を見る"
+  },
+  "Pricing": {
+    "popular": "最も人気のある",
+    "monthlyPeriod": "/も"
   }
 }

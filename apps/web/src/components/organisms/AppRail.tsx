@@ -10,7 +10,7 @@ import {
 } from '@/components/atoms'
 import { LocaleToggle, ThemeToggle, UserAvatar } from '@/components/molecules'
 import { SystemSettingsModal } from '@/components/molecules/SystemSettingsModal'
-import { Bot, Home, Settings, Sparkles } from 'lucide-react'
+import { MessageSquare, Settings, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -22,9 +22,8 @@ export function AppRail() {
   const t = useTranslations('Navbar')
   const pathname = normalizePath(usePathname())
   const navigation = [
-    { label: t('home'), href: '/', icon: Home },
-    { label: t('chat'), href: '/chat', icon: Sparkles },
-    { label: t('agents'), href: '/agents', icon: Bot },
+    { label: t('chat'), href: '/chat', icon: MessageSquare },
+    { label: t('agents'), href: '/agents', icon: Sparkles },
   ]
 
   return (
@@ -54,7 +53,7 @@ export function AppRail() {
                   href={item.href}
                   aria-label={item.label}
                   className={cn(
-                    'inline-flex size-10 items-center justify-center rounded-md bg-muted/45 text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground',
+                    'inline-flex size-10 items-center justify-center rounded-md bg-transparent text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground',
                     active &&
                       'bg-background text-foreground shadow-sm ring-1 ring-border/60'
                   )}
@@ -75,7 +74,7 @@ export function AppRail() {
               type='button'
               onClick={() => setShowSettingsModal(true)}
               aria-label={t('settings')}
-              className='flex size-10 items-center justify-center rounded-md bg-muted/45 text-muted-foreground transition-colors hover:bg-background/80 hover:text-foreground'
+              className='flex size-10 items-center justify-center rounded-md bg-transparent text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground'
             >
               <Settings className='size-4.5' />
             </button>
