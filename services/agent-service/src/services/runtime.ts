@@ -12,6 +12,8 @@ import {
   type Tool,
 } from '@openai/agents'
 import { OpenAIProvider } from '@openai/agents-openai'
+import { routeTools } from './tool-router.js'
+import { z } from 'zod'
 import { prisma } from './db.js'
 import { AgentRunPersistence } from './persistence.js'
 import { config } from '../config/index.js'
@@ -414,6 +416,7 @@ export class AgentRuntimeService {
       modelOverride?: string | null
       reasoningEffort?: RuntimeRunOptions['reasoningEffort']
       memoryInstructions?: string
+      query?: string
     }
   ): Promise<RuntimeBuildResult> {
     const depth = options?.depth ?? 0
@@ -456,9 +459,40 @@ export class AgentRuntimeService {
       .filter(Boolean)
       .join('\n\n')
 
-    const tools: Tool[] = source.toolsAsAgent
+    // 提取启用的常规工具和 MCP 服务器
+    const rawTools = source.toolsAsAgent
       .filter((link: any) => link.tool?.enabled)
-      .map((link: any) => buildEndpointTool(link.tool, options?.persistence))
+      .map((link: any) => link.tool)
+
+    const rawMcpServers = source.mcpServersAsAgent
+      .filter((link: any) => link.mcpServer?.enabled)
+      .map((link: any) => {
+        const serverAllowed = asStringArray(link.mcpServer.allowedTools)
+        const linkAllowed = asStringArray(link.allowedTools)
+        return {
+          ...link.mcpServer,
+          allowedTools: linkAllowed.length ? linkAllowed : serverAllowed
+        }
+      })
+
+    // 根据最新 query 对工具进行动态语义过滤，限制首批加载数量在 5 个以内
+    const query = options?.query
+    let selectedTools = rawTools
+    let selectedMcp = rawMcpServers
+    let remainingTools: any[] = []
+    let remainingMcp: any[] = []
+
+    if (query && depth === 0) {
+      const routed = await routeTools(query, rawTools, rawMcpServers)
+      selectedTools = routed.selectedTools
+      selectedMcp = routed.selectedMcp
+      remainingTools = routed.remainingTools
+      remainingMcp = routed.remainingMcp
+    }
+
+    const tools: Tool[] = selectedTools.map((t: any) => 
+      buildEndpointTool(t, options?.persistence)
+    )
 
     const handoffs: Agent[] = []
 
@@ -483,19 +517,82 @@ export class AgentRuntimeService {
       }
     }
 
-    const mcpServers = source.mcpServersAsAgent
-      .filter((link: any) => link.mcpServer?.enabled)
+    const mcpServers = selectedMcp
       .map((link: any) => {
-        const serverAllowed = asStringArray(link.mcpServer.allowedTools)
-        const linkAllowed = asStringArray(link.allowedTools)
-        return buildMcpServer(
-          link.mcpServer,
-          linkAllowed.length ? linkAllowed : serverAllowed
-        )
+        return buildMcpServer(link, link.allowedTools)
       })
       .filter((server: MCPServer | null): server is MCPServer =>
         Boolean(server)
       )
+
+    // 如果首批工具被截断过滤了，向主 Agent 动态注入 search_more_tools 和 execute_retrieved_tool 挂载闭环
+    if (depth === 0 && (remainingTools.length > 0 || remainingMcp.length > 0)) {
+      tools.push(
+        tool({
+          name: 'search_more_tools',
+          description: '当需要的工具没有在当前的工具集中被加载时，可使用该工具通过语义查询来搜索并列出备选的工具（包含常规工具和MCP服务）。',
+          parameters: z.object({
+            query: z.string().describe('用于查找工具的搜索词或功能描述（如“数学计算”、“画图”等）'),
+          }),
+          async execute({ query: searchWord }: { query: string }) {
+            const matchedTools = remainingTools.filter(t => 
+              t.name.toLowerCase().includes(searchWord.toLowerCase()) || 
+              t.description.toLowerCase().includes(searchWord.toLowerCase())
+            )
+            const matchedMcp = remainingMcp.filter(m => 
+              m.name.toLowerCase().includes(searchWord.toLowerCase()) || 
+              m.description.toLowerCase().includes(searchWord.toLowerCase())
+            )
+
+            if (matchedTools.length === 0 && matchedMcp.length === 0) {
+              return '没有检索到匹配的备用工具。'
+            }
+
+            const toolInfoText = [
+              matchedTools.length > 0 
+                ? `### 备选常规工具：\n${matchedTools.map(t => `- name: "${t.name}"\n  description: "${t.description}"\n  parameters: ${JSON.stringify(t.parameters)}`).join('\n')}`
+                : '',
+              matchedMcp.length > 0
+                ? `### 备选 MCP 服务器：\n${matchedMcp.map(m => `- name: "${m.name}"\n  description: "${m.description}"`).join('\n')}`
+                : ''
+            ].filter(Boolean).join('\n\n')
+
+            return `检索到以下可以被动态调用的备选工具。如果你需要运行其中某个工具，请使用 execute_retrieved_tool 工具，并传入其 name 和所需的 toolArgs 参数。\n\n${toolInfoText}`
+          }
+        } as any)
+      )
+
+      tools.push(
+        tool({
+          name: 'execute_retrieved_tool',
+          description: '执行通过 search_more_tools 检索到的备选常规工具。',
+          parameters: z.object({
+            toolName: z.string().describe('要执行的工具的 name'),
+            toolArgs: z.record(z.string(), z.any()).describe('工具执行所需的 JSON 键值对参数'),
+          }),
+          async execute({ toolName, toolArgs }: { toolName: string; toolArgs: Record<string, any> }) {
+            const targetTool = remainingTools.find(t => t.name === toolName)
+            if (targetTool) {
+              const executable = buildEndpointTool(targetTool, options?.persistence)
+              if (executable) {
+                try {
+                  return await (executable as any).execute(toolArgs)
+                } catch (err: any) {
+                  return `执行工具 ${toolName} 失败: ${err.message}`
+                }
+              }
+            }
+
+            const targetMcp = remainingMcp.find(m => m.name === toolName)
+            if (targetMcp) {
+              return `抱歉，MCP 服务器 ${toolName} 暂不支持动态代理执行，请优先尝试其他常规工具。`
+            }
+
+            return `没有找到名字为 ${toolName} 的备选工具，请确认你传入的 toolName 是否正确。`
+          }
+        } as any)
+      )
+    }
 
     const resolvedModel = await this.resolveModel(
       options?.modelOverride || source.modelKey,
@@ -555,11 +652,18 @@ export class AgentRuntimeService {
 
   async run(agentId: string, options: RuntimeRunOptions) {
     const persistence = new AgentRunPersistence(options.runId)
+    
+    // 计算当前会话的最新用户输入 query
+    const query = typeof options.input === 'string'
+      ? options.input
+      : extractPromptFromBody({ messages: options.input as any })
+
     const { agent, source } = await this.buildAgent(agentId, {
       persistence,
       modelOverride: options.modelOverride,
       reasoningEffort: options.reasoningEffort,
       memoryInstructions: options.memoryInstructions,
+      query,
     })
     const runner = new Runner({
       tracingDisabled: !config.openaiApiKey,

@@ -15,6 +15,22 @@ export function agentAccessWhere(userId: string): Prisma.AgentWhereInput {
 }
 
 export async function findDefaultAccessibleAgent(userId: string) {
+  // 1. 尝试获取用户的个人默认 Agent
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { defaultAgentId: true },
+  })
+
+  if (user?.defaultAgentId) {
+    const userDefaultAgent = await findAccessibleAgent(user.defaultAgentId, userId, {
+      where: { status: 'active' },
+    })
+    if (userDefaultAgent) {
+      return userDefaultAgent
+    }
+  }
+
+  // 2. 回退到系统默认的 Agent
   return prisma.agent.findFirst({
     where: {
       AND: [

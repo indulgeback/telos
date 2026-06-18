@@ -3,8 +3,10 @@ import { logger } from '../config/index.js'
 import { asRecord } from '../utils/json.js'
 import { prisma } from './db.js'
 import type { AgentRunPersistence } from './persistence.js'
+import { executeCode } from './sandbox.js'
+import { retrieveMemories } from './memory.js'
 
-type BuiltinToolKey = 'get_current_time' | 'calculator'
+type BuiltinToolKey = 'get_current_time' | 'calculator' | 'code_interpreter' | 'search_memory'
 
 interface BuiltinToolDefinition {
   id: string
@@ -55,6 +57,53 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     },
     tags: ['builtin', 'math'],
   },
+  {
+    id: 'builtin_code_interpreter',
+    name: 'code_interpreter',
+    displayName: '代码执行沙箱',
+    description:
+      '安全执行 JavaScript 或 Python 代码，并返回标准输出、标准错误和退出状态。',
+    category: 'builtin',
+    endpoint: { kind: 'builtin', builtin: 'code_interpreter' },
+    parameters: {
+      type: 'object',
+      properties: {
+        code: {
+          type: 'string',
+          description: '要执行的完整源代码（JavaScript 或 Python）。',
+        },
+        language: {
+          type: 'string',
+          enum: ['javascript', 'python'],
+          description: '代码的编程语言。',
+        },
+      },
+      required: ['code', 'language'],
+      additionalProperties: false,
+    },
+    tags: ['builtin', 'sandbox', 'code'],
+  },
+  {
+    id: 'builtin_search_memory',
+    name: 'search_memory',
+    displayName: '长期记忆检索',
+    description:
+      '当需要获取用户的长期偏好、习惯、特定指示、特殊要求或过往对话历史和背景时调用此工具。输入 query 应当是明确的语义检索词（例如“用户喜欢吃什么”）。',
+    category: 'builtin',
+    endpoint: { kind: 'builtin', builtin: 'search_memory' },
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: '用于检索历史长期记忆的语义查询词',
+        },
+      },
+      required: ['query'],
+      additionalProperties: false,
+    },
+    tags: ['builtin', 'memory'],
+  },
 ]
 
 const BUILTIN_TOOL_IDS = BUILTIN_TOOL_DEFINITIONS.map(tool => tool.id)
@@ -75,8 +124,12 @@ function builtinKeyFromRaw(raw: {
   const candidate = configured || raw.name || raw.id || ''
   if (candidate === 'get_current_time') return 'get_current_time'
   if (candidate === 'calculator') return 'calculator'
+  if (candidate === 'code_interpreter') return 'code_interpreter'
+  if (candidate === 'search_memory') return 'search_memory'
   if (candidate === 'builtin_get_current_time') return 'get_current_time'
   if (candidate === 'builtin_calculator') return 'calculator'
+  if (candidate === 'builtin_code_interpreter') return 'code_interpreter'
+  if (candidate === 'builtin_search_memory') return 'search_memory'
   return null
 }
 
@@ -302,13 +355,51 @@ export function buildBuiltinTool(
         toolName: raw.name || builtin,
       })
 
-      const output =
-        builtin === 'get_current_time'
-          ? `当前时间：${new Intl.DateTimeFormat('zh-CN', {
-              dateStyle: 'full',
-              timeStyle: 'medium',
-            }).format(new Date())}`
-          : calculate(input)
+      let output = ''
+      if (builtin === 'get_current_time') {
+        output = `当前时间：${new Intl.DateTimeFormat('zh-CN', {
+          dateStyle: 'full',
+          timeStyle: 'medium',
+        }).format(new Date())}`
+      } else if (builtin === 'calculator') {
+        output = calculate(input)
+      } else if (builtin === 'code_interpreter') {
+        const rawInput = asRecord(input)
+        const code = String(rawInput.code || '')
+        const language = String(rawInput.language || 'javascript') as 'javascript' | 'python'
+        
+        const res = await executeCode(code, language)
+        output = JSON.stringify({
+          stdout: res.stdout,
+          stderr: res.stderr,
+          exitCode: res.exitCode
+        })
+      } else if (builtin === 'search_memory') {
+        const rawInput = asRecord(input)
+        const query = String(rawInput.query || '')
+        
+        let memories: string[] = []
+        
+        if (persistence && typeof (persistence as any).runId === 'string') {
+          const runId = (persistence as any).runId
+          const run = await prisma.agentRun.findUnique({
+            where: { id: runId },
+            include: {
+              thread: true
+            }
+          })
+          if (run && run.thread) {
+            const agentId = run.agentId
+            const ownerId = run.thread.ownerId
+            memories = await retrieveMemories(agentId, ownerId, query)
+          }
+        }
+        
+        output = JSON.stringify({
+          query,
+          memories
+        })
+      }
 
       await persistence?.event('tool_builtin_end', {
         toolId: raw.id,

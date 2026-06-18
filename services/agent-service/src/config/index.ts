@@ -15,7 +15,8 @@ export const config = {
   // OpenAI
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiBaseUrl: process.env.OPENAI_BASE_URL || '',
-  defaultModel: process.env.DEFAULT_AGENT_MODEL || 'deepseek-v4-flash',
+  defaultModel: process.env.DEFAULT_AGENT_MODEL || 'gpt-4o-mini',
+
 
   // Legacy OpenAI-compatible providers kept only so unused legacy modules compile.
   deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',
@@ -48,6 +49,11 @@ export const config = {
     process.env.GCLOUD_ACCESS_TOKEN ||
     process.env.GOOGLE_OAUTH_ACCESS_TOKEN ||
     '',
+
+  // Embedding Provider
+  embeddingProvider: process.env.EMBEDDING_PROVIDER || 'openai',
+  embeddingModel: process.env.EMBEDDING_MODEL || 'text-embedding-004',
+
 
   // VolcEngine Doubao realtime speech
   volcRealtimeEndpoint:

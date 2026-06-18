@@ -10,11 +10,7 @@
     "test": "pnpm build && node --test test/*.test.mjs",
     "smoke:volc-realtime": "pnpm build && node scripts/volc-realtime-smoke.mjs",
     "start": "node dist/index.js",
-    "lint": "eslint src --ext .ts",
-    "db:generate": "prisma generate --schema ../../prisma/schema.prisma",
-    "db:migrate": "prisma migrate dev --schema ../../prisma/schema.prisma",
-    "db:push": "prisma db push --schema ../../prisma/schema.prisma",
-    "db:studio": "prisma studio --schema ../../prisma/schema.prisma"
+    "lint": "eslint src --ext .ts"
   },
   "dependencies": {
     "@ai-sdk/langchain": "2.0.83",

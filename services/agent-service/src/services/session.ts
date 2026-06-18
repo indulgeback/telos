@@ -1,6 +1,7 @@
 import type { AgentInputItem } from '@openai/agents'
 import { prisma } from './db.js'
 import { safeJsonStringify } from '../utils/json.js'
+import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
 
 const RECENT_MESSAGE_LIMIT = 12
 const SUMMARY_THRESHOLD = 20
@@ -46,26 +47,16 @@ function formatList(title: string, items: string[]) {
 }
 
 function buildMemoryInstructions(options: {
-  memory?: {
-    summary: string
-    facts: unknown
-    preferences: unknown
-  } | null
+  longTermMemories: string[]
   threadSummary?: string | null
 }) {
   const blocks: string[] = []
-  const memory = options.memory
 
-  if (memory) {
-    const memoryParts = [
-      memory.summary ? memory.summary.trim() : '',
-      formatList('Facts', toStringList(memory.facts)),
-      formatList('Preferences', toStringList(memory.preferences)),
-    ].filter(Boolean)
-
-    if (memoryParts.length) {
-      blocks.push(`# Long-term Memory\n${memoryParts.join('\n\n')}`)
-    }
+  if (options.longTermMemories && options.longTermMemories.length > 0) {
+    const memoryList = options.longTermMemories
+      .map(item => `- ${item}`)
+      .join('\n')
+    blocks.push(`# Long-term Memory\nHere are relevant facts from previous conversations with the user:\n${memoryList}`)
   }
 
   if (options.threadSummary?.trim()) {
@@ -78,11 +69,51 @@ function buildMemoryInstructions(options: {
 function messageToAgentInput(message: {
   role: MessageRole
   content: string
+  parts?: any
 }): AgentInputItem {
   const role =
     message.role === 'assistant' || message.role === 'system'
       ? message.role
       : 'user'
+
+  if (role === 'user' && Array.isArray(message.parts) && message.parts.length > 0) {
+    const imageUrls: string[] = []
+    message.parts.forEach((part: any) => {
+      if (!part || typeof part !== 'object') return
+      let url = ''
+      if (part.type === 'image_url' && part.image_url) {
+        if (typeof part.image_url === 'string') {
+          url = part.image_url
+        } else if (typeof part.image_url === 'object' && typeof part.image_url.url === 'string') {
+          url = part.image_url.url
+        }
+      } else if (part.type === 'image' && typeof part.url === 'string') {
+        url = part.url
+      }
+      if (url.trim()) {
+        imageUrls.push(url.trim())
+      }
+    })
+
+    if (imageUrls.length > 0) {
+      const content = [
+        {
+          type: 'input_text' as const,
+          text: message.content.trim() || '请描述这张图片',
+        },
+        ...imageUrls.map(url => ({
+          type: 'input_image' as const,
+          image: url,
+        })),
+      ]
+      return {
+        type: 'message',
+        role,
+        content: content as any,
+      } as any
+    }
+  }
+
   return {
     type: 'message',
     role,
@@ -222,11 +253,33 @@ export class AgentSessionService {
   }
 
   async appendUserMessage(threadId: string, input: string, parts?: unknown) {
+    let formattedParts: any[] = []
+    if (Array.isArray(parts)) {
+      formattedParts = parts
+        .map(item => {
+          if (typeof item === 'string') {
+            const url = item.trim()
+            if (
+              url &&
+              (/^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url))
+            ) {
+              return {
+                type: 'image_url',
+                image_url: { url }
+              }
+            }
+          } else if (item && typeof item === 'object') {
+            return item
+          }
+          return null
+        })
+        .filter(Boolean)
+    }
     return this.appendMessage({
       threadId,
       role: 'user',
       content: input,
-      parts,
+      parts: formattedParts.length > 0 ? formattedParts : undefined,
     })
   }
 
@@ -254,27 +307,31 @@ export class AgentSessionService {
     })
     if (!thread) throw new Error('Thread not found')
 
-    const memory = await prisma.agentMemory.findUnique({
-      where: {
-        ownerId_agentId: {
-          ownerId: normalizeOwnerId(thread.ownerId),
-          agentId: thread.agentId,
-        },
-      },
-      select: { summary: true, facts: true, preferences: true },
-    })
-
     const messages = await prisma.agentMessage.findMany({
       where: { threadId },
       orderBy: { sequence: 'desc' },
       take: RECENT_MESSAGE_LIMIT,
-      select: { role: true, content: true },
+      select: { role: true, content: true, parts: true },
     })
 
+    // 获取最近一条用户消息作为长期记忆检索 query
+    const lastUserMsg = messages.find(msg => msg.role === 'user')
+    const query = lastUserMsg?.content || ''
+
+    // 相似性检索相似的长期记忆片段
+    const matchedMemories = await retrieveMemories(
+      thread.agentId,
+      normalizeOwnerId(thread.ownerId),
+      query,
+      5,
+      undefined,
+      messages.length
+    )
+
     return {
-      input: messages.reverse().map(messageToAgentInput),
+      input: [...messages].reverse().map(messageToAgentInput),
       memoryInstructions: buildMemoryInstructions({
-        memory,
+        longTermMemories: matchedMemories,
         threadSummary: thread.summary,
       }),
     }
@@ -312,48 +369,8 @@ export class AgentSessionService {
       }
     }
 
-    const reusable = extractReusableFacts(messages)
-    const existing = await prisma.agentMemory.findUnique({
-      where: {
-        ownerId_agentId: {
-          ownerId: normalizedOwnerId,
-          agentId,
-        },
-      },
-    })
-    const nextFacts = [
-      ...cleanMemoryItems(existing?.facts, isFactLike),
-      ...reusable.facts,
-    ].slice(-50)
-    const nextPreferences = [
-      ...cleanMemoryItems(existing?.preferences, isPreferenceLike),
-      ...reusable.preferences,
-    ].slice(-50)
-    const memorySummary = summarizeMessages(
-      existing?.summary,
-      messages.slice(-8)
-    )
-
-    await prisma.agentMemory.upsert({
-      where: {
-        ownerId_agentId: {
-          ownerId: normalizedOwnerId,
-          agentId,
-        },
-      },
-      update: {
-        summary: memorySummary ?? existing?.summary ?? '',
-        facts: [...new Set(nextFacts)] as any,
-        preferences: [...new Set(nextPreferences)] as any,
-      },
-      create: {
-        ownerId: normalizedOwnerId,
-        agentId,
-        summary: memorySummary ?? '',
-        facts: reusable.facts as any,
-        preferences: reusable.preferences as any,
-      },
-    })
+    // 后台提取并合成长期记忆事实存入向量数据库中
+    await extractAndSynthesizeMemories(agentId, normalizedOwnerId, messages)
   }
 
   async listThreads(options: {

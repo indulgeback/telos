@@ -22,7 +22,7 @@ import {
   attachBuiltinToolsToAgent,
   ensureBuiltinTools,
 } from '../services/builtin-tools.js'
-import { generateAgentInstructions } from '../services/chat.js'
+import { generateAgentInstructions, generateAgentInstructionsAsync } from '../services/chat.js'
 
 export const agentsRouter = new Hono()
 
@@ -77,7 +77,40 @@ agentsRouter.get('/', async c => {
     where: agentAccessWhere(userId),
     orderBy: { createdAt: 'desc' },
   })
-  return ok(c, serializeAgents(agents))
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { defaultAgentId: true },
+  })
+  const userDefaultAgentId = user?.defaultAgentId
+
+  const serialized = serializeAgents(agents)
+  const result = serialized.map((agent: any) => ({
+    ...agent,
+    is_user_default: userDefaultAgentId ? agent.id === userDefaultAgentId : agent.is_default,
+  }))
+
+  return ok(c, result)
+})
+
+agentsRouter.post('/default', async c => {
+  const body = await parseJson(c)
+  const userId = getCurrentUserId(c)
+  const agentId = typeof body.agentId === 'string' && body.agentId.trim() ? body.agentId.trim() : null
+
+  if (agentId) {
+    const agent = await findAccessibleAgent(agentId, userId)
+    if (!agent) {
+      return fail(c, 404, 'Agent 不存在或无访问权限')
+    }
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { defaultAgentId: agentId },
+  })
+
+  return ok(c, { success: true, default_agent_id: agentId })
 })
 
 agentsRouter.get('/default', async c => {
@@ -97,31 +130,19 @@ agentsRouter.post('/', async c => {
     return fail(c, 400, 'Agent name and description are required')
   }
 
-  // 调用大模型基于描述生成系统提示词
-  let instructions = description
-  try {
-    const modelKey =
-      typeof body.modelKey === 'string' && body.modelKey.trim()
-        ? body.modelKey.trim()
-        : undefined
-    instructions = await generateAgentInstructions(description, modelKey)
-  } catch (err) {
-    logger.warn({
-      msg: 'Failed to generate agent instructions using LLM, fallback to description',
-      error: err instanceof Error ? err.message : String(err),
-    })
-  }
+  const modelKey =
+    typeof body.modelKey === 'string' && body.modelKey.trim()
+      ? body.modelKey.trim()
+      : undefined
 
   const agent = await prisma.agent.create({
     data: {
       name,
       description,
-      instructions,
+      instructions: description,
+      instructionStatus: 'generating',
       type: normalizeAgentType(body.type),
-      modelKey:
-        typeof body.modelKey === 'string' && body.modelKey.trim()
-          ? body.modelKey.trim()
-          : config.defaultModel,
+      modelKey: modelKey || config.defaultModel,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : 0.7,
       maxTurns: typeof body.maxTurns === 'number' ? body.maxTurns : 8,
@@ -134,6 +155,14 @@ agentsRouter.post('/', async c => {
   })
   await ensureBuiltinTools()
   await attachBuiltinToolsToAgent(agent.id)
+
+  generateAgentInstructionsAsync(agent.id, description, modelKey).catch((err) => {
+    logger.error({
+      msg: 'Unhandled error in generateAgentInstructionsAsync background task',
+      agentId: agent.id,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  })
 
   return created(c, serializeAgent(agent))
 })
@@ -455,4 +484,28 @@ agentsRouter.post('/:id/runs', async c => {
   agentSessionService.scheduleSummaries(thread.id, agentId, ownerId)
 
   return ok(c, { run_id: run.id, thread_id: thread.id, status: 'completed' })
+})
+
+agentsRouter.post('/:id/regenerate-instructions', async c => {
+  const agentId = c.req.param('id')
+  const userId = getCurrentUserId(c)
+  const agent = await findEditableAgent(agentId, userId)
+  if (!agent) {
+    return fail(c, 404, 'Agent not found or you do not have permission to edit it')
+  }
+
+  generateAgentInstructionsAsync(agent.id, agent.description, agent.modelKey).catch((err) => {
+    logger.error({
+      msg: 'Unhandled error in manual regenerate-instructions background task',
+      agentId: agent.id,
+      error: err instanceof Error ? err.message : String(err),
+    })
+  })
+
+  const updatedAgent = await prisma.agent.update({
+    where: { id: agentId },
+    data: { instructionStatus: 'generating' },
+  })
+
+  return ok(c, serializeAgent(updatedAgent))
 })

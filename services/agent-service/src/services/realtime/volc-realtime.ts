@@ -4,6 +4,7 @@ import { config, createModuleLogger } from '../../config/index.js'
 import { safeJsonStringify } from '../../utils/json.js'
 import { agentRuntimeService } from '../runtime.js'
 import { agentSessionService } from '../session.js'
+import { prisma } from '../db.js'
 import {
   decodeVolcFrame,
   encodeVolcAudioEvent,
@@ -207,12 +208,147 @@ function createStartSessionPayload(instructions?: string) {
         sample_rate: 24000,
         channel: 1,
       },
-      speaker: config.volcRealtimeSpeaker || undefined,
+      speaker: (() => {
+        const raw = config.volcRealtimeSpeaker || 'zh_female_vv_jupiter_bigtts'
+        const allowed = [
+          'zh_female_vv_jupiter_bigtts',
+          'zh_female_xiaohe_jupiter_bigtts',
+          'zh_male_yunzhou_jupiter_bigtts',
+          'zh_male_xiaotian_jupiter_bigtts',
+          'en_male_tim_uranus_bigtts',
+          'en_female_dacey_uranus_bigtts',
+          'en_female_stokie_uranus_bigtts'
+        ]
+        if (allowed.includes(raw)) return raw
+        const normalized = raw.toLowerCase()
+        if (normalized.includes('xiaohe') || normalized.includes('taiwan')) {
+          return 'zh_female_xiaohe_jupiter_bigtts'
+        }
+        if (normalized.includes('xiaotian') || normalized.includes('tian')) {
+          return 'zh_male_xiaotian_jupiter_bigtts'
+        }
+        if (
+          normalized.includes('yunzhou') ||
+          normalized.includes('zhou') ||
+          normalized.includes('chef') ||
+          normalized.includes('當家') ||
+          normalized.includes('当家')
+        ) {
+          return 'zh_male_yunzhou_jupiter_bigtts'
+        }
+        if (normalized.includes('tim')) {
+          return 'en_male_tim_uranus_bigtts'
+        }
+        if (normalized.includes('dacey')) {
+          return 'en_female_dacey_uranus_bigtts'
+        }
+        if (normalized.includes('stokie')) {
+          return 'en_female_stokie_uranus_bigtts'
+        }
+        if (
+          normalized.includes('male') ||
+          normalized.includes('boy') ||
+          normalized.includes('man')
+        ) {
+          return 'zh_male_yunzhou_jupiter_bigtts'
+        }
+        return 'zh_female_vv_jupiter_bigtts'
+      })(),
     },
   }
 }
 
-function createAudioStartSessionPayload(instructions?: string) {
+interface VolcRealtimeSessionParams {
+  instructions?: string
+  voiceConfig?: {
+    enabled?: boolean
+    speakingStyle?: string
+    characterDetails?: string
+    webSearchEnabled?: boolean
+    singingEnabled?: boolean
+    speaker?: string
+  }
+}
+
+function createAudioStartSessionPayload(params: VolcRealtimeSessionParams) {
+  const voice = params.voiceConfig || {}
+  const isVoiceEnabled = voice.enabled !== false
+
+  // 1. System Prompt Synthesis
+  let systemRole = params.instructions || '你是 Telos 的实时语音 Agent。回答要自然、简洁，适合语音播报。'
+  if (isVoiceEnabled && voice.characterDetails) {
+    systemRole = `${systemRole}\n\n[语音人设与语气指导]\n${voice.characterDetails}`
+  }
+  if (isVoiceEnabled && voice.singingEnabled) {
+    systemRole = `${systemRole}\n\n[核心能力：唱歌与音乐互动]\n你具备优秀的唱歌能力。如果用户要求你唱歌、哼歌或进行音乐相关的互动，请直接大方地唱出歌词和旋律，用生动的节奏和丰富的情感表达，绝对不要口头推托。`
+  }
+
+  // 2. Speaking style
+  const speakingStyle = isVoiceEnabled && voice.speakingStyle
+    ? voice.speakingStyle
+    : '自然、清晰、可靠'
+
+  // 3. Speaker selection
+  const rawSpeaker = isVoiceEnabled && voice.speaker
+    ? voice.speaker
+    : (config.volcRealtimeSpeaker || 'zh_female_vv_jupiter_bigtts')
+
+  // 火山引擎 1.2.1.1 (O2.0) 端到端实时语音对话模型音色白名单过滤与映射：
+  // 1. zh_female_vv_jupiter_bigtts (Vivi)
+  // 2. zh_female_xiaohe_jupiter_bigtts (小何)
+  // 3. zh_male_yunzhou_jupiter_bigtts (云舟)
+  // 4. zh_male_xiaotian_jupiter_bigtts (小天)
+  // 5. en_male_tim_uranus_bigtts (Tim)
+  // 6. en_female_dacey_uranus_bigtts (Dacey)
+  // 7. en_female_stokie_uranus_bigtts (Stokie)
+  let speaker = 'zh_female_vv_jupiter_bigtts' // 默认兜底音色
+  const normalizedRaw = rawSpeaker.toLowerCase()
+
+  const allowedSpeakers = [
+    'zh_female_vv_jupiter_bigtts',
+    'zh_female_xiaohe_jupiter_bigtts',
+    'zh_male_yunzhou_jupiter_bigtts',
+    'zh_male_xiaotian_jupiter_bigtts',
+    'en_male_tim_uranus_bigtts',
+    'en_female_dacey_uranus_bigtts',
+    'en_female_stokie_uranus_bigtts'
+  ]
+
+  if (allowedSpeakers.includes(rawSpeaker)) {
+    speaker = rawSpeaker
+  } else if (normalizedRaw.includes('xiaohe') || normalizedRaw.includes('taiwan')) {
+    speaker = 'zh_female_xiaohe_jupiter_bigtts'
+  } else if (normalizedRaw.includes('xiaotian') || normalizedRaw.includes('tian')) {
+    speaker = 'zh_male_xiaotian_jupiter_bigtts'
+  } else if (
+    normalizedRaw.includes('yunzhou') ||
+    normalizedRaw.includes('zhou') ||
+    normalizedRaw.includes('chef') ||
+    normalizedRaw.includes('當家') ||
+    normalizedRaw.includes('当家')
+  ) {
+    speaker = 'zh_male_yunzhou_jupiter_bigtts'
+  } else if (normalizedRaw.includes('tim')) {
+    speaker = 'en_male_tim_uranus_bigtts'
+  } else if (normalizedRaw.includes('dacey')) {
+    speaker = 'en_female_dacey_uranus_bigtts'
+  } else if (normalizedRaw.includes('stokie')) {
+    speaker = 'en_female_stokie_uranus_bigtts'
+  } else if (
+    normalizedRaw.includes('male') ||
+    normalizedRaw.includes('boy') ||
+    normalizedRaw.includes('man')
+  ) {
+    speaker = 'zh_male_yunzhou_jupiter_bigtts'
+  } else {
+    speaker = 'zh_female_vv_jupiter_bigtts'
+  }
+
+  // 4. Web search tool calling injection
+  const tools = isVoiceEnabled && voice.webSearchEnabled
+    ? [{ type: 'web_search' }]
+    : undefined
+
   return {
     dialog: {
       extra: {
@@ -221,10 +357,9 @@ function createAudioStartSessionPayload(instructions?: string) {
         input_mod: 'audio',
       },
       bot_name: 'Telos',
-      system_role:
-        instructions ||
-        '你是 Telos 的实时语音 Agent。回答要自然、简洁，适合语音播报。',
-      speaking_style: '自然、清晰、可靠',
+      system_role: systemRole,
+      speaking_style: speakingStyle,
+      tools,
     },
     asr: {
       extra: {
@@ -242,7 +377,7 @@ function createAudioStartSessionPayload(instructions?: string) {
         sample_rate: 24000,
         channel: 1,
       },
-      speaker: config.volcRealtimeSpeaker || undefined,
+      speaker,
     },
   }
 }
@@ -581,13 +716,15 @@ export async function handleVolcRealtimeAudioSocket(options: {
 
   const connectId = randomUUID()
   const sessionId = randomUUID()
-  const upstream = createWebSocket(connectId) as unknown as WebSocket
+  let upstream = createWebSocket(connectId) as unknown as WebSocket
   let sequence = 1
   let sessionStartSent = false
   let sessionReady = false
   let startRequested = false
   let stopRequested = false
   let pendingInstructions: string | undefined
+  let agentInstructions: string | undefined
+  let voiceConfig: any = null
   const pendingAudio: Buffer[] = []
   let turnIndex = 0
   let currentTurnId: string | undefined
@@ -674,6 +811,22 @@ export async function handleVolcRealtimeAudioSocket(options: {
       options.agentId?.trim() || (await agentRuntimeService.getDefaultAgentId())
     if (!agentId) {
       throw new Error('Default agent not found')
+    }
+
+    try {
+      const agent = await prisma.agent.findUnique({
+        where: { id: agentId },
+        select: { instructions: true, metadata: true },
+      })
+      if (agent) {
+        agentInstructions = agent.instructions
+        const metadata = agent.metadata as Record<string, any>
+        if (metadata && metadata.voice) {
+          voiceConfig = metadata.voice
+        }
+      }
+    } catch (dbErr) {
+      logger.warn({ msg: 'Failed to fetch agent voice config from db', agentId, err: dbErr })
     }
 
     const thread = await agentSessionService.ensureThread({
@@ -768,7 +921,10 @@ export async function handleVolcRealtimeAudioSocket(options: {
     sessionStartSent = true
     sendUpstreamEvent(
       VOLC_EVENTS.START_SESSION,
-      createAudioStartSessionPayload(pendingInstructions)
+      createAudioStartSessionPayload({
+        instructions: pendingInstructions || agentInstructions,
+        voiceConfig,
+      })
     )
   }
 
@@ -782,7 +938,7 @@ export async function handleVolcRealtimeAudioSocket(options: {
     }
   }
 
-  const closeBoth = (code = 1000, reason = 'done') => {
+  let closeBoth = (code = 1000, reason = 'done') => {
     persistRealtimeTurn(currentTurnId)
     try {
       if (upstream.readyState === WebSocket.OPEN) {
@@ -800,19 +956,56 @@ export async function handleVolcRealtimeAudioSocket(options: {
     }
   }
 
-  upstream.on('open', () => {
-    safeSendClientJson(client, 'realtime.session.created', {
-      sessionId,
-      connectId,
-      provider: 'volcengine',
-      model: config.volcRealtimeModel,
-      userId,
-    })
-    sendUpstreamEvent(VOLC_EVENTS.START_CONNECTION, {})
-    if (startRequested) startUpstreamSession()
-  })
+  let lastPongTime = Date.now()
+  const pingInterval = setInterval(() => {
+    if (client.readyState === WebSocket.OPEN) {
+      safeSendClientJson(client, 'ping', {})
+      if (Date.now() - lastPongTime > 60000) {
+        logger.warn({ msg: 'Client heartbeat timeout, closing connection', connectId })
+        closeBoth(1002, 'Heartbeat timeout')
+      }
+    }
+  }, 30000)
 
-  upstream.on('message', data => {
+  const originalCloseBoth = closeBoth
+  closeBoth = (code = 1000, reason = 'done') => {
+    clearInterval(pingInterval)
+    originalCloseBoth(code, reason)
+  }
+
+  let reconnectCount = 0
+  let isReconnecting = false
+
+  const tryReconnectUpstream = () => {
+    if (isReconnecting || reconnectCount >= 3) {
+      safeSendClientJson(client, 'session_ended', { reason: 'upstream_disconnected_permanently' })
+      closeBoth(1011, 'upstream disconnected permanently')
+      return
+    }
+    isReconnecting = true
+    reconnectCount++
+    safeSendClientJson(client, 'reconnecting', { attempt: reconnectCount })
+
+    const delay = Math.pow(2, reconnectCount - 1) * 1000
+    logger.info({ msg: `Attempting upstream reconnect in ${delay}ms`, attempt: reconnectCount })
+
+    setTimeout(() => {
+      try {
+        const newUpstream = createWebSocket(connectId) as unknown as WebSocket
+        try {
+          upstream.removeAllListeners()
+          upstream.close()
+        } catch {}
+        upstream = newUpstream
+        bindUpstreamEvents()
+      } catch (err) {
+        isReconnecting = false
+        tryReconnectUpstream()
+      }
+    }, delay)
+  }
+
+  const handleUpstreamMessage = (data: RawData) => {
     try {
       const frame = decodeVolcFrame(normalizeClientAudioData(data))
       const payload = frame.json ?? frame.text
@@ -947,48 +1140,78 @@ export async function handleVolcRealtimeAudioSocket(options: {
         error: serializeRealtimeError(error),
       })
     }
-  })
+  }
 
-  upstream.on('error', error => {
-    logger.error({ msg: 'Volc realtime upstream socket error', err: error })
-    safeSendClientJson(client, 'response.failed', {
-      error: serializeRealtimeError(error),
+  const bindUpstreamEvents = () => {
+    upstream.on('open', () => {
+      if (reconnectCount > 0) {
+        isReconnecting = false
+        reconnectCount = 0
+        sessionReady = false
+        sessionStartSent = false
+        safeSendClientJson(client, 'reconnected', {})
+        sendUpstreamEvent(VOLC_EVENTS.START_CONNECTION, {})
+        startUpstreamSession()
+      } else {
+        safeSendClientJson(client, 'realtime.session.created', {
+          sessionId,
+          connectId,
+          provider: 'volcengine',
+          model: config.volcRealtimeModel,
+          userId,
+        })
+        sendUpstreamEvent(VOLC_EVENTS.START_CONNECTION, {})
+        if (startRequested) startUpstreamSession()
+      }
     })
-    closeBoth(1011, 'upstream error')
-  })
 
-  upstream.on('close', () => {
-    if (client.readyState === WebSocket.OPEN) {
-      safeSendClientJson(client, 'response.completed', { sessionId })
-      client.close(1000, 'upstream closed')
-    }
-  })
+    upstream.on('message', handleUpstreamMessage)
+
+    upstream.on('error', error => {
+      logger.error({ msg: 'Volc realtime upstream socket error', err: error })
+      if (!isReconnecting) {
+        tryReconnectUpstream()
+      }
+    })
+
+    upstream.on('close', () => {
+      if (!isReconnecting && !stopRequested && client.readyState === WebSocket.OPEN) {
+        tryReconnectUpstream()
+      }
+    })
+  }
+
+  bindUpstreamEvents()
 
   client.on('message', (data, isBinary) => {
     if (!isBinary) {
       void (async () => {
         try {
-        const text = Buffer.isBuffer(data) ? data.toString('utf8') : String(data)
-        const payload = JSON.parse(text) as {
-          type?: string
-          instructions?: string
-          agentId?: string
-          threadId?: string | null
-        }
-        if (payload.type === 'client.start' && !sessionReady) {
-          pendingInstructions = payload.instructions
-          await ensurePersistentThread({
-            agentId: payload.agentId,
-            threadId: payload.threadId,
-          })
-          startRequested = true
-          startUpstreamSession()
-        }
-        if (payload.type === 'client.stop') {
-          stopRequested = true
-          persistRealtimeTurn(currentTurnId)
-          closeBoth(1000, 'client stopped')
-        }
+          const text = Buffer.isBuffer(data) ? data.toString('utf8') : String(data)
+          const payload = JSON.parse(text) as {
+            type?: string
+            instructions?: string
+            agentId?: string
+            threadId?: string | null
+          }
+          if (payload.type === 'pong') {
+            lastPongTime = Date.now()
+            return
+          }
+          if (payload.type === 'client.start' && !sessionReady) {
+            pendingInstructions = payload.instructions
+            await ensurePersistentThread({
+              agentId: payload.agentId,
+              threadId: payload.threadId,
+            })
+            startRequested = true
+            startUpstreamSession()
+          }
+          if (payload.type === 'client.stop') {
+            stopRequested = true
+            persistRealtimeTurn(currentTurnId)
+            closeBoth(1000, 'client stopped')
+          }
         } catch (error) {
           safeSendClientJson(client, 'response.failed', {
             error: serializeRealtimeError(error),
