@@ -31,9 +31,7 @@ telos/
 │   ├── api-gateway/       # API Gateway (Go Echo)
 │   └── registry/          # Service Registry (Go Echo)
 ├── services/              # Microservices Layer
-│   ├── auth-service/      # Authentication Service (Go Gin)
-│   ├── user-service/      # User Management Service (Go Gin)
-│   └── workflow-service/  # Workflow Orchestration Service (Go Gin)
+│   └── agent-service/     # AI Agent Service (TypeScript Express)
 ├── docs/                  # Documentation
 ├── pkg/                   # Shared Go Packages
 ├── node_modules/          # Root Dependencies
@@ -146,9 +144,7 @@ make clean      # Remove build artifacts
 
 ```bash
 # Specific service development
-pnpm auth-service:dev      # Start auth service with hot reload
-pnpm user-service:dev      # Start user service with hot reload
-pnpm workflow-service:dev  # Start workflow service with hot reload
+pnpm agent-service:dev     # Start agent service with hot reload
 pnpm api-gateway:dev       # Start API gateway with hot reload
 pnpm registry:dev          # Start service registry with hot reload
 
@@ -193,9 +189,7 @@ pnpm prepare              # Install Husky hooks
 - **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication, rate limiting, CORS, and service discovery
 - **Registry (apps/registry)**: Service registration, deregistration, discovery, health check with RESTful API
 - **Microservices (services/\*):**
-  - **Auth Service**: User authentication, registration, and JWT token management
-  - **User Service**: User profile management and permissions
-  - **Workflow Service**: Workflow orchestration, task execution, and progress monitoring
+  - **Agent Service**: AI agent orchestration, session management, and system prompt generation
 
 ### 5.3 Shared Modules (pkg)
 
@@ -234,9 +228,9 @@ pnpm prepare              # Install Husky hooks
 - Backend:
 
   ```bash
-  cd services/auth-service
-  go mod tidy
-  go run cmd/main.go
+  cd services/agent-service
+  pnpm install
+  pnpm dev
   ```
 
 - Debugging tools: Use Docker Compose to quickly start dependencies (e.g., DB, Redis)
@@ -336,14 +330,12 @@ Default ports for each service:
 - Frontend (web): `8800`
 - Api-Gateway: `8890`
 - Registry: `8891`
-- Auth Service: `8892`
-- User Service: `8893`
-- Workflow Service: `8894`
+- Agent Service: `3001`
 
 ## 11. FAQ
 
-- **Q:** How to add a new microservice?
-  **A:** Refer to the services/auth-service structure, copy and modify the service name and configs.
+- **Q:** How does the agent service run?
+  **A:** Make sure to copy services/agent-service/.env.example to .env and configure your LLM/speech keys, then run `pnpm agent-service:dev` at root.
 - **Q:** How does the frontend call backend APIs?
   **A:** Use tRPC or REST, manage all APIs in apps/web/services.
 - **Q:** How to debug DB/Redis locally?

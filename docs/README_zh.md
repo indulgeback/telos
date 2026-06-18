@@ -28,9 +28,7 @@ telos/
 │   ├── api-gateway/       # API 网关 (Go Echo)
 │   └── registry/          # 服务注册中心 (Go Echo)
 ├── services/              # 微服务层
-│   ├── auth-service/      # 认证服务 (Go Gin)
-│   ├── user-service/      # 用户管理服务 (Go Gin)
-│   └── workflow-service/  # 工作流编排服务 (Go Gin)
+│   └── agent-service/     # AI 智能代理服务 (TypeScript Express)
 ├── docs/                  # 文档
 ├── pkg/                   # 共享 Go 包
 ├── node_modules/          # 根依赖
@@ -143,9 +141,7 @@ make clean      # 删除构建产物
 
 ```bash
 # 特定服务开发
-pnpm auth-service:dev      # 启动认证服务热重载
-pnpm user-service:dev      # 启动用户服务热重载
-pnpm workflow-service:dev  # 启动工作流服务热重载
+pnpm agent-service:dev     # 智能代理服务热重载
 pnpm api-gateway:dev       # 启动 API 网关热重载
 pnpm registry:dev          # 启动服务注册中心热重载
 
@@ -190,9 +186,7 @@ pnpm prepare              # 安装 Husky 钩子
 - **API 网关（apps/api-gateway）**：统一处理前端请求，转发至对应微服务，实现鉴权、限流、CORS、服务发现
 - **注册中心（apps/registry）**：服务注册、注销、发现、健康检查，提供 RESTful API
 - **微服务（services/\*）**：
-  - **认证服务**：用户认证、注册和 JWT 令牌管理
-  - **用户服务**：用户档案管理和权限控制
-  - **工作流服务**：工作流编排、任务执行和进度监控
+  - **智能代理服务**：AI 代理编排、会话管理以及提示词生成
 
 ### 5.3 共享模块（pkg）
 
@@ -231,9 +225,9 @@ pnpm prepare              # 安装 Husky 钩子
 - 后端：
 
   ```bash
-  cd services/auth-service
-  go mod tidy
-  go run cmd/main.go
+  cd services/agent-service
+  pnpm install
+  pnpm dev
   ```
 
 - 调试工具：使用 Docker Compose 快速启动依赖服务（如数据库、Redis）
@@ -333,14 +327,12 @@ fix: 修正 README 拼写错误
 - 前端 (web): `8800`
 - API 网关 (api-gateway): `8890`
 - 注册中心 (registry): `8891`
-- 认证服务 (auth-service): `8892`
-- 用户服务 (user-service): `8893`
-- 工作流服务 (workflow-service): `8894`
+- 智能代理服务 (agent-service): `3001`
 
 ## 11. 常见问题（FAQ）
 
-- **Q:** 如何新增一个微服务？
-  **A:** 参考 services/auth-service 目录结构，复制并修改 service 名称及相关配置。
+- **Q:** 智能代理服务如何启动？
+  **A:** 请确保复制 services/agent-service/.env.example 为 .env 并配置好相应的大模型与语音 key，然后在根目录执行 `pnpm agent-service:dev`。
 - **Q:** 前端如何调用后端接口？
   **A:** 推荐使用 tRPC 或 REST，统一在 apps/web/services 目录下管理。
 - **Q:** 如何本地调试数据库/Redis？

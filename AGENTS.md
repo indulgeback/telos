@@ -54,9 +54,6 @@ make clean                                      # Remove build artifacts
 pnpm install:all                                # Install all dependencies (Node + Go)
 pnpm api-gateway:dev                            # Start API gateway
 pnpm registry:dev                               # Start service registry
-pnpm auth-service:dev                           # Start auth service
-pnpm user-service:dev                           # Start user service
-pnpm workflow-service:dev                       # Start workflow service
 pnpm agent-service:dev                          # Start agent service
 docker-compose up -d                            # Start DB, Redis, etc.
 ```
@@ -109,7 +106,7 @@ docker-compose up -d                            # Start DB, Redis, etc.
 
 - Group imports: standard library first, then external packages, then internal packages
 - Blank line between groups
-- Use absolute imports: `github.com/indulgeback/telos/services/auth-service/internal/model`
+- Use absolute imports: `github.com/indulgeback/telos/apps/api-gateway/internal/auth`
 
 **Package Structure:**
 
@@ -215,10 +212,7 @@ export default function MyPage() {
 
 - **API Gateway** (port 8890) - Routes requests to microservices, handles auth/rate limiting
 - **Registry** (port 8891) - Service discovery and health checks (POST to `/api/register`)
-- **Auth Service** (port 8892) - Authentication, JWT tokens, user sign-in/out
-- **User Service** (port 8893) - User profile management, permissions
-- **Workflow Service** (port 8894) - Workflow orchestration, task execution
-- **Agent Service** - AI agent orchestration and execution
+- **Agent Service** (port 3001) - AI agent orchestration, session management, and prompt generation
 - All services register with Registry on startup
 - Health check endpoints at `/health` on all services
 
