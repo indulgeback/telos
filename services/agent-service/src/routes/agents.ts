@@ -10,7 +10,32 @@ import {
 import { asStringArray } from '../utils/json.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
-import { agentRuntimeService } from '../services/runtime.js'
+import type { StructuredPlan } from '../services/plan-tools.js'
+
+/**
+ * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
+ */
+function parseApprovedPlan(raw: unknown): StructuredPlan | null {
+  if (!raw) return null
+  try {
+    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
+    if (
+      obj &&
+      typeof obj === 'object' &&
+      typeof (obj as any).summary === 'string' &&
+      Array.isArray((obj as any).steps)
+    ) {
+      return obj as StructuredPlan
+    }
+  } catch {
+    // 解析失败返回 null
+  }
+  return null
+}
+import {
+  agentRuntimeService,
+  parseExplicitSkillTrigger,
+} from '../services/runtime.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
 import {
   agentAccessWhere,
@@ -417,6 +442,12 @@ agentsRouter.post('/:id/runs', async c => {
   const body = await parseJson(c)
   const input = typeof body.input === 'string' ? body.input.trim() : ''
   if (!input) return fail(c, 400, 'input is required')
+
+  // 解析显式 skill 触发（对标 Codex 的 $skill-name 语法），与 chat 路由保持一致。
+  const { skillName: forceSkillName, message: skillMessage } =
+    parseExplicitSkillTrigger(input)
+  const effectiveInput = forceSkillName ? skillMessage : input
+
   const agentId = c.req.param('id')
   const ownerId = getCurrentUserId(c)
   const agent = await findAccessibleAgent(agentId, ownerId)
@@ -426,19 +457,19 @@ agentsRouter.post('/:id/runs', async c => {
     agentId,
     threadId: typeof body.threadId === 'string' ? body.threadId : null,
     ownerId,
-    firstInput: input,
+    firstInput: effectiveInput,
     metadata: { source: 'run_api' },
   })
   const userMessage = await agentSessionService.appendUserMessage(
     thread.id,
-    input
+    effectiveInput
   )
   const runtimeContext = await agentSessionService.buildRuntimeInput(thread.id)
 
   const run = await createAgentRun({
     agentId,
     threadId: thread.id,
-    input: { input },
+    input: { input: effectiveInput },
     metadata: { source: 'run_api', userMessageId: userMessage.id },
   })
 
@@ -447,7 +478,7 @@ agentsRouter.post('/:id/runs', async c => {
     return createAgentStreamResponse(c, {
       agentId: c.req.param('id'),
       runId: run.id,
-      input,
+      input: effectiveInput,
       threadId: thread.id,
       ownerId,
       runtimeInput: runtimeContext.input,
@@ -457,33 +488,73 @@ agentsRouter.post('/:id/runs', async c => {
           ? body.model.trim()
           : null,
       reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
+      planMode:
+        body.planMode === 'plan' || body.planMode === 'execute'
+          ? body.planMode
+          : undefined,
+      approvedPlan: parseApprovedPlan(body.approvedPlan),
+      forceSkillName: forceSkillName || undefined,
+      userId: ownerId,
     })
   }
 
-  const { result, persistence } = await agentRuntimeService.run(agentId, {
-    runId: run.id,
-    input: runtimeContext.input,
-    threadId: thread.id,
-    memoryInstructions: runtimeContext.memoryInstructions,
-    modelOverride:
-      typeof body.model === 'string' && body.model.trim()
-        ? body.model.trim()
-        : null,
-    reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
-  })
-  await persistence.complete(
-    String(result.finalOutput ?? ''),
-    result.lastAgent?.name,
-    result.lastResponseId
-  )
-  await agentSessionService.appendAssistantMessage(
-    thread.id,
-    run.id,
-    String(result.finalOutput ?? '')
-  )
-  agentSessionService.scheduleSummaries(thread.id, agentId, ownerId)
+  const planMode =
+    body.planMode === 'plan' || body.planMode === 'execute'
+      ? body.planMode
+      : undefined
+  try {
+    const { result, persistence } = await agentRuntimeService.run(agentId, {
+      runId: run.id,
+      input: runtimeContext.input,
+      threadId: thread.id,
+      memoryInstructions: runtimeContext.memoryInstructions,
+      modelOverride:
+        typeof body.model === 'string' && body.model.trim()
+          ? body.model.trim()
+          : null,
+      reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
+      planMode,
+      approvedPlan: parseApprovedPlan(body.approvedPlan),
+      forceSkillName: forceSkillName || undefined,
+      userId: ownerId,
+    })
+    const finalOutput = String(result.finalOutput ?? '')
+    await persistence.complete(
+      finalOutput,
+      result.lastAgent?.name,
+      result.lastResponseId
+    )
+    // 计划模式下，从 runtime 的 pendingPlanCache 取出结构化计划并持久化
+    const structuredPlan =
+      planMode === 'plan'
+        ? agentRuntimeService.consumePendingPlan(run.id)
+        : null
+    const runParts =
+      structuredPlan
+        ? [
+            {
+              type: 'plan',
+              plan: {
+                summary: structuredPlan.summary,
+                steps: structuredPlan.steps,
+                status: 'pending',
+              },
+            },
+          ]
+        : undefined
+    await agentSessionService.appendAssistantMessage(
+      thread.id,
+      run.id,
+      finalOutput,
+      runParts
+    )
+    agentSessionService.scheduleSummaries(thread.id, agentId, ownerId)
 
-  return ok(c, { run_id: run.id, thread_id: thread.id, status: 'completed' })
+    return ok(c, { run_id: run.id, thread_id: thread.id, status: 'completed' })
+  } finally {
+    const { WorkspaceManager } = await import('../services/workspace.js')
+    WorkspaceManager.cleanupWorkspace(thread.id)
+  }
 })
 
 agentsRouter.post('/:id/regenerate-instructions', async c => {

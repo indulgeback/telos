@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/atoms'
-import { BrainCircuit, ImagePlus, Plus } from 'lucide-react'
+import { BrainCircuit, ClipboardList, ImagePlus, Plus } from 'lucide-react'
 
 export interface ChatInputActionsProps {
   showImageUpload: boolean
@@ -31,6 +31,13 @@ export interface ChatInputActionsProps {
   onReasoningEffortChange: (
     value: 'minimal' | 'low' | 'medium' | 'high'
   ) => void
+  // Plan 模式相关
+  showPlanMode?: boolean
+  planMode?: 'auto' | 'plan'
+  planLabel?: string
+  autoLabel?: string
+  disablePlanMode?: boolean
+  onPlanModeChange?: (value: 'auto' | 'plan') => void
 }
 
 export function ChatInputActions({
@@ -45,10 +52,16 @@ export function ChatInputActions({
   disableReasoningEffort,
   onPickImages,
   onReasoningEffortChange,
+  showPlanMode = false,
+  planMode = 'auto' as 'auto' | 'plan',
+  planLabel,
+  autoLabel,
+  disablePlanMode = false,
+  onPlanModeChange,
 }: ChatInputActionsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  if (!showImageUpload && !showReasoningEffort) {
+  if (!showImageUpload && !showReasoningEffort && !showPlanMode) {
     return null
   }
 
@@ -103,6 +116,26 @@ export function ChatInputActions({
             </div>
           )}
         </div>
+      )}
+
+      {showPlanMode && onPlanModeChange && (
+        <button
+          type='button'
+          onClick={() =>
+            onPlanModeChange(planMode === 'plan' ? 'auto' : 'plan')
+          }
+          disabled={disablePlanMode}
+          className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors ${
+            planMode === 'plan'
+              ? 'border-primary/50 bg-primary/10 text-primary'
+              : 'border-border/70 bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+          } ${disablePlanMode ? 'opacity-60' : ''}`}
+          aria-pressed={planMode === 'plan'}
+          title={planLabel}
+        >
+          <ClipboardList className='size-3.5 shrink-0' />
+          <span className='truncate'>{planLabel}</span>
+        </button>
       )}
 
       {showImageUpload && (

@@ -441,3 +441,6 @@ app-example
 /android
 .gstack/
 tmp-*.png
+
+# Agent service runtime persisted workspaces (local data)
+services/agent-service/.persisted-workspaces/

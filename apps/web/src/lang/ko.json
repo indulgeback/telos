@@ -109,7 +109,18 @@
       "online": "인터넷 연결",
       "reasoning": "사고 깊이:",
       "mcp": "MCP",
-      "canvas": "캔버스"
+      "canvas": "캔버스",
+      "plan": "계획",
+      "auto": "채팅"
+    },
+    "plan": {
+      "title": "실행 계획",
+      "approve": "승인 및 실행",
+      "reject": "거부하다",
+      "approved": "승인됨",
+      "rejected": "거부됨",
+      "pending": "대기 중",
+      "executeTrigger": "위에서 승인된 계획에 따라 실행해 주세요"
     },
     "voice": {
       "title": "실시간 음성",
@@ -476,9 +487,13 @@
       "voiceDetails": "음성 감정 및 톤 세부 정보"
     },
     "speakers": {
-      "cancan": "캉캉 (활기차고 따뜻한 여성)",
-      "audrey": "오드리 (온화하고 성숙한 여성)",
-      "ajie": "아지 (차분하고 밝은 남성)"
+      "vv": "비비 (프리미엄 여성 - 추천)",
+      "xiaohe": "샤오허 (프리미엄 여성)",
+      "yunzhou": "윤저우 (프리미엄 남성)",
+      "xiaotian": "샤오톈 (프리미엄 남성)",
+      "tim": "팀 (프리미엄 영어 남성)",
+      "dacey": "데이시 (프리미엄 영국 여성)",
+      "stokie": "스토키 (프리미엄 영국 여성)"
     },
     "selector": {
       "label": "에이전트 선택",
@@ -491,6 +506,8 @@
     "messages": {
       "createSuccess": "에이전트 생성 성공",
       "createError": "에이전트 생성 실패",
+      "updateSuccess": "에이전트가 성공적으로 업데이트되었습니다",
+      "updateError": "에이전트 업데이트 실패",
       "deleteSuccess": "에이전트 삭제 성공",
       "deleteError": "에이전트 삭제 실패",
       "deleteConfirm": {
@@ -501,9 +518,7 @@
       "setDefaultSuccess": "\"{name}\"을(를) 기본 에이전트로 성공적으로 설정했습니다",
       "setDefaultError": "기본 에이전트를 설정하지 못했습니다",
       "enhancePromptStart": "백그라운드에서 프롬프트 최적화를 시작했습니다",
-      "enhancePromptError": "프롬프트 최적화 실패",
-      "updateSuccess": "에이전트가 성공적으로 업데이트되었습니다",
-      "updateError": "에이전트 업데이트 실패"
+      "enhancePromptError": "프롬프트 최적화 실패"
     },
     "empty": {
       "title": "아직 에이전트가 없습니다",

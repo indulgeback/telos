@@ -31,6 +31,7 @@ import {
   Input,
   type SuggestionPrompt,
 } from '@/components/atoms'
+import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { uploadImageToCos } from '@/lib/cos-upload'
@@ -116,6 +117,15 @@ type AgentStreamChunk = {
   output?: unknown
   errorText?: string
   error?: unknown
+  // plan 模式相关字段
+  response_id?: string
+  plan_text?: string
+  plan_message_id?: string
+  plan_summary?: string
+  plan_steps?: Array<{ description: string; tool_hint?: string }>
+  step_index?: number
+  plan_step_status?: 'in_progress' | 'completed' | 'skipped' | 'failed'
+  note?: string
 }
 
 type RealtimeConfig = {
@@ -170,8 +180,10 @@ const createReasoningPart = (
   state: 'streaming' | 'done' = 'streaming'
 ) => ({
   type: 'reasoning',
-  text,
-  state,
+  reasoning: {
+    text,
+    state,
+  },
 })
 
 const createToolPart = (
@@ -256,6 +268,38 @@ const parseUiMessageStreamChunk = (raw: string): AgentStreamChunk | null => {
   } catch {
     return null
   }
+}
+
+/**
+ * 从计划模式产出的 markdown 文本中解析出步骤列表。
+ * 镜像后端 parsePlanSteps 的宽松解析逻辑。
+ */
+const parseClientPlanSteps = (planText: string): string[] => {
+  if (!planText || !planText.trim()) return []
+  const lines = planText.split('\n')
+  const steps: string[] = []
+  const stepPattern = /^\s*(?:\d+[.)、]|[-*•])\s*(.+)$/
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    if (
+      steps.length > 0 &&
+      /^#{1,6}\s*(预期结果|需要澄清|说明|备注)/i.test(line)
+    ) {
+      break
+    }
+    const match = line.match(stepPattern)
+    if (match) {
+      const step = match[1].trim()
+      if (step) steps.push(step)
+    }
+  }
+
+  if (steps.length === 0) {
+    const fallback = planText.replace(/^#{1,6}\s.*$/gm, '').trim()
+    return fallback ? [fallback] : []
+  }
+  return steps
 }
 
 const createClientMessageId = (prefix: string) => {
@@ -450,22 +494,122 @@ const parseReasoningPart = (
   const raw = part as Record<string, unknown>
   if (raw.type !== 'reasoning') return null
 
-  const text =
-    typeof raw.text === 'string'
-      ? raw.text
-      : typeof raw.reasoning === 'string'
-        ? raw.reasoning
-        : ''
-  if (!text) return null
+  let text = ''
+  let state: 'streaming' | 'done' | undefined = undefined
 
-  const state =
-    raw.state === 'streaming' || raw.state === 'done'
-      ? (raw.state as 'streaming' | 'done')
-      : undefined
+  if (raw.reasoning && typeof raw.reasoning === 'object') {
+    const r = raw.reasoning as Record<string, unknown>
+    text = typeof r.text === 'string' ? r.text : ''
+    state =
+      r.state === 'streaming' || r.state === 'done'
+        ? (r.state as 'streaming' | 'done')
+        : undefined
+  } else {
+    text =
+      typeof raw.text === 'string'
+        ? raw.text
+        : typeof raw.reasoning === 'string'
+          ? raw.reasoning
+          : ''
+    state =
+      raw.state === 'streaming' || raw.state === 'done'
+        ? (raw.state as 'streaming' | 'done')
+        : undefined
+  }
 
   return {
     text,
     state,
+  }
+}
+
+const parsePlanPart = (
+  part: unknown
+): {
+  summary?: string
+  steps: Array<{ description: string; tool_hint?: string }>
+  status: 'pending' | 'approved' | 'rejected'
+  stepStatuses?: Array<
+    'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
+  >
+  text?: string
+} | null => {
+  if (!part || typeof part !== 'object') return null
+  const raw = part as Record<string, unknown>
+  if (raw.type !== 'plan') return null
+
+  // 兼容两种结构：新格式 { type:'plan', plan: {...} } 和旧扁平 { type:'plan', steps, status, text }
+  const planObj =
+    raw.plan && typeof raw.plan === 'object'
+      ? (raw.plan as Record<string, unknown>)
+      : raw
+
+  const status =
+    planObj.status === 'approved' ||
+    planObj.status === 'rejected' ||
+    planObj.status === 'pending'
+      ? (planObj.status as 'pending' | 'approved' | 'rejected')
+      : 'pending'
+
+  const summary =
+    typeof planObj.summary === 'string' ? planObj.summary : undefined
+
+  // steps 可能是对象数组（新）或字符串数组（旧）
+  const rawSteps = Array.isArray(planObj.steps) ? planObj.steps : []
+  const steps: Array<{ description: string; tool_hint?: string }> = rawSteps
+    .map(s => {
+      if (typeof s === 'string') return { description: s }
+      if (s && typeof s === 'object') {
+        const desc =
+          typeof (s as any).description === 'string'
+            ? (s as any).description
+            : ''
+        if (!desc) return null
+        const obj: { description: string; tool_hint?: string } = {
+          description: desc,
+        }
+        if (typeof (s as any).tool_hint === 'string') {
+          obj.tool_hint = (s as any).tool_hint
+        }
+        return obj
+      }
+      return null
+    })
+    .filter((s): s is { description: string; tool_hint?: string } => s !== null)
+
+  // stepStatuses（execute 阶段逐步状态）
+  const stepStatuses = Array.isArray(planObj.stepStatuses)
+    ? (planObj.stepStatuses as any[]).filter(
+        (
+          s
+        ): s is
+          | 'pending'
+          | 'in_progress'
+          | 'completed'
+          | 'skipped'
+          | 'failed' => typeof s === 'string'
+      )
+    : undefined
+
+  // 旧格式兼容：text
+  const text = typeof planObj.text === 'string' ? planObj.text : undefined
+
+  if (steps.length === 0 && !text) return null
+  // 如果 steps 为空但有 text（旧格式），从 text 解析
+  const finalSteps =
+    steps.length > 0
+      ? steps
+      : text
+        ? parseClientPlanSteps(text).map(d => ({ description: d }))
+        : []
+  if (finalSteps.length === 0) return null
+
+  return {
+    summary,
+    steps: finalSteps,
+    status,
+    stepStatuses,
+    text,
   }
 }
 
@@ -543,6 +687,16 @@ const extractAssistantContentParts = (parts: unknown[]): ContentPartItem[] => {
       return
     }
 
+    const plan = parsePlanPart(part)
+    if (plan) {
+      flushText()
+      result.push({
+        type: 'plan',
+        plan,
+      })
+      return
+    }
+
     const tool = parseToolCallPart(part)
     if (!tool) return
 
@@ -604,6 +758,22 @@ export function ChatView() {
   const [modelOptions, setModelOptions] = useState<ChatModelOption[]>([])
   const [reasoningEffort, setReasoningEffort] =
     useState<ReasoningEffort>('medium')
+  // plan 模式：'auto'=普通对话，'plan'=出计划模式
+  const [planMode, setPlanMode] = useState<'auto' | 'plan'>('auto')
+  // 待批准/执行中的计划：驱动输入框上方的 PlanPanel
+  const [pendingPlan, setPendingPlan] = useState<{
+    messageId: string
+    summary: string
+    steps: Array<{ description: string; tool_hint?: string }>
+  } | null>(null)
+  // 计划的整体状态：pending(待批准) / approved(已批准执行中) / rejected(已放弃)
+  const [planPanelStatus, setPlanPanelStatus] = useState<
+    'pending' | 'approved' | 'rejected'
+  >('pending')
+  // 每步的执行状态（execute 阶段实时更新）
+  const [planStatuses, setPlanStatuses] = useState<
+    Array<'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'>
+  >([])
   const [realtimeEnabled, setRealtimeEnabled] = useState(false)
   const [realtimeConfig, setRealtimeConfig] = useState<RealtimeConfig | null>(
     null
@@ -636,6 +806,9 @@ export function ChatView() {
   >({})
   const [messages, setMessages] = useState<ChatUiMessage[]>([])
   const [status, setStatus] = useState<ChatStatus>('ready')
+  const [activeAssistantId, setActiveAssistantId] = useState<string | null>(
+    null
+  )
   const abortControllerRef = useRef<AbortController | null>(null)
   const realtimeSocketRef = useRef<WebSocket | null>(null)
   const realtimeStreamRef = useRef<MediaStream | null>(null)
@@ -645,7 +818,17 @@ export function ChatView() {
   const realtimeUserIdRef = useRef<string | null>(null)
   const realtimeAssistantIdRef = useRef<string | null>(null)
   const realtimePlaybackTimeRef = useRef(0)
-  const isLoading = status === 'submitted' || status === 'streaming'
+  // 当前正在执行的计划所在的消息 id（execute 阶段的 plan_step_updated 需要它来定位计划气泡）
+  const activePlanMessageIdRef = useRef<string | null>(null)
+  // pendingPlan 的 ref（streamAgentMessage 的 finally 闭包需要同步读取最新值）
+  const pendingPlanRef = useRef(pendingPlan)
+  useEffect(() => {
+    pendingPlanRef.current = pendingPlan
+  }, [pendingPlan])
+  const isLoading =
+    status === 'submitted' ||
+    status === 'streaming' ||
+    activeAssistantId !== null
   const realtimeAvailable = Boolean(realtimeConfig?.configured)
   const isRealtimeMicActive =
     realtimeMicState === 'connecting' ||
@@ -891,6 +1074,7 @@ export function ChatView() {
     const assistantId = createClientMessageId('assistant')
     realtimeUserIdRef.current = userId
     realtimeAssistantIdRef.current = assistantId
+    setActiveAssistantId(assistantId)
     pendingReplyModelLabelRef.current = t('voice.modelLabel')
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
@@ -979,6 +1163,50 @@ export function ChatView() {
         return
       }
 
+      // plan 模式：后端产出了结构化计划，设置 pendingPlan state（驱动输入框上方的 PlanPanel）
+      if (chunk.type === 'response.plan_proposed') {
+        const planSummary =
+          typeof chunk.plan_summary === 'string' ? chunk.plan_summary : ''
+        const planSteps = Array.isArray(chunk.plan_steps)
+          ? chunk.plan_steps.filter(
+              (s): s is { description: string; tool_hint?: string } =>
+                !!s &&
+                typeof s === 'object' &&
+                typeof s.description === 'string'
+            )
+          : []
+        if (planSteps.length > 0) {
+          // 同步设 ref，确保 streamAgentMessage 的 finally 能立即读到最新值
+          pendingPlanRef.current = {
+            messageId: assistantId,
+            summary: planSummary,
+            steps: planSteps,
+          }
+          setPendingPlan(pendingPlanRef.current)
+        }
+        return
+      }
+
+      // execute 阶段：模型更新了某一步的状态，实时更新 PlanPanel
+      if (chunk.type === 'response.plan_step_updated') {
+        const stepIndex = Number(chunk.step_index)
+        const stepStatus = chunk.plan_step_status
+        if (!Number.isInteger(stepIndex) || !stepStatus) return
+        // 同步更新 planStatuses state（PlanPanel 驱动）
+        setPlanStatuses(prev => {
+          const stepCount = pendingPlanRef.current?.steps.length ?? 0
+          const next =
+            prev && prev.length === stepCount
+              ? [...prev]
+              : Array.from({ length: stepCount }, () => 'pending' as const)
+          if (stepIndex < next.length) {
+            next[stepIndex] = stepStatus
+          }
+          return next
+        })
+        return
+      }
+
       if (chunk.type === 'response.failed') {
         const errorText =
           typeof chunk.errorText === 'string'
@@ -1012,15 +1240,18 @@ export function ChatView() {
         chunk.delta
       ) {
         updateAssistantParts(assistantId, parts => {
-          let part = parts[parts.length - 1]
+          let part = parts[parts.length - 1] as any
           if (!part || part.type !== 'reasoning') {
             part = { ...createReasoningPart(), streamId: chunk.id }
             parts.push(part)
           }
-          part.text = `${typeof part.text === 'string' ? part.text : ''}${
+          if (!part.reasoning) {
+            part.reasoning = { text: '', state: 'streaming' }
+          }
+          part.reasoning.text = `${typeof part.reasoning.text === 'string' ? part.reasoning.text : ''}${
             chunk.delta
           }`
-          part.state = 'streaming'
+          part.reasoning.state = 'streaming'
         })
         return
       }
@@ -1030,9 +1261,13 @@ export function ChatView() {
         chunk.type === 'response.reasoning.done'
       ) {
         updateAssistantParts(assistantId, parts => {
-          parts.forEach(part => {
+          parts.forEach((part: any) => {
             if (part.type === 'reasoning') {
-              part.state = 'done'
+              if (!part.reasoning) {
+                part.reasoning = { text: '', state: 'done' }
+              } else {
+                part.reasoning.state = 'done'
+              }
             }
           })
         })
@@ -1163,6 +1398,7 @@ export function ChatView() {
       const controller = new AbortController()
       abortControllerRef.current = controller
       setStatus('submitted')
+      setActiveAssistantId(assistantId)
 
       try {
         const response = await fetch(`${API_BASE_URL}/api/agent`, {
@@ -1197,7 +1433,9 @@ export function ChatView() {
             frame.split(/\n/).forEach(line => {
               if (!line.startsWith('data:')) return
               const chunk = parseUiMessageStreamChunk(line.slice(5))
-              if (chunk) applyAgentStreamChunk(assistantId, chunk)
+              if (chunk) {
+                applyAgentStreamChunk(assistantId, chunk)
+              }
             })
           })
         }
@@ -1210,6 +1448,7 @@ export function ChatView() {
           })
         }
       } catch (error) {
+        console.error('Chat stream error:', error)
         if (error instanceof Error && error.name === 'AbortError') return
         const message = error instanceof Error ? error.message : String(error)
         updateAssistantParts(assistantId, parts => {
@@ -1217,7 +1456,14 @@ export function ChatView() {
         })
       } finally {
         abortControllerRef.current = null
-        setStatus('ready')
+        setActiveAssistantId(null)
+        // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
+        // 不让复制/重试按钮过早出现
+        if (pendingPlanRef.current) {
+          setStatus('submitted')
+        } else {
+          setStatus('ready')
+        }
       }
     },
     [applyAgentStreamChunk, updateAssistantParts]
@@ -1228,6 +1474,7 @@ export function ChatView() {
       const controller = new AbortController()
       abortControllerRef.current = controller
       setStatus('submitted')
+      setActiveAssistantId(assistantId)
 
       try {
         const response = await fetch(
@@ -1265,7 +1512,9 @@ export function ChatView() {
             frame.split(/\n/).forEach(line => {
               if (!line.startsWith('data:')) return
               const chunk = parseUiMessageStreamChunk(line.slice(5))
-              if (chunk) applyAgentStreamChunk(assistantId, chunk)
+              if (chunk) {
+                applyAgentStreamChunk(assistantId, chunk)
+              }
             })
           })
         }
@@ -1285,7 +1534,14 @@ export function ChatView() {
         })
       } finally {
         abortControllerRef.current = null
-        setStatus('ready')
+        setActiveAssistantId(null)
+        // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
+        // 不让复制/重试按钮过早出现
+        if (pendingPlanRef.current) {
+          setStatus('submitted')
+        } else {
+          setStatus('ready')
+        }
       }
     },
     [applyAgentStreamChunk, updateAssistantParts]
@@ -1377,6 +1633,7 @@ export function ChatView() {
     setRealtimeErrorText(null)
     setRealtimeMicState('idle')
     setStatus('ready')
+    setActiveAssistantId(null)
     setRealtimeVolumeAmplitude(0)
     setRealtimeMuted(false)
   }, [resetRealtimeTurnMessages, stopRealtimeAudioResources])
@@ -1503,6 +1760,7 @@ export function ChatView() {
 
           if (chunk.type === 'response.completed') {
             resetRealtimeTurnMessages()
+            setActiveAssistantId(null)
             if (realtimeSocketRef.current === socket) {
               setRealtimeMicState('listening')
               setStatus('streaming')
@@ -1546,6 +1804,7 @@ export function ChatView() {
             realtimeSocketRef.current = null
             stopRealtimeAudioResources()
             setStatus('ready')
+            setActiveAssistantId(null)
             setRealtimeStartedAt(null)
             setRealtimeMicState(prev => (prev === 'error' ? 'error' : 'idle'))
           }
@@ -1588,6 +1847,7 @@ export function ChatView() {
       setRealtimeStartedAt(null)
       setRealtimeErrorText(t('voice.microphoneError'))
       setStatus('ready')
+      setActiveAssistantId(null)
     }
   }, [
     applyAgentStreamChunk,
@@ -1614,10 +1874,10 @@ export function ChatView() {
   useEffect(() => {
     if (realtimeEnabled) {
       void startRealtimeMic()
-    } else {
+    } else if (realtimeMicState !== 'idle') {
       stopRealtimeMic()
     }
-  }, [realtimeEnabled, startRealtimeMic, stopRealtimeMic])
+  }, [realtimeEnabled, startRealtimeMic, stopRealtimeMic, realtimeMicState])
 
   const suggestionPrompts = useMemo(
     (): SuggestionPrompt[] => [
@@ -1768,6 +2028,8 @@ export function ChatView() {
     model?: string
     reasoningEffort?: string
     images?: string[]
+    planMode?: 'plan' | 'execute'
+    approvedPlan?: string
   } => {
     const body: {
       agentId?: string
@@ -1775,6 +2037,8 @@ export function ChatView() {
       model?: string
       reasoningEffort?: string
       images?: string[]
+      planMode?: 'plan' | 'execute'
+      approvedPlan?: string
     } = {}
     if (selectedAgent?.id) {
       body.agentId = selectedAgent.id
@@ -1790,6 +2054,10 @@ export function ChatView() {
     }
     if (supportsImageUpload && images && images.length > 0) {
       body.images = images
+    }
+    // plan 模式：仅在 plan 状态时携带 planMode
+    if (planMode === 'plan') {
+      body.planMode = 'plan'
     }
     return body
   }
@@ -1988,6 +2256,7 @@ export function ChatView() {
       pendingReplyModelLabelRef.current = t('voice.modelLabel')
       const userMessageId = createClientMessageId('user')
       const assistantMessageId = createClientMessageId('assistant')
+      setActiveAssistantId(assistantMessageId)
       setMessages(prev => [
         ...prev,
         {
@@ -2015,12 +2284,14 @@ export function ChatView() {
         title: contentToSend,
       })
       threadIdForRequest = thread.id
+      currentThreadIdRef.current = thread.id
       setCurrentThreadId(thread.id)
       setThreads(prev => [thread, ...prev])
     }
 
     const userMessageId = createClientMessageId('user')
     const assistantMessageId = createClientMessageId('assistant')
+    setActiveAssistantId(assistantMessageId)
     setMessages(prev => [
       ...prev,
       {
@@ -2057,6 +2328,74 @@ export function ChatView() {
     )
     await loadThreads()
     textareaRef.current?.focus()
+  }
+
+  /**
+   * 批准计划：切换到 approved 状态，发 execute 请求让 Agent 真正执行。
+   * 计划面板保持显示（输入框上方），步骤状态实时更新。
+   */
+  const handleApprovePlan = async () => {
+    if (!pendingPlan || isLoading || !currentThreadId) return
+    const { summary, steps } = pendingPlan
+
+    // 切换面板状态为 approved，初始化步骤状态为 pending
+    setPlanPanelStatus('approved')
+    setPlanStatuses(steps.map(() => 'pending'))
+    shouldAutoScrollRef.current = true
+    setShowScrollToBottom(false)
+
+    // 创建新的 assistant 占位消息用于接收执行结果
+    const assistantMessageId = createClientMessageId('assistant')
+    setActiveAssistantId(assistantMessageId)
+    setMessages(prev => [
+      ...prev,
+      {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        parts: [],
+      },
+    ])
+
+    // execute 请求：带结构化 approvedPlan
+    const body = buildRequestBody(undefined, currentThreadId)
+    await streamAgentMessage(
+      {
+        messages: [
+          {
+            role: 'user',
+            parts: [{ type: 'text', text: t('plan.executeTrigger') }],
+          },
+        ],
+        ...body,
+        planMode: 'execute',
+        approvedPlan: JSON.stringify({ summary, steps }),
+      },
+      assistantMessageId
+    )
+    // 执行完成后，延迟清空计划面板，让用户看到最终完成的进度
+    pendingPlanRef.current = null
+    setTimeout(() => {
+      setPendingPlan(null)
+      setPlanPanelStatus('pending')
+      setPlanStatuses([])
+    }, 3000)
+    textareaRef.current?.focus()
+  }
+
+  /**
+   * 放弃计划：切换面板状态为 rejected，稍后清空。
+   */
+  const handleRejectPlan = () => {
+    if (!pendingPlan) return
+    setPlanPanelStatus('rejected')
+    pendingPlanRef.current = null
+    // 延迟清空，让用户看到 rejected 状态
+    setTimeout(() => {
+      setPendingPlan(null)
+      setPlanPanelStatus('pending')
+      setPlanStatuses([])
+    }, 2000)
   }
 
   const handlePickImages = async (files: FileList | null) => {
@@ -2127,6 +2466,7 @@ export function ChatView() {
     setShowScrollToBottom(false)
     pendingReplyModelLabelRef.current = selectedModelDisplayLabel
     const assistantMessageId = createClientMessageId('assistant')
+    setActiveAssistantId(assistantMessageId)
     setMessages(prev => {
       const lastAssistantIndex = [...prev]
         .reverse()
@@ -2518,6 +2858,7 @@ export function ChatView() {
             messages={displayMessages}
             input={input}
             isLoading={isLoading}
+            activeAssistantId={activeAssistantId}
             copiedId={copiedId}
             suggestionPrompts={suggestionPrompts}
             lastUserMessage={lastUserMessage}
@@ -2528,6 +2869,9 @@ export function ChatView() {
             onStop={handleStop}
             onRetry={handleRetry}
             onCopy={handleCopy}
+            pendingPlanMessageId={pendingPlan?.messageId ?? null}
+            onApprovePlan={handleApprovePlan}
+            onRejectPlan={handleRejectPlan}
             onClear={handleClear}
             onScrollToBottom={handleScrollToBottom}
             onModelChange={setSelectedModel}
@@ -2547,6 +2891,44 @@ export function ChatView() {
             reasoningEffortLow={t('reasoningEffort.low')}
             reasoningEffortMedium={t('reasoningEffort.medium')}
             reasoningEffortHigh={t('reasoningEffort.high')}
+            planMode={planMode}
+            onPlanModeChange={setPlanMode}
+            planLabel={t('toolbar.plan')}
+            autoLabel={t('toolbar.auto')}
+            planTitle={t('plan.title')}
+            planApproveLabel={t('plan.approve')}
+            planRejectLabel={t('plan.reject')}
+            planApprovedLabel={t('plan.approved')}
+            planRejectedLabel={t('plan.rejected')}
+            planPendingLabel={t('plan.pending')}
+            executingLabel={t('plan.executing')}
+            planPanel={
+              pendingPlan ? (
+                <PlanPanel
+                  summary={pendingPlan.summary}
+                  steps={pendingPlan.steps}
+                  status={planPanelStatus}
+                  stepStatuses={
+                    planStatuses.length > 0 ? planStatuses : undefined
+                  }
+                  titleLabel={t('plan.title')}
+                  approveLabel={t('plan.approve')}
+                  rejectLabel={t('plan.reject')}
+                  approvedLabel={t('plan.approved')}
+                  rejectedLabel={t('plan.rejected')}
+                  pendingLabel={t('plan.pending')}
+                  executingLabel={t('plan.executing')}
+                  onApprove={
+                    planPanelStatus === 'pending'
+                      ? handleApprovePlan
+                      : undefined
+                  }
+                  onReject={
+                    planPanelStatus === 'pending' ? handleRejectPlan : undefined
+                  }
+                />
+              ) : undefined
+            }
             clearConversationLabel={t('clearConversation')}
             refreshSuggestionsLabel={t('actions.refresh')}
             scrollToBottomLabel={t('actions.scrollToBottom')}

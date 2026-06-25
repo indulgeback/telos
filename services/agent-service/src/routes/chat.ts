@@ -3,9 +3,33 @@ import { Hono } from 'hono'
 import { fail, ok, parseJson } from '../http/response.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
+import { PlanStore } from '../services/plan-store.js'
+import type { StructuredPlan } from '../services/plan-tools.js'
+
+/**
+ * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
+ */
+function parseApprovedPlan(raw: unknown): StructuredPlan | null {
+  if (!raw) return null
+  try {
+    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
+    if (
+      obj &&
+      typeof obj === 'object' &&
+      typeof (obj as any).summary === 'string' &&
+      Array.isArray((obj as any).steps)
+    ) {
+      return obj as StructuredPlan
+    }
+  } catch {
+    // 解析失败返回 null
+  }
+  return null
+}
 import {
   agentRuntimeService,
   extractPromptFromBody,
+  parseExplicitSkillTrigger,
 } from '../services/runtime.js'
 import { prisma } from '../services/db.js'
 import { listChatModels } from '../services/chat.js'
@@ -258,6 +282,11 @@ export async function createAgentStreamResponse(
     reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
     runtimeInput?: any
     memoryInstructions?: string
+    planMode?: 'plan' | 'execute'
+    approvedPlan?: StructuredPlan | null
+    planStore?: PlanStore
+    forceSkillName?: string
+    userId?: string
   }
 ) {
   const abortController = new AbortController()
@@ -280,6 +309,20 @@ export async function createAgentStreamResponse(
         write('response.in_progress', {
           response_id: params.runId,
         })
+
+        // execute 阶段：创建 PlanStore，模型调用 update_plan_status 时通过 SSE 推送进度
+        let planStore: PlanStore | undefined
+        if (params.planMode === 'execute' && params.approvedPlan) {
+          planStore = new PlanStore(params.approvedPlan, update => {
+            write('response.plan_step_updated', {
+              response_id: params.runId,
+              step_index: update.step_index,
+              plan_step_status: update.status,
+              note: update.note,
+            })
+          })
+          params.planStore = planStore
+        }
         const { result, persistence } = await agentRuntimeService.run(
           params.agentId,
           {
@@ -291,6 +334,11 @@ export async function createAgentStreamResponse(
             modelOverride: params.modelOverride,
             reasoningEffort: params.reasoningEffort,
             memoryInstructions: params.memoryInstructions,
+            planMode: params.planMode,
+            approvedPlan: params.approvedPlan,
+            planStore: params.planStore,
+            forceSkillName: params.forceSkillName,
+            userId: params.userId,
             onEvent: event => {
               if (event.type === 'tool_start') {
                 const toolCallId = toolCallIdFromPayload(event.payload)
@@ -441,18 +489,68 @@ export async function createAgentStreamResponse(
           streamedResult.lastAgent?.name,
           streamedResult.lastResponseId
         )
+        // 计划模式：从 runtime 的 pendingPlanCache 取出模型通过 create_plan 产出的结构化计划
+        const isPlanMode = params.planMode === 'plan'
+        let planMessageId: string | undefined
+        const structuredPlan = isPlanMode
+          ? agentRuntimeService.consumePendingPlan(params.runId)
+          : null
+        if (isPlanMode && structuredPlan) {
+          assistantParts.push({
+            type: 'plan',
+            plan: {
+              summary: structuredPlan.summary,
+              steps: structuredPlan.steps,
+              status: 'pending',
+            },
+          } as any)
+        }
         if (params.threadId) {
-          await agentSessionService.appendAssistantMessage(
+          const savedMessage = await agentSessionService.appendAssistantMessage(
             params.threadId,
             params.runId,
             finalOutput,
             assistantParts
           )
+          planMessageId = savedMessage?.id
           agentSessionService.scheduleSummaries(
             params.threadId,
             params.agentId,
             params.ownerId
           )
+        }
+        if (isPlanMode && structuredPlan) {
+          // 推送结构化计划（summary + steps），前端据此渲染计划气泡
+          write('response.plan_proposed', {
+            response_id: params.runId,
+            plan_message_id: planMessageId,
+            plan_summary: structuredPlan.summary,
+            plan_steps: structuredPlan.steps,
+          })
+        }
+        // execute 阶段兜底收尾：把残留的 in_progress 标记为 completed，
+        // pending 标记为 skipped，防止模型忘记标记最后一步
+        if (planStore) {
+          planStore.finalize()
+        }
+        // 兜底：把所有未完成的 tool part（input-streaming/input-available）
+        // 强制标记为 output-available 并补发 SSE 事件。
+        // 解决 stopAtToolNames 导致 run 提前结束时 tool_end 事件丢失的问题。
+        for (const part of assistantParts) {
+          if (
+            part.type === 'tool' &&
+            part.state !== 'output-available' &&
+            part.state !== 'output-error'
+          ) {
+            part.state = 'output-available'
+            write('agent.tool_call.output', {
+              response_id: params.runId,
+              item_id: part.toolCallId,
+              toolCallId: part.toolCallId,
+              toolName: part.toolName,
+              output: '(completed)',
+            })
+          }
         }
         write('response.completed', {
           response_id: params.runId,
@@ -468,6 +566,11 @@ export async function createAgentStreamResponse(
           '../services/persistence.js'
         )
         await new AgentRunPersistence(params.runId).fail(error)
+      } finally {
+        if (params.threadId) {
+          const { WorkspaceManager } = await import('../services/workspace.js')
+          WorkspaceManager.cleanupWorkspace(params.threadId)
+        }
       }
     }
   )
@@ -477,6 +580,12 @@ async function handleChat(c: Context) {
   const body = await parseJson(c)
   const input = extractPromptFromBody(body)
   if (!input) return fail(c, 400, '消息不能为空')
+
+  // 解析显式 skill 触发（对标 Codex 的 $skill-name 语法）。
+  // 若触发，剥离前缀，用户看到 / 落库的是纯净消息，skill 全文由 runtime 注入。
+  const { skillName: forceSkillName, message: skillMessage } =
+    parseExplicitSkillTrigger(input)
+  const effectiveInput = forceSkillName ? skillMessage : input
 
   const ownerId = getCurrentUserId(c)
   const defaultAgent =
@@ -496,12 +605,12 @@ async function handleChat(c: Context) {
     agentId,
     threadId: typeof body.threadId === 'string' ? body.threadId : null,
     ownerId,
-    firstInput: input,
+    firstInput: effectiveInput,
     metadata: { source: 'chat' },
   })
   const userMessage = await agentSessionService.appendUserMessage(
     thread.id,
-    input,
+    effectiveInput,
     Array.isArray(body.images) ? body.images : []
   )
   const runtimeContext = await agentSessionService.buildRuntimeInput(thread.id)
@@ -520,7 +629,7 @@ async function handleChat(c: Context) {
   return createAgentStreamResponse(c, {
     agentId,
     runId: run.id,
-    input,
+    input: effectiveInput,
     threadId: thread.id,
     ownerId,
     runtimeInput: runtimeContext.input,
@@ -536,6 +645,13 @@ async function handleChat(c: Context) {
       body.reasoningEffort === 'high'
         ? body.reasoningEffort
         : null,
+    planMode:
+      body.planMode === 'plan' || body.planMode === 'execute'
+        ? body.planMode
+        : undefined,
+    approvedPlan: parseApprovedPlan(body.approvedPlan),
+    forceSkillName: forceSkillName || undefined,
+    userId: ownerId,
   })
 }
 

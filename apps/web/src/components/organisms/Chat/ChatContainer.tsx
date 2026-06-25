@@ -129,6 +129,7 @@ export interface ChatContainerProps {
   messages: Message[]
   input: string
   isLoading: boolean
+  activeAssistantId?: string | null
   copiedId: string | null
   suggestionPrompts: SuggestionPrompt[]
   lastUserMessage: string
@@ -164,7 +165,25 @@ export interface ChatContainerProps {
   reasoningEffortLow: string
   reasoningEffortMedium: string
   reasoningEffortHigh: string
+  // Plan 模式相关
+  planMode: 'auto' | 'plan'
+  onPlanModeChange: (value: 'auto' | 'plan') => void
+  planLabel: string
+  autoLabel: string
+  planTitle: string
+  planApproveLabel: string
+  planRejectLabel: string
+  planApprovedLabel: string
+  planRejectedLabel: string
+  planPendingLabel: string
+  executingLabel?: string
+  /** 当前待批准计划所在的消息 id（用于决定哪条消息显示批准按钮） */
+  pendingPlanMessageId: string | null
+  onApprovePlan: () => void
+  onRejectPlan: () => void
   clearConversationLabel: string
+  /** 计划面板（贴在输入框上方） */
+  planPanel?: ReactNode
   refreshSuggestionsLabel: string
   scrollToBottomLabel: string
   inputPlaceholder: string
@@ -207,6 +226,7 @@ export function ChatContainer({
   messages,
   input,
   isLoading,
+  activeAssistantId,
   copiedId,
   suggestionPrompts,
   lastUserMessage,
@@ -237,7 +257,21 @@ export function ChatContainer({
   reasoningEffortLow,
   reasoningEffortMedium,
   reasoningEffortHigh,
+  planMode,
+  onPlanModeChange,
+  planLabel,
+  autoLabel,
+  planTitle,
+  planApproveLabel,
+  planRejectLabel,
+  planApprovedLabel,
+  planRejectedLabel,
+  planPendingLabel,
+  pendingPlanMessageId,
+  onApprovePlan,
+  onRejectPlan,
   clearConversationLabel,
+  planPanel,
   refreshSuggestionsLabel,
   scrollToBottomLabel,
   inputPlaceholder,
@@ -492,7 +526,7 @@ export function ChatContainer({
       {/* Messages Area */}
       <div className='relative z-20 flex-1 min-h-0'>
         <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
-          <div className='mx-auto max-w-4xl px-4 py-10'>
+          <div className='mx-auto max-w-5xl px-4 py-10'>
             {messages.length === 0 ? (
               <div className='flex min-h-[50vh] flex-col items-center justify-center py-10'>
                 <div className='mb-8 text-center'>
@@ -561,10 +595,19 @@ export function ChatContainer({
             ) : (
               <div className='space-y-8'>
                 {messages.map(message => {
+                  const lastAssistantMessage = [...messages]
+                    .reverse()
+                    .find(m => m.role === 'assistant')
                   const isLastAssistantMessage =
                     message.role === 'assistant' &&
-                    message.id === messages[messages.length - 1]?.id
-                  const showRetry = isLastAssistantMessage && lastUserMessage
+                    message.id === lastAssistantMessage?.id
+                  const isCurrentGenerating =
+                    message.id === activeAssistantId ||
+                    message.id === 'pending-assistant'
+                  const showRetry =
+                    isLastAssistantMessage &&
+                    lastUserMessage &&
+                    message.id !== activeAssistantId
 
                   return (
                     <ChatMessage
@@ -579,7 +622,7 @@ export function ChatContainer({
                       onCopy={onCopy}
                       copyLabel={copyLabel}
                       copiedLabel={copiedLabel}
-                      isLoading={isLastAssistantMessage && isLoading}
+                      isLoading={isCurrentGenerating}
                       onRetry={showRetry ? onRetry : undefined}
                       retryLabel={retryLabel}
                       assistantModelLabel={message.modelLabel}
@@ -593,6 +636,15 @@ export function ChatContainer({
                       userAvatarUrl={userAvatarUrl}
                       userInitials={userInitials}
                       isVoiceTranscript={message.isVoiceTranscript}
+                      planTitle={planTitle}
+                      planApproveLabel={planApproveLabel}
+                      planRejectLabel={planRejectLabel}
+                      planApprovedLabel={planApprovedLabel}
+                      planRejectedLabel={planRejectedLabel}
+                      planPendingLabel={planPendingLabel}
+                      isPendingPlan={message.id === pendingPlanMessageId}
+                      onApprovePlan={onApprovePlan}
+                      onRejectPlan={onRejectPlan}
                     />
                   )
                 })}
@@ -673,6 +725,7 @@ export function ChatContainer({
           {realtimeStatusPanel && (
             <div className='mb-2'>{realtimeStatusPanel}</div>
           )}
+          {planPanel && <div className='mb-2'>{planPanel}</div>}
           <ChatInput
             ref={textareaRef}
             value={safeInput}
@@ -717,6 +770,12 @@ export function ChatContainer({
                   disableReasoningEffort={disableReasoningEffort}
                   onPickImages={onPickImages}
                   onReasoningEffortChange={onReasoningEffortChange}
+                  showPlanMode
+                  planMode={planMode}
+                  planLabel={planLabel}
+                  autoLabel={autoLabel}
+                  disablePlanMode={disableReasoningEffort}
+                  onPlanModeChange={onPlanModeChange}
                 />
               </div>
             }

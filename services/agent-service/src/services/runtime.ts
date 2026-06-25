@@ -12,15 +12,31 @@ import {
   type Tool,
 } from '@openai/agents'
 import { OpenAIProvider } from '@openai/agents-openai'
-import { routeTools } from './tool-router.js'
 import { z } from 'zod'
 import { prisma } from './db.js'
 import { AgentRunPersistence } from './persistence.js'
-import { config } from '../config/index.js'
+import { config, logger } from '../config/index.js'
+import {
+  buildCreatePlanTool,
+  buildUpdatePlanStatusTool,
+  isReadOnlyTool,
+  type StructuredPlan,
+} from './plan-tools.js'
+import { PlanStore } from './plan-store.js'
 import { asRecord, asStringArray, safeJsonStringify } from '../utils/json.js'
 import { buildBuiltinTool } from './builtin-tools.js'
+import {
+  buildSkillLoaderTool,
+  buildSkillIndexBlock,
+  buildSkillActivatedBlock,
+} from './skill-loader.js'
+import { WorkspaceManager } from './workspace.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
-import { Prisma, Tool as DbTool, McpServer as DbMcpServer } from '@prisma/client'
+import {
+  Prisma,
+  Tool as DbTool,
+  McpServer as DbMcpServer,
+} from '@prisma/client'
 
 export type LoadedAgent = Prisma.AgentGetPayload<{
   include: {
@@ -48,6 +64,8 @@ export interface RuntimeBuildResult {
   source: LoadedAgent
 }
 
+export type PlanMode = 'plan' | 'execute'
+
 export interface RuntimeRunOptions {
   runId: string
   input: string | AgentInputItem[]
@@ -57,12 +75,47 @@ export interface RuntimeRunOptions {
   modelOverride?: string | null
   reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
   memoryInstructions?: string
+  /**
+   * 计划模式：
+   * - 'plan'：保留只读工具，注入 create_plan 工具，模型产出结构化计划后 run 停止
+   * - 'execute'：全部工具可用，注入 update_plan_status 工具跟踪进度
+   */
+  planMode?: PlanMode
+  /** execute 阶段已批准的结构化计划 */
+  approvedPlan?: StructuredPlan | null
+  /** execute 阶段的 PlanStore 实例（用于 update_plan_status → SSE 推送） */
+  planStore?: PlanStore
+  /** 用户通过 $skill-name 显式触发的技能名（对标 Codex） */
+  forceSkillName?: string
+  /** 当前用户 ID，用于 skill 运行时可见范围过滤（自己的 + 系统级） */
+  userId?: string
+  /** plan 阶段模型产出计划时的回调（用于持久化 + SSE 推送） */
+  onPlanCreated?: (plan: StructuredPlan) => void
   onEvent?: (event: {
     type: 'tool_start' | 'tool_end' | 'handoff'
     agentName?: string | null
     payload: Record<string, unknown>
   }) => void
 }
+
+/**
+ * 计划模式系统提示词（plan 阶段）。
+ * 引导模型先调用只读工具收集上下文，再调用 create_plan 产出结构化计划。
+ */
+const PLAN_MODE_INSTRUCTIONS = `你正处于「计划模式」（Plan Mode）。
+
+你的任务：先充分收集上下文，然后调用 create_plan 工具产出一份结构化执行计划。
+
+工作流程：
+1. 仔细分析用户需求。如果信息不足，可以调用你现有的只读工具（如 search_memory、calculator、get_current_time 等）来收集上下文。
+2. 充分理解任务后，调用 create_plan 工具，传入 summary（一句话概述）和 steps（步骤数组）。
+3. 调用 create_plan 后，run 会立即停止，计划将展示给用户审批。
+
+注意：
+- 不要尝试调用任何写入/修改类的工具（如果有此类工具，它们在计划模式下已被禁用）。
+- 计划要具体、可执行，通常 3-8 步。
+- 不要在文本回复中写计划，计划必须通过 create_plan 工具提交。
+- 调用 create_plan 前不需要额外的文本输出（可以简短说一句"我来制定计划"）。`
 
 type RuntimeProvider =
   | 'openai'
@@ -141,6 +194,8 @@ export function extractPromptFromBody(body: Record<string, unknown>): string {
 
   return extractText(lastUser).trim()
 }
+
+export { parseExplicitSkillTrigger } from './skill-loader.js'
 
 function buildEndpointTool(raw: LoadedTool, persistence?: AgentRunPersistence) {
   const builtinTool = buildBuiltinTool(raw, persistence)
@@ -373,6 +428,20 @@ function buildProviderData(
 }
 
 export class AgentRuntimeService {
+  /**
+   * plan 阶段模型调用 create_plan 工具时，缓存产出的结构化计划。
+   * chat.ts 在流式 run 结束后取出，用于持久化和 SSE 推送。
+   * key = runId, value = StructuredPlan
+   */
+  private readonly pendingPlanCache = new Map<string, StructuredPlan>()
+
+  /** 取出并移除缓存的计划（run 结束后调用方取走） */
+  consumePendingPlan(runId: string): StructuredPlan | undefined {
+    const plan = this.pendingPlanCache.get(runId)
+    if (plan) this.pendingPlanCache.delete(runId)
+    return plan
+  }
+
   async getDefaultAgentId() {
     const agent = await prisma.agent.findFirst({
       where: { isDefault: true, status: 'active' },
@@ -417,9 +486,16 @@ export class AgentRuntimeService {
       reasoningEffort?: RuntimeRunOptions['reasoningEffort']
       memoryInstructions?: string
       query?: string
+      planMode?: PlanMode
+      runId?: string
+      planStore?: PlanStore
+      threadId?: string | null
+      forceSkillName?: string
+      userId?: string
     }
   ): Promise<RuntimeBuildResult> {
     const depth = options?.depth ?? 0
+    const planMode = options?.planMode
     const path = options?.path ?? []
 
     if (depth > 2) {
@@ -434,11 +510,36 @@ export class AgentRuntimeService {
       throw new Error('Agent not found or inactive')
     }
 
-    const skillBlocks = source.skillsAsAgent
+    // 计划模式下隐藏全部工具与 MCP 服务器，仅让模型产出计划文本
+    const isPlanMode = planMode === 'plan'
+
+    // 渐进式披露：system prompt 只注入 skill 元数据（name + description），
+    // 全文由 execute_skill 工具按需加载，大幅节省 token。
+    const enabledSkills = source.skillsAsAgent
       .filter((link: any) => link.skill?.enabled)
-      .map((link: any) => {
-        return `## Skill: ${link.skill.name}\n${link.skill.content}`
-      })
+      .map((link: any) => link.skill) as {
+        id: string
+        name: string
+        description: string
+        content: string
+      }[]
+
+    // L1：元数据索引（始终注入）
+    const skillIndexBlock = enabledSkills.length
+      ? buildSkillIndexBlock(
+          enabledSkills.map(s => ({ name: s.name, description: s.description }))
+        )
+      : ''
+
+    // 显式触发：用户通过 $skill-name 前缀强制激活某 skill，
+    // 把全文直接注入（等价已通过 execute_skill 激活），跳过模型判断。
+    let activatedSkillBlock = ''
+    if (options?.forceSkillName && !isPlanMode) {
+      const forced = enabledSkills.find(s => s.name === options.forceSkillName)
+      if (forced) {
+        activatedSkillBlock = buildSkillActivatedBlock(forced)
+      }
+    }
 
     const relationDescriptions = source.subagentsAsParent.map(
       (relation: any) => {
@@ -446,74 +547,81 @@ export class AgentRuntimeService {
       }
     )
 
+    const threadId = options?.threadId || ''
+    const shareUrlRule = (threadId && planMode !== 'plan')
+      ? `\n# Cloud Share Link Guidelines\nWhen you create, modify, or output files in the workspace (via write_file, run_command, or other commands), they are automatically uploaded/synced to the cloud storage.\nYou MUST provide the user with the direct cloud sharing link (URL) for download and sharing.\nThe format of the sharing link is: ${WorkspaceManager.getFileUrl(threadId, '{FILE_RELATIVE_PATH}')}\nPlease replace \`{FILE_RELATIVE_PATH}\` with the actual relative path of the file from the workspace root (e.g., 'test_created.txt' or 'images/output.png'). Always use forward slashes in URLs.\nFor example, if you created 'test_created.txt', the URL you share is: ${WorkspaceManager.getFileUrl(threadId, 'test_created.txt')}\n`
+      : ''
+
     const instructions = [
       source.instructions || source.description,
-      skillBlocks.length
-        ? `# Available Skills\n${skillBlocks.join('\n\n')}`
-        : '',
-      relationDescriptions.length
+      shareUrlRule,
+      skillIndexBlock,
+      activatedSkillBlock,
+      relationDescriptions.length && planMode !== 'plan'
         ? `# Available Subagents\n${relationDescriptions.join('\n')}`
         : '',
       depth === 0 ? options?.memoryInstructions : '',
+      depth === 0 && planMode === 'plan' ? PLAN_MODE_INSTRUCTIONS : '',
     ]
       .filter(Boolean)
       .join('\n\n')
 
     // 提取启用的常规工具和 MCP 服务器
-    const rawTools = source.toolsAsAgent
-      .filter((link: any) => link.tool?.enabled)
-      .map((link: any) => link.tool)
+    // plan 模式：只保留只读工具（builtin + HTTP GET），让模型能探索上下文
+    // execute 模式：全部工具可用
+    const rawTools = isPlanMode
+      ? source.toolsAsAgent
+          .filter((link: any) => link.tool?.enabled)
+          .map((link: any) => link.tool)
+          .filter((t: any) => isReadOnlyTool(t))
+      : source.toolsAsAgent
+          .filter((link: any) => link.tool?.enabled)
+          .map((link: any) => link.tool)
 
-    const rawMcpServers = source.mcpServersAsAgent
-      .filter((link: any) => link.mcpServer?.enabled)
-      .map((link: any) => {
-        const serverAllowed = asStringArray(link.mcpServer.allowedTools)
-        const linkAllowed = asStringArray(link.allowedTools)
-        return {
-          ...link.mcpServer,
-          allowedTools: linkAllowed.length ? linkAllowed : serverAllowed
-        }
-      })
+    const rawMcpServers = isPlanMode
+      ? [] // plan 模式不加载 MCP（难以判定单个工具读写性，保守禁用）
+      : source.mcpServersAsAgent
+          .filter((link: any) => link.mcpServer?.enabled)
+          .map((link: any) => {
+            const serverAllowed = asStringArray(link.mcpServer.allowedTools)
+            const linkAllowed = asStringArray(link.allowedTools)
+            return {
+              ...link.mcpServer,
+              allowedTools: linkAllowed.length ? linkAllowed : serverAllowed,
+            }
+          })
 
-    // 根据最新 query 对工具进行动态语义过滤，限制首批加载数量在 5 个以内
-    const query = options?.query
-    let selectedTools = rawTools
-    let selectedMcp = rawMcpServers
-    let remainingTools: any[] = []
-    let remainingMcp: any[] = []
+    // 直接全量注入所有启用的工具，去除过度设计的动态过滤与二次召回机制。
+    const selectedTools = rawTools
+    const selectedMcp = rawMcpServers
 
-    if (query && depth === 0) {
-      const routed = await routeTools(query, rawTools, rawMcpServers)
-      selectedTools = routed.selectedTools
-      selectedMcp = routed.selectedMcp
-      remainingTools = routed.remainingTools
-      remainingMcp = routed.remainingMcp
-    }
-
-    const tools: Tool[] = selectedTools.map((t: any) => 
+    const tools: Tool[] = selectedTools.map((t: any) =>
       buildEndpointTool(t, options?.persistence)
     )
 
     const handoffs: Agent[] = []
 
-    for (const relation of source.subagentsAsParent) {
-      const built = await this.buildAgent(relation.subagentId, {
-        depth: depth + 1,
-        path: [...path, agentId],
-        persistence: options?.persistence,
-        modelOverride: null,
-        reasoningEffort: options?.reasoningEffort,
-        memoryInstructions: '',
-      })
-      if (relation.mode === 'handoff') {
-        handoffs.push(built.agent)
-      } else {
-        tools.push(
-          built.agent.asTool({
-            toolName: toToolName(relation.name || built.agent.name),
-            toolDescription: relation.description || built.source.description,
-          } as any)
-        )
+    // 计划模式下不构建任何 subagent（既不 handoff 也不 as_tool）
+    if (!isPlanMode) {
+      for (const relation of source.subagentsAsParent) {
+        const built = await this.buildAgent(relation.subagentId, {
+          depth: depth + 1,
+          path: [...path, agentId],
+          persistence: options?.persistence,
+          modelOverride: null,
+          reasoningEffort: options?.reasoningEffort,
+          memoryInstructions: '',
+        })
+        if (relation.mode === 'handoff') {
+          handoffs.push(built.agent)
+        } else {
+          tools.push(
+            built.agent.asTool({
+              toolName: toToolName(relation.name || built.agent.name),
+              toolDescription: relation.description || built.source.description,
+            } as any)
+          )
+        }
       }
     }
 
@@ -525,72 +633,45 @@ export class AgentRuntimeService {
         Boolean(server)
       )
 
-    // 如果首批工具被截断过滤了，向主 Agent 动态注入 search_more_tools 和 execute_retrieved_tool 挂载闭环
-    if (depth === 0 && (remainingTools.length > 0 || remainingMcp.length > 0)) {
+    // Plan 模式专用工具注入
+    if (isPlanMode) {
+      // plan 阶段：注入 create_plan 工具，模型产出结构化计划后 run 停止
       tools.push(
-        tool({
-          name: 'search_more_tools',
-          description: '当需要的工具没有在当前的工具集中被加载时，可使用该工具通过语义查询来搜索并列出备选的工具（包含常规工具和MCP服务）。',
-          parameters: z.object({
-            query: z.string().describe('用于查找工具的搜索词或功能描述（如“数学计算”、“画图”等）'),
-          }),
-          async execute({ query: searchWord }: { query: string }) {
-            const matchedTools = remainingTools.filter(t => 
-              t.name.toLowerCase().includes(searchWord.toLowerCase()) || 
-              t.description.toLowerCase().includes(searchWord.toLowerCase())
-            )
-            const matchedMcp = remainingMcp.filter(m => 
-              m.name.toLowerCase().includes(searchWord.toLowerCase()) || 
-              m.description.toLowerCase().includes(searchWord.toLowerCase())
-            )
-
-            if (matchedTools.length === 0 && matchedMcp.length === 0) {
-              return '没有检索到匹配的备用工具。'
-            }
-
-            const toolInfoText = [
-              matchedTools.length > 0 
-                ? `### 备选常规工具：\n${matchedTools.map(t => `- name: "${t.name}"\n  description: "${t.description}"\n  parameters: ${JSON.stringify(t.parameters)}`).join('\n')}`
-                : '',
-              matchedMcp.length > 0
-                ? `### 备选 MCP 服务器：\n${matchedMcp.map(m => `- name: "${m.name}"\n  description: "${m.description}"`).join('\n')}`
-                : ''
-            ].filter(Boolean).join('\n\n')
-
-            return `检索到以下可以被动态调用的备选工具。如果你需要运行其中某个工具，请使用 execute_retrieved_tool 工具，并传入其 name 和所需的 toolArgs 参数。\n\n${toolInfoText}`
-          }
-        } as any)
+        buildCreatePlanTool(plan =>
+          this.pendingPlanCache?.set(options?.runId ?? '', plan)
+        )
       )
-
+      // 临时诊断日志
+      logger.info({
+        msg: '[PLAN DEBUG] create_plan tool injected',
+        runId: options?.runId,
+        toolsCount: tools.length,
+        toolNames: tools.map((t: any) => t.name),
+        hasStopAtToolNames: true,
+        instructionsHasPlan: instructions.includes('计划模式'),
+      })
+    } else if (planMode === 'execute' && options?.planStore) {
+      // execute 阶段：注入 update_plan_status 工具，模型逐步汇报进度
+      // planStore.updateStep 返回 {ok, error?}——状态机约束的反馈直接传给工具
+      const planStore = options.planStore
       tools.push(
-        tool({
-          name: 'execute_retrieved_tool',
-          description: '执行通过 search_more_tools 检索到的备选常规工具。',
-          parameters: z.object({
-            toolName: z.string().describe('要执行的工具的 name'),
-            toolArgs: z.record(z.string(), z.any()).describe('工具执行所需的 JSON 键值对参数'),
-          }),
-          async execute({ toolName, toolArgs }: { toolName: string; toolArgs: Record<string, any> }) {
-            const targetTool = remainingTools.find(t => t.name === toolName)
-            if (targetTool) {
-              const executable = buildEndpointTool(targetTool, options?.persistence)
-              if (executable) {
-                try {
-                  return await (executable as any).execute(toolArgs)
-                } catch (err: any) {
-                  return `执行工具 ${toolName} 失败: ${err.message}`
-                }
-              }
-            }
+        buildUpdatePlanStatusTool((stepIndex, status, note) =>
+          planStore.updateStep(stepIndex, status, note)
+        )
+      )
+    }
 
-            const targetMcp = remainingMcp.find(m => m.name === toolName)
-            if (targetMcp) {
-              return `抱歉，MCP 服务器 ${toolName} 暂不支持动态代理执行，请优先尝试其他常规工具。`
-            }
-
-            return `没有找到名字为 ${toolName} 的备选工具，请确认你传入的 toolName 是否正确。`
-          }
-        } as any)
+    // Skill 加载器工具注入（渐进式披露的 L2 关键）。
+    // 非计划模式 + 至少有一个启用 skill 时才注入，让模型可按需加载 skill 全文。
+    // 注意：显式触发（forceSkillName）已把全文注入 instructions，无需再注入此工具也能工作；
+    // 但仍注入以便模型在本轮后续若需引用其他 skill 时可用。
+    if (!isPlanMode && enabledSkills.length > 0) {
+      tools.push(
+        buildSkillLoaderTool(
+          enabledSkills.map(s => ({ name: s.name, description: s.description })),
+          options?.persistence,
+          options?.userId
+        )
       )
     }
 
@@ -614,6 +695,11 @@ export class AgentRuntimeService {
       mcpConfig: {
         convertSchemasToStrict: false,
       },
+      // plan 模式：模型调用 create_plan 后立即停止，将其输出作为 finalOutput。
+      // 其他工具（只读工具）的输出不作为 finalOutput，模型会继续推理。
+      ...(isPlanMode
+        ? { toolUseBehavior: { stopAtToolNames: ['create_plan'] } as const }
+        : {}),
     } as any)
 
     return { agent, source }
@@ -652,11 +738,12 @@ export class AgentRuntimeService {
 
   async run(agentId: string, options: RuntimeRunOptions) {
     const persistence = new AgentRunPersistence(options.runId)
-    
+
     // 计算当前会话的最新用户输入 query
-    const query = typeof options.input === 'string'
-      ? options.input
-      : extractPromptFromBody({ messages: options.input as any })
+    const query =
+      typeof options.input === 'string'
+        ? options.input
+        : extractPromptFromBody({ messages: options.input as any })
 
     const { agent, source } = await this.buildAgent(agentId, {
       persistence,
@@ -664,6 +751,12 @@ export class AgentRuntimeService {
       reasoningEffort: options.reasoningEffort,
       memoryInstructions: options.memoryInstructions,
       query,
+      planMode: options.planMode,
+      runId: options.runId,
+      planStore: options.planStore,
+      threadId: options.threadId,
+      forceSkillName: options.forceSkillName,
+      userId: options.userId,
     })
     const runner = new Runner({
       tracingDisabled: !config.openaiApiKey,
@@ -729,9 +822,32 @@ export class AgentRuntimeService {
       void persistence.event('tool_end', payload, activeAgent.name)
     })
 
+    // 计划模式相关运行参数：
+    // - plan 模式：正常 maxTurns（让模型自由调用只读工具探索），由 toolUseBehavior.stopAtToolNames
+    //   在调用 create_plan 时停止，无需强制 maxTurns=1（避免 MaxTurnsExceededError）
+    // - execute 模式：将已批准的结构化计划作为上下文 prepend 到 input
+    const isPlanMode = options.planMode === 'plan'
+    const maxTurns = source.loopMode === 'single_turn' ? 1 : source.maxTurns
+
+    let runInput: string | AgentInputItem[] = options.input
+    if (options.planMode === 'execute' && options.approvedPlan) {
+      const plan = options.approvedPlan
+      const stepsText = plan.steps
+        .map(
+          (s, i) =>
+            `${i + 1}. ${s.description}${s.tool_hint ? `（工具: ${s.tool_hint}）` : ''}`
+        )
+        .join('\n')
+      const planContext =
+        `# 已批准的执行计划\n\n${plan.summary}\n\n${stepsText}\n\n` +
+        `请严格按照以上计划逐步执行。每开始一步时调用 update_plan_status(status='in_progress')，` +
+        `完成一步后调用 update_plan_status(status='completed')。\n\n---\n用户当前指令：${query}`
+      runInput = planContext
+    }
+
     if (options.stream) {
-      const result = await runner.run(agent, options.input, {
-        maxTurns: source.loopMode === 'single_turn' ? 1 : source.maxTurns,
+      const result = await runner.run(agent, runInput, {
+        maxTurns,
         stream: true,
         signal: options.signal,
         toolNotFoundBehavior: 'return_error_to_model',
@@ -739,8 +855,8 @@ export class AgentRuntimeService {
       return { result, persistence }
     }
 
-    const result = await runner.run(agent, options.input, {
-      maxTurns: source.loopMode === 'single_turn' ? 1 : source.maxTurns,
+    const result = await runner.run(agent, runInput, {
+      maxTurns,
       signal: options.signal,
       toolNotFoundBehavior: 'return_error_to_model',
     })

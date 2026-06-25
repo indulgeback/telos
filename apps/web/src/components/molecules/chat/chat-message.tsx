@@ -21,8 +21,21 @@ import {
   ChevronRight,
   ChevronLeft,
   Mic2,
+  ClipboardList,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Loader2,
+  MinusCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+export type PlanStepStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'completed'
+  | 'skipped'
+  | 'failed'
 
 export type AssistantContentPart =
   | { type: 'text'; text: string }
@@ -34,6 +47,18 @@ export type AssistantContentPart =
       }
     }
   | { type: 'tool'; tool: ToolCallPreview }
+  | {
+      type: 'plan'
+      plan: {
+        summary?: string
+        steps: Array<{ description: string; tool_hint?: string }>
+        status: 'pending' | 'approved' | 'rejected'
+        /** 每步的执行状态（execute 阶段实时更新）。长度与 steps 一致 */
+        stepStatuses?: PlanStepStatus[]
+        /** 旧格式兼容：纯文本计划 */
+        text?: string
+      }
+    }
 
 export interface ChatMessageProps {
   id: string
@@ -61,6 +86,17 @@ export interface ChatMessageProps {
   userAvatarUrl?: string | null
   userInitials?: string | null
   isVoiceTranscript?: boolean
+  // Plan 模式相关
+  planTitle?: string
+  planApproveLabel?: string
+  planRejectLabel?: string
+  planApprovedLabel?: string
+  planRejectedLabel?: string
+  planPendingLabel?: string
+  /** 当前消息是否为待批准的计划（用于显示批准/放弃按钮） */
+  isPendingPlan?: boolean
+  onApprovePlan?: () => void
+  onRejectPlan?: () => void
 }
 
 function compareToolPreview(
@@ -107,6 +143,22 @@ function compareContentParts(
 
     if (prevPart.type === 'tool' && nextPart.type === 'tool') {
       if (!compareToolPreview(prevPart.tool, nextPart.tool)) return false
+      continue
+    }
+
+    if (prevPart.type === 'plan' && nextPart.type === 'plan') {
+      if (
+        prevPart.plan.status !== nextPart.plan.status ||
+        prevPart.plan.summary !== nextPart.plan.summary ||
+        prevPart.plan.steps.length !== nextPart.plan.steps.length ||
+        prevPart.plan.steps.some(
+          (s, idx) => s.description !== nextPart.plan.steps[idx]?.description
+        ) ||
+        JSON.stringify(prevPart.plan.stepStatuses) !==
+          JSON.stringify(nextPart.plan.stepStatuses)
+      ) {
+        return false
+      }
       continue
     }
 
@@ -158,6 +210,15 @@ function ChatMessageInner({
   userAvatarUrl,
   userInitials,
   isVoiceTranscript = false,
+  planTitle = 'Plan',
+  planApproveLabel = 'Approve',
+  planRejectLabel = 'Reject',
+  planApprovedLabel = 'Approved',
+  planRejectedLabel = 'Rejected',
+  planPendingLabel = 'Pending',
+  isPendingPlan = false,
+  onApprovePlan,
+  onRejectPlan,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
   const safeImages = images ?? []
@@ -254,6 +315,129 @@ function ChatMessageInner({
                           {part.reasoning.text}
                         </div>
                       </details>
+                    )
+                  }
+
+                  if (part.type === 'plan') {
+                    const { summary, steps, status, stepStatuses } = part.plan
+                    const showActions = isPendingPlan && status === 'pending'
+                    const stepStatusIcon = (sStatus?: PlanStepStatus) => {
+                      switch (sStatus) {
+                        case 'completed':
+                          return (
+                            <CheckCircle2 className='size-3.5 shrink-0 text-emerald-500' />
+                          )
+                        case 'in_progress':
+                          return (
+                            <Loader2 className='size-3.5 shrink-0 animate-spin text-blue-500' />
+                          )
+                        case 'failed':
+                          return (
+                            <XCircle className='size-3.5 shrink-0 text-rose-500' />
+                          )
+                        case 'skipped':
+                          return (
+                            <MinusCircle className='size-3.5 shrink-0 text-muted-foreground' />
+                          )
+                        default:
+                          return (
+                            <Clock className='size-3.5 shrink-0 text-amber-500/60' />
+                          )
+                      }
+                    }
+                    // steps 可能是字符串数组（旧格式）或对象数组（新格式）
+                    const normalizedSteps = steps.map(s =>
+                      typeof s === 'string'
+                        ? { description: s }
+                        : { description: s.description, tool_hint: s.tool_hint }
+                    )
+                    return (
+                      <div
+                        key={`plan-${id}-${index}`}
+                        className='rounded-lg border border-primary/30 bg-primary/5 p-3'
+                      >
+                        <div className='mb-2 flex items-center gap-1.5 text-sm font-medium text-primary'>
+                          <ClipboardList className='size-4 shrink-0' />
+                          <span>{planTitle}</span>
+                          <span className='ml-auto inline-flex items-center gap-1 text-[11px] font-normal'>
+                            {status === 'approved' && (
+                              <>
+                                <CheckCircle2 className='size-3 text-emerald-500' />
+                                {planApprovedLabel}
+                              </>
+                            )}
+                            {status === 'rejected' && (
+                              <>
+                                <XCircle className='size-3 text-rose-500' />
+                                {planRejectedLabel}
+                              </>
+                            )}
+                            {status === 'pending' && (
+                              <>
+                                <Clock className='size-3 text-amber-500' />
+                                {planPendingLabel}
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        {summary && (
+                          <p className='mb-2 text-xs text-foreground/70'>
+                            {summary}
+                          </p>
+                        )}
+                        <ol className='ml-1 space-y-1.5 text-xs leading-relaxed text-foreground/80'>
+                          {normalizedSteps.map((step, stepIndex) => {
+                            const sStatus = stepStatuses?.[stepIndex]
+                            return (
+                              <li
+                                key={stepIndex}
+                                data-step={stepIndex}
+                                data-status={sStatus ?? 'pending'}
+                                className='flex items-start gap-2'
+                              >
+                                {stepStatuses ? (
+                                  stepStatusIcon(sStatus)
+                                ) : (
+                                  <span className='font-medium text-primary/70'>
+                                    {stepIndex + 1}.
+                                  </span>
+                                )}
+                                <span className='flex-1'>
+                                  {step.description}
+                                  {step.tool_hint && (
+                                    <span className='ml-1 text-[10px] text-muted-foreground'>
+                                      ({step.tool_hint})
+                                    </span>
+                                  )}
+                                </span>
+                              </li>
+                            )
+                          })}
+                        </ol>
+                        {showActions && (
+                          <div className='mt-3 flex items-center gap-2'>
+                            <Button
+                              type='button'
+                              size='sm'
+                              radius='md'
+                              onClick={onApprovePlan}
+                            >
+                              <CheckCircle2 className='size-3.5' />
+                              {planApproveLabel}
+                            </Button>
+                            <Button
+                              type='button'
+                              size='sm'
+                              radius='md'
+                              variant='outline'
+                              onClick={onRejectPlan}
+                            >
+                              <XCircle className='size-3.5' />
+                              {planRejectLabel}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     )
                   }
 

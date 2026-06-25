@@ -109,7 +109,18 @@
       "online": "ネットワークに接続する",
       "reasoning": "思考の深さ:",
       "mcp": "MCP",
-      "canvas": "キャンバス"
+      "canvas": "キャンバス",
+      "plan": "計画",
+      "auto": "チャット"
+    },
+    "plan": {
+      "title": "実行計画",
+      "approve": "承認して実行",
+      "reject": "拒否する",
+      "approved": "承認済み",
+      "rejected": "拒否された",
+      "pending": "保留中",
+      "executeTrigger": "上記の承認された計画に従って実行してください"
     },
     "voice": {
       "title": "リアルタイム音声",
@@ -476,9 +487,13 @@
       "voiceDetails": "声の感情とトーンの詳細"
     },
     "speakers": {
-      "cancan": "カンカン（活発で温かい女性）",
-      "audrey": "オードリー（穏やかで成熟した女性）",
-      "ajie": "アジエ（落ち着いて明るい男性）"
+      "vv": "ヴィヴィ（プレミアム女性 - 推奨）",
+      "xiaohe": "小何（プレミアム女性）",
+      "yunzhou": "雲洲（プレミアム男性）",
+      "xiaotian": "シャオティアン（プレミアム男性）",
+      "tim": "ティム（プレミアム英語男性）",
+      "dacey": "デイシー(プレミアム英語女性)",
+      "stokie": "ストーキー（プレミアム英語女性）"
     },
     "selector": {
       "label": "エージェントを選択",
@@ -491,6 +506,8 @@
     "messages": {
       "createSuccess": "エージェントの作成に成功しました",
       "createError": "エージェントの作成に失敗しました",
+      "updateSuccess": "エージェントが正常に更新されました",
+      "updateError": "エージェントの更新に失敗しました",
       "deleteSuccess": "エージェントの削除に成功しました",
       "deleteError": "エージェントの削除に失敗しました",
       "deleteConfirm": {
@@ -501,9 +518,7 @@
       "setDefaultSuccess": "「{name}」をデフォルトのエージェントとして正常に設定しました",
       "setDefaultError": "デフォルトのエージェントの設定に失敗しました",
       "enhancePromptStart": "バックグラウンドでプロンプトの最適化を開始しました",
-      "enhancePromptError": "プロンプトの最適化に失敗しました",
-      "updateSuccess": "エージェントが正常に更新されました",
-      "updateError": "エージェントの更新に失敗しました"
+      "enhancePromptError": "プロンプトの最適化に失敗しました"
     },
     "empty": {
       "title": "まだエージェントがいません",

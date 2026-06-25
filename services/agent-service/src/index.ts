@@ -1,6 +1,8 @@
 import { serve } from '@hono/node-server'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { IncomingMessage } from 'node:http'
+import fs from 'node:fs'
+import path from 'node:path'
 import { Hono } from 'hono'
 import WebSocket, { WebSocketServer } from 'ws'
 import { logger } from './config/index.js'
@@ -57,17 +59,16 @@ app.notFound(c => {
   )
 })
 
-app.get('/health', async c => {
-  const isHealthy = await db.healthCheck()
-  return c.json(
-    {
-      status: isHealthy ? 'healthy' : 'unhealthy',
-      time: new Date().toISOString(),
-      service: 'agent-service',
-    },
-    isHealthy ? 200 : 503
-  )
-})
+// /health 是存活探针（liveness）：只要进程能响应即为 healthy。
+// 不检查 DB 连通性，避免 DB 抖动/连接池耗尽时进程仍存活却被 Consul 摘除。
+// DB 连通性检查由 db.healthCheck() 提供，如需就绪探针可单独挂在 /ready 上。
+app.get('/health', c =>
+  c.json({
+    status: 'healthy',
+    time: new Date().toISOString(),
+    service: 'agent-service',
+  })
+)
 
 app.get('/ready', c => c.json({ status: 'ready' }))
 app.get('/info', c =>
@@ -78,6 +79,30 @@ app.get('/info', c =>
     model: 'db-managed',
   })
 )
+
+app.get('/workspaces/shares/:threadId/*', async (c) => {
+  const threadId = c.req.param('threadId')
+  const relativePath = decodeURIComponent(c.req.path.slice(`/workspaces/shares/${threadId}/`.length))
+  
+  const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
+  const wsRoot = path.join(persistedDir, 'workspaces', threadId)
+  const absoluteFilePath = path.resolve(wsRoot, relativePath)
+
+  if (!absoluteFilePath.startsWith(wsRoot)) {
+    return c.text('Access Denied', 403)
+  }
+
+  if (fs.existsSync(absoluteFilePath)) {
+    const stat = fs.statSync(absoluteFilePath)
+    if (stat.isFile()) {
+      const fileBuffer = fs.readFileSync(absoluteFilePath)
+      c.header('Content-Length', stat.size.toString())
+      c.header('Content-Disposition', `attachment; filename="${encodeURIComponent(path.basename(absoluteFilePath))}"`)
+      return c.body(fileBuffer)
+    }
+  }
+  return c.text('File Not Found', 404)
+})
 
 app.use('/api/*', gatewayIdentityMiddleware)
 

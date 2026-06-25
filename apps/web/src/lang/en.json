@@ -109,7 +109,19 @@
       "online": "connect to the internet",
       "reasoning": "Depth of thought:",
       "mcp": "MCP",
-      "canvas": "Canvas"
+      "canvas": "Canvas",
+      "plan": "Plan",
+      "auto": "Chat"
+    },
+    "plan": {
+      "title": "Execution Plan",
+      "approve": "Approve & Execute",
+      "reject": "Reject",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "executing": "Executing Plan",
+      "executeTrigger": "Please execute according to the approved plan above"
     },
     "voice": {
       "title": "Real-time voice",

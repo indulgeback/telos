@@ -109,7 +109,18 @@
       "online": "online gehen",
       "reasoning": "Denkentiefe:",
       "mcp": "MCP",
-      "canvas": "Leinwand"
+      "canvas": "Leinwand",
+      "plan": "Plan",
+      "auto": "Plaudern"
+    },
+    "plan": {
+      "title": "Ausführungsplan",
+      "approve": "Genehmigen & Ausführen",
+      "reject": "Ablehnen",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "pending": "Ausstehend",
+      "executeTrigger": "Bitte führen Sie gemäß dem oben genehmigten Plan aus"
     },
     "voice": {
       "title": "Echtzeit-Spracherkennung",
@@ -476,9 +487,13 @@
       "voiceDetails": "Stimmemotion- und Toninformationen"
     },
     "speakers": {
-      "cancan": "Cancan (lebhaft & warm weiblich)",
-      "audrey": "Audrey (Sanft & Reif Weiblich)",
-      "ajie": "Ajie (Ruhiger & Heller Mann)"
+      "vv": "Vivi (Premium weiblich - empfohlen)",
+      "xiaohe": "Xiaohe (Premium weiblich)",
+      "yunzhou": "Yunzhou (Premium Männlich)",
+      "xiaotian": "Xiaotian (Premium Männlich)",
+      "tim": "Tim (Premium Englisch Männlich)",
+      "dacey": "Dacey (Premium Englische Frau)",
+      "stokie": "Stokie (Premium Englische Frau)"
     },
     "selector": {
       "label": "Agent auswählen",
@@ -491,6 +506,8 @@
     "messages": {
       "createSuccess": "Agent erfolgreich erstellt",
       "createError": "Agent erstellen fehlgeschlagen",
+      "updateSuccess": "Agent erfolgreich aktualisiert",
+      "updateError": "Aktualisierung des Agenten fehlgeschlagen",
       "deleteSuccess": "Agent erfolgreich gelöscht",
       "deleteError": "Agent löschen fehlgeschlagen",
       "deleteConfirm": {
@@ -501,9 +518,7 @@
       "setDefaultSuccess": "„{name}“ erfolgreich als Ihren Standardagenten festgelegt",
       "setDefaultError": "Fehler beim Festlegen des Standard-Agenten",
       "enhancePromptStart": "Prompt-Optimierung im Hintergrund gestartet",
-      "enhancePromptError": "Fehler beim Optimieren der Eingabeaufforderung",
-      "updateSuccess": "Agent erfolgreich aktualisiert",
-      "updateError": "Aktualisierung des Agenten fehlgeschlagen"
+      "enhancePromptError": "Fehler beim Optimieren der Eingabeaufforderung"
     },
     "empty": {
       "title": "Noch kein Agent",

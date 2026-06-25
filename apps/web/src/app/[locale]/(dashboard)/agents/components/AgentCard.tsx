@@ -268,7 +268,7 @@ export function AgentCard({ agent, onUpdate }: AgentCardProps) {
               <Button
                 variant='outline'
                 size='sm'
-                className='col-span-2 gap-1 w-full text-muted-foreground'
+                className='gap-1 w-full text-muted-foreground'
                 onClick={() => setShowEditModal(true)}
               >
                 <Edit2 className='size-3' />

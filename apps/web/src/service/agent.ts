@@ -7,6 +7,20 @@ export type AgentRelationMode = 'as_tool' | 'handoff'
 export type McpTransport = 'stdio' | 'streamable_http' | 'sse'
 export type McpApprovalPolicy = 'none' | 'all' | 'sensitive'
 
+/** Plan 模式：plan=仅产出计划，execute=按已批准计划执行 */
+export type PlanMode = 'plan' | 'execute'
+
+/** 计划状态：pending=待批准，approved=已批准，rejected=已放弃 */
+export type PlanStatus = 'pending' | 'approved' | 'rejected'
+
+/** 计划消息 part，嵌入 assistant 消息的 parts 数组中 */
+export interface PlanPart {
+  type: 'plan'
+  steps: string[]
+  status: PlanStatus
+  text: string
+}
+
 export interface Agent {
   id: string
   name: string

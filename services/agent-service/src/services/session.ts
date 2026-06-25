@@ -49,6 +49,7 @@ function formatList(title: string, items: string[]) {
 function buildMemoryInstructions(options: {
   longTermMemories: string[]
   threadSummary?: string | null
+  approvedPlan?: string | null
 }) {
   const blocks: string[] = []
 
@@ -63,7 +64,42 @@ function buildMemoryInstructions(options: {
     blocks.push(`# Conversation Summary\n${options.threadSummary.trim()}`)
   }
 
+  if (options.approvedPlan?.trim()) {
+    blocks.push(`# Approved Plan\n用户已批准以下执行计划，请严格参照执行：\n${options.approvedPlan.trim()}`)
+  }
+
   return blocks.join('\n\n')
+}
+
+/**
+ * 从消息列表中查找最近一条状态为 approved 的 plan part。
+ * 返回计划的可读文本（summary + steps），供注入到 memoryInstructions。
+ * messages 应为按 sequence desc 排序的消息列表。
+ */
+function findApprovedPlan(
+  messages: Array<{ role: string; parts?: unknown }>
+): string | null {
+  for (const message of messages) {
+    if (!Array.isArray(message.parts)) continue
+    for (const part of message.parts) {
+      if (!part || typeof part !== 'object') continue
+      const raw = part as Record<string, any>
+      if (raw.type !== 'plan') continue
+      const plan = raw.plan ?? raw // 兼容 {type:'plan', plan:{...}} 和扁平结构
+      if (plan.status !== 'approved') continue
+      const summary = typeof plan.summary === 'string' ? plan.summary : ''
+      const steps: any[] = Array.isArray(plan.steps) ? plan.steps : []
+      if (!summary && steps.length === 0) continue
+      const stepsText = steps
+        .map(
+          (s, i) =>
+            `${i + 1}. ${typeof s.description === 'string' ? s.description : ''}`
+        )
+        .join('\n')
+      return `${summary}\n${stepsText}`.trim() || null
+    }
+  }
+  return null
 }
 
 function messageToAgentInput(message: {
@@ -328,11 +364,15 @@ export class AgentSessionService {
       messages.length
     )
 
+    // 检查最近消息中是否存在已批准的计划，若有则作为显式上下文注入
+    const approvedPlan = findApprovedPlan(messages)
+
     return {
       input: [...messages].reverse().map(messageToAgentInput),
       memoryInstructions: buildMemoryInstructions({
         longTermMemories: matchedMemories,
         threadSummary: thread.summary,
+        approvedPlan,
       }),
     }
   }

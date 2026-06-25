@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Dialog,
@@ -80,6 +80,13 @@ export function EditAgentModal({
     initialVoice.characterDetails || ''
   )
 
+  // 监听外部 agent 属性的变化，尤其是在异步生成提示词完成时同步更新
+  useEffect(() => {
+    if (agent.instructions) {
+      setInstructions(agent.instructions)
+    }
+  }, [agent.instructions])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isReadOnly) return
@@ -107,7 +114,8 @@ export function EditAgentModal({
       await agentService.updateAgent(agent.id, {
         name: name.trim(),
         description: description.trim(),
-        instructions: instructions,
+        instructions:
+          agent.instruction_status === 'generating' ? undefined : instructions,
         type,
         modelKey: modelKey.trim() || 'deepseek-v4-flash',
         maxTurns,
@@ -210,15 +218,37 @@ export function EditAgentModal({
                 </span>
               )}
             </div>
-            <Textarea
-              id='edit-instructions'
-              value={instructions}
-              onChange={e => setInstructions(e.target.value)}
-              placeholder={t('form.instructionsPlaceholder')}
-              disabled={isReadOnly || isSaving}
-              rows={8}
-              className='font-mono text-sm leading-relaxed resize-y min-h-[160px]'
-            />
+            <div className='relative'>
+              <Textarea
+                id='edit-instructions'
+                value={instructions}
+                onChange={e => setInstructions(e.target.value)}
+                placeholder={
+                  agent.instruction_status === 'generating'
+                    ? t('promptStatus.generating')
+                    : t('form.instructionsPlaceholder')
+                }
+                disabled={
+                  isReadOnly ||
+                  isSaving ||
+                  agent.instruction_status === 'generating'
+                }
+                rows={8}
+                className={`font-mono text-sm leading-relaxed resize-y min-h-[160px] ${
+                  agent.instruction_status === 'generating'
+                    ? 'bg-muted/50 text-muted-foreground animate-pulse'
+                    : ''
+                }`}
+              />
+              {agent.instruction_status === 'generating' && (
+                <div className='absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-md bg-background/40 backdrop-blur-[0.5px] border border-border/50'>
+                  <Loader2 className='size-6 animate-spin text-primary' />
+                  <span className='text-xs text-muted-foreground font-medium'>
+                    {t('promptStatus.generating')}
+                  </span>
+                </div>
+              )}
+            </div>
             {!isReadOnly && (
               <p className='text-xs text-muted-foreground'>
                 {t('form.instructionsDesc')}

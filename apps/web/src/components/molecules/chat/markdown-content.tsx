@@ -1,17 +1,85 @@
 'use client'
 
-import { memo } from 'react'
+import React, { memo, type ReactElement } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github-dark.css'
 import type { Components } from 'react-markdown'
+import Zoom from 'react-medium-image-zoom'
+import 'react-medium-image-zoom/dist/styles.css'
+import { Download } from 'lucide-react'
 
 interface MarkdownContentProps {
   content: string
 }
 
+const CustomZoomContent = ({
+  buttonUnzoom,
+  img,
+}: {
+  buttonUnzoom: ReactElement
+  img: ReactElement | null
+}) => {
+  const imgElement = img as ReactElement<any> | null
+  const src = imgElement?.props?.src
+
+  const handleDownload = async () => {
+    if (!src) return
+    try {
+      const response = await fetch(src)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const filename =
+        src.split('/').pop()?.split('?')[0] || 'generated-image.jpg'
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      const a = document.createElement('a')
+      a.href = src
+      a.target = '_blank'
+      const filename =
+        src.split('/').pop()?.split('?')[0] || 'generated-image.jpg'
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+  }
+
+  return (
+    <>
+      {img}
+      {src && (
+        <button
+          onClick={handleDownload}
+          className='fixed top-4 right-4 z-50 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white shadow-md transition-colors flex items-center justify-center cursor-pointer border border-white/10'
+          title='下载图片'
+          aria-label='下载图片'
+        >
+          <Download className='size-5' />
+        </button>
+      )}
+    </>
+  )
+}
+
 const MARKDOWN_COMPONENTS: Components = {
+  img: ({ src, alt, ...props }) => (
+    <Zoom ZoomContent={CustomZoomContent}>
+      <img
+        src={src}
+        alt={alt}
+        className='max-w-[320px] sm:max-w-[380px] w-full h-auto rounded-lg border border-border/40 shadow-sm my-3 transition-all hover:shadow-md cursor-zoom-in'
+        {...props}
+      />
+    </Zoom>
+  ),
   pre: ({ children, className, ...props }) => (
     <pre className='bg-muted rounded-lg p-4 overflow-x-auto text-sm' {...props}>
       {children}
@@ -32,11 +100,30 @@ const MARKDOWN_COMPONENTS: Components = {
       </code>
     )
   },
-  p: ({ children, ...props }) => (
-    <p className='mb-4 last:mb-0' {...props}>
-      {children}
-    </p>
-  ),
+  p: ({ children, ...props }) => {
+    const childrenArray = React.Children.toArray(children)
+    const hasImage = childrenArray.some(
+      (child: any) =>
+        child?.type === 'img' ||
+        child?.props?.src ||
+        child?.type?.name === 'img' ||
+        (typeof child?.type === 'function' && child?.type?.name === 'img')
+    )
+
+    if (hasImage) {
+      return (
+        <div className='mb-4 last:mb-0' {...props}>
+          {children}
+        </div>
+      )
+    }
+
+    return (
+      <p className='mb-4 last:mb-0' {...props}>
+        {children}
+      </p>
+    )
+  },
   h1: ({ children, ...props }) => (
     <h1 className='text-xl font-bold mb-4 mt-6 first:mt-0' {...props}>
       {children}

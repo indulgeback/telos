@@ -115,16 +115,19 @@ model Agent {
 
 model Skill {
   id          String   @id @default(uuid())
-  name        String   @unique
+  name        String
   description String
   content     String
   enabled     Boolean  @default(true)
   metadata    Json     @default("{}")
+  ownerId     String?  @map("owner_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   agents AgentSkill[]
 
+  @@unique([ownerId, name])
+  @@index([ownerId])
   @@map("skills")
 }
 

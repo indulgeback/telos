@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@ai-sdk/langchain": "2.0.83",
+    "@google/genai": "^2.10.0",
     "@hono/node-server": "^2.0.4",
     "@langchain/core": "1.1.20",
     "@langchain/openai": "1.2.6",
@@ -22,6 +23,7 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "7.8.0",
     "ai": "6.0.78",
+    "cos-nodejs-sdk-v5": "^2.15.4",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "hono": "^4.12.23",

@@ -109,7 +109,18 @@
       "online": "联网",
       "reasoning": "思考深度:",
       "mcp": "MCP",
-      "canvas": "Canvas"
+      "canvas": "Canvas",
+      "plan": "计划",
+      "auto": "聊天"
+    },
+    "plan": {
+      "title": "执行计划",
+      "approve": "批准并执行",
+      "reject": "拒绝",
+      "approved": "已批准",
+      "rejected": "被拒绝",
+      "pending": "待处理",
+      "executeTrigger": "请按照上述批准的计划执行"
     },
     "voice": {
       "title": "实时语音",
@@ -476,13 +487,13 @@
       "voiceDetails": "语音情感与语调详情"
     },
     "speakers": {
-      "vv": "Vivi 唯唯 (精品女声 - 推荐)",
-      "xiaohe": "Xiaohe 小何 (精品女声)",
-      "yunzhou": "Yunzhou 云舟 (精品男声)",
-      "xiaotian": "Xiaotian 小天 (精品男声)",
-      "tim": "Tim (精品英文男声)",
-      "dacey": "Dacey (精品英文女声)",
-      "stokie": "Stokie (精品英文女声)"
+      "vv": "Vivi（高级女性 - 推荐）",
+      "xiaohe": "小荷（高级女性）",
+      "yunzhou": "云洲（优质男性）",
+      "xiaotian": "小天（高级男性）",
+      "tim": "Tim（高级英语男声）",
+      "dacey": "戴西（高级英语女性）",
+      "stokie": "Stokie（优质英语女声）"
     },
     "selector": {
       "label": "选择 Agent",
@@ -495,6 +506,8 @@
     "messages": {
       "createSuccess": "Agent 创建成功",
       "createError": "创建 Agent 失败",
+      "updateSuccess": "代理更新成功",
+      "updateError": "未能更新代理",
       "deleteSuccess": "Agent 删除成功",
       "deleteError": "删除 Agent 失败",
       "deleteConfirm": {
@@ -505,9 +518,7 @@
       "setDefaultSuccess": "已成功将“{name}”设置为您的默认代理",
       "setDefaultError": "设置默认代理失败",
       "enhancePromptStart": "已在后台启动提示优化",
-      "enhancePromptError": "未能优化提示",
-      "updateSuccess": "代理更新成功",
-      "updateError": "未能更新代理"
+      "enhancePromptError": "未能优化提示"
     },
     "empty": {
       "title": "还没有 Agent",

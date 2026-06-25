@@ -109,7 +109,18 @@
       "online": "聯網",
       "reasoning": "思考深度:",
       "mcp": "MCP",
-      "canvas": "畫布"
+      "canvas": "畫布",
+      "plan": "計畫",
+      "auto": "聊天"
+    },
+    "plan": {
+      "title": "執行計畫",
+      "approve": "批准並執行",
+      "reject": "拒絕",
+      "approved": "已批准",
+      "rejected": "拒絕",
+      "pending": "待處理",
+      "executeTrigger": "請依照上述核准的計畫執行"
     },
     "voice": {
       "title": "即時語音",
@@ -476,9 +487,13 @@
       "voiceDetails": "語音情感與語調細節"
     },
     "speakers": {
-      "cancan": "康康舞（活潑溫暖的女性）",
-      "audrey": "奧黛麗（溫柔且成熟的女性）",
-      "ajie": "阿傑（冷靜明亮的男性）"
+      "vv": "Vivi（高級女性 - 推薦）",
+      "xiaohe": "小禾（高級女性）",
+      "yunzhou": "雲洲（高級男性）",
+      "xiaotian": "小天（高級男性）",
+      "tim": "Tim（高級英語男聲）",
+      "dacey": "黛西（高級英國女性）",
+      "stokie": "斯托基（高級英語女性聲音）"
     },
     "selector": {
       "label": "選擇 Agent",
@@ -491,6 +506,8 @@
     "messages": {
       "createSuccess": "Agent 創建成功",
       "createError": "創建 Agent 失敗",
+      "updateSuccess": "代理更新成功",
+      "updateError": "更新代理失敗",
       "deleteSuccess": "Agent 刪除成功",
       "deleteError": "刪除 Agent 失敗",
       "deleteConfirm": {
@@ -501,9 +518,7 @@
       "setDefaultSuccess": "已成功將「{name}」設為您的預設代理",
       "setDefaultError": "無法設置預設代理",
       "enhancePromptStart": "已在背景中開始提示優化",
-      "enhancePromptError": "未能優化提示",
-      "updateSuccess": "代理更新成功",
-      "updateError": "更新代理失敗"
+      "enhancePromptError": "未能優化提示"
     },
     "empty": {
       "title": "還沒有 Agent",
