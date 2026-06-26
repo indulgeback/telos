@@ -53,17 +53,13 @@ export default function AgentsPage() {
 
   return (
     <div className='container mx-auto py-8'>
-      {/* Header */}
-      <div className='mb-8'>
-        <div className='flex items-center gap-3 mb-2'>
-          <div className='flex size-10 items-center justify-center rounded-xl bg-primary/10'>
-            <Sparkles className='size-5 text-primary' />
-          </div>
-          <div>
-            <h1 className='text-3xl font-bold'>{t('title')}</h1>
-            <p className='text-muted-foreground'>{t('subtitle')}</p>
-          </div>
-        </div>
+      {/* Header: 标题与创建控件并到一行 */}
+      <div className='mb-8 flex flex-wrap items-center justify-between gap-4'>
+        <h1 className='text-3xl font-bold'>{t('title')}</h1>
+        <Button onClick={() => setShowCreateModal(true)} className='gap-2'>
+          <Plus className='size-4' />
+          {t('create')}
+        </Button>
       </div>
 
       {/* Error State */}
@@ -72,14 +68,6 @@ export default function AgentsPage() {
           <p className='text-sm text-destructive'>{error}</p>
         </div>
       )}
-
-      {/* Create Button */}
-      <div className='mb-6 flex justify-end'>
-        <Button onClick={() => setShowCreateModal(true)} className='gap-2'>
-          <Plus className='size-4' />
-          {t('create')}
-        </Button>
-      </div>
 
       {/* Loading State */}
       {loading ? (

@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouMind Preview</title>
+    <meta name="color-scheme" content="light" />
+    <style>
+      :root {
+        --page-bg: #f7f7f7;
+        --page-bg-muted: #000000e0;
+        --surface-bg: #000000e0;
+        --surface-bg-muted: #f7f7f7;
+        --surface-border: #02041a29;
+        --surface-border-strong: #000000e0;
+        --surface-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 2px rgba(0, 0, 0, 0.04), 0 8px 8px -8px rgba(0, 0, 0, 0.04);
+        --surface-shadow-soft: 0 0 0 1px #02041a29;
+        --ink: #000000e0;
+        --muted: #000000e0;
+        --subtle: #000000e0;
+        --accent: #799cd4;
+        --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        --font-mono: ui-monospace, "SFMono-Regular", "SF Mono", Menlo, monospace;
+        --body-size: 16px;
+        --body-line: 20px;
+        --body-weight: 400;
+        --label-size: 14px;
+        --label-line: 20px;
+        --label-track: 0.04em;
+        --title-size: 32px;
+        --title-line: 38px;
+        --title-track: -0.03em;
+        --section-size: 32px;
+        --section-line: 40px;
+        --section-track: -0.02em;
+        --source-size: 13px;
+        --source-line: 20px;
+        --space-1: 4px;
+        --space-2: 6px;
+        --space-3: 8px;
+        --space-4: 12px;
+        --space-5: 16px;
+        --space-6: 20px;
+        --radius-panel: 9px;
+        --radius-card: 9px;
+        --radius-micro: 6px;
+        --radius-pill: 300px;
+        --button-height: 40px;
+        --button-font-size: 14px;
+        --button-weight: 500;
+        --button-radius: 300px;
+        --secondary-button-radius: 300px;
+        --layout-gap: 12px;
+        --page-padding: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: var(--body-size);
+        font-weight: var(--body-weight);
+        line-height: var(--body-line);
+        background:
+          radial-gradient(circle at top, color-mix(in srgb, var(--accent) 8%, transparent), transparent 30%),
+          linear-gradient(180deg, var(--page-bg) 0%, var(--page-bg-muted) 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image:
+          linear-gradient(color-mix(in srgb, var(--surface-border) 56%, transparent) 1px, transparent 1px),
+          linear-gradient(90deg, color-mix(in srgb, var(--surface-border) 56%, transparent) 1px, transparent 1px);
+        background-size: 100% calc(24px), calc(24px) 100%;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.3), transparent 88%);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .shell {
+        width: min(1440px, calc(100vw - (var(--page-padding) * 2)));
+        margin: 0 auto;
+        padding: var(--page-padding) 0 calc(var(--page-padding) * 1.2);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(340px, 0.92fr) minmax(420px, 1fr);
+        gap: var(--layout-gap);
+        align-items: start;
+      }
+
+      .stack {
+        display: grid;
+        gap: var(--space-4);
+      }
+
+      .panel {
+        overflow: hidden;
+        border: 1px solid var(--surface-border);
+        border-radius: var(--radius-panel);
+        background: linear-gradient(180deg, color-mix(in srgb, var(--surface-bg) 88%, white) 0%, var(--surface-bg) 100%);
+        box-shadow: var(--surface-shadow);
+      }
+
+      .panel-inner {
+        padding: var(--space-4);
+      }
+
+      .hero-card {
+        position: relative;
+      }
+
+      .hero-card::before {
+        content: "";
+        position: absolute;
+        left: var(--space-4);
+        right: var(--space-4);
+        top: 0;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #1f1f1f 0%, #000000e0 33%, #f7f7f7 67%, #fff 100%);
+      }
+
+      .eyebrow {
+        margin-bottom: var(--space-2);
+        color: var(--muted);
+        font-size: var(--label-size);
+        line-height: var(--label-line);
+        letter-spacing: var(--label-track);
+        text-transform: uppercase;
+      }
+
+      .site-title,
+      .section-title {
+        margin: 0;
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-weight: 600;
+      }
+
+      .site-title {
+        font-size: var(--title-size);
+        line-height: var(--title-line);
+        letter-spacing: var(--title-track);
+      }
+
+      .descriptor {
+        margin: var(--space-2) 0 0;
+        max-width: 42ch;
+        color: var(--muted);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+      }
+
+      .summary {
+        margin: var(--space-3) 0 0;
+        max-width: 56ch;
+        color: var(--muted);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin: var(--space-3) 0 0;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: calc(4px * 3);
+        padding: 0 var(--space-2);
+        border: 1px solid var(--surface-border);
+        border-radius: var(--radius-pill);
+        background: var(--surface-bg);
+        color: var(--ink);
+        font-size: var(--label-size);
+        line-height: var(--label-line);
+        box-shadow: var(--surface-shadow-soft);
+      }
+
+      .observed-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-top: var(--space-4);
+        padding-top: var(--space-3);
+        border-top: 1px solid var(--surface-border);
+        color: var(--muted);
+        font-size: var(--label-size);
+        overflow-wrap: anywhere;
+      }
+
+      .observed-link::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+      }
+
+      .section-title {
+        font-size: var(--section-size);
+        line-height: var(--section-line);
+        letter-spacing: var(--section-track);
+      }
+
+      .section-subtitle {
+        margin: var(--space-2) 0 var(--space-4);
+        color: var(--muted);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+      }
+
+      .palette-grid,
+      .theme-mode-grid,
+      .type-list,
+      .component-card,
+      .prompt-list,
+      .mini-grid,
+      .token-table {
+        display: grid;
+        gap: var(--space-2);
+      }
+
+      .palette-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-2);
+      }
+
+      .palette-row.neutral-row {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .theme-mode-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-3);
+      }
+
+      .theme-mode-card {
+        display: grid;
+        gap: var(--space-2);
+        padding: var(--space-3);
+        border: 1px solid var(--surface-border);
+        border-radius: var(--radius-card);
+        background: color-mix(in srgb, var(--surface-bg) 92%, white);
+      }
+
+      .theme-mode-card.is-dark {
+        background: #111111;
+        color: #f4f4f4;
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .theme-mode-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+      }
+
+      .theme-mode-label {
+        color: var(--subtle);
+        font-size: var(--label-size);
+        line-height: var(--label-line);
+        letter-spacing: var(--label-track);
+        text-transform: uppercase;
+      }
+
+      .theme-mode-card.is-dark .theme-mode-label {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .theme-mode-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: calc(var(--body-size) - 1px);
+        line-height: calc(var(--body-line) - 4px);
+      }
+
+      .theme-mode-card.is-dark .theme-mode-note {
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .theme-swatch-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-2);
+      }
+
+      .theme-swatch {
+        display: grid;
+        gap: 6px;
+      }
+
+      .theme-swatch-box {
+        height: 72px;
+        border-radius: calc(var(--radius-card) - 4px);
+        border: 1px solid color-mix(in srgb, var(--surface-border-strong) 75%, transparent);
+      }
+
+      .theme-mode-card.is-dark .theme-swatch-box {
+        border-color: rgba(255, 255, 255, 0.14);
+      }
+
+      .theme-swatch-name {
+        color: inherit;
+        font-size: 12px;
+        line-height: 1.3;
+      }
+
+      .theme-swatch-value {
+        color: var(--subtle);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .theme-mode-card.is-dark .theme-swatch-value {
+        color: rgba(255, 255, 255, 0.62);
+      }
+
+      .swatch {
+        display: grid;
+        gap: var(--space-2);
+      }
+
+      .swatch-box {
+        min-height: calc(4px * 12);
+        border-radius: var(--radius-card);
+        border: 1px solid color-mix(in srgb, var(--surface-border-strong) 75%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 4%, transparent);
+      }
+
+      .swatch-label,
+      .token-heading,
+      .prompt-card strong,
+      .card-preview h4 {
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+        font-weight: 600;
+      }
+
+      .swatch-meta,
+      .type-metrics,
+      .mini-label,
+      .copy-state,
+      .file-tab,
+      .ghost-button,
+      .segmented button {
+        color: var(--muted);
+        font-size: var(--label-size);
+        line-height: var(--label-line);
+      }
+
+      .type-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr) auto;
+        gap: var(--space-2);
+        align-items: baseline;
+        padding: var(--space-2) 0;
+        border-top: 1px solid var(--surface-border);
+      }
+
+      .type-row:first-child,
+      .mini-row:first-child,
+      .token-row:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .type-role {
+        color: var(--muted);
+        font-size: var(--label-size);
+        line-height: var(--label-line);
+        letter-spacing: var(--label-track);
+        text-transform: uppercase;
+      }
+
+      .type-sample {
+        color: var(--ink);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .split-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+      }
+
+      .token-row,
+      .mini-row {
+        display: grid;
+        gap: var(--space-2);
+        align-items: start;
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--surface-border);
+      }
+
+      .token-row {
+        grid-template-columns: 1fr auto;
+      }
+
+      .mini-row {
+        grid-template-columns: 88px minmax(0, 1fr);
+      }
+
+      .mini-content,
+      .prompt-card p,
+      .card-preview p {
+        color: var(--muted);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+      }
+
+      .radius-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-2);
+      }
+
+      .radius-card,
+      .prompt-card {
+        padding: var(--space-3);
+        border: 1px solid var(--surface-border);
+        border-radius: var(--radius-card);
+        background: var(--surface-bg-muted);
+        box-shadow: var(--surface-shadow-soft);
+      }
+
+      .radius-demo {
+        aspect-ratio: 1;
+        width: 100%;
+        border: 1px solid var(--surface-border-strong);
+        background: var(--surface-bg);
+      }
+
+      .radius-name {
+        margin-top: var(--space-2);
+        color: var(--ink);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+        font-weight: 600;
+      }
+
+      .radius-value {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: var(--label-size);
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: var(--button-height);
+        padding: 0 var(--space-3);
+        border-radius: var(--button-radius);
+        font-family: var(--font-body);
+        font-size: var(--button-font-size);
+        font-weight: var(--button-weight);
+        line-height: 1;
+        letter-spacing: normal;
+      }
+
+      .cta-primary {
+        border: 1px solid transparent;
+        background: #171717;
+        color: #ffffff;
+        border-radius: 300px;
+      }
+
+      .cta-secondary {
+        border: 1px solid #171717;
+        background: #ffffff;
+        color: #171717;
+        border-radius: 300px;
+        box-shadow: var(--surface-shadow-soft);
+      }
+
+      .card-preview {
+        padding: 8px;
+        border-radius: 9px;
+        border: 1px solid color-mix(in srgb, var(--surface-border-strong) 72%, transparent);
+        background: var(--surface-bg);
+        color: var(--ink);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 2px rgba(0, 0, 0, 0.04), 0 8px 8px -8px rgba(0, 0, 0, 0.04);
+      }
+
+      .card-preview h4 {
+        margin: 0 0 var(--space-1);
+      }
+
+      .source-shell {
+        position: sticky;
+        top: var(--page-padding);
+      }
+
+      .source-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4) var(--space-2);
+        border-bottom: 1px solid var(--surface-border);
+      }
+
+      .file-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px var(--space-3);
+      }
+
+      .file-tab {
+        padding: 0 0 var(--space-2);
+        border-bottom: 2px solid transparent;
+      }
+
+      .file-tab.active {
+        color: var(--ink);
+        border-bottom-color: var(--ink);
+        font-weight: 600;
+      }
+
+      .source-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-4);
+        border-bottom: 1px solid var(--surface-border);
+      }
+
+      .segmented {
+        display: inline-flex;
+        padding: 3px;
+        border: 1px solid var(--surface-border);
+        border-radius: var(--radius-pill);
+        background: var(--surface-bg-muted);
+      }
+
+      .segmented button {
+        border: 0;
+        border-radius: var(--radius-pill);
+        background: transparent;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+
+      .segmented button.is-active {
+        background: var(--surface-bg);
+        color: var(--ink);
+        box-shadow: var(--surface-shadow-soft);
+      }
+
+      .toolbar-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-left: auto;
+      }
+
+      .ghost-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border: 1px solid var(--surface-border);
+        border-radius: 6px;
+        background: var(--surface-bg);
+        box-shadow: var(--surface-shadow-soft);
+        cursor: pointer;
+      }
+
+      .source-body {
+        max-height: calc(100vh - (var(--page-padding) * 2) - 120px);
+        overflow: auto;
+      }
+
+      .source-view,
+      .rendered-view {
+        margin: 0;
+        padding: var(--space-4);
+      }
+
+      .source-view {
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-size: var(--source-size);
+        line-height: var(--source-line);
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: var(--surface-bg);
+      }
+
+      .rendered-view {
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: var(--body-size);
+        line-height: var(--body-line);
+        background: var(--surface-bg);
+      }
+
+      .rendered-view[hidden],
+      .source-view[hidden] {
+        display: none;
+      }
+
+      .rendered-view h2,
+      .rendered-view h3 {
+        margin: var(--space-4) 0 var(--space-2);
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-weight: 600;
+      }
+
+      .rendered-view h2 {
+        font-size: var(--section-size);
+        line-height: var(--section-line);
+        letter-spacing: var(--section-track);
+      }
+
+      .rendered-view h2:first-child {
+        margin-top: 0;
+      }
+
+      .rendered-view h3 {
+        color: var(--muted);
+        font-size: calc(32px - 4px);
+        line-height: calc(38px - 4px);
+      }
+
+      .rendered-view p,
+      .rendered-view li {
+        color: var(--muted);
+      }
+
+      .rendered-view ul,
+      .rendered-view ol {
+        margin: 0 0 var(--space-3) 20px;
+        padding: 0;
+      }
+
+      .rendered-view table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: var(--space-2) 0 var(--space-4);
+      }
+
+      .rendered-view th,
+      .rendered-view td {
+        padding: var(--space-2) var(--space-2);
+        border: 1px solid var(--surface-border);
+        text-align: left;
+        vertical-align: top;
+        font-size: var(--label-size);
+        line-height: var(--label-line);
+      }
+
+      .rendered-view th {
+        color: var(--ink);
+        background: var(--surface-bg-muted);
+      }
+
+      .rendered-view code {
+        padding: 0.14em 0.4em;
+        border-radius: 6px;
+        background: var(--surface-bg-muted);
+        color: var(--ink);
+        font-family: var(--font-mono);
+        font-size: 0.92em;
+      }
+
+      @media (max-width: 1120px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .source-shell {
+          position: relative;
+          top: 0;
+        }
+
+        .source-body {
+          max-height: none;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .shell {
+          width: min(100vw - (6px * 2), 100%);
+          padding-top: 6px;
+        }
+
+        .panel-inner,
+        .source-view,
+        .rendered-view {
+          padding-left: var(--space-3);
+          padding-right: var(--space-3);
+        }
+
+        .palette-row,
+        .palette-row.neutral-row,
+        .theme-mode-grid,
+        .theme-swatch-row,
+        .split-card,
+        .radius-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .type-row,
+        .mini-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="layout">
+        <section class="stack">
+          <article class="panel hero-card">
+            <div class="panel-inner">
+              <div class="eyebrow">Design Preview</div>
+              <h1 class="site-title">YouMind</h1>
+              <p class="descriptor">YouMind is an &quot;AI Creation Studio with Taste,&quot; and the entire visual language is built to se...</p>
+              <div class="chip-row"><span class="chip">Serif display + sans body — Libr...</span><span class="chip">Monochrome-by-default chrome — p...</span><span class="chip">Pill CTAs in ink black — border-...</span><span class="chip">Multi-tier radius system — not o...</span><span class="chip">Shadow-as-whisper — default shad...</span><span class="chip">Full light/dark token set — even...</span></div>
+              <p class="summary">YouMind is an &quot;AI Creation Studio with Taste,&quot; and the entire visual language is built to sell taste as the product. The marketing page pairs an editorial, almost magazine-like typographic voice (a serif display face for headlines) with the cool, restrained neutrality of a modern app shell (Inter body, near-monochrome surfaces). The result feels less like a typical SaaS landing page and more like a design publication that happens to sell software.</p>
+              <a class="observed-link" href="https://youmind.com/" target="_blank" rel="noreferrer">https://youmind.com/</a>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">Palette</h2>
+              <p class="section-subtitle">Roles and neutrals rendered using the extracted design system rather than a separate display theme.</p>
+              <div class="palette-grid"><div class="palette-row"><div class="swatch">
+    <div class="swatch-box" style="background:#1f1f1f;"></div>
+    <div class="swatch-label">Ink</div>
+    <div class="swatch-meta">
+      <span>#1f1f1f</span>
+      <span>Primary action</span>
+    </div>
+  </div><div class="swatch">
+    <div class="swatch-box" style="background:#000000e0;"></div>
+    <div class="swatch-label">Ink-fg</div>
+    <div class="swatch-meta">
+      <span>#000000e0 (≈ rgba(0,0,0,0.88))</span>
+      <span>Foreground text</span>
+    </div>
+  </div><div class="swatch">
+    <div class="swatch-box" style="background:#f7f7f7;"></div>
+    <div class="swatch-label">Paper</div>
+    <div class="swatch-meta">
+      <span>#f7f7f7</span>
+      <span>Page background</span>
+    </div>
+  </div></div><div class="palette-row neutral-row"><div class="swatch">
+    <div class="swatch-box" style="background:#fff;"></div>
+    <div class="swatch-label">Pure White</div>
+    <div class="swatch-meta">
+      <span>#fff</span>
+      <span>Surface / card</span>
+    </div>
+  </div><div class="swatch">
+    <div class="swatch-box" style="background:#0006;"></div>
+    <div class="swatch-label">Caption</div>
+    <div class="swatch-meta">
+      <span>#0006 (≈ rgba(0,0,0,0.4))</span>
+      <span>Muted text</span>
+    </div>
+  </div><div class="swatch">
+    <div class="swatch-box" style="background:#02041a29;"></div>
+    <div class="swatch-label">Hairline</div>
+    <div class="swatch-meta">
+      <span>#02041a29 (≈ rgba(2,4,26,0.16))</span>
+      <span>Border (default)</span>
+    </div>
+  </div><div class="swatch">
+    <div class="swatch-box" style="background:#1f1f1f0f;"></div>
+    <div class="swatch-label">Whisper</div>
+    <div class="swatch-meta">
+      <span>#1f1f1f0f (≈ rgba(31,31,31,0.06))</span>
+      <span>Border (subtle)</span>
+    </div>
+  </div></div></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">Theme Modes</h2>
+              <p class="section-subtitle">If the product supports light and dark themes, both modes should stay visible in the exported design system and preview.</p>
+              <div class="prompt-card"><strong>Single mode detected</strong><p>No explicit <code>Theme Modes</code> section was detected in the markdown. If the product supports both light and dark themes, document both so the preview can render them side by side.</p></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">Typography</h2>
+              <p class="section-subtitle">The preview shell itself now uses the extracted typography stack, sizes, line heights, and tracking.</p>
+              <div class="type-list"><div class="type-row">
+        <div class="type-role">Hero headline</div>
+        <div
+          class="type-sample"
+          style="font-size:48px; line-height:56px; font-weight:500; letter-spacing:normal; font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Arial, sans-serif;"
+        >
+          The quick brown fox jumps
+        </div>
+        <div class="type-metrics">72px • 500 • 88px</div>
+      </div><div class="type-row">
+        <div class="type-role">Banner statement</div>
+        <div
+          class="type-sample"
+          style="font-size:48px; line-height:56px; font-weight:600; letter-spacing:normal; font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Arial, sans-serif;"
+        >
+          The quick brown fox jumps
+        </div>
+        <div class="type-metrics">50px • 600 • 60px</div>
+      </div><div class="type-row">
+        <div class="type-role">Section heading (h2)</div>
+        <div
+          class="type-sample"
+          style="font-size:24px; line-height:32px; font-weight:500; letter-spacing:normal; font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Arial, sans-serif;"
+        >
+          The quick brown fox jumps
+        </div>
+        <div class="type-metrics">24px • 590 • 32px</div>
+      </div><div class="type-row">
+        <div class="type-role">Body</div>
+        <div
+          class="type-sample"
+          style="font-size:16px; line-height:16px; font-weight:400; letter-spacing:normal; font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Arial, sans-serif;"
+        >
+          The quick brown fox jumps
+        </div>
+        <div class="type-metrics">16px (base) • 400 • ~1.6</div>
+      </div><div class="type-row">
+        <div class="type-role">Button / CTA label</div>
+        <div
+          class="type-sample"
+          style="font-size:22px; line-height:31px; font-weight:500; letter-spacing:normal; font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Arial, sans-serif;"
+        >
+          The quick brown fox jumps
+        </div>
+        <div class="type-metrics">22px (hero), ~16px (others) • 500 • —</div>
+      </div><div class="type-row">
+        <div class="type-role">Caption / Meta</div>
+        <div
+          class="type-sample"
+          style="font-size:13px; line-height:18px; font-weight:400; letter-spacing:normal; font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Arial, sans-serif;"
+        >
+          The quick brown fox jumps
+        </div>
+        <div class="type-metrics">~13–14px • 400 • —</div>
+      </div></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">Spacing &amp; Shape</h2>
+              <p class="section-subtitle">Spacing, panel padding, and radius tokens are mapped directly from the layout rules in the markdown.</p>
+              <div class="split-card">
+    <div>
+      <h3 class="token-heading">Spacing</h3>
+      <div class="token-table"><div class="token-row">
+        <span>Base unit</span>
+        <span>4px</span>
+      </div><div class="token-row">
+        <span>Step 2</span>
+        <span>6px</span>
+      </div><div class="token-row">
+        <span>Step 3</span>
+        <span>8px</span>
+      </div><div class="token-row">
+        <span>Step 4</span>
+        <span>12px</span>
+      </div><div class="token-row">
+        <span>Step 5</span>
+        <span>16px</span>
+      </div></div>
+    </div>
+    <div>
+      <h3 class="token-heading">Border Radius</h3>
+      <div class="radius-grid"><div class="radius-card">
+        <div class="radius-demo" style="border-radius:6px;"></div>
+        <div class="radius-name">Micro utility</div>
+        <div class="radius-value">6px</div>
+      </div><div class="radius-card">
+        <div class="radius-demo" style="border-radius:9px;"></div>
+        <div class="radius-name">Standard module</div>
+        <div class="radius-value">9px</div>
+      </div><div class="radius-card">
+        <div class="radius-demo" style="border-radius:300px;"></div>
+        <div class="radius-name">Category rail</div>
+        <div class="radius-value">300px</div>
+      </div><div class="radius-card">
+        <div class="radius-demo" style="border-radius:300px;"></div>
+        <div class="radius-name">CTA pill</div>
+        <div class="radius-value">300px</div>
+      </div></div>
+    </div>
+  </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">Components</h2>
+              <p class="section-subtitle">Buttons and cards use the documented height, weight, radius, colors, and surface treatment.</p>
+              <div class="component-card">
+    <div class="button-row">
+      <span class="cta cta-primary">Start Deploying</span>
+      <span class="cta cta-secondary">Get a Demo</span>
+    </div>
+    <div class="card-preview">
+      <h4>System Card Preview</h4>
+      <p>Pure white #fff cards on the #f7f7f7 paper background. Two-tier surface = the primary depth cue.</p>
+    </div>
+  </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">System Notes</h2>
+              <p class="section-subtitle">Responsive behavior and depth rules stay visible while keeping the overall proportions calm and readable.</p>
+              <div class="split-card">
+    <div>
+      <h3 class="token-heading">Breakpoints</h3>
+      <div class="mini-grid"><div class="mini-row">
+            <div class="mini-label">Mobile</div>
+            <div class="mini-content"><strong>&lt; 768px</strong><br />Hero headline scales down from 72px; organic cloud graphic scales; multi-up card grids collapse to single column; 1280px container becomes full-width with reduced padding</div>
+          </div><div class="mini-row">
+            <div class="mini-label">Tablet</div>
+            <div class="mini-content"><strong>768–1024px</strong><br />2-column card grids; hero type ~48–56px; banner statement ~36px</div>
+          </div><div class="mini-row">
+            <div class="mini-label">Desktop</div>
+            <div class="mini-content"><strong>≥ 1024px</strong><br />Full 1280px container; 72px hero; 3-column &quot;Made with&quot; grid; full-bleed banner</div>
+          </div></div>
+    </div>
+    <div>
+      <h3 class="token-heading">Elevation</h3>
+      <div class="mini-grid"><div class="mini-row">
+            <div class="mini-label">Flat</div>
+            <div class="mini-content"><strong>No shadow, surface = page bg</strong><br />Sunken sections, page background</div>
+          </div><div class="mini-row">
+            <div class="mini-label">Hairline</div>
+            <div class="mini-content"><strong>1px border #02041a29, no shadow</strong><br />Default cards, inputs, dividers</div>
+          </div><div class="mini-row">
+            <div class="mini-label">Whisper</div>
+            <div class="mini-content"><strong>rgba(2,4,26,0.05) 0 1px 2px</strong><br />Standard elevated cards</div>
+          </div><div class="mini-row">
+            <div class="mini-label">Statement</div>
+            <div class="mini-content"><strong>rgba(31,31,31,0.16) 0 16px 36px</strong><br />Hero preview cards, floating product mocks</div>
+          </div></div>
+    </div>
+  </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-inner">
+              <h2 class="section-title">Prompt Guide</h2>
+              <p class="section-subtitle">Prompt snippets are shown in the same typography and spacing language as the extracted design system.</p>
+              <div class="prompt-list"><div class="prompt-card"><strong>Quick Summary</strong><p>YouMind is an editorial-monochrome creator-studio brand. Light grey paper background (#f7f7f7) with pure-white cards (#fff); depth comes from surface-tone contrast plus barely-there 1px shadows, with one big soft shadow reserved for hero previews. Headlines use Libre Baskerville serif at 72px; everything else is Inter. The single primary CTA is a full-pill (border-radius: 300px) in ink #1f1f1f with white text, identical site-wide. Color lives only in imagery and organic hero graphics — all chrome is greyscale with alpha-based neutrals. A complete dark-mode token set (#141414 bg, white-on-near-black) exists for the app shell. Radius scales with size: 6–12px controls, 16–20px cards, 40–60px hero panels, pill buttons.</p></div><div class="prompt-card">
+            <strong>Hero</strong>
+            <p>&quot;A full-viewport hero on #f7f7f7 paper. Centered Libre Baskerville headline at 72px/weight-500/line-height-88px reading &#39;Create bolder.&#39; in #000000e0. Below it a subhead in Inter. A pill CTA &#39;Start for free&#39; — border-radius:300px, background:#1f1f1f, white text, font-size:22px, font-weight:500. Behind the text, a soft organic green cloud/blob shape over a faint blue gradient. Generous whitespace; no navbar.&quot;</p>
+          </div><div class="prompt-card">
+            <strong>Card</strong>
+            <p>&quot;A content card on #f7f7f7 bg: background:#fff, border-radius:16px, border:1px solid rgba(2,4,26,0.16), box-shadow:0 1px 2px rgba(2,4,26,0.05). Generous 24–32px internal padding. Body text Inter #000000e0. No heavy shadows.&quot;</p>
+          </div><div class="prompt-card">
+            <strong>Primary button</strong>
+            <p>&quot;A pill button: border-radius:300px (or 9999px), background:#1f1f1f, color:#fff, font-family:Inter, font-weight:500, no border, padding ~12px 28px. Identical whether hero or footer.&quot;</p>
+          </div><div class="prompt-card">
+            <strong>Navigation</strong>
+            <p>&quot;No traditional sticky top navbar — lead with the hero. Where app chrome exists, use a translucent backdrop-blurred surface with greyscale links; never web-blue.&quot;</p>
+          </div><div class="prompt-card"><strong>Ready-to-Use Prompt</strong><p>&gt; Build a marketing page in the YouMind design language. Background #f7f7f7; cards pure white #fff with 1px solid rgba(2,4,26,0.16) border and box-shadow:0 1px 2px rgba(2,4,26,0.05). Display headlines in Libre Baskerville serif at 72px/500, body in Inter. The primary CTA is a full pill (border-radius:300px) in #1f1f1f with white text, reused identically everywhere. Use alpha-based greys for muted text (rgba(0,0,0,0.4)) and borders (rgba(2,4,26,0.16)); reserve chromatic color for imagery only. Cards use 16px radius, controls 12px, hero panels 40–60px. Include a complete dark-mode set: #141414 bg, #1a1a1a cards, white-on-near-black ink. Keep sections 500–1000px tall in a 1280px max-width centered column.</p></div></div>
+              <div class="split-card" style="margin-top:var(--space-4);">
+    <div>
+      <h3 class="token-heading">Do</h3>
+      <div class="mini-grid"><div class="mini-row"><div class="mini-label">Do</div><div class="mini-content">Pair a serif display with a sans body. Use Libre Baskerville (or an equivalent literary serif) ONLY for the largest headlines; keep everything else in Inter.</div></div><div class="mini-row"><div class="mini-label">Do</div><div class="mini-content">Use the two-tier surface trick. Page background #f7f7f7, cards pure #fff. Let tone separate, not shadow.</div></div><div class="mini-row"><div class="mini-label">Do</div><div class="mini-content">Make the primary CTA a full pill in ink #1f1f1f. Keep it identical everywhere — consistency is the brand.</div></div><div class="mini-row"><div class="mini-label">Do</div><div class="mini-content">Keep chromatic color inside imagery. Chrome (buttons, borders, text) stays monochrome; let photos/illustrations carry all hue.</div></div></div>
+    </div>
+    <div>
+      <h3 class="token-heading">Don't</h3>
+      <div class="mini-grid"><div class="mini-row"><div class="mini-label">Don't</div><div class="mini-content">Don&#39;t use web-default link blue. The palette has no #3B82F6-style blue for chrome. Accents are #799cd4 mist (rare) and ink.</div></div><div class="mini-row"><div class="mini-label">Don't</div><div class="mini-content">Don&#39;t apply heavy shadows to content cards. The 16px statement shadow is for hero previews only; body cards get the 1px whisper or border-alone.</div></div><div class="mini-row"><div class="mini-label">Don't</div><div class="mini-content">Don&#39;t use the serif in body or UI. Libre Baskerville is display-only. Using it in body text breaks the system.</div></div><div class="mini-row"><div class="mini-label">Don't</div><div class="mini-content">Don&#39;t introduce a colored hover state. Hover is the muted ink wash (rgba(2,4,26,0.07)), never a hue shift.</div></div></div>
+    </div>
+  </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="source-shell">
+          <article class="panel">
+            <div class="source-header">
+              <div class="file-tabs">
+                <span class="file-tab">design-system.md</span>
+                <span class="file-tab active">DESIGN.md</span>
+                <span class="file-tab">Design JSON</span>
+                <span class="file-tab">CSS Variables</span>
+                <span class="file-tab">Design Tokens</span>
+              </div>
+            </div>
+            <div class="source-toolbar">
+              <div class="segmented" role="tablist" aria-label="View Switcher">
+                <button class="is-active" data-view="source" type="button">Source</button>
+                <button data-view="preview" type="button">Preview</button>
+              </div>
+              <div class="toolbar-actions">
+                <button class="ghost-button" id="copyButton" type="button">Copy</button>
+                <a class="ghost-button" href="DESIGN.md" download>Open .md</a>
+                <span class="copy-state" id="copyState"></span>
+              </div>
+            </div>
+            <div class="source-body">
+              <pre class="source-view" id="sourceView"># Design System: YouMind
+
+&gt; Source: https://youmind.com · Extracted via `agent-browser` DOM + computed-style evidence (620 root CSS variables observed).
+
+## 1. Visual Theme &amp; Atmosphere
+
+YouMind is an &quot;AI Creation Studio with Taste,&quot; and the entire visual language is built to **sell taste as the product**. The marketing page pairs an editorial, almost magazine-like typographic voice (a serif display face for headlines) with the cool, restrained neutrality of a modern app shell (Inter body, near-monochrome surfaces). The result feels less like a typical SaaS landing page and more like a design publication that happens to sell software.
+
+- **Overall feeling:** Editorial-meets-engineering. Confident, quiet, premium, and slightly literary. The page whispers rather than shouts — large whitespace, muted near-black ink on soft grey paper, and one emphatic serif gesture per section.
+- **Visual density:** Low to medium. Sections are tall (often 500–1000px) and breathe; content never crowds the edges. The studio/app-preview section is the densest block, deliberately contrasting the airy marketing copy around it.
+- **Brand posture:** Creator-tool that wants to be taken seriously by designers. Restrained color, intentional type pairing, and &quot;design tokens as architecture&quot; (620 CSS variables signal an internal design system, not a hand-styled site).
+- **Signature motifs:** (1) Serif display headlines on a sans body — the single most identity-defining decision. (2) A pill-shaped, pure-black primary CTA that stays the same from hero to footer. (3) Decorative organic blob/cloud graphics in the hero (a green &quot;cloud&quot; shape over a soft blue field) that soften the otherwise crisp, geometric UI. (4) Near-monochrome palette where color is reserved for imagery, never for chrome.
+
+### Key Characteristics
+
+- **Serif display + sans body** — Libre Baskerville headlines, Inter everywhere else. The serif is the brand&#39;s handshake.
+- **Monochrome-by-default chrome** — primary `#1f1f1f`, surfaces `#fff` / `#f7f7f7`. Color lives in content, not in buttons or borders.
+- **Pill CTAs in ink black** — `border-radius: 300px` / `9999px`, `#1f1f1f` bg, white text, no border. Identical across the whole site.
+- **Multi-tier radius system** — not one radius: `6px / 9px / 12px / 16px / 20px / 50–60px / pill`. Small controls stay crisp; cards are generous; buttons are full pills.
+- **Shadow-as-whisper** — default shadows are barely-there (`rgba(2,4,26,0.05) 0 1px 2px`); depth is conveyed mostly by border + surface tone, not by elevation.
+- **Full light/dark token set** — even though the marketing page is light-only, 620 vars include a complete `--dark-*` mirror, revealing an app that lives in both modes.
+
+## 2. Color Palette &amp; Roles
+
+The system is intentionally desaturated. There is effectively **one chromatic brand moment** (a soft accent blue `#799cd4` and a green outline `#54d460`, both used sparingly); everything else is greyscale with alpha-based translucency for borders and muted states.
+
+| Role | Semantic Name | Value | Usage |
+| --- | --- | --- | --- |
+| Primary action | Ink | `#1f1f1f` | Primary buttons, strong text, hero CTA fill |
+| Foreground text | Ink-fg | `#000000e0` (≈ `rgba(0,0,0,0.88)`) | Body &amp; heading text on light surfaces |
+| Page background | Paper | `#f7f7f7` | App/section background |
+| Surface / card | Pure White | `#fff` | Cards, elevated panels, inputs |
+| Muted text | Caption | `#0006` (≈ `rgba(0,0,0,0.4)`) | Captions, secondary metadata |
+| Border (default) | Hairline | `#02041a29` (≈ `rgba(2,4,26,0.16)`) | Card &amp; input borders |
+| Border (subtle) | Whisper | `#1f1f1f0f` (≈ `rgba(31,31,31,0.06)`) | Soft dividers, layout borders |
+| Destructive | Signal Red | `#ff382e` | Errors, delete actions |
+| Soft accent | Mist Blue | `#799cd4` | Occasional highlight, secondary blue |
+| Outline accent | Spring Green | `#54d460` | Primary outline / success-ish accent |
+
+### Primary
+
+- **Ink `#1f1f1f`** — the workhorse. Buttons, bold text, the &quot;weight&quot; of the page. Not pure black; deliberately softened to feel printed rather than digital.
+- **Paper `#f7f7f7`** vs **Pure White `#fff`** — the two-tier surface trick: the page is soft grey, cards lift off it by being pure white. This is the primary depth mechanism.
+
+### Interactive
+
+- **Focus ring** `#09090b` — near-black, used for keyboard focus (the `--ring` token).
+- **Hover/active** — `--muted` (`#02041a12`, ≈ `rgba(2,4,26,0.07)`) is the universal hover/active wash for interactive surfaces; selected/active states reuse the same muted token.
+- **Links** — stay within ink/greyscale; no default link-blue. The brand avoids web-default hyperlink blue entirely.
+
+### Neutral Scale
+
+The neutral scale is **alpha-based on a near-black ink**, not a stepped grey ramp. This keeps surfaces feeling like the same &quot;paper&quot;:
+
+- `#000000e0` (0.88) — primary text
+- `#0009` (0.35) — secondary text / secondary button fg
+- `#0006` (0.24) — caption
+- `#0000003d` (0.24) — disabled
+- `#02041a29` (0.16) — default border
+- `#02041a12` (0.07) — muted/hover bg
+- `#02041a0a` (0.04) — accent/snip card bg
+
+### Surface &amp; Overlay
+
+- **Background** `#f7f7f7` (sunken/page), **Surface** `#fff` (raised/card), **Surface-bg** `#1a1a1a` (dark mode card).
+- **Overlay/active** uses translucent ink: `#02041829` for input borders, `#ffffff1f` for dark-mode card-muted overlays.
+
+### Theme Modes
+
+The marketing page renders in **light mode only** (no visible theme toggle), but the token set exposes a complete dark mirror — this is the design system of an app (the Studio), not just a landing page. Both must be carried into any recreation.
+
+#### Light Mode (observed on the live page)
+
+- Background: `#f7f7f7` (paper)
+- Surface: `#fff` (cards), `#f7f7f7` (sunken)
+- Text: `#000000e0` (primary), `#0006` (caption)
+- Accent: `#1f1f1f` ink for actions; `#799cd4` mist blue rarely
+- Border: `#02041a29` default, `#1f1f1f0f` subtle
+- Notes: Alpha-based neutrals over pure-white card surfaces give the &quot;printed paper&quot; feel. Imagery carries all the color.
+
+#### Dark Mode (from `--dark-*` tokens, not visibly toggled on marketing page)
+
+- Background: `#141414`
+- Surface: `#1a1a1a` (cards)
+- Text: `#ddd` (primary), `#fff9` (muted-fg), `#fff6` (caption)
+- Primary: inverts to `#fff` bg / `#000000e0` fg
+- Accent: `#ffffff0f` (muted/hover), border `#fff3`
+- Destructive: `#ff4238` (slightly hotter than light&#39;s `#ff382e`)
+- Notes: Dark mode inverts the ink relationship — primary becomes white-on-near-black — but keeps the same alpha-over-dark philosophy (`#fff` with varying opacity instead of `#000`). Borders become white-alpha (`#fff3`).
+
+### Shadows &amp; Depth
+
+Depth is deliberately understated; **border + surface contrast does most of the separation work**, shadows are a finishing whisper.
+
+- **Default card shadow:** `rgba(2, 4, 26, 0.05) 0px 1px 2px 0px` — barely visible, 1px offset. Used on ~12 elements (the most common shadow).
+- **Hero/statement shadow:** `rgba(31, 31, 31, 0.16) 0px 16px 36px 0px` — large, soft, 16px blur. Reserved for floating preview cards that need to &quot;lift&quot; off the hero canvas.
+- **Soft ambient shadow:** `rgba(0, 0, 0, 0.08) 0px 4px 42px 0px` — very wide, very faint; for large imagery panels.
+- **Inset glow:** `rgba(255, 255, 255, 0.2) 0px 0px 12px 0px inset` — rare inner highlight on dark/glass elements.
+- **Focus:** no colored glow; the ring is a solid near-black `#09090b` outline.
+
+## 3. Typography Rules
+
+Typography is the loudest design decision on the page. The pairing of a **classical serif (Libre Baskerville)** for display with **Inter** for everything else is what separates YouMind from generic SaaS.
+
+### Font Family
+
+- **Display / Headlines:** `&quot;Libre Baskerville&quot;, Georgia, &quot;Times New Roman&quot;, &quot;Songti SC&quot;, STSong, serif` — a slab-influenced serif with literary warmth. Used ONLY for hero/banner display headlines.
+- **Body &amp; UI (Primary):** `Inter, &quot;Inter Fallback&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, &quot;San Francisco Pro&quot;, Roboto, sans-serif, &quot;PingFang SC&quot;, &quot;Microsoft YaHei&quot;, &quot;Source Han Sans SC&quot;, &quot;Noto Sans SC&quot;` — the workhorse for body, buttons, nav, labels.
+- **Monospace:** `JetBrains Mono` is loaded (observed in font class list) — used for code/numeric stats display.
+- **Extra display faces loaded but situational:** Arvo, Instrument Serif, Literata, Bebas Neue, Pacifico, Cereal — these are available for *user-generated creative content* inside the Studio, not for marketing chrome. They signal that the product is a *typographic playground* for end users.
+- **CJK fallbacks:** Songti SC / STSong for serif CJK; PingFang SC / Source Han / Noto Sans for sans CJK. Fully localized.
+
+### Hierarchy
+
+| Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| Hero headline | Libre Baskerville | 72px | 500 | 88px | normal | &quot;Create bolder.&quot; — the serif signature, huge |
+| Banner statement | Libre Baskerville | 50px | 600 | 60px | normal | Over imagery, white text, mid-page CTA banner |
+| Section heading (h2) | Inter | 24px | 590 | 32px | normal | Section titles; weight 590 is an unusual, precise Inter weight |
+| Body | Inter | 16px (base) | 400 | ~1.6 | normal | Standard reading text |
+| Button / CTA label | Inter | 22px (hero), ~16px (others) | 500 | — | normal | Hero CTA text is oversized (22px) to match the hero |
+| Caption / Meta | Inter | ~13–14px | 400 | — | normal | Uses `--caption` (`#0006`) color |
+
+### Principles
+
+- **The serif is rationed.** Libre Baskerville appears only on the largest display moments (hero, banner). Never in body, never in UI. This scarcity is what gives it weight.
+- **Inter at non-default weights.** Headings use `590` (not 600) — a hyper-specific weight that signals a custom-tuned system, not off-the-shelf Tailwind defaults.
+- **Scale is dramatic at the top.** Hero at 72px drops to h2 at 24px — a 3× jump that forces hierarchy by sheer size contrast.
+- **Color reinforces hierarchy.** Primary text `#000000e0`, caption `#0006` — the opacity drop does the de-emphasizing, not a smaller size alone.
+
+## 4. Component Stylings
+
+### Buttons and Links
+
+- **Primary CTA (the signature):** Pill, `#1f1f1f` ink fill, white text, `border-radius: 300px` (effectively a full pill), no border, `font-weight: 500`. Hero variant uses `22px` text (&quot;Start for free&quot;); footer variant (&quot;Create now&quot;) is the same shape. This button is **identical from top to bottom of the page** — extreme consistency.
+- **Secondary CTA / pill toggles:** The &quot;Learn / Write / Image / Slides&quot; row in the &quot;Ready to create?&quot; section uses lighter pill treatments — outline or muted bg with ink text.
+- **Text links:** Stay within greyscale/ink; no underlines by default, no web-blue. Links behave like quiet UI affordances.
+- **Hover and active feel:** Subtle. Hover applies the `--muted` wash (`rgba(2,4,26,0.07)`). No scale transforms, no color shifts to bright hues — restraint is the rule.
+
+### Cards and Containers
+
+- **Surface style:** Pure white `#fff` cards on the `#f7f7f7` paper background. Two-tier surface = the primary depth cue.
+- **Radius:** `16px` for app/studio cards (`.prompt-card`), `12px` is the most common across the page (54 uses), `20px` for larger feature cards.
+- **Border:** `1px` hairline at `#02041a29` (`rgba(2,4,26,0.16)`) — visible but soft. Subtle variant `#1f1f1f0f` for layout-level dividers.
+- **Shadow or elevation:** Default `rgba(2,4,26,0.05) 0 1px 2px` (whisper). Statement cards in the hero get the big soft `0 16px 36px / 0.16` shadow.
+- **Internal spacing:** Generous. Cards have large internal padding; content never touches card edges.
+
+### Inputs and Interactive Controls
+
+- **Input treatment:** Bordered, `#02041a29` border, white fill, `12px`–`16px` radius. Inputs match the card language — same radius tier, same border color.
+- **Focus behavior:** Solid near-black ring `#09090b` (the `--ring` token). No blue glow, no shadow halo — focus is crisp and monochrome.
+- **Selection states:** The `--select`/`--muted` token (`rgba(2,4,26,0.07)`) is reused for selected, active, and hovered controls — one translucent ink wash does all three jobs.
+
+### Navigation
+
+- **Structure:** The marketing page notably has **no traditional sticky top navbar** (no `&lt;header&gt;`/`&lt;nav&gt;` element was detected in the DOM). Navigation is minimal/implied; the hero owns the top of the page entirely. This is an unusual, confident choice — the brand leads with the statement, not with chrome.
+- **Background treatment:** N/A on marketing page (no bar). In the app/Studio preview, expect a translucent/blurred surface (backdrop-filter) given the token architecture.
+- **Link style:** Greyscale, quiet.
+- **Sticky or scroll behavior:** No sticky header observed. The page is a long, single-scroll editorial flow.
+
+### Image Treatment
+
+- **Screenshot treatment:** Product screenshots (in &quot;Made with YouMind&quot; and the studio preview) sit in rounded containers (`16px`+ radius) with soft shadows, on white card surfaces.
+- **Photography / illustration style:** Organic, soft, slightly dreamy. The hero uses a green &quot;cloud&quot;/blob organic shape over a soft blue gradient field — friendly, tactile, anti-geometric. This organic softness deliberately contrasts the crisp typographic grid.
+- **Border and radius treatment:** Imagery gets larger radii (`20px`+) than controls; the rule is &quot;the bigger the surface, the rounder the corner.&quot;
+
+### Distinctive Components
+
+- **Hero cloud graphic:** An organic green blob/cloud (`cloud-green-hero`) rendered on a canvas (`hero-cloud-gpu`) over a soft blue field (`hero-blue`). This is the single most distinctive visual — it says &quot;creative, soft, generative&quot; against the otherwise austere type.
+- **Studio app preview:** A faux app window (&quot;Your AI Creation Studio with Taste&quot;) showing Tasks / File / &quot;Morning AI digest&quot; — a product chrome mock with `prompt-card` elements at `16px` radius. Bridges marketing → product.
+- **Stats with tabular numerals:** &quot;YouMind in numbers&quot; uses monospaced/tabular figures (the `0123456789` strips in the DOM reveal counter-style animations with fixed-width digits).
+- **Full-bleed banner:** A 520px-tall image banner (&quot;You&#39;ve been meaning to create something...&quot;) with white serif text overlaid — magazine-style full-bleed editorial moment mid-page.
+
+## 5. Layout Principles
+
+### Spacing System
+
+- **Base unit:** Root `--radius: 0.5rem` (8px) is the only explicit token; spacing otherwise follows a multiple-of-4/8 rhythm observed in paddings.
+- **Repeated spacing values:** Section vertical padding is large and consistent — sections are 500–1000px tall. Internal card padding is generous (estimated 24–32px).
+
+### Grid &amp; Container
+
+- **Grid logic:** Single-column, centered, vertical-scroll editorial. Not a multi-column feature grid — content stacks in narrative order.
+- **Max content width:** `1280px` (the `section-1280` class appears on `use-cases`, `made`, `stats`, `ready-create` — the shared container width).
+- **Section spacing:** Large vertical rhythm; each section is a distinct &quot;page&quot; in the scroll. Whitespace between sections is the breathing mechanism.
+
+### Whitespace Philosophy
+
+- **Whitespace philosophy:** Whitespace IS the design. The page is mostly empty surface; content occupies the center thin strip. This is editorial/magazine density, not dashboard density.
+- **Alignment tendencies:** Center-aligned for hero/display moments; left-aligned for body and cards. The switch from centered hero to left-aligned content is deliberate.
+- **Content width behavior:** Capped at `1280px`; body text columns are narrower still (estimated 600–720px for readability).
+
+### Border Radius Scale
+
+A clear multi-tier scale — **not** a single `border-radius` value:
+
+- **Micro:** `6px` — small controls, tags, badges (12 uses)
+- **Standard:** `9px` / `12px` — the workhorse; inputs, small cards (12 + 54 uses — `12px` is the mode)
+- **Large:** `16px` / `20px` — content cards, studio cards, feature panels (5 + 20 uses)
+- **Extra-large:** `40px` / `50px` / `60px` — large hero/feature surfaces (8 + 5 + 8 uses)
+- **Pill:** `300px` / `9999px` — all primary CTAs and pill toggles (2 + 15 uses)
+
+**Rule of thumb:** radius scales with surface size. Small control = 6–12px; card = 16–20px; hero panel = 40–60px; button = full pill.
+
+## 6. Depth &amp; Elevation
+
+| Level | Treatment | Use |
+| --- | --- | --- |
+| Flat | No shadow, surface = page bg | Sunken sections, page background |
+| Hairline | `1px` border `#02041a29`, no shadow | Default cards, inputs, dividers |
+| Whisper | `rgba(2,4,26,0.05) 0 1px 2px` | Standard elevated cards |
+| Statement | `rgba(31,31,31,0.16) 0 16px 36px` | Hero preview cards, floating product mocks |
+| Ambient | `rgba(0,0,0,0.08) 0 4px 42px` | Large imagery panels |
+| Focus | Solid `#09090b` ring, no glow | Keyboard focus on inputs/buttons |
+
+### Depth Principles
+
+- **Surface hierarchy via tone, not elevation:** The primary depth cue is `#f7f7f7` page vs `#fff` card. Shadows are secondary and nearly invisible by design.
+- **Shadow language:** &quot;Whisper by default, statement when needed.&quot; 95% of shadows are the 1px whisper; the big 16px shadow is rationed for hero moments only.
+- **Blur / glass:** An inset white glow (`rgba(255,255,255,0.2) inset`) hints at glass treatments in dark/glass elements; backdrop-filter is expected in the app shell but not on the marketing page.
+- **When depth is used vs avoided:** Depth is used to lift product previews off the hero canvas; it is avoided in body content, where border-alone separates cards. Never use heavy shadows on text-bearing content cards.
+
+## 7. Do&#39;s and Don&#39;ts
+
+### Do
+
+- **Pair a serif display with a sans body.** Use Libre Baskerville (or an equivalent literary serif) ONLY for the largest headlines; keep everything else in Inter.
+- **Use the two-tier surface trick.** Page background `#f7f7f7`, cards pure `#fff`. Let tone separate, not shadow.
+- **Make the primary CTA a full pill in ink `#1f1f1f`.** Keep it identical everywhere — consistency is the brand.
+- **Keep chromatic color inside imagery.** Chrome (buttons, borders, text) stays monochrome; let photos/illustrations carry all hue.
+- **Scale radius with surface size.** 6–12px for controls, 16–20px for cards, 40–60px for hero panels, pill for buttons.
+- **Use alpha-based neutrals.** `rgba(0,0,0,0.x)` over a stepped grey ramp — it keeps surfaces feeling like the same paper.
+- **Leave large whitespace.** Sections 500–1000px tall; content in a centered 1280px max strip.
+
+### Don&#39;t
+
+- **Don&#39;t use web-default link blue.** The palette has no `#3B82F6`-style blue for chrome. Accents are `#799cd4` mist (rare) and ink.
+- **Don&#39;t apply heavy shadows to content cards.** The 16px statement shadow is for hero previews only; body cards get the 1px whisper or border-alone.
+- **Don&#39;t use the serif in body or UI.** Libre Baskerville is display-only. Using it in body text breaks the system.
+- **Don&#39;t introduce a colored hover state.** Hover is the muted ink wash (`rgba(2,4,26,0.07)`), never a hue shift.
+- **Don&#39;t add a busy sticky navbar to the marketing page.** The page intentionally leads with the hero statement, not with navigation chrome.
+- **Don&#39;t use pure `#000` for text.** Always the softened `#000000e0` (0.88 opacity) — printed, not digital.
+
+## 8. Responsive Behavior
+
+&gt; Note: precise breakpoint values were not exposed in observed CSS; the following is inferred from the layout structure (`section-1280` container, single-column editorial flow) and standard practice. Label as inference.
+
+### Breakpoints
+
+| Name | Width | Key Changes |
+| --- | --- | --- |
+| Mobile | &lt; 768px | Hero headline scales down from 72px; organic cloud graphic scales; multi-up card grids collapse to single column; `1280px` container becomes full-width with reduced padding |
+| Tablet | 768–1024px | 2-column card grids; hero type ~48–56px; banner statement ~36px |
+| Desktop | ≥ 1024px | Full `1280px` container; 72px hero; 3-column &quot;Made with&quot; grid; full-bleed banner |
+
+### Touch Targets
+
+- Primary CTA pill is `52px` tall — comfortably above the 44px touch minimum.
+- Pill toggles in &quot;Ready to create?&quot; are sized for tap.
+- Card hit areas are large (full-card clickable where applicable).
+
+### Collapsing Strategy
+
+- **Desktop behavior:** Centered 1280px strip, generous side margins, multi-column card grids, full hero canvas with organic graphics.
+- **Tablet behavior:** Card grids reduce to 2 columns; container narrows; hero type steps down.
+- **Mobile behavior:** Single column throughout; hero cloud graphic scales or hides; banner becomes shorter; nav (if any in app) collapses to a menu.
+- **Touch target adjustments:** Buttons stay ≥44px; spacing between tappable cards increases to avoid mis-taps.
+
+## 9. Agent Prompt Guide
+
+### Quick Color Reference
+
+- **Primary CTA:** `#1f1f1f` ink, pill, white text
+- **Background:** `#f7f7f7` (light) / `#141414` (dark)
+- **Heading text:** `#000000e0` (light) / `#ddd` (dark); serif for hero
+- **Body text:** `#000000e0` on `#fff`/`#f7f7f7`
+- **Border or ring:** `#02041a29` border, `#09090b` focus ring
+- **Accent:** `#799cd4` mist blue (rare), `#54d460` spring green (outline)
+
+### Quick Summary
+
+YouMind is an editorial-monochrome creator-studio brand. Light grey paper background (`#f7f7f7`) with pure-white cards (`#fff`); depth comes from surface-tone contrast plus barely-there 1px shadows, with one big soft shadow reserved for hero previews. Headlines use Libre Baskerville serif at 72px; everything else is Inter. The single primary CTA is a full-pill (`border-radius: 300px`) in ink `#1f1f1f` with white text, identical site-wide. Color lives only in imagery and organic hero graphics — all chrome is greyscale with alpha-based neutrals. A complete dark-mode token set (`#141414` bg, white-on-near-black) exists for the app shell. Radius scales with size: 6–12px controls, 16–20px cards, 40–60px hero panels, pill buttons.
+
+### Example Component Prompts
+
+- **Hero:** &quot;A full-viewport hero on `#f7f7f7` paper. Centered Libre Baskerville headline at 72px/weight-500/line-height-88px reading &#39;Create bolder.&#39; in `#000000e0`. Below it a subhead in Inter. A pill CTA &#39;Start for free&#39; — `border-radius:300px`, `background:#1f1f1f`, white text, `font-size:22px`, `font-weight:500`. Behind the text, a soft organic green cloud/blob shape over a faint blue gradient. Generous whitespace; no navbar.&quot;
+- **Card:** &quot;A content card on `#f7f7f7` bg: `background:#fff`, `border-radius:16px`, `border:1px solid rgba(2,4,26,0.16)`, `box-shadow:0 1px 2px rgba(2,4,26,0.05)`. Generous 24–32px internal padding. Body text Inter `#000000e0`. No heavy shadows.&quot;
+- **Primary button:** &quot;A pill button: `border-radius:300px` (or `9999px`), `background:#1f1f1f`, `color:#fff`, `font-family:Inter`, `font-weight:500`, no border, padding ~12px 28px. Identical whether hero or footer.&quot;
+- **Navigation:** &quot;No traditional sticky top navbar — lead with the hero. Where app chrome exists, use a translucent backdrop-blurred surface with greyscale links; never web-blue.&quot;
+
+### Ready-to-Use Prompt
+
+&gt; Build a marketing page in the YouMind design language. Background `#f7f7f7`; cards pure white `#fff` with `1px solid rgba(2,4,26,0.16)` border and `box-shadow:0 1px 2px rgba(2,4,26,0.05)`. Display headlines in Libre Baskerville serif at 72px/500, body in Inter. The primary CTA is a full pill (`border-radius:300px`) in `#1f1f1f` with white text, reused identically everywhere. Use alpha-based greys for muted text (`rgba(0,0,0,0.4)`) and borders (`rgba(2,4,26,0.16)`); reserve chromatic color for imagery only. Cards use `16px` radius, controls `12px`, hero panels `40–60px`. Include a complete dark-mode set: `#141414` bg, `#1a1a1a` cards, white-on-near-black ink. Keep sections 500–1000px tall in a 1280px max-width centered column.
+
+### Iteration Guide
+
+1. **If it feels too plain, add type contrast — not color.** Switch a headline to Libre Baskerville before reaching for a hue.
+2. **If depth feels flat, separate surfaces by tone first** (`#f7f7f7` → `#fff`); only then add the 1px whisper shadow. Never jump straight to a big shadow.
+3. **If a button feels wrong, check the pill.** Primary CTAs must be full pills at `300px` radius in ink — anything sharper or more colored breaks the system.
+
+## Optional Appendix: Interaction Patterns
+
+- **Scroll behavior:** Long single-scroll editorial flow. Sections reveal as you scroll; the hero organic cloud graphic likely has a subtle parallax/generative animation (rendered on `&lt;canvas&gt;` via `hero-cloud-gpu`).
+- **Hover behavior:** Subtle muted-ink wash (`rgba(2,4,26,0.07)`) on interactive surfaces; no scale transforms, no hue shifts.
+- **Click behavior:** Primary CTAs navigate to signup; pill toggles switch content (Learn/Write/Image/Slides).
+- **Animation tone:** Restrained, soft, slightly organic. The canvas hero suggests generative/cloud-like motion; the rest is quiet fades/opacity transitions. Numerical stats use tabular-figure counters (fixed-width digit animation).
+
+## Optional Appendix: Content &amp; Messaging Patterns
+
+- **Headline pattern:** Short, imperative, one or two words. &quot;Create bolder.&quot; &quot;Ready to create?&quot; — the verb leads, the serif gives it weight.
+- **CTA language:** Low-friction, benefit-led: &quot;Start for free&quot;, &quot;Create now&quot;. Never &quot;Sign up&quot; or &quot;Submit.&quot;
+- **Trust signal pattern:** &quot;Made with YouMind&quot; (showcase gallery), &quot;Meet our creators&quot; (social proof), &quot;YouMind in numbers&quot; (quantified stats). Trust is shown, not asserted.
+- **Voice and tone:** Confident, literary, creator-empathetic. Sentences like &quot;Every idea deserves to take shape&quot; and &quot;You&#39;ve been meaning to create something. For how long now?&quot; — emotionally direct, mildly poetic, never corporate.
+
+## Optional Appendix: Observed Pages
+
+- **https://youmind.com/ (marketing home, light mode):** Sole page inspected. Provided the complete token set (620 vars incl. dark mirror), all component evidence, and the typographic system. Auth-gated app surfaces (the Studio) were not accessed; their behavior is inferred from the token architecture and the in-page Studio preview mock.
+
+## Evidence Notes
+
+- All color/type/radius/shadow values are **directly observed** via `agent-browser eval` computed styles and root CSS variables (620 declared `:root` vars).
+- Dark-mode values come from `--dark-*` tokens (declared but not toggled on the marketing page) — labeled as token-observed, not visually-observed.
+- Responsive breakpoints are **inferred** from container structure (`section-1280`) and layout patterns; not directly read from a media query. Labeled as inference above.
+- One hero screenshot captured for visual cross-check; DOM/style evidence was the primary source per the skill&#39;s evidence-first rule.
+</pre>
+              <article class="rendered-view" id="previewView" hidden><section><h2>1. Visual Theme &amp; Atmosphere</h2><p>YouMind is an &quot;AI Creation Studio with Taste,&quot; and the entire visual language is built to <strong>sell taste as the product</strong>. The marketing page pairs an editorial, almost magazine-like typographic voice (a serif display face for headlines) with the cool, restrained neutrality of a modern app shell (Inter body, near-monochrome surfaces). The result feels less like a typical SaaS landing page and more like a design publication that happens to sell software.</p><ul><li><strong>Overall feeling:</strong> Editorial-meets-engineering. Confident, quiet, premium, and slightly literary. The page whispers rather than shouts — large whitespace, muted near-black ink on soft grey paper, and one emphatic serif gesture per section.</li><li><strong>Visual density:</strong> Low to medium. Sections are tall (often 500–1000px) and breathe; content never crowds the edges. The studio/app-preview section is the densest block, deliberately contrasting the airy marketing copy around it.</li><li><strong>Brand posture:</strong> Creator-tool that wants to be taken seriously by designers. Restrained color, intentional type pairing, and &quot;design tokens as architecture&quot; (620 CSS variables signal an internal design system, not a hand-styled site).</li><li><strong>Signature motifs:</strong> (1) Serif display headlines on a sans body — the single most identity-defining decision. (2) A pill-shaped, pure-black primary CTA that stays the same from hero to footer. (3) Decorative organic blob/cloud graphics in the hero (a green &quot;cloud&quot; shape over a soft blue field) that soften the otherwise crisp, geometric UI. (4) Near-monochrome palette where color is reserved for imagery, never for chrome.</li></ul><h3>Key Characteristics</h3><ul><li><strong>Serif display + sans body</strong> — Libre Baskerville headlines, Inter everywhere else. The serif is the brand&#39;s handshake.</li><li><strong>Monochrome-by-default chrome</strong> — primary <code>#1f1f1f</code>, surfaces <code>#fff</code> / <code>#f7f7f7</code>. Color lives in content, not in buttons or borders.</li><li><strong>Pill CTAs in ink black</strong> — <code>border-radius: 300px</code> / <code>9999px</code>, <code>#1f1f1f</code> bg, white text, no border. Identical across the whole site.</li><li><strong>Multi-tier radius system</strong> — not one radius: <code>6px / 9px / 12px / 16px / 20px / 50–60px / pill</code>. Small controls stay crisp; cards are generous; buttons are full pills.</li><li><strong>Shadow-as-whisper</strong> — default shadows are barely-there (<code>rgba(2,4,26,0.05) 0 1px 2px</code>); depth is conveyed mostly by border + surface tone, not by elevation.</li><li><strong>Full light/dark token set</strong> — even though the marketing page is light-only, 620 vars include a complete <code>--dark-*</code> mirror, revealing an app that lives in both modes.</li></ul></section><section><h2>2. Color Palette &amp; Roles</h2><p>The system is intentionally desaturated. There is effectively <strong>one chromatic brand moment</strong> (a soft accent blue <code>#799cd4</code> and a green outline <code>#54d460</code>, both used sparingly); everything else is greyscale with alpha-based translucency for borders and muted states.</p><table><thead><tr><th>Role</th><th>Semantic Name</th><th>Value</th><th>Usage</th></tr></thead><tbody><tr><td>Primary action</td><td>Ink</td><td><code>#1f1f1f</code></td><td>Primary buttons, strong text, hero CTA fill</td></tr><tr><td>Foreground text</td><td>Ink-fg</td><td><code>#000000e0</code> (≈ <code>rgba(0,0,0,0.88)</code>)</td><td>Body &amp; heading text on light surfaces</td></tr><tr><td>Page background</td><td>Paper</td><td><code>#f7f7f7</code></td><td>App/section background</td></tr><tr><td>Surface / card</td><td>Pure White</td><td><code>#fff</code></td><td>Cards, elevated panels, inputs</td></tr><tr><td>Muted text</td><td>Caption</td><td><code>#0006</code> (≈ <code>rgba(0,0,0,0.4)</code>)</td><td>Captions, secondary metadata</td></tr><tr><td>Border (default)</td><td>Hairline</td><td><code>#02041a29</code> (≈ <code>rgba(2,4,26,0.16)</code>)</td><td>Card &amp; input borders</td></tr><tr><td>Border (subtle)</td><td>Whisper</td><td><code>#1f1f1f0f</code> (≈ <code>rgba(31,31,31,0.06)</code>)</td><td>Soft dividers, layout borders</td></tr><tr><td>Destructive</td><td>Signal Red</td><td><code>#ff382e</code></td><td>Errors, delete actions</td></tr><tr><td>Soft accent</td><td>Mist Blue</td><td><code>#799cd4</code></td><td>Occasional highlight, secondary blue</td></tr><tr><td>Outline accent</td><td>Spring Green</td><td><code>#54d460</code></td><td>Primary outline / success-ish accent</td></tr></tbody></table><h3>Primary</h3><ul><li><strong>Ink <code>#1f1f1f</code></strong> — the workhorse. Buttons, bold text, the &quot;weight&quot; of the page. Not pure black; deliberately softened to feel printed rather than digital.</li><li><strong>Paper <code>#f7f7f7</code></strong> vs <strong>Pure White <code>#fff</code></strong> — the two-tier surface trick: the page is soft grey, cards lift off it by being pure white. This is the primary depth mechanism.</li></ul><h3>Interactive</h3><ul><li><strong>Focus ring</strong> <code>#09090b</code> — near-black, used for keyboard focus (the <code>--ring</code> token).</li><li><strong>Hover/active</strong> — <code>--muted</code> (<code>#02041a12</code>, ≈ <code>rgba(2,4,26,0.07)</code>) is the universal hover/active wash for interactive surfaces; selected/active states reuse the same muted token.</li><li><strong>Links</strong> — stay within ink/greyscale; no default link-blue. The brand avoids web-default hyperlink blue entirely.</li></ul><h3>Neutral Scale</h3><p>The neutral scale is <strong>alpha-based on a near-black ink</strong>, not a stepped grey ramp. This keeps surfaces feeling like the same &quot;paper&quot;:</p><ul><li><code>#000000e0</code> (0.88) — primary text</li><li><code>#0009</code> (0.35) — secondary text / secondary button fg</li><li><code>#0006</code> (0.24) — caption</li><li><code>#0000003d</code> (0.24) — disabled</li><li><code>#02041a29</code> (0.16) — default border</li><li><code>#02041a12</code> (0.07) — muted/hover bg</li><li><code>#02041a0a</code> (0.04) — accent/snip card bg</li></ul><h3>Surface &amp; Overlay</h3><ul><li><strong>Background</strong> <code>#f7f7f7</code> (sunken/page), <strong>Surface</strong> <code>#fff</code> (raised/card), <strong>Surface-bg</strong> <code>#1a1a1a</code> (dark mode card).</li><li><strong>Overlay/active</strong> uses translucent ink: <code>#02041829</code> for input borders, <code>#ffffff1f</code> for dark-mode card-muted overlays.</li></ul><h3>Theme Modes</h3><p>The marketing page renders in <strong>light mode only</strong> (no visible theme toggle), but the token set exposes a complete dark mirror — this is the design system of an app (the Studio), not just a landing page. Both must be carried into any recreation.</p><p>#### Light Mode (observed on the live page)</p><ul><li>Background: <code>#f7f7f7</code> (paper)</li><li>Surface: <code>#fff</code> (cards), <code>#f7f7f7</code> (sunken)</li><li>Text: <code>#000000e0</code> (primary), <code>#0006</code> (caption)</li><li>Accent: <code>#1f1f1f</code> ink for actions; <code>#799cd4</code> mist blue rarely</li><li>Border: <code>#02041a29</code> default, <code>#1f1f1f0f</code> subtle</li><li>Notes: Alpha-based neutrals over pure-white card surfaces give the &quot;printed paper&quot; feel. Imagery carries all the color.</li></ul><p>#### Dark Mode (from <code>--dark-*</code> tokens, not visibly toggled on marketing page)</p><ul><li>Background: <code>#141414</code></li><li>Surface: <code>#1a1a1a</code> (cards)</li><li>Text: <code>#ddd</code> (primary), <code>#fff9</code> (muted-fg), <code>#fff6</code> (caption)</li><li>Primary: inverts to <code>#fff</code> bg / <code>#000000e0</code> fg</li><li>Accent: <code>#ffffff0f</code> (muted/hover), border <code>#fff3</code></li><li>Destructive: <code>#ff4238</code> (slightly hotter than light&#39;s <code>#ff382e</code>)</li><li>Notes: Dark mode inverts the ink relationship — primary becomes white-on-near-black — but keeps the same alpha-over-dark philosophy (<code>#fff</code> with varying opacity instead of <code>#000</code>). Borders become white-alpha (<code>#fff3</code>).</li></ul><h3>Shadows &amp; Depth</h3><p>Depth is deliberately understated; <strong>border + surface contrast does most of the separation work</strong>, shadows are a finishing whisper.</p><ul><li><strong>Default card shadow:</strong> <code>rgba(2, 4, 26, 0.05) 0px 1px 2px 0px</code> — barely visible, 1px offset. Used on ~12 elements (the most common shadow).</li><li><strong>Hero/statement shadow:</strong> <code>rgba(31, 31, 31, 0.16) 0px 16px 36px 0px</code> — large, soft, 16px blur. Reserved for floating preview cards that need to &quot;lift&quot; off the hero canvas.</li><li><strong>Soft ambient shadow:</strong> <code>rgba(0, 0, 0, 0.08) 0px 4px 42px 0px</code> — very wide, very faint; for large imagery panels.</li><li><strong>Inset glow:</strong> <code>rgba(255, 255, 255, 0.2) 0px 0px 12px 0px inset</code> — rare inner highlight on dark/glass elements.</li><li><strong>Focus:</strong> no colored glow; the ring is a solid near-black <code>#09090b</code> outline.</li></ul></section><section><h2>3. Typography Rules</h2><p>Typography is the loudest design decision on the page. The pairing of a <strong>classical serif (Libre Baskerville)</strong> for display with <strong>Inter</strong> for everything else is what separates YouMind from generic SaaS.</p><h3>Font Family</h3><ul><li><strong>Display / Headlines:</strong> <code>&quot;Libre Baskerville&quot;, Georgia, &quot;Times New Roman&quot;, &quot;Songti SC&quot;, STSong, serif</code> — a slab-influenced serif with literary warmth. Used ONLY for hero/banner display headlines.</li><li><strong>Body &amp; UI (Primary):</strong> <code>Inter, &quot;Inter Fallback&quot;, ui-sans-serif, system-ui, -apple-system, &quot;Segoe UI&quot;, &quot;San Francisco Pro&quot;, Roboto, sans-serif, &quot;PingFang SC&quot;, &quot;Microsoft YaHei&quot;, &quot;Source Han Sans SC&quot;, &quot;Noto Sans SC&quot;</code> — the workhorse for body, buttons, nav, labels.</li><li><strong>Monospace:</strong> <code>JetBrains Mono</code> is loaded (observed in font class list) — used for code/numeric stats display.</li><li><strong>Extra display faces loaded but situational:</strong> Arvo, Instrument Serif, Literata, Bebas Neue, Pacifico, Cereal — these are available for <em>user-generated creative content</em> inside the Studio, not for marketing chrome. They signal that the product is a <em>typographic playground</em> for end users.</li><li><strong>CJK fallbacks:</strong> Songti SC / STSong for serif CJK; PingFang SC / Source Han / Noto Sans for sans CJK. Fully localized.</li></ul><h3>Hierarchy</h3><table><thead><tr><th>Role</th><th>Font</th><th>Size</th><th>Weight</th><th>Line Height</th><th>Letter Spacing</th><th>Notes</th></tr></thead><tbody><tr><td>Hero headline</td><td>Libre Baskerville</td><td>72px</td><td>500</td><td>88px</td><td>normal</td><td>&quot;Create bolder.&quot; — the serif signature, huge</td></tr><tr><td>Banner statement</td><td>Libre Baskerville</td><td>50px</td><td>600</td><td>60px</td><td>normal</td><td>Over imagery, white text, mid-page CTA banner</td></tr><tr><td>Section heading (h2)</td><td>Inter</td><td>24px</td><td>590</td><td>32px</td><td>normal</td><td>Section titles; weight 590 is an unusual, precise Inter weight</td></tr><tr><td>Body</td><td>Inter</td><td>16px (base)</td><td>400</td><td>~1.6</td><td>normal</td><td>Standard reading text</td></tr><tr><td>Button / CTA label</td><td>Inter</td><td>22px (hero), ~16px (others)</td><td>500</td><td>—</td><td>normal</td><td>Hero CTA text is oversized (22px) to match the hero</td></tr><tr><td>Caption / Meta</td><td>Inter</td><td>~13–14px</td><td>400</td><td>—</td><td>normal</td><td>Uses <code>--caption</code> (<code>#0006</code>) color</td></tr></tbody></table><h3>Principles</h3><ul><li><strong>The serif is rationed.</strong> Libre Baskerville appears only on the largest display moments (hero, banner). Never in body, never in UI. This scarcity is what gives it weight.</li><li><strong>Inter at non-default weights.</strong> Headings use <code>590</code> (not 600) — a hyper-specific weight that signals a custom-tuned system, not off-the-shelf Tailwind defaults.</li><li><strong>Scale is dramatic at the top.</strong> Hero at 72px drops to h2 at 24px — a 3× jump that forces hierarchy by sheer size contrast.</li><li><strong>Color reinforces hierarchy.</strong> Primary text <code>#000000e0</code>, caption <code>#0006</code> — the opacity drop does the de-emphasizing, not a smaller size alone.</li></ul></section><section><h2>4. Component Stylings</h2><h3>Buttons and Links</h3><ul><li><strong>Primary CTA (the signature):</strong> Pill, <code>#1f1f1f</code> ink fill, white text, <code>border-radius: 300px</code> (effectively a full pill), no border, <code>font-weight: 500</code>. Hero variant uses <code>22px</code> text (&quot;Start for free&quot;); footer variant (&quot;Create now&quot;) is the same shape. This button is <strong>identical from top to bottom of the page</strong> — extreme consistency.</li><li><strong>Secondary CTA / pill toggles:</strong> The &quot;Learn / Write / Image / Slides&quot; row in the &quot;Ready to create?&quot; section uses lighter pill treatments — outline or muted bg with ink text.</li><li><strong>Text links:</strong> Stay within greyscale/ink; no underlines by default, no web-blue. Links behave like quiet UI affordances.</li><li><strong>Hover and active feel:</strong> Subtle. Hover applies the <code>--muted</code> wash (<code>rgba(2,4,26,0.07)</code>). No scale transforms, no color shifts to bright hues — restraint is the rule.</li></ul><h3>Cards and Containers</h3><ul><li><strong>Surface style:</strong> Pure white <code>#fff</code> cards on the <code>#f7f7f7</code> paper background. Two-tier surface = the primary depth cue.</li><li><strong>Radius:</strong> <code>16px</code> for app/studio cards (<code>.prompt-card</code>), <code>12px</code> is the most common across the page (54 uses), <code>20px</code> for larger feature cards.</li><li><strong>Border:</strong> <code>1px</code> hairline at <code>#02041a29</code> (<code>rgba(2,4,26,0.16)</code>) — visible but soft. Subtle variant <code>#1f1f1f0f</code> for layout-level dividers.</li><li><strong>Shadow or elevation:</strong> Default <code>rgba(2,4,26,0.05) 0 1px 2px</code> (whisper). Statement cards in the hero get the big soft <code>0 16px 36px / 0.16</code> shadow.</li><li><strong>Internal spacing:</strong> Generous. Cards have large internal padding; content never touches card edges.</li></ul><h3>Inputs and Interactive Controls</h3><ul><li><strong>Input treatment:</strong> Bordered, <code>#02041a29</code> border, white fill, <code>12px</code>–<code>16px</code> radius. Inputs match the card language — same radius tier, same border color.</li><li><strong>Focus behavior:</strong> Solid near-black ring <code>#09090b</code> (the <code>--ring</code> token). No blue glow, no shadow halo — focus is crisp and monochrome.</li><li><strong>Selection states:</strong> The <code>--select</code>/<code>--muted</code> token (<code>rgba(2,4,26,0.07)</code>) is reused for selected, active, and hovered controls — one translucent ink wash does all three jobs.</li></ul><h3>Navigation</h3><ul><li><strong>Structure:</strong> The marketing page notably has <strong>no traditional sticky top navbar</strong> (no <code>&lt;header&gt;</code>/<code>&lt;nav&gt;</code> element was detected in the DOM). Navigation is minimal/implied; the hero owns the top of the page entirely. This is an unusual, confident choice — the brand leads with the statement, not with chrome.</li><li><strong>Background treatment:</strong> N/A on marketing page (no bar). In the app/Studio preview, expect a translucent/blurred surface (backdrop-filter) given the token architecture.</li><li><strong>Link style:</strong> Greyscale, quiet.</li><li><strong>Sticky or scroll behavior:</strong> No sticky header observed. The page is a long, single-scroll editorial flow.</li></ul><h3>Image Treatment</h3><ul><li><strong>Screenshot treatment:</strong> Product screenshots (in &quot;Made with YouMind&quot; and the studio preview) sit in rounded containers (<code>16px</code>+ radius) with soft shadows, on white card surfaces.</li><li><strong>Photography / illustration style:</strong> Organic, soft, slightly dreamy. The hero uses a green &quot;cloud&quot;/blob organic shape over a soft blue gradient field — friendly, tactile, anti-geometric. This organic softness deliberately contrasts the crisp typographic grid.</li><li><strong>Border and radius treatment:</strong> Imagery gets larger radii (<code>20px</code>+) than controls; the rule is &quot;the bigger the surface, the rounder the corner.&quot;</li></ul><h3>Distinctive Components</h3><ul><li><strong>Hero cloud graphic:</strong> An organic green blob/cloud (<code>cloud-green-hero</code>) rendered on a canvas (<code>hero-cloud-gpu</code>) over a soft blue field (<code>hero-blue</code>). This is the single most distinctive visual — it says &quot;creative, soft, generative&quot; against the otherwise austere type.</li><li><strong>Studio app preview:</strong> A faux app window (&quot;Your AI Creation Studio with Taste&quot;) showing Tasks / File / &quot;Morning AI digest&quot; — a product chrome mock with <code>prompt-card</code> elements at <code>16px</code> radius. Bridges marketing → product.</li><li><strong>Stats with tabular numerals:</strong> &quot;YouMind in numbers&quot; uses monospaced/tabular figures (the <code>0123456789</code> strips in the DOM reveal counter-style animations with fixed-width digits).</li><li><strong>Full-bleed banner:</strong> A 520px-tall image banner (&quot;You&#39;ve been meaning to create something...&quot;) with white serif text overlaid — magazine-style full-bleed editorial moment mid-page.</li></ul></section><section><h2>5. Layout Principles</h2><h3>Spacing System</h3><ul><li><strong>Base unit:</strong> Root <code>--radius: 0.5rem</code> (8px) is the only explicit token; spacing otherwise follows a multiple-of-4/8 rhythm observed in paddings.</li><li><strong>Repeated spacing values:</strong> Section vertical padding is large and consistent — sections are 500–1000px tall. Internal card padding is generous (estimated 24–32px).</li></ul><h3>Grid &amp; Container</h3><ul><li><strong>Grid logic:</strong> Single-column, centered, vertical-scroll editorial. Not a multi-column feature grid — content stacks in narrative order.</li><li><strong>Max content width:</strong> <code>1280px</code> (the <code>section-1280</code> class appears on <code>use-cases</code>, <code>made</code>, <code>stats</code>, <code>ready-create</code> — the shared container width).</li><li><strong>Section spacing:</strong> Large vertical rhythm; each section is a distinct &quot;page&quot; in the scroll. Whitespace between sections is the breathing mechanism.</li></ul><h3>Whitespace Philosophy</h3><ul><li><strong>Whitespace philosophy:</strong> Whitespace IS the design. The page is mostly empty surface; content occupies the center thin strip. This is editorial/magazine density, not dashboard density.</li><li><strong>Alignment tendencies:</strong> Center-aligned for hero/display moments; left-aligned for body and cards. The switch from centered hero to left-aligned content is deliberate.</li><li><strong>Content width behavior:</strong> Capped at <code>1280px</code>; body text columns are narrower still (estimated 600–720px for readability).</li></ul><h3>Border Radius Scale</h3><p>A clear multi-tier scale — <strong>not</strong> a single <code>border-radius</code> value:</p><ul><li><strong>Micro:</strong> <code>6px</code> — small controls, tags, badges (12 uses)</li><li><strong>Standard:</strong> <code>9px</code> / <code>12px</code> — the workhorse; inputs, small cards (12 + 54 uses — <code>12px</code> is the mode)</li><li><strong>Large:</strong> <code>16px</code> / <code>20px</code> — content cards, studio cards, feature panels (5 + 20 uses)</li><li><strong>Extra-large:</strong> <code>40px</code> / <code>50px</code> / <code>60px</code> — large hero/feature surfaces (8 + 5 + 8 uses)</li><li><strong>Pill:</strong> <code>300px</code> / <code>9999px</code> — all primary CTAs and pill toggles (2 + 15 uses)</li></ul><p><strong>Rule of thumb:</strong> radius scales with surface size. Small control = 6–12px; card = 16–20px; hero panel = 40–60px; button = full pill.</p></section><section><h2>6. Depth &amp; Elevation</h2><table><thead><tr><th>Level</th><th>Treatment</th><th>Use</th></tr></thead><tbody><tr><td>Flat</td><td>No shadow, surface = page bg</td><td>Sunken sections, page background</td></tr><tr><td>Hairline</td><td><code>1px</code> border <code>#02041a29</code>, no shadow</td><td>Default cards, inputs, dividers</td></tr><tr><td>Whisper</td><td><code>rgba(2,4,26,0.05) 0 1px 2px</code></td><td>Standard elevated cards</td></tr><tr><td>Statement</td><td><code>rgba(31,31,31,0.16) 0 16px 36px</code></td><td>Hero preview cards, floating product mocks</td></tr><tr><td>Ambient</td><td><code>rgba(0,0,0,0.08) 0 4px 42px</code></td><td>Large imagery panels</td></tr><tr><td>Focus</td><td>Solid <code>#09090b</code> ring, no glow</td><td>Keyboard focus on inputs/buttons</td></tr></tbody></table><h3>Depth Principles</h3><ul><li><strong>Surface hierarchy via tone, not elevation:</strong> The primary depth cue is <code>#f7f7f7</code> page vs <code>#fff</code> card. Shadows are secondary and nearly invisible by design.</li><li><strong>Shadow language:</strong> &quot;Whisper by default, statement when needed.&quot; 95% of shadows are the 1px whisper; the big 16px shadow is rationed for hero moments only.</li><li><strong>Blur / glass:</strong> An inset white glow (<code>rgba(255,255,255,0.2) inset</code>) hints at glass treatments in dark/glass elements; backdrop-filter is expected in the app shell but not on the marketing page.</li><li><strong>When depth is used vs avoided:</strong> Depth is used to lift product previews off the hero canvas; it is avoided in body content, where border-alone separates cards. Never use heavy shadows on text-bearing content cards.</li></ul></section><section><h2>7. Do&#39;s and Don&#39;ts</h2><h3>Do</h3><ul><li><strong>Pair a serif display with a sans body.</strong> Use Libre Baskerville (or an equivalent literary serif) ONLY for the largest headlines; keep everything else in Inter.</li><li><strong>Use the two-tier surface trick.</strong> Page background <code>#f7f7f7</code>, cards pure <code>#fff</code>. Let tone separate, not shadow.</li><li><strong>Make the primary CTA a full pill in ink <code>#1f1f1f</code>.</strong> Keep it identical everywhere — consistency is the brand.</li><li><strong>Keep chromatic color inside imagery.</strong> Chrome (buttons, borders, text) stays monochrome; let photos/illustrations carry all hue.</li><li><strong>Scale radius with surface size.</strong> 6–12px for controls, 16–20px for cards, 40–60px for hero panels, pill for buttons.</li><li><strong>Use alpha-based neutrals.</strong> <code>rgba(0,0,0,0.x)</code> over a stepped grey ramp — it keeps surfaces feeling like the same paper.</li><li><strong>Leave large whitespace.</strong> Sections 500–1000px tall; content in a centered 1280px max strip.</li></ul><h3>Don&#39;t</h3><ul><li><strong>Don&#39;t use web-default link blue.</strong> The palette has no <code>#3B82F6</code>-style blue for chrome. Accents are <code>#799cd4</code> mist (rare) and ink.</li><li><strong>Don&#39;t apply heavy shadows to content cards.</strong> The 16px statement shadow is for hero previews only; body cards get the 1px whisper or border-alone.</li><li><strong>Don&#39;t use the serif in body or UI.</strong> Libre Baskerville is display-only. Using it in body text breaks the system.</li><li><strong>Don&#39;t introduce a colored hover state.</strong> Hover is the muted ink wash (<code>rgba(2,4,26,0.07)</code>), never a hue shift.</li><li><strong>Don&#39;t add a busy sticky navbar to the marketing page.</strong> The page intentionally leads with the hero statement, not with navigation chrome.</li><li><strong>Don&#39;t use pure <code>#000</code> for text.</strong> Always the softened <code>#000000e0</code> (0.88 opacity) — printed, not digital.</li></ul></section><section><h2>8. Responsive Behavior</h2><p>&gt; Note: precise breakpoint values were not exposed in observed CSS; the following is inferred from the layout structure (<code>section-1280</code> container, single-column editorial flow) and standard practice. Label as inference.</p><h3>Breakpoints</h3><table><thead><tr><th>Name</th><th>Width</th><th>Key Changes</th></tr></thead><tbody><tr><td>Mobile</td><td>&lt; 768px</td><td>Hero headline scales down from 72px; organic cloud graphic scales; multi-up card grids collapse to single column; <code>1280px</code> container becomes full-width with reduced padding</td></tr><tr><td>Tablet</td><td>768–1024px</td><td>2-column card grids; hero type ~48–56px; banner statement ~36px</td></tr><tr><td>Desktop</td><td>≥ 1024px</td><td>Full <code>1280px</code> container; 72px hero; 3-column &quot;Made with&quot; grid; full-bleed banner</td></tr></tbody></table><h3>Touch Targets</h3><ul><li>Primary CTA pill is <code>52px</code> tall — comfortably above the 44px touch minimum.</li><li>Pill toggles in &quot;Ready to create?&quot; are sized for tap.</li><li>Card hit areas are large (full-card clickable where applicable).</li></ul><h3>Collapsing Strategy</h3><ul><li><strong>Desktop behavior:</strong> Centered 1280px strip, generous side margins, multi-column card grids, full hero canvas with organic graphics.</li><li><strong>Tablet behavior:</strong> Card grids reduce to 2 columns; container narrows; hero type steps down.</li><li><strong>Mobile behavior:</strong> Single column throughout; hero cloud graphic scales or hides; banner becomes shorter; nav (if any in app) collapses to a menu.</li><li><strong>Touch target adjustments:</strong> Buttons stay ≥44px; spacing between tappable cards increases to avoid mis-taps.</li></ul></section><section><h2>9. Agent Prompt Guide</h2><h3>Quick Color Reference</h3><ul><li><strong>Primary CTA:</strong> <code>#1f1f1f</code> ink, pill, white text</li><li><strong>Background:</strong> <code>#f7f7f7</code> (light) / <code>#141414</code> (dark)</li><li><strong>Heading text:</strong> <code>#000000e0</code> (light) / <code>#ddd</code> (dark); serif for hero</li><li><strong>Body text:</strong> <code>#000000e0</code> on <code>#fff</code>/<code>#f7f7f7</code></li><li><strong>Border or ring:</strong> <code>#02041a29</code> border, <code>#09090b</code> focus ring</li><li><strong>Accent:</strong> <code>#799cd4</code> mist blue (rare), <code>#54d460</code> spring green (outline)</li></ul><h3>Quick Summary</h3><p>YouMind is an editorial-monochrome creator-studio brand. Light grey paper background (<code>#f7f7f7</code>) with pure-white cards (<code>#fff</code>); depth comes from surface-tone contrast plus barely-there 1px shadows, with one big soft shadow reserved for hero previews. Headlines use Libre Baskerville serif at 72px; everything else is Inter. The single primary CTA is a full-pill (<code>border-radius: 300px</code>) in ink <code>#1f1f1f</code> with white text, identical site-wide. Color lives only in imagery and organic hero graphics — all chrome is greyscale with alpha-based neutrals. A complete dark-mode token set (<code>#141414</code> bg, white-on-near-black) exists for the app shell. Radius scales with size: 6–12px controls, 16–20px cards, 40–60px hero panels, pill buttons.</p><h3>Example Component Prompts</h3><ul><li><strong>Hero:</strong> &quot;A full-viewport hero on <code>#f7f7f7</code> paper. Centered Libre Baskerville headline at 72px/weight-500/line-height-88px reading &#39;Create bolder.&#39; in <code>#000000e0</code>. Below it a subhead in Inter. A pill CTA &#39;Start for free&#39; — <code>border-radius:300px</code>, <code>background:#1f1f1f</code>, white text, <code>font-size:22px</code>, <code>font-weight:500</code>. Behind the text, a soft organic green cloud/blob shape over a faint blue gradient. Generous whitespace; no navbar.&quot;</li><li><strong>Card:</strong> &quot;A content card on <code>#f7f7f7</code> bg: <code>background:#fff</code>, <code>border-radius:16px</code>, <code>border:1px solid rgba(2,4,26,0.16)</code>, <code>box-shadow:0 1px 2px rgba(2,4,26,0.05)</code>. Generous 24–32px internal padding. Body text Inter <code>#000000e0</code>. No heavy shadows.&quot;</li><li><strong>Primary button:</strong> &quot;A pill button: <code>border-radius:300px</code> (or <code>9999px</code>), <code>background:#1f1f1f</code>, <code>color:#fff</code>, <code>font-family:Inter</code>, <code>font-weight:500</code>, no border, padding ~12px 28px. Identical whether hero or footer.&quot;</li><li><strong>Navigation:</strong> &quot;No traditional sticky top navbar — lead with the hero. Where app chrome exists, use a translucent backdrop-blurred surface with greyscale links; never web-blue.&quot;</li></ul><h3>Ready-to-Use Prompt</h3><p>&gt; Build a marketing page in the YouMind design language. Background <code>#f7f7f7</code>; cards pure white <code>#fff</code> with <code>1px solid rgba(2,4,26,0.16)</code> border and <code>box-shadow:0 1px 2px rgba(2,4,26,0.05)</code>. Display headlines in Libre Baskerville serif at 72px/500, body in Inter. The primary CTA is a full pill (<code>border-radius:300px</code>) in <code>#1f1f1f</code> with white text, reused identically everywhere. Use alpha-based greys for muted text (<code>rgba(0,0,0,0.4)</code>) and borders (<code>rgba(2,4,26,0.16)</code>); reserve chromatic color for imagery only. Cards use <code>16px</code> radius, controls <code>12px</code>, hero panels <code>40–60px</code>. Include a complete dark-mode set: <code>#141414</code> bg, <code>#1a1a1a</code> cards, white-on-near-black ink. Keep sections 500–1000px tall in a 1280px max-width centered column.</p><h3>Iteration Guide</h3><ol><li><strong>If it feels too plain, add type contrast — not color.</strong> Switch a headline to Libre Baskerville before reaching for a hue.</li><li><strong>If depth feels flat, separate surfaces by tone first</strong> (<code>#f7f7f7</code> → <code>#fff</code>); only then add the 1px whisper shadow. Never jump straight to a big shadow.</li><li><strong>If a button feels wrong, check the pill.</strong> Primary CTAs must be full pills at <code>300px</code> radius in ink — anything sharper or more colored breaks the system.</li></ol></section><section><h2>Optional Appendix: Interaction Patterns</h2><ul><li><strong>Scroll behavior:</strong> Long single-scroll editorial flow. Sections reveal as you scroll; the hero organic cloud graphic likely has a subtle parallax/generative animation (rendered on <code>&lt;canvas&gt;</code> via <code>hero-cloud-gpu</code>).</li><li><strong>Hover behavior:</strong> Subtle muted-ink wash (<code>rgba(2,4,26,0.07)</code>) on interactive surfaces; no scale transforms, no hue shifts.</li><li><strong>Click behavior:</strong> Primary CTAs navigate to signup; pill toggles switch content (Learn/Write/Image/Slides).</li><li><strong>Animation tone:</strong> Restrained, soft, slightly organic. The canvas hero suggests generative/cloud-like motion; the rest is quiet fades/opacity transitions. Numerical stats use tabular-figure counters (fixed-width digit animation).</li></ul></section><section><h2>Optional Appendix: Content &amp; Messaging Patterns</h2><ul><li><strong>Headline pattern:</strong> Short, imperative, one or two words. &quot;Create bolder.&quot; &quot;Ready to create?&quot; — the verb leads, the serif gives it weight.</li><li><strong>CTA language:</strong> Low-friction, benefit-led: &quot;Start for free&quot;, &quot;Create now&quot;. Never &quot;Sign up&quot; or &quot;Submit.&quot;</li><li><strong>Trust signal pattern:</strong> &quot;Made with YouMind&quot; (showcase gallery), &quot;Meet our creators&quot; (social proof), &quot;YouMind in numbers&quot; (quantified stats). Trust is shown, not asserted.</li><li><strong>Voice and tone:</strong> Confident, literary, creator-empathetic. Sentences like &quot;Every idea deserves to take shape&quot; and &quot;You&#39;ve been meaning to create something. For how long now?&quot; — emotionally direct, mildly poetic, never corporate.</li></ul></section><section><h2>Optional Appendix: Observed Pages</h2><ul><li><strong>https://youmind.com/ (marketing home, light mode):</strong> Sole page inspected. Provided the complete token set (620 vars incl. dark mirror), all component evidence, and the typographic system. Auth-gated app surfaces (the Studio) were not accessed; their behavior is inferred from the token architecture and the in-page Studio preview mock.</li></ul></section><section><h2>Evidence Notes</h2><ul><li>All color/type/radius/shadow values are <strong>directly observed</strong> via <code>agent-browser eval</code> computed styles and root CSS variables (620 declared <code>:root</code> vars).</li><li>Dark-mode values come from <code>--dark-*</code> tokens (declared but not toggled on the marketing page) — labeled as token-observed, not visually-observed.</li><li>Responsive breakpoints are <strong>inferred</strong> from container structure (<code>section-1280</code>) and layout patterns; not directly read from a media query. Labeled as inference above.</li><li>One hero screenshot captured for visual cross-check; DOM/style evidence was the primary source per the skill&#39;s evidence-first rule.</li></ul></section></article>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const sourceView = document.getElementById("sourceView");
+      const previewView = document.getElementById("previewView");
+      const copyButton = document.getElementById("copyButton");
+      const copyState = document.getElementById("copyState");
+      const viewButtons = document.querySelectorAll("[data-view]");
+
+      function setActiveView(view) {
+        const showSource = view === "source";
+        sourceView.hidden = !showSource;
+        previewView.hidden = showSource;
+        viewButtons.forEach((button) => {
+          button.classList.toggle("is-active", button.dataset.view === view);
+        });
+      }
+
+      viewButtons.forEach((button) => {
+        button.addEventListener("click", () => setActiveView(button.dataset.view));
+      });
+
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(sourceView.textContent || "");
+          copyState.textContent = "Copied";
+        } catch (error) {
+          copyState.textContent = "Clipboard unavailable";
+        }
+
+        setTimeout(() => {
+          copyState.textContent = "";
+        }, 1400);
+      });
+    </script>
+  </body>
+</html>

@@ -32,6 +32,7 @@ import {
   type SuggestionPrompt,
 } from '@/components/atoms'
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
+import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { uploadImageToCos } from '@/lib/cos-upload'
@@ -736,6 +737,11 @@ export function ChatView() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  // SkillTrigger 控制器:$ 触发技能选择器的导航控制
+  const skillTriggerControlsRef = useRef<{
+    move: (direction: 'up' | 'down' | 'enter' | 'escape') => void
+    isOpen: () => boolean
+  } | null>(null)
   const shouldAutoScrollRef = useRef(true)
   const isStreamingRef = useRef(false)
   const lastScrollTopRef = useRef(0)
@@ -770,6 +776,40 @@ export function ChatView() {
   const [planPanelStatus, setPlanPanelStatus] = useState<
     'pending' | 'approved' | 'rejected'
   >('pending')
+  // SkillTrigger：选中技能后回填输入框为 $skill-name(带空格让用户继续输入指令)
+  const handleSkillPick = useCallback(
+    (skillName: string) => {
+      // 把当前输入中末尾的 $xxx 替换为 $skill-name + 空格
+      const next = input.replace(/\$[a-z0-9-]*$/i, `$${skillName} `)
+      setInput(next)
+      textareaRef.current?.focus()
+    },
+    [input]
+  )
+  // SkillTrigger 键盘导航：拦截方向键/Enter/Escape
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      const ctrl = skillTriggerControlsRef.current
+      if (!ctrl || !ctrl.isOpen()) return
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        ctrl.move('up')
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        ctrl.move('down')
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        ctrl.move('enter')
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        setInput(input.replace(/\$[a-z0-9-]*$/i, ''))
+      }
+    }
+    el.addEventListener('keydown', onKeyDown, true)
+    return () => el.removeEventListener('keydown', onKeyDown, true)
+  }, [input])
   // 每步的执行状态（execute 阶段实时更新）
   const [planStatuses, setPlanStatuses] = useState<
     Array<'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'>
@@ -2851,7 +2891,15 @@ export function ChatView() {
             )}
           </div>
         </aside>
-        <div className='min-w-0 flex-1'>
+        <div className='relative min-w-0 flex-1'>
+          <SkillTrigger
+            input={input}
+            agentId={selectedAgent?.id ?? null}
+            onPick={handleSkillPick}
+            registerControls={controls => {
+              skillTriggerControlsRef.current = controls
+            }}
+          />
           <ChatContainer
             selectedModel={selectedModel}
             modelOptions={modelOptions}

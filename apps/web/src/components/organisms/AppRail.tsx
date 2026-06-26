@@ -10,7 +10,7 @@ import {
 } from '@/components/atoms'
 import { LocaleToggle, ThemeToggle, UserAvatar } from '@/components/molecules'
 import { SystemSettingsModal } from '@/components/molecules/SystemSettingsModal'
-import { MessageSquare, Settings, Sparkles } from 'lucide-react'
+import { MessageSquare, Settings, Sparkles, Wand2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -24,6 +24,7 @@ export function AppRail() {
   const navigation = [
     { label: t('chat'), href: '/chat', icon: MessageSquare },
     { label: t('agents'), href: '/agents', icon: Sparkles },
+    { label: t('skills'), href: '/skills', icon: Wand2 },
   ]
 
   return (

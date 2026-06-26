@@ -150,19 +150,19 @@ docker-compose up -d                            # Start DB, Redis, etc.
 
 ## Internationalization (i18n)
 
-**Base Language:** Chinese (`zh`) - All translation keys must be defined first in `zh.json`
+**Base Language:** English (`en`) - All translation keys must be defined first in `en.json`
 
 **How to Add New Translation Keys:**
 
-1. Always add keys to `apps/web/src/lang/zh.json` first (base language)
+1. Always add keys to `apps/web/src/lang/en.json` first (base language)
 2. When creating new pages, use `useTranslations('PageName')` hook
 3. Keys are organized by page/component namespaces (e.g., `WorkflowsPage`, `IntegrationsPage`)
 4. Do NOT translate data file content (categories, difficulty levels, etc.) - these stay in English
 
 **Translation Files Location:**
 
-- Base: `apps/web/src/lang/zh.json` (always update this first)
-- Other languages: `apps/web/src/lang/{locale}.json` (18 languages total: en, ja, ko, de, fr, es, it, pt, ru, tr, th, id, pl, nl, nb, da, tr, tw)
+- Base: `apps/web/src/lang/en.json` (always update this first)
+- Other languages: `apps/web/src/lang/{locale}.json` (7 languages total: en, zh, tw, ko, ja, de, ru)
 
 **Example:**
 
@@ -176,11 +176,11 @@ export default function MyPage() {
 ```
 
 ```json
-// apps/web/src/lang/zh.json
+// apps/web/src/lang/en.json
 {
   "MyPage": {
     "hero": {
-      "title": "我的页面标题"
+      "title": "My Page Title"
     }
   }
 }
@@ -198,7 +198,7 @@ export default function MyPage() {
 ```
 
 ```json
-// apps/web/src/lang/zh.json
+// apps/web/src/lang/en.json
 {
   "MyPage": {
     "hero": {

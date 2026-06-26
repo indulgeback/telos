@@ -13,10 +13,33 @@ export const skillsRouter = new Hono()
 
 skillsRouter.get('/', async c => {
   const userId = getCurrentUserId(c)
-  const skills = await prisma.skill.findMany({
-    where: skillAccessWhere(userId),
-    orderBy: { createdAt: 'desc' },
-  })
+  const search = c.req.query('search')?.trim()
+  const category = c.req.query('category')?.trim()
+  const sort = c.req.query('sort')?.trim()
+
+  const where: any = { AND: [skillAccessWhere(userId)] }
+  if (search) {
+    where.AND.push({
+      OR: [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ],
+    })
+  }
+  if (category && category !== 'all') {
+    // 分类存在 metadata.category 里(Json 路径查询)
+    where.AND.push({
+      metadata: { path: ['category'], equals: category },
+    })
+  }
+
+  // sort: 'recent'(默认) | 'name' | 'popular'(暂按 createdAt 兜底,未来按 metadata.installs)
+  const orderBy =
+    sort === 'name'
+      ? { name: 'asc' as const }
+      : { createdAt: 'desc' as const }
+
+  const skills = await prisma.skill.findMany({ where, orderBy })
   return ok(c, toSnakeCase(skills))
 })
 
@@ -102,6 +125,56 @@ skillsRouter.put('/:id', async c => {
     },
   })
   return ok(c, toSnakeCase(skill))
+})
+
+/**
+ * 安装系统技能到用户库(克隆)。
+ * 仅系统技能(ownerId=null)可被安装;克隆为用户的私有副本,
+ * 用户可自由编辑副本而不影响系统原版。幂等:已安装同名则返回已有。
+ */
+skillsRouter.post('/:id/install', async c => {
+  const userId = getCurrentUserId(c)
+  const source = await prisma.skill.findUnique({
+    where: { id: c.req.param('id') },
+  })
+  if (!source || source.ownerId !== null) {
+    return fail(c, 404, '技能不存在或不可安装')
+  }
+
+  // 幂等:用户已安装同名技能则直接返回已有副本
+  const existing = await prisma.skill.findFirst({
+    where: { ownerId: userId, name: source.name },
+  })
+  if (existing) {
+    return ok(c, {
+      installed: false,
+      skill: toSnakeCase(existing),
+      message: 'already_installed',
+    })
+  }
+
+  // 克隆到用户命名空间,metadata 记录溯源
+  const sourceMeta =
+    (source.metadata as { category?: string } & Record<string, unknown>) ?? {}
+  const installed = await prisma.skill.create({
+    data: {
+      name: source.name,
+      description: source.description,
+      content: source.content,
+      enabled: true,
+      metadata: {
+        ...sourceMeta,
+        category: sourceMeta.category,
+        installedFrom: source.id,
+      } as any,
+      ownerId: userId,
+    },
+  })
+  return created(c, {
+    installed: true,
+    skill: toSnakeCase(installed),
+    message: 'installed',
+  })
 })
 
 skillsRouter.delete('/:id', async c => {

@@ -61,6 +61,7 @@ export interface Skill {
   markdown?: string
   enabled: boolean
   metadata?: Record<string, unknown>
+  owner_id?: string | null
   created_at: string
   updated_at: string
 }
@@ -380,8 +381,29 @@ export class AgentService {
     })
   }
 
-  listSkills(): Promise<Skill[]> {
-    return this.request<Skill[]>('/api/skills')
+  listSkills(params?: {
+    search?: string
+    category?: string
+    sort?: string
+  }): Promise<Skill[]> {
+    const qs = new URLSearchParams()
+    if (params?.search) qs.set('search', params.search)
+    if (params?.category) qs.set('category', params.category)
+    if (params?.sort) qs.set('sort', params.sort)
+    const query = qs.toString()
+    return this.request<Skill[]>(`/api/skills${query ? `?${query}` : ''}`)
+  }
+
+  /**
+   * 安装系统技能到用户库(克隆)。返回 { installed, skill }。
+   * installed=false 表示用户已安装过同名技能(幂等)。
+   */
+  installSkill(id: string): Promise<{
+    installed: boolean
+    skill: Skill
+    message: string
+  }> {
+    return this.request(`/api/skills/${id}/install`, { method: 'POST' })
   }
 
   createSkill(data: {

@@ -3,7 +3,8 @@
     "home": "Home",
     "chat": "Conversation",
     "agents": "Agents",
-    "settings": "Settings"
+    "settings": "Settings",
+    "skills": "Skills"
   },
   "Chat": {
     "toolCall": {
@@ -476,6 +477,7 @@
       "instructionsDesc": "The prompt is the core logic guiding the Agent's behavior. You can edit it manually or click 'Optimize Prompt' on the card to generate it with AI.",
       "typePublicSelect": "Public (Available to everyone)",
       "typePrivateSelect": "Private (Visible only to you)",
+      "skillsSettingsTitle": "Skills Configuration",
       "voiceSettingsTitle": "Realtime Voice Live Settings",
       "voiceEnabled": "Enable Custom Voice Config",
       "voiceEnabledDesc": "Turn on to assign personalized speaking style, voice, and advanced features for this agent",
@@ -546,6 +548,100 @@
     "promptStatus": {
       "generating": "AI Prompt is being generated in the background...",
       "failed": "Prompt generation failed, description used as backup."
+    }
+  },
+  "Skill": {
+    "title": "Skills Management",
+    "subtitle": "Create and manage your AI skills",
+    "create": "Create Skill",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "creating": "Creating...",
+    "saving": "Saving...",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "confirmDelete": "Delete this skill?",
+    "searchPlaceholder": "Search skills...",
+    "searchSkills": "Search skills...",
+    "hero": {
+      "badge": "Skill Store",
+      "title": "One skill at a time, sharper every day.",
+      "subtitle": "Explore {count} curated skills, install with one click, and give your agents new capabilities.",
+      "cta": "Explore all skills"
+    },
+    "categories": {
+      "title": "Browse by category",
+      "count": "{count} skills"
+    },
+    "category": {
+      "writing": "Writing",
+      "coding": "Coding",
+      "productivity": "Productivity",
+      "data": "Data",
+      "translation": "Translation"
+    },
+    "totalSkills": "{count} skills",
+    "selected": "{count} selected",
+    "noSkillsFound": "No matching skills found",
+    "groupMine": "My Skills",
+    "groupSystem": "System Skills",
+    "groupSystemBadge": "System",
+    "systemReadOnly": "System skills are read-only",
+    "form": {
+      "name": "Skill Name",
+      "namePlaceholder": "e.g. translate-en (lowercase, numbers, hyphens)",
+      "description": "Description",
+      "descriptionPlaceholder": "One line describing what this skill does (determines when AI invokes it)",
+      "content": "Skill Content",
+      "contentPlaceholder": "Full instructions for this skill (Markdown supported)",
+      "contentHelp": "When activated, this content is injected to the AI as instructions",
+      "nameRequired": "Please enter a skill name",
+      "descriptionRequired": "Please enter a skill description",
+      "contentRequired": "Please enter skill content"
+    },
+    "configureModal": {
+      "title": "Configure Skills",
+      "description": "Add or remove skills for Agent \"{name}\"",
+      "searchSkills": "Search skills...",
+      "totalSkills": "{count} skills",
+      "selected": "{count} selected",
+      "noSkillsFound": "No matching skills found"
+    },
+    "messages": {
+      "created": "Skill created successfully",
+      "createFailed": "Failed to create skill",
+      "updated": "Skill updated successfully",
+      "updateFailed": "Failed to update skill",
+      "deleted": "Skill deleted successfully",
+      "deleteFailed": "Failed to delete skill",
+      "skillsConfigured": "Skills configuration updated",
+      "configureFailed": "Failed to configure skills",
+      "systemSkillNotEditable": "System skills cannot be edited"
+    },
+    "empty": {
+      "title": "No skills yet",
+      "description": "Create your first AI skill"
+    },
+    "chatTrigger": {
+      "hint": "Type $ to trigger a skill",
+      "empty": "No skills available for this Agent"
+    },
+    "store": {
+      "tabStore": "Store",
+      "tabMine": "My Skills",
+      "searchPlaceholder": "Search skills...",
+      "categoryAll": "All",
+      "sortRecent": "Recent",
+      "sortName": "Name",
+      "sortPopular": "Popular",
+      "install": "Install",
+      "installing": "Installing...",
+      "installed": "Installed",
+      "installSuccess": "Skill installed to your library",
+      "installFailed": "Failed to install skill",
+      "empty": "No skills available in the store yet"
     }
   },
   "Tool": {
