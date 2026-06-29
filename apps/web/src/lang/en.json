@@ -442,6 +442,11 @@
     "title": "Agent Management",
     "subtitle": "Create and manage your AI Agents",
     "create": "Create Agent",
+    "hero": {
+      "title": "Agents that turn intent into work.",
+      "subtitle": "Create specialized agents, connect tools, and keep every workflow moving from one place.",
+      "cta": "Create Agent"
+    },
     "edit": "Edit",
     "delete": "Delete",
     "cancel": "Cancel",
@@ -642,6 +647,12 @@
       "installSuccess": "Skill installed to your library",
       "installFailed": "Failed to install skill",
       "empty": "No skills available in the store yet"
+    },
+    "saver": {
+      "saveAsSkill": "Save as skill",
+      "savedLabel": "Saved to your skills",
+      "saved": "Skill \"{name}\" saved to your library",
+      "saveFailed": "Failed to save skill"
     }
   },
   "Tool": {

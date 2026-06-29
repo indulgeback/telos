@@ -69,8 +69,9 @@ export function SkillTrigger({
 
   // 根据 $ 后已输入的文本过滤
   const query = triggerMatch?.[1]?.toLowerCase() ?? ''
-  const filtered = skills.filter(s =>
-    s.skill?.name.toLowerCase().includes(query)
+  const filtered = skills.filter(
+    (s): s is typeof s & { skill: NonNullable<typeof s.skill> } =>
+      !!s.skill && s.skill.name.toLowerCase().includes(query)
   )
 
   // 重置选中索引
@@ -134,7 +135,7 @@ export function SkillTrigger({
                 type='button'
                 data-skill-idx={idx}
                 onMouseEnter={() => setSelectedIndex(idx)}
-                onClick={() => onPick(s.skill!.name)}
+                onClick={() => onPick(s.skill.name)}
                 className={cn(
                   'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm',
                   idx === selectedIndex
@@ -143,9 +144,9 @@ export function SkillTrigger({
                 )}
               >
                 <Wand2 className='size-3.5 shrink-0 text-primary' />
-                <span className='font-mono'>{s.skill!.name}</span>
+                <span className='font-mono'>{s.skill.name}</span>
                 <span className='line-clamp-1 text-xs text-muted-foreground'>
-                  {s.skill!.description}
+                  {s.skill.description}
                 </span>
               </button>
             ))}

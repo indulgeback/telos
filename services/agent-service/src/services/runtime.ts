@@ -62,6 +62,8 @@ export type LoadedMcpServer = DbMcpServer
 export interface RuntimeBuildResult {
   agent: Agent
   source: LoadedAgent
+  /** 解析出的模型 provider,用于判断是否需要过滤多模态内容 */
+  provider: RuntimeProvider
 }
 
 export type PlanMode = 'plan' | 'execute'
@@ -405,6 +407,63 @@ function providerConfig(provider: RuntimeProvider) {
   }
 }
 
+/**
+ * 判断 provider 是否原生支持视觉(图片)输入。
+ *
+ * 背景:agent 运行时固定 useResponses:false,SDK 会把 input_image
+ * 转成 Chat Completions 的 image_url。但 deepseek / seed(火山 Ark) /
+ * bailian(阿里 DashScope)等 Rust 实现的 OpenAI 兼容网关,其 content part
+ * 枚举只认 text,遇到 image_url 会整体反序列化失败:
+ *   unknown variant `image_url`, expected `text`
+ * 这里按 provider 能力提前剥离图片部分,保证非视觉模型不报错。
+ */
+function providerSupportsVision(provider: RuntimeProvider): boolean {
+  // openai(含官方与兼容端点)、gcloud(Gemini)明确支持多模态;
+  // 其余 Rust 兼容网关按「不支持」处理,避免反序列化失败。
+  return provider === 'openai' || provider === 'gcloud'
+}
+
+/**
+ * 从运行时输入中剥离所有图片 content part,保留文本。
+ * 仅在 provider 不支持视觉时调用。
+ */
+function stripImageContent(
+  input: string | AgentInputItem[]
+): string | AgentInputItem[] {
+  if (typeof input === 'string') return input
+  if (!Array.isArray(input)) return input
+
+  return input
+    .map(item => {
+      if (!item || typeof item !== 'object') return item
+      const msg = item as { type?: string; role?: string; content?: unknown }
+      // 仅处理 message 类型的 item;其余(item_reference 等)原样保留
+      if (msg.type !== 'message' || msg.content === undefined) return item
+
+      if (typeof msg.content === 'string') return item
+
+      if (Array.isArray(msg.content)) {
+        const filtered = msg.content.filter(
+          (part: any) => !(part && part.type === 'input_image')
+        )
+        // 没有图片被移除,原样返回避免无谓的结构变化
+        if (filtered.length === msg.content.length) return item
+        // 全部被移除时回退为空字符串,保证 content 不为空数组
+        return {
+          ...msg,
+          content:
+            filtered.length > 0
+              ? filtered
+              : (msg.content.find((p: any) => p.type === 'input_text') as any)
+                  ?.text ?? '',
+        } as AgentInputItem
+      }
+
+      return item
+    })
+    .filter(Boolean) as AgentInputItem[]
+}
+
 function buildProviderData(
   provider: RuntimeProvider,
   reasoningEffort?: RuntimeRunOptions['reasoningEffort']
@@ -702,7 +761,7 @@ export class AgentRuntimeService {
         : {}),
     } as any)
 
-    return { agent, source }
+    return { agent, source, provider: resolvedModel.provider }
   }
 
   async resolveModel(
@@ -745,7 +804,7 @@ export class AgentRuntimeService {
         ? options.input
         : extractPromptFromBody({ messages: options.input as any })
 
-    const { agent, source } = await this.buildAgent(agentId, {
+    const { agent, source, provider } = await this.buildAgent(agentId, {
       persistence,
       modelOverride: options.modelOverride,
       reasoningEffort: options.reasoningEffort,
@@ -843,6 +902,12 @@ export class AgentRuntimeService {
         `请严格按照以上计划逐步执行。每开始一步时调用 update_plan_status(status='in_progress')，` +
         `完成一步后调用 update_plan_status(status='completed')。\n\n---\n用户当前指令：${query}`
       runInput = planContext
+    }
+
+    // 非视觉 provider:剥离历史消息中的图片部分,避免 Rust 兼容网关
+    // 因 image_url 反序列化失败而整条请求 400。
+    if (!providerSupportsVision(provider)) {
+      runInput = stripImageContent(runInput)
     }
 
     if (options.stream) {

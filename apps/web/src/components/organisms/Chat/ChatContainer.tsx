@@ -148,7 +148,7 @@ export interface ChatContainerProps {
   onReasoningEffortChange: (
     value: 'minimal' | 'low' | 'medium' | 'high'
   ) => void
-  onPickImages?: (files: FileList | null) => void
+  onPickImages?: (files: FileList | File[] | null) => void
   onRemoveImage?: (index: number) => void
   // Text
   modelLabel: string
@@ -306,6 +306,27 @@ export function ChatContainer({
   userInitials,
 }: ChatContainerProps) {
   const [suggestionSeed, setSuggestionSeed] = useState(0)
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    const imageFiles: File[] = []
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile()
+        if (file) {
+          imageFiles.push(file)
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault()
+      onPickImages?.(imageFiles)
+    }
+  }
   const [isShuffling, setIsShuffling] = useState(false)
   const [hoveredSuggestion, setHoveredSuggestion] = useState<string | null>(
     null
@@ -738,6 +759,7 @@ export function ChatContainer({
             sendDisabled={isLoading || isUploadingImages}
             sendAriaLabel={sendAriaLabel}
             stopAriaLabel={stopAriaLabel}
+            onPaste={handlePaste}
             actions={
               <div className='flex min-w-0 flex-wrap items-center gap-2'>
                 <ChatInputActions

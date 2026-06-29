@@ -13,6 +13,7 @@ import {
   ChatAvatar,
 } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
+import { SkillSaver } from './SkillSaver'
 import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
 import {
   Copy,
@@ -453,6 +454,8 @@ function ChatMessageInner({
                       >
                         <MarkdownContent content={part.text} />
                       </div>
+                      {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
+                      <SkillSaver text={part.text} />
                     </div>
                   )
                 })}
@@ -469,6 +472,8 @@ function ChatMessageInner({
                 >
                   <MarkdownContent content={safeContent} />
                 </div>
+                {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
+                <SkillSaver text={safeContent} />
               </div>
             ) : null}
           </div>

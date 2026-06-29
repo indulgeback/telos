@@ -96,6 +96,11 @@
       "xiaotian": "Xiaotian (Premium Männlich)",
       "yunzhou": "Yunzhou (Premium Männlich)"
     },
+    "hero": {
+      "cta": "Agent erstellen",
+      "subtitle": "Erstellen Sie spezialisierte Agenten, verbinden Sie Tools und steuern Sie jeden Workflow an einem Ort.",
+      "title": "Agenten, die Absicht in Arbeit verwandeln."
+    },
     "subtitle": "Erstellen und Verwalten Ihres KI-Agenten",
     "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden",
     "systemDefault": "Systemstandard",

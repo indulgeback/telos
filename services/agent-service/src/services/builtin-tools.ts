@@ -1086,3 +1086,40 @@ export async function attachBuiltinToolsToAgent(agentId: string) {
     skipDuplicates: true,
   })
 }
+
+/**
+ * 默认绑定到所有 agent 的内置技能 name 列表。
+ * 这些技能不在商店展示(metadata.builtin/hidden),但每个 agent 创建时自动绑定,
+ * 用户无需手动绑定即可通过 $skill-name 触发。
+ */
+export const BUILTIN_SKILL_NAMES = ['skill-creator']
+
+/**
+ * 把所有内置技能(skill-creator 等)绑定到指定 agent。
+ * 在 agent 创建时调用,幂等(skipDuplicates)。
+ */
+export async function attachBuiltinSkillsToAgent(agentId: string) {
+  // 查出内置技能的 id(metadata.builtin = true 的系统技能)
+  const builtinSkills = await prisma.skill.findMany({
+    where: { ownerId: null, enabled: true },
+    select: { id: true, name: true, metadata: true },
+  })
+  const targetSkillIds = builtinSkills
+    .filter(s => {
+      const meta = s.metadata as { builtin?: boolean; hidden?: boolean }
+      return meta?.builtin === true && BUILTIN_SKILL_NAMES.includes(s.name)
+    })
+    .map(s => s.id)
+
+  if (targetSkillIds.length === 0) return
+
+  await prisma.agentSkill.createMany({
+    data: targetSkillIds.map((skillId, index) => ({
+      agentId,
+      skillId,
+      enabled: true,
+      sortOrder: index,
+    })),
+    skipDuplicates: true,
+  })
+}

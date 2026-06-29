@@ -44,6 +44,7 @@ import {
   findEditableAgent,
 } from '../services/agent-access.js'
 import {
+  attachBuiltinSkillsToAgent,
   attachBuiltinToolsToAgent,
   ensureBuiltinTools,
 } from '../services/builtin-tools.js'
@@ -83,17 +84,22 @@ async function replaceBindings(
   fieldName: 'skillId' | 'toolId' | 'mcpServerId'
 ) {
   const model = (prisma as any)[modelName]
-  await model.deleteMany({ where: { agentId } })
-  if (!ids.length) return
-  await model.createMany({
-    data: ids.map((id, index) => ({
-      agentId,
-      [fieldName]: id,
-      enabled: true,
-      sortOrder: index,
-    })),
-    skipDuplicates: true,
-  })
+  await prisma.$transaction([
+    model.deleteMany({ where: { agentId } }),
+    ...(ids.length
+      ? [
+          model.createMany({
+            data: ids.map((id, index) => ({
+              agentId,
+              [fieldName]: id,
+              enabled: true,
+              sortOrder: index,
+            })),
+            skipDuplicates: true,
+          }),
+        ]
+      : []),
+  ])
 }
 
 agentsRouter.get('/', async c => {
@@ -180,6 +186,7 @@ agentsRouter.post('/', async c => {
   })
   await ensureBuiltinTools()
   await attachBuiltinToolsToAgent(agent.id)
+  await attachBuiltinSkillsToAgent(agent.id)
 
   generateAgentInstructionsAsync(agent.id, description, modelKey).catch((err) => {
     logger.error({

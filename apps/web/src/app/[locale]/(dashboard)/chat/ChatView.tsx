@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
+import { useSearchParams, useRouter } from 'next/navigation'
 import {
   AgentSelector,
   ChatContainer,
@@ -870,6 +871,26 @@ export function ChatView() {
     status === 'streaming' ||
     activeAssistantId !== null
   const realtimeAvailable = Boolean(realtimeConfig?.configured)
+  // ?prompt= 自动发送:支持从其他页面跳转时预填并自动发送一条消息
+  // (例如「创建技能」按钮跳转 /chat?prompt=$skill-creator ...)。
+  // 用 ref 保证只触发一次,且需等待 selectedAgent 就绪(创建会话需要 agentId)。
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pendingPromptRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const prompt = searchParams.get('prompt')
+    if (prompt) {
+      pendingPromptRef.current = prompt
+      // 消费后从 URL 移除 prompt,避免刷新/分享链接时重复发送
+      const next = new URLSearchParams(searchParams.toString())
+      next.delete('prompt')
+      const rest = next.toString()
+      router.replace(rest ? `/chat?${rest}` : '/chat')
+    }
+    // 仅在挂载时读取一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const isRealtimeMicActive =
     realtimeMicState === 'connecting' ||
     realtimeMicState === 'reconnecting' ||
@@ -1255,13 +1276,13 @@ export function ChatView() {
               ? chunk.error
               : chunk.error && typeof chunk.error === 'object'
                 ? JSON.stringify(chunk.error)
-                : 'Realtime service failed'
+                : 'Service failed'
         if (options.suppressTextOnFailure) {
           setRealtimeErrorText(errorText)
           return
         }
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(t('voiceError', { error: errorText })))
+          parts.push(createTextPart(t('chatError', { error: errorText })))
         })
         return
       }
@@ -2438,15 +2459,35 @@ export function ChatView() {
     }, 2000)
   }
 
-  const handlePickImages = async (files: FileList | null) => {
-    if (!supportsImageUpload || !files || files.length === 0) return
+  // 消费 pendingPrompt:当 selectedAgent 就绪后,自动发送预填消息(仅一次)。
+  // handleSend 在 isLoading 或无 agent 时会提前 return,所以必须等 agent 就绪。
+  useEffect(() => {
+    if (
+      pendingPromptRef.current &&
+      selectedAgent?.id &&
+      !isLoading &&
+      messages.length === 0
+    ) {
+      const msg = pendingPromptRef.current
+      pendingPromptRef.current = null
+      handleSend(msg)
+    }
+    // handleSend 故意不进依赖:它是每次渲染重建的回调,加入会导致循环触发。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAgent?.id, isLoading, messages.length])
+
+  const handlePickImages = async (files: FileList | File[] | null) => {
+    if (!supportsImageUpload || !files) return
     const remaining = Math.max(
       0,
       MAX_IMAGE_ATTACHMENTS - uploadedImageUrls.length
     )
     if (remaining <= 0) return
 
-    const picked = Array.from(files)
+    const filesArray = files instanceof FileList ? Array.from(files) : files
+    if (filesArray.length === 0) return
+
+    const picked = filesArray
       .filter(file => file.type.startsWith('image/'))
       .slice(0, remaining)
 

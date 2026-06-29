@@ -7,6 +7,35 @@ import { PlanStore } from '../services/plan-store.js'
 import type { StructuredPlan } from '../services/plan-tools.js'
 
 /**
+ * 充实 OpenAI SDK 抛出的「无意义」错误信息。
+ *
+ * SDK 在上游返回非 2xx 但响应体为空时,会生成形如
+ * "400 status code (no body)" / "500 status code (no body)" 的消息,
+ * 对用户毫无诊断价值。这里根据 status 翻译成可读的提示。
+ */
+function enrichError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error)
+  const raw = error.message
+  const match = raw.match(/^(\d{3}) status code \(no body\)$/)
+  if (!match) return raw
+  const status = Number(match[1])
+  const hint =
+    status === 400
+      ? '请求被上游模型拒绝(参数或内容不兼容,例如多模态内容发给了纯文本模型)'
+      : status === 401 || status === 403
+        ? '上游鉴权失败,请检查对应 provider 的 API Key 配置'
+        : status === 404
+          ? '上游模型或端点不存在,请检查模型名与 baseURL'
+          : status === 429
+            ? '上游请求超限(限流或额度不足)'
+            : status >= 500
+              ? '上游服务暂时不可用,请稍后重试'
+              : '上游返回了空错误响应'
+  return `上游模型请求失败 (HTTP ${status}):${hint}`
+}
+
+
+/**
  * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
  */
 function parseApprovedPlan(raw: unknown): StructuredPlan | null {
@@ -244,7 +273,7 @@ function createOpenAiStyleStreamResponse(
         await execute(write)
       } catch (error) {
         write('response.failed', {
-          error: error instanceof Error ? error.message : String(error),
+          error: enrichError(error),
         })
       } finally {
         signal.removeEventListener('abort', abortHandler)
@@ -557,10 +586,9 @@ export async function createAgentStreamResponse(
           output_text: finalOutput,
         })
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
         write('response.failed', {
           response_id: params.runId,
-          error: message,
+          error: enrichError(error),
         })
         const { AgentRunPersistence } = await import(
           '../services/persistence.js'

@@ -96,6 +96,11 @@
       "xiaotian": "小天（高级男性）",
       "yunzhou": "云洲（优质男性）"
     },
+    "hero": {
+      "cta": "创建 Agent",
+      "subtitle": "创建专属 Agent，连接工具，让每条工作流在一个地方持续推进。",
+      "title": "把意图变成可执行的 Agent。"
+    },
     "subtitle": "创建和管理您的 AI Agent",
     "systemAgentReadOnly": "系统 Agent 不可编辑",
     "systemDefault": "系统默认",

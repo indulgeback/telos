@@ -6,6 +6,7 @@ import { Button } from '@/components/atoms'
 import { agentService, type Agent } from '@/service/agent'
 import { CreateAgentModal } from './components/CreateAgentModal'
 import { AgentCard } from './components/AgentCard'
+import { AgentHeroBanner } from './components/AgentHeroBanner'
 import { Plus, Sparkles } from 'lucide-react'
 import { Loader2 } from 'lucide-react'
 
@@ -34,7 +35,11 @@ export default function AgentsPage() {
   }
 
   useEffect(() => {
-    loadAgents()
+    const timer = window.setTimeout(() => {
+      loadAgents()
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [])
 
   // 轮询生成中的 Agent 提示词状态
@@ -52,19 +57,12 @@ export default function AgentsPage() {
   }, [agents])
 
   return (
-    <div className='container mx-auto py-8'>
-      {/* Header: 标题与创建控件并到一行 */}
-      <div className='mb-8 flex flex-wrap items-center justify-between gap-4'>
-        <h1 className='text-3xl font-bold'>{t('title')}</h1>
-        <Button onClick={() => setShowCreateModal(true)} className='gap-2'>
-          <Plus className='size-4' />
-          {t('create')}
-        </Button>
-      </div>
+    <div className='container mx-auto space-y-8 py-8'>
+      <AgentHeroBanner onCreate={() => setShowCreateModal(true)} />
 
       {/* Error State */}
       {error && (
-        <div className='mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4'>
+        <div className='rounded-lg border border-destructive/50 bg-destructive/10 p-4'>
           <p className='text-sm text-destructive'>{error}</p>
         </div>
       )}

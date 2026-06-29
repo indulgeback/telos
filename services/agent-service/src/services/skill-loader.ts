@@ -120,12 +120,15 @@ export function buildSkillLoaderTool(
     async execute({ name }: { name: string }) {
       await persistence?.event('tool_skill_start', { skillName: name })
 
+      const whereOwnerId = userId
+        ? { OR: [{ ownerId: userId }, { ownerId: null }] }
+        : { ownerId: null }
+
       const skill = await prisma.skill.findFirst({
         where: {
           name,
           enabled: true,
-          // 可见范围：自己的 + 系统级(ownerId IS NULL)
-          OR: [{ ownerId: userId ?? null }, { ownerId: null }],
+          ...whereOwnerId,
         },
       })
 

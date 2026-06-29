@@ -4,6 +4,7 @@ import type { IncomingMessage } from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
 import { Hono } from 'hono'
+import { HTTPException } from 'hono/http-exception'
 import WebSocket, { WebSocketServer } from 'ws'
 import { logger } from './config/index.js'
 import { config, validateConfig } from './config/index.js'
@@ -39,6 +40,15 @@ app.onError((err, c) => {
     msg: 'Unhandled error',
     err,
   })
+  if (err instanceof HTTPException) {
+    return c.json(
+      {
+        code: err.status,
+        message: err.message,
+      },
+      err.status as any
+    )
+  }
   return c.json(
     {
       code: 500,

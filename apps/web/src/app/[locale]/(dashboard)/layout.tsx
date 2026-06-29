@@ -24,7 +24,9 @@ export default async function DashboardLayout({ children, params }: Iprops) {
   return (
     <div className='flex h-screen bg-background'>
       <AppRail />
-      <main className='min-w-0 flex-1 overflow-hidden'>{children}</main>
+      <main className='min-w-0 flex-1 overflow-x-hidden overflow-y-auto'>
+        {children}
+      </main>
     </div>
   )
 }

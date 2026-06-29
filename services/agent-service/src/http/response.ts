@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import { HTTPException } from 'hono/http-exception'
 
 export interface ApiResponse<T = unknown> {
   code: number
@@ -37,6 +38,6 @@ export async function parseJson<T extends Record<string, unknown>>(
   try {
     return (await c.req.json()) as T
   } catch {
-    return {} as T
+    throw new HTTPException(400, { message: 'Invalid JSON body' })
   }
 }

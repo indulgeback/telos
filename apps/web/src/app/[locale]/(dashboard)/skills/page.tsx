@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import {
   Button,
   Tabs,
@@ -10,18 +11,22 @@ import {
   TabsContent,
 } from '@/components/atoms'
 import { agentService, type Skill } from '@/service/agent'
-import { SkillEditModal } from './components/SkillEditModal'
 import { SkillCard } from './components/SkillCard'
 import { SkillStore } from './components/SkillStore'
-import { Plus, Wand2, Loader2 } from 'lucide-react'
+import { Sparkles, Loader2, Wand2 } from 'lucide-react'
 
 export default function SkillsPage() {
   const t = useTranslations('Skill')
+  const router = useRouter()
   const [skills, setSkills] = useState<Skill[]>([])
   const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
   const [activeTab, setActiveTab] = useState('store')
   const [error, setError] = useState<string | null>(null)
+
+  // 创建技能 → 跳转聊天,用 skill-creator 通过 AI 生成
+  const handleCreateWithAI = () => {
+    router.push('/chat?prompt=$skill-creator 我想创建一个新的技能')
+  }
 
   const loadSkills = async (silent = false) => {
     if (!silent) {
@@ -74,10 +79,10 @@ export default function SkillsPage() {
               <TabsTrigger value='mine'>{t('store.tabMine')}</TabsTrigger>
             </TabsList>
           </div>
-          {/* Create 按钮仅在「我的技能」tab 下显示 */}
+          {/* Create 按钮仅在「我的技能」tab 下显示:跳转聊天用 skill-creator 生成 */}
           {activeTab === 'mine' && (
-            <Button onClick={() => setShowCreateModal(true)} className='gap-2'>
-              <Plus className='size-4' />
+            <Button onClick={handleCreateWithAI} className='gap-2'>
+              <Sparkles className='size-4' />
               {t('create')}
             </Button>
           )}
@@ -107,11 +112,8 @@ export default function SkillsPage() {
               <p className='mb-6 text-sm text-muted-foreground'>
                 {t('empty.description')}
               </p>
-              <Button
-                onClick={() => setShowCreateModal(true)}
-                className='gap-2'
-              >
-                <Plus className='size-4' />
+              <Button onClick={handleCreateWithAI} className='gap-2'>
+                <Sparkles className='size-4' />
                 {t('create')}
               </Button>
             </div>
@@ -125,16 +127,7 @@ export default function SkillsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Create Skill Modal */}
-      {showCreateModal && (
-        <SkillEditModal
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            loadSkills()
-            setShowCreateModal(false)
-          }}
-        />
-      )}
+      {/* 编辑技能由各 SkillCard 内部自行处理(Edit 按钮),无需页面级 Modal */}
     </div>
   )
 }
