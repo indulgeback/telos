@@ -556,7 +556,7 @@
     }
   },
   "Skill": {
-    "title": "Skills Management",
+    "title": "Skills",
     "subtitle": "Create and manage your AI skills",
     "create": "Create Skill",
     "edit": "Edit",
@@ -584,7 +584,8 @@
       "writing": "Writing",
       "coding": "Coding",
       "productivity": "Productivity",
-      "data": "Data",
+      "office": "Office",
+      "data": "Office",
       "translation": "Translation"
     },
     "totalSkills": "{count} skills",

@@ -93,6 +93,17 @@ export class PlanStore {
           error: `步骤 ${otherInProgress} 仍处于 in_progress，请先完成或跳过它（调用 update_plan_status(step_index=${otherInProgress}, status='completed')）再开始步骤 ${stepIndex}`,
         }
       }
+
+      // 新增前序步骤终态强校验
+      const uncompletedBefore = this.statuses.slice(0, stepIndex).findIndex(
+        s => s !== 'completed' && s !== 'skipped' && s !== 'failed'
+      )
+      if (uncompletedBefore !== -1) {
+        return {
+          ok: false,
+          error: `无法开启步骤 ${stepIndex}：前序步骤 ${uncompletedBefore}（“${this.plan.steps[uncompletedBefore].description}”）尚未完成（当前状态为 ${this.statuses[uncompletedBefore]}），请严格按照步骤顺序依次执行计划。`,
+        }
+      }
     }
 
     // 所有校验通过，执行更新

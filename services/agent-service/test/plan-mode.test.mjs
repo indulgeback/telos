@@ -259,9 +259,13 @@ describe('PlanStore', () => {
   it('note 被正确传递到回调（合法路径：先 in_progress 再 failed）', () => {
     const updates = []
     const store = new PlanStore(samplePlan, u => updates.push(u))
+    store.updateStep(0, 'in_progress')
+    store.updateStep(0, 'completed')
     store.updateStep(1, 'in_progress')
     store.updateStep(1, 'failed', '连接超时')
-    assert.strictEqual(updates[1].note, '连接超时')
+    // 过滤掉 step 0 的更新记录，以匹配对 step 1 的断言
+    const step1Updates = updates.filter(u => u.step_index === 1)
+    assert.strictEqual(step1Updates[1].note, '连接超时')
   })
 
   // ===== 状态机约束测试（Codex 式 plan hygiene）=====

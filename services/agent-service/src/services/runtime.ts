@@ -62,8 +62,10 @@ export type LoadedMcpServer = DbMcpServer
 export interface RuntimeBuildResult {
   agent: Agent
   source: LoadedAgent
-  /** 解析出的模型 provider,用于判断是否需要过滤多模态内容 */
+  /** 解析出的模型 provider */
   provider: RuntimeProvider
+  /** 当前模型是否支持多模态视觉 */
+  supportVision: boolean
 }
 
 export type PlanMode = 'plan' | 'execute'
@@ -132,6 +134,7 @@ interface RuntimeModelResolution {
   modelKey: string
   provider: RuntimeProvider
   providerData: Record<string, unknown>
+  supportVision: boolean
 }
 
 function toToolName(value: string) {
@@ -407,21 +410,6 @@ function providerConfig(provider: RuntimeProvider) {
   }
 }
 
-/**
- * 判断 provider 是否原生支持视觉(图片)输入。
- *
- * 背景:agent 运行时固定 useResponses:false,SDK 会把 input_image
- * 转成 Chat Completions 的 image_url。但 deepseek / seed(火山 Ark) /
- * bailian(阿里 DashScope)等 Rust 实现的 OpenAI 兼容网关,其 content part
- * 枚举只认 text,遇到 image_url 会整体反序列化失败:
- *   unknown variant `image_url`, expected `text`
- * 这里按 provider 能力提前剥离图片部分,保证非视觉模型不报错。
- */
-function providerSupportsVision(provider: RuntimeProvider): boolean {
-  // openai(含官方与兼容端点)、gcloud(Gemini)明确支持多模态;
-  // 其余 Rust 兼容网关按「不支持」处理,避免反序列化失败。
-  return provider === 'openai' || provider === 'gcloud'
-}
 
 /**
  * 从运行时输入中剥离所有图片 content part,保留文本。
@@ -761,7 +749,12 @@ export class AgentRuntimeService {
         : {}),
     } as any)
 
-    return { agent, source, provider: resolvedModel.provider }
+    return {
+      agent,
+      source,
+      provider: resolvedModel.provider,
+      supportVision: resolvedModel.supportVision,
+    }
   }
 
   async resolveModel(
@@ -770,7 +763,7 @@ export class AgentRuntimeService {
   ): Promise<RuntimeModelResolution> {
     const configuredModel = await prisma.chatModel.findUnique({
       where: { modelKey },
-      select: { provider: true },
+      select: { provider: true, supportVision: true },
     })
     const provider = configuredModel
       ? normalizeRuntimeProvider(configuredModel.provider)
@@ -787,11 +780,16 @@ export class AgentRuntimeService {
       strictFeatureValidation: false,
     })
 
+    const supportVision = configuredModel
+      ? configuredModel.supportVision
+      : provider === 'openai' || provider === 'gcloud'
+
     return {
       model: await modelProvider.getModel(modelKey),
       modelKey,
       provider,
       providerData: buildProviderData(provider, reasoningEffort),
+      supportVision,
     }
   }
 
@@ -804,7 +802,7 @@ export class AgentRuntimeService {
         ? options.input
         : extractPromptFromBody({ messages: options.input as any })
 
-    const { agent, source, provider } = await this.buildAgent(agentId, {
+    const { agent, source, provider, supportVision } = await this.buildAgent(agentId, {
       persistence,
       modelOverride: options.modelOverride,
       reasoningEffort: options.reasoningEffort,
@@ -904,10 +902,13 @@ export class AgentRuntimeService {
       runInput = planContext
     }
 
-    // 非视觉 provider:剥离历史消息中的图片部分,避免 Rust 兼容网关
-    // 因 image_url 反序列化失败而整条请求 400。
-    if (!providerSupportsVision(provider)) {
+    // 根据具体模型是否支持 Vision 来剥离历史消息中的图片部分
+    if (!supportVision) {
       runInput = stripImageContent(runInput)
+    } else if (provider === 'bailian' || provider === 'seed') {
+      // 针对国内百炼、火山方舟平台，由于服务端拉取公网图片常因防火墙、私有云鉴权或404而报错超时，
+      // 将图片 URL 自动转成 Base64 内嵌发送，实现 100% 稳定识别。
+      runInput = await convertImagesToBase64(runInput)
     }
 
     if (options.stream) {
@@ -926,6 +927,67 @@ export class AgentRuntimeService {
       toolNotFoundBehavior: 'return_error_to_model',
     })
     return { result, persistence }
+  }
+}
+
+/**
+ * 自动将 input 消息中的所有 http(s) 图片 URL 预先下载并转换为 Base64 嵌入格式。
+ * 避免阿里百炼或火山方舟服务端拉取公网图片资源时由于跨网、防火墙或防盗链等原因下载失败。
+ */
+async function convertImagesToBase64(
+  input: string | AgentInputItem[]
+): Promise<string | AgentInputItem[]> {
+  if (typeof input === 'string') return input
+  if (!Array.isArray(input)) return input
+
+  try {
+    const converted = await Promise.all(
+      input.map(async item => {
+        if (!item || typeof item !== 'object') return item
+        const msg = item as { type?: string; role?: string; content?: unknown }
+        if (msg.type !== 'message' || !Array.isArray(msg.content)) return item
+
+        const contentConverted = await Promise.all(
+          msg.content.map(async (part: any) => {
+            if (part && part.type === 'input_image' && typeof part.image === 'string') {
+              const url = part.image.trim()
+              if (/^data:image\/[a-zA-Z\-+]+;base64,/i.test(url)) {
+                return part
+              }
+              if (/^https?:\/\//i.test(url)) {
+                try {
+                  logger.info(`[Vision Optimizer] Downloading image for Base64 injection: ${url}`)
+                  const res = await fetch(url)
+                  if (res.ok) {
+                    const contentType = res.headers.get('content-type') || 'image/jpeg'
+                    const buffer = await res.arrayBuffer()
+                    const base64Data = Buffer.from(buffer).toString('base64')
+                    return {
+                      ...part,
+                      image: `data:${contentType};base64,${base64Data}`
+                    }
+                  } else {
+                    logger.warn(`[Vision Optimizer] Failed to fetch image ${url}, status: ${res.status}. Fallback to original URL.`)
+                  }
+                } catch (e: any) {
+                  logger.error(`[Vision Optimizer] Error fetching image ${url}: ${e.message}`)
+                }
+              }
+            }
+            return part
+          })
+        )
+
+        return {
+          ...msg,
+          content: contentConverted
+        } as AgentInputItem
+      })
+    )
+    return converted
+  } catch (e: any) {
+    logger.error(`[Vision Optimizer] Error converting images to Base64: ${e.message}`)
+    return input
   }
 }
 

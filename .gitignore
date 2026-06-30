@@ -447,3 +447,4 @@ services/agent-service/.persisted-workspaces/
 
 # Temporary root-level debug scripts in agent-service (not real tests)
 services/agent-service/test-*.ts
+

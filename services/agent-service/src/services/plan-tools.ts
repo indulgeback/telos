@@ -189,8 +189,8 @@ export function buildCreatePlanTool(onPlanCreated?: (plan: StructuredPlan) => vo
           description: z.string().describe('这一步具体要做什么'),
           tool_hint: z
             .string()
-            .optional()
-            .describe('预计会用到哪些工具（可选，如 search_memory, calculator）'),
+            .nullable()
+            .describe('预计会用到哪些工具（必须为 string 或 null，如 search_memory, calculator）'),
         })
       ).describe('按顺序排列的执行步骤'),
     }),
@@ -226,12 +226,12 @@ export function buildUpdatePlanStatusTool(
       status: z
         .enum(['in_progress', 'completed', 'skipped', 'failed'])
         .describe(
-          'in_progress=开始执行这一步, completed=这一步已完成, skipped=跳过这一步, failed=这一步失败'
+            'in_progress=开始执行这一步, completed=这一步已完成, skipped=跳过这一步, failed=这一步失败'
         ),
       note: z
         .string()
-        .optional()
-        .describe('可选说明（如失败原因、完成结果摘要）'),
+        .nullable()
+        .describe('可选说明（必须为 string 或 null，如失败原因、完成结果摘要）'),
     }),
     strict: true,
     async execute(input: unknown) {

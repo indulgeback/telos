@@ -84,6 +84,42 @@ export function decideMemoryRecall(query: string, turnIndex: number): { shouldRe
   return { shouldRecall: true, reason: 'default_recall' }
 }
 
+function segmentChinese(text: string): string[] {
+  const cleaned = text.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, ' ').trim()
+  const blocks = cleaned.split(/\s+/)
+  const tokens: string[] = []
+
+  const stopwords = new Set([
+    '用户', '喜欢', '需要', '想要', '觉得', '喜欢吃', '喜欢喝', '最喜欢', '也是', 
+    '常常', '总是', '我们', '你们', '他们', '这个', '那个', '这些', '那些', '非常', 
+    '特别', '比较', '感觉', '可以', '可能', '应该', '已经', '自己', '什么', '因为', 
+    '所以', '如果', '但是', '然后'
+  ])
+
+  for (const block of blocks) {
+    if (/^[a-zA-Z0-9]+$/.test(block)) {
+      if (block.length >= 2) {
+        tokens.push(block.toLowerCase())
+      }
+    } else {
+      // 中文滑动分词
+      for (let i = 0; i < block.length - 1; i++) {
+        const bi = block.slice(i, i + 2)
+        if (bi.length === 2 && !stopwords.has(bi)) {
+          tokens.push(bi)
+        }
+        if (i < block.length - 2) {
+          const tri = block.slice(i, i + 3)
+          if (tri.length === 3 && !stopwords.has(tri)) {
+            tokens.push(tri)
+          }
+        }
+      }
+    }
+  }
+  return Array.from(new Set(tokens))
+}
+
 /**
  * 检索关联该 Agent 和该用户的相似长期记忆
  * 升级为向量检索（Dense）与文本模糊检索（Sparse）的双通路检索系统，并通过 RRF (倒数排名融合) 机制融合，并应用时间衰减打分。
@@ -98,6 +134,21 @@ export async function retrieveMemories(
 ): Promise<string[]> {
   if (!ownerId || !query || query.trim() === '') {
     return []
+  }
+
+  const calculateElasticDecay = (category: string, deltaDays: number): number => {
+    let lambda = 0.005 // 默认 138 天半衰期
+    let minDecay = 0.5 // 默认保底
+
+    if (category === 'persona') {
+      lambda = 0.0 // 人设与偏好永不衰减
+      minDecay = 1.0
+    } else if (category === 'temporary_context') {
+      lambda = 0.23 // 临时状态快速衰减（半衰期约 3 天）
+      minDecay = 0.1
+    }
+
+    return minDecay + (1 - minDecay) * Math.exp(-lambda * deltaDays)
   }
 
   // 触发决策器逻辑
@@ -116,7 +167,7 @@ export async function retrieveMemories(
     // ----------------------------------------------------
     // 1. 向量通路 (Dense Path)
     // ----------------------------------------------------
-    let vectorResults: Array<{ content: string; distance: number; updatedAt: Date }> = []
+    let vectorResults: Array<{ content: string; category: string; distance: number; updatedAt: Date }> = []
 
     try {
       const embedding = await generateEmbedding(query)
@@ -135,13 +186,13 @@ export async function retrieveMemories(
       // 向量查询扩大召回至 15 条
       const vectorLimitIndex = sqlParams.length + 1
       const vectorQuery = `
-        SELECT content, updated_at as "updatedAt", embedding <=> $3::vector AS distance
+        SELECT content, category, updated_at as "updatedAt", embedding <=> $3::vector AS distance
         FROM agent_memories
         WHERE agent_id = $1 AND owner_id = $2 AND embedding IS NOT NULL ${categoryFilterSql}
         ORDER BY embedding <=> $3::vector ASC
         LIMIT $${vectorLimitIndex}
       `
-      vectorResults = await prisma.$queryRawUnsafe<Array<{ content: string; distance: number; updatedAt: Date }>>(
+      vectorResults = await prisma.$queryRawUnsafe<Array<{ content: string; category: string; distance: number; updatedAt: Date }>>(
         vectorQuery,
         ...sqlParams,
         15
@@ -157,13 +208,13 @@ export async function retrieveMemories(
     }
 
 
-    // 应用时间衰减算法（半衰期约 138 天，\lambda = 0.005，保底 0.5 衰减率）
+    // 应用时间弹性衰减算法
     const now = Date.now()
     const vectorRanked = vectorResults.map(item => {
       const similarity = 1 - item.distance
       const updatedAt = new Date(item.updatedAt)
       const deltaDays = (now - updatedAt.getTime()) / (1000 * 3600 * 24)
-      const decayFactor = 0.5 + 0.5 * Math.exp(-0.005 * deltaDays)
+      const decayFactor = calculateElasticDecay(item.category, deltaDays)
       const score = similarity * decayFactor
       return { content: item.content, score }
     })
@@ -176,14 +227,10 @@ export async function retrieveMemories(
     // ----------------------------------------------------
     // 2. 文本通路 (Sparse Path)
     // ----------------------------------------------------
-    // 提取中文多关键字：对 query 进行常见分隔符切分并过滤低权重词
-    const stopwords = new Set(['用户', '喜欢', '需要', '想要', '觉得', '喜欢吃', '喜欢喝', '最喜欢', '也是', '常常', '总是', '的', '了', '和', '与', '在'])
-    const keywords = query
-      .split(/[\s,，.。!！?？;；、]/)
-      .map(k => k.trim())
-      .filter(k => k.length >= 2 && !stopwords.has(k)) // 仅保留长度大于等于 2 且非停用词
+    // 使用 N-gram 滑动分词器提取中文多关键字，修复无标点长句检索退化问题
+    const keywords = segmentChinese(query)
 
-    let textResults: Array<{ content: string; updatedAt: Date }> = []
+    let textResults: Array<{ content: string; category: string; updatedAt: Date }> = []
 
     if (keywords.length > 0) {
       const textSqlParams: any[] = [agentId, ownerId]
@@ -203,13 +250,13 @@ export async function retrieveMemories(
 
       const textLimitIndex = textSqlParams.length + 1
       const textQuery = `
-        SELECT content, updated_at as "updatedAt"
+        SELECT content, category, updated_at as "updatedAt"
         FROM agent_memories
         WHERE agent_id = $1 AND owner_id = $2 ${textCategoryFilterSql}
           AND (${filterConditions.join(' OR ')})
         LIMIT $${textLimitIndex}
       `
-      textResults = await prisma.$queryRawUnsafe<Array<{ content: string; updatedAt: Date }>>(
+      textResults = await prisma.$queryRawUnsafe<Array<{ content: string; category: string; updatedAt: Date }>>(
         textQuery,
         ...textSqlParams,
         15
@@ -220,7 +267,7 @@ export async function retrieveMemories(
     const textRankedFiltered = textResults.map(item => {
       const updatedAt = new Date(item.updatedAt)
       const deltaDays = (now - updatedAt.getTime()) / (1000 * 3600 * 24)
-      const decayFactor = 0.5 + 0.5 * Math.exp(-0.005 * deltaDays)
+      const decayFactor = calculateElasticDecay(item.category, deltaDays)
       const score = 1.0 * decayFactor // 文本关键字完全命中的高度相关性
       return { content: item.content, score }
     }).sort((a, b) => b.score - a.score)

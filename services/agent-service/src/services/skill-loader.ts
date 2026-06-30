@@ -116,7 +116,7 @@ export function buildSkillLoaderTool(
     parameters: z.object({
       name: z.string().describe('要激活的技能名称'),
     }),
-    strict: false,
+    strict: true,
     async execute({ name }: { name: string }) {
       await persistence?.event('tool_skill_start', { skillName: name })
 

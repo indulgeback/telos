@@ -32,9 +32,9 @@ export function AppRail() {
       <div className='flex h-16 items-center justify-center'>
         <Link
           href='/'
-          className='rounded-md bg-background/70 p-2 shadow-sm ring-1 ring-border/50 transition-colors hover:bg-background'
+          className='flex items-center justify-center transition-opacity hover:opacity-80'
         >
-          <TelosMark className='size-7' />
+          <TelosMark className='size-8' />
         </Link>
       </div>
 

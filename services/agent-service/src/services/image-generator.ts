@@ -76,7 +76,8 @@ function mapAspectRatioToShortApiSize(ratio?: string): string {
 async function executeShortApiGenerate(
   prompt: string,
   aspectRatio: string | undefined,
-  threadId: string
+  threadId: string,
+  inputImageUrl?: string
 ): Promise<{ imageUrl: string; modelUsed: string }> {
   const apiKey = config.shortapiApiKey
   if (!apiKey) {
@@ -85,6 +86,22 @@ async function executeShortApiGenerate(
 
   const size = mapAspectRatioToShortApiSize(aspectRatio)
 
+  // 根据是否提供输入图片决定使用 text-to-image 还是 edit 模型
+  const isImg2Img = !!inputImageUrl
+  const modelPath = isImg2Img
+    ? 'openai/gpt-image-2/edit'
+    : 'openai/gpt-image-2/text-to-image'
+
+  const args: Record<string, unknown> = {
+    prompt,
+    size,
+  }
+
+  // 图生图模式：将输入图片作为编辑源传入
+  if (isImg2Img && inputImageUrl) {
+    args.image = inputImageUrl
+  }
+
   // 1. Create Job
   const createRes = await fetch('https://api.shortapi.ai/api/v1/job/create', {
     method: 'POST',
@@ -92,13 +109,7 @@ async function executeShortApiGenerate(
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      model: 'openai/gpt-image-2/text-to-image',
-      args: {
-        prompt: prompt,
-        size: size
-      }
-    })
+    body: JSON.stringify({ model: modelPath, args })
   })
 
   if (!createRes.ok) {
@@ -142,7 +153,7 @@ async function executeShortApiGenerate(
         const imgUrl = images[0].url
         const base64Data = await fetchImageAsBase64(imgUrl)
         const imageUrl = await uploadToCDN(base64Data, 'image/png', threadId)
-        return { imageUrl, modelUsed: 'openai/gpt-image-2' }
+        return { imageUrl, modelUsed: isImg2Img ? 'openai/gpt-image-2/edit' : 'openai/gpt-image-2' }
       }
       throw new Error('No images found in successful ShortAPI result.')
     }
@@ -159,10 +170,28 @@ async function executeGeminiApiGenerate(
   client: GoogleGenAI,
   model: string,
   prompt: string,
-  referenceImageUrls?: string[]
+  referenceImageUrls?: string[],
+  inputImageUrl?: string
 ): Promise<string> {
-  const contentParts: any[] = [{ text: prompt }]
+  const contentParts: any[] = []
 
+  // 图生图模式：输入图片作为首要编辑对象放在 prompt 之前
+  if (inputImageUrl) {
+    const inputBase64 = await fetchImageAsBase64(inputImageUrl)
+    contentParts.push({
+      inlineData: {
+        mimeType: 'image/jpeg',
+        data: inputBase64
+      }
+    })
+    contentParts.push({
+      text: `Edit or transform this image based on the following instructions: ${prompt}`
+    })
+  } else {
+    contentParts.push({ text: prompt })
+  }
+
+  // 风格参考图（无论文生图还是图生图均可附加）
   if (referenceImageUrls?.length) {
     for (const url of referenceImageUrls.slice(0, 4)) {
       const base64Data = await fetchImageAsBase64(url)
@@ -173,7 +202,11 @@ async function executeGeminiApiGenerate(
         }
       })
     }
-    contentParts[0].text += ' Use the provided reference images for style guidance.'
+    // 找到 text part 并追加风格参考提示
+    const textPart = contentParts.find(p => p.text)
+    if (textPart) {
+      textPart.text += ' Use the provided reference images for style guidance.'
+    }
   }
 
   const response = await client.models.generateContent({
@@ -227,6 +260,8 @@ interface GenerateImageInput {
   reference_image_urls?: string[]
   negative_prompt?: string
   model?: 'gemini' | 'gpt-image-2'
+  /** 图生图模式：提供输入图片 URL，模型将基于此图 + prompt 生成变换后的新图 */
+  input_image_url?: string
 }
 
 interface GenerateImageOutput {
@@ -256,7 +291,9 @@ export async function executeGenerateImage(
         input.style_preset || 'photo_realistic',
         input.negative_prompt
       )
-      const { imageUrl, modelUsed } = await executeShortApiGenerate(enhancedPrompt, input.aspect_ratio, threadId)
+      const { imageUrl, modelUsed } = await executeShortApiGenerate(
+        enhancedPrompt, input.aspect_ratio, threadId, input.input_image_url
+      )
       return {
         success: true,
         image_url: imageUrl,
@@ -295,7 +332,9 @@ export async function executeGenerateImage(
   if (geminiApiKey) {
     try {
       const client = new GoogleGenAI({ apiKey: geminiApiKey })
-      const base64Data = await executeGeminiApiGenerate(client, MODEL, enhancedPrompt, input.reference_image_urls)
+      const base64Data = await executeGeminiApiGenerate(
+        client, MODEL, enhancedPrompt, input.reference_image_urls, input.input_image_url
+      )
       const imageUrl = await uploadToCDN(base64Data, 'image/png', threadId)
       return {
         success: true,
@@ -342,7 +381,9 @@ export async function executeGenerateImage(
   // Try 3: ShortAPI Fallback Mode (GPT Image 2)
   if (config.shortapiApiKey) {
     try {
-      const { imageUrl, modelUsed } = await executeShortApiGenerate(enhancedPrompt, input.aspect_ratio, threadId)
+      const { imageUrl, modelUsed } = await executeShortApiGenerate(
+        enhancedPrompt, input.aspect_ratio, threadId, input.input_image_url
+      )
       return {
         success: true,
         image_url: imageUrl,

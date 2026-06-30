@@ -2648,6 +2648,10 @@ export function ChatView() {
     setIsDeletingThread(true)
     try {
       await agentService.deleteThread(threadToDelete.id)
+
+      // 接口返回成功后，在本地状态中过滤掉被删除的会话
+      setThreads(prev => prev.filter(t => t.id !== threadToDelete.id))
+
       if (threadToDelete.id === currentThreadId) {
         setCurrentThreadId(null)
         setMessages([])
@@ -2859,7 +2863,7 @@ export function ChatView() {
             </label>
           </div>
           <div className='min-h-0 flex-1 overflow-y-auto p-2'>
-            {threadsLoading ? (
+            {threadsLoading && threads.length === 0 ? (
               <div className='space-y-2.5 px-2 py-3 animate-pulse'>
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className='h-9 w-full rounded-md bg-muted/40' />

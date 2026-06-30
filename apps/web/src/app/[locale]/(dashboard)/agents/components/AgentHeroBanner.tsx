@@ -36,7 +36,7 @@ export function AgentHeroBanner({ onCreate }: AgentHeroBannerProps) {
         )}
       />
 
-      <div className='absolute inset-0 flex items-center'>
+      <div className='absolute inset-0 flex items-end pb-8 md:pb-12'>
         <div className='max-w-xl px-6 md:px-8'>
           <h1
             className={cn(

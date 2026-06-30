@@ -4,7 +4,7 @@ import {
   PenLine,
   Code2,
   Zap,
-  Database,
+  Briefcase,
   Languages,
   Sparkles,
   type LucideIcon,
@@ -42,8 +42,8 @@ export const SKILL_CATEGORIES: SkillCategory[] = [
     iconColor: 'text-violet-600 dark:text-violet-400',
   },
   {
-    id: 'data',
-    icon: Database,
+    id: 'office',
+    icon: Briefcase,
     iconColor: 'text-sky-600 dark:text-sky-400',
   },
   {
@@ -51,21 +51,20 @@ export const SKILL_CATEGORIES: SkillCategory[] = [
     icon: Languages,
     iconColor: 'text-rose-600 dark:text-rose-400',
   },
-  {
-    id: 'all',
-    icon: Sparkles,
-    iconColor: 'text-neutral-700 dark:text-neutral-300',
-  },
 ]
+
+const DEFAULT_CATEGORY: SkillCategory = {
+  id: 'all',
+  icon: Sparkles,
+  iconColor: 'text-neutral-700 dark:text-neutral-300',
+}
 
 /**
  * 根据分类 id 获取其元数据;未命中时回退到 all 的中性样式,
  * 这样即使技能写了未定义的 category 也不会渲染异常。
  */
 export function getCategoryMeta(id: string | undefined): SkillCategory {
-  if (!id) return SKILL_CATEGORIES[SKILL_CATEGORIES.length - 1]
-  return (
-    SKILL_CATEGORIES.find(c => c.id === id) ??
-    SKILL_CATEGORIES[SKILL_CATEGORIES.length - 1]
-  )
+  if (!id) return DEFAULT_CATEGORY
+  const targetId = id === 'data' ? 'office' : id
+  return SKILL_CATEGORIES.find(c => c.id === targetId) ?? DEFAULT_CATEGORY
 }

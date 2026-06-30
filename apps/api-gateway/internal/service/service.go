@@ -20,7 +20,7 @@ type ServiceDiscovery interface {
 	refreshAllServices()
 	FetchInstances(serviceName string) []string
 	ListInstances(serviceName string) []string
-	Discover(serviceName string) (string, error)
+	Discover(serviceName string, keys ...string) (string, error)
 	InvalidateCache(serviceName string)
 }
 
@@ -158,23 +158,21 @@ func (r *RegistryServiceDiscovery) ListInstances(serviceName string) []string {
 	return instances
 }
 
-func (r *RegistryServiceDiscovery) Discover(serviceName string) (string, error) {
+func (r *RegistryServiceDiscovery) Discover(serviceName string, keys ...string) (string, error) {
 	instances := r.ListInstances(serviceName)
 	if len(instances) == 0 {
 		return "", errors.New("无可用实例")
 	}
-	return r.LB.Select(serviceName, instances), nil
+	return r.LB.Select(serviceName, instances, keys...), nil
 }
 
 // LoadBalancer 负载均衡接口
-// Select 根据策略从实例列表中选择一个
-
+// Select 根据策略从实例列表中选择一个，支持可选的 Hash 键
 type LoadBalancer interface {
-	Select(serviceName string, instances []string) string
+	Select(serviceName string, instances []string, keys ...string) string
 }
 
 // RoundRobinLoadBalancer 轮询负载均衡实现
-
 type RoundRobinLoadBalancer struct {
 	mu    sync.Mutex
 	index map[string]int
@@ -186,7 +184,7 @@ func NewRoundRobinLoadBalancer() *RoundRobinLoadBalancer {
 	}
 }
 
-func (r *RoundRobinLoadBalancer) Select(serviceName string, instances []string) string {
+func (r *RoundRobinLoadBalancer) Select(serviceName string, instances []string, keys ...string) string {
 	if len(instances) == 0 {
 		return ""
 	}
@@ -197,4 +195,38 @@ func (r *RoundRobinLoadBalancer) Select(serviceName string, instances []string) 
 	selected := instances[idx%len(instances)]
 	r.index[key] = (idx + 1) % len(instances)
 	return selected
+}
+
+// ConsistentHashLoadBalancer 一致性哈希负载均衡实现
+type ConsistentHashLoadBalancer struct {
+	rr *RoundRobinLoadBalancer
+}
+
+func NewConsistentHashLoadBalancer() *ConsistentHashLoadBalancer {
+	return &ConsistentHashLoadBalancer{
+		rr: NewRoundRobinLoadBalancer(),
+	}
+}
+
+func fnvHash(key string) uint32 {
+	var hash uint32 = 2166136261
+	for i := 0; i < len(key); i++ {
+		hash = hash ^ uint32(key[i])
+		hash = hash * 16777619
+	}
+	return hash
+}
+
+func (c *ConsistentHashLoadBalancer) Select(serviceName string, instances []string, keys ...string) string {
+	if len(instances) == 0 {
+		return ""
+	}
+	if len(keys) == 0 || keys[0] == "" {
+		return c.rr.Select(serviceName, instances)
+	}
+
+	hashKey := keys[0]
+	h := fnvHash(hashKey)
+	idx := int(h % uint32(len(instances)))
+	return instances[idx]
 }

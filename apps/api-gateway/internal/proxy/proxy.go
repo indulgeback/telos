@@ -103,7 +103,8 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 	}
 
 	// 2. 服务发现
-	target, err := pm.discovery.Discover(route.ServiceName)
+	hashKey := extractHashKey(c.Request())
+	target, err := pm.discovery.Discover(route.ServiceName, hashKey)
 	if err != nil {
 		tlog.Error("服务发现失败", "service", route.ServiceName, "error", err)
 		return echo.NewHTTPError(http.StatusServiceUnavailable, fmt.Sprintf("服务 %s 不可用", route.ServiceName))
@@ -239,7 +240,8 @@ func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	tlog.Debug("路由匹配成功", "path", r.URL.Path, "service", route.ServiceName, "strip_prefix", route.StripPrefix)
 
 	// 发现服务实例
-	target, err := pm.discovery.Discover(route.ServiceName)
+	hashKey := extractHashKey(r)
+	target, err := pm.discovery.Discover(route.ServiceName, hashKey)
 	if err != nil {
 		tlog.Error("服务发现失败", "service", route.ServiceName, "error", err)
 		writeErrorResponse(w, fmt.Sprintf("服务 %s 不可用: %v", route.ServiceName, err), http.StatusServiceUnavailable)
@@ -474,4 +476,23 @@ func getScheme(r *http.Request) string {
 		return scheme
 	}
 	return "http"
+}
+
+func extractHashKey(r *http.Request) string {
+	if val := r.URL.Query().Get("threadId"); val != "" {
+		return val
+	}
+	if val := r.URL.Query().Get("thread_id"); val != "" {
+		return val
+	}
+	if val := r.Header.Get("X-Thread-ID"); val != "" {
+		return val
+	}
+	if val := r.Header.Get("X-Thread-Id"); val != "" {
+		return val
+	}
+	if val := r.Header.Get("X-User-ID"); val != "" {
+		return val
+	}
+	return ""
 }

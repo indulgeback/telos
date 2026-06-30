@@ -24,7 +24,7 @@ interface SkillStoreProps {
 }
 
 // 分类状态:'all' = 不筛选,其余对应 metadata.category
-type Category = 'all' | 'writing' | 'coding' | 'productivity' | 'data'
+type Category = 'all' | 'writing' | 'coding' | 'productivity' | 'office'
 
 export function SkillStore({ installedNames, onInstalled }: SkillStoreProps) {
   const t = useTranslations('Skill')

@@ -44,7 +44,7 @@ func main() {
 	tlog.Info("API网关启动中...")
 
 	// 初始化服务发现和负载均衡
-	lb := service.NewRoundRobinLoadBalancer()
+	lb := service.NewConsistentHashLoadBalancer()
 	discovery := service.NewRegistryServiceDiscovery(cfg.RegistryServiceURL, lb)
 
 	authenticator := gatewayauth.NewAuthenticator(gatewayauth.Config{

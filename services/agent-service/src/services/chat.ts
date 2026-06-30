@@ -7,8 +7,6 @@ import {
   ToolMessage,
 } from '@langchain/core/messages'
 import { DynamicTool } from '@langchain/core/tools'
-import { toBaseMessages } from '@ai-sdk/langchain'
-import { createUIMessageStream, type UIMessageChunk } from 'ai'
 import { logger, config } from '../config/index.js'
 import { prisma } from './db.js'
 import {
@@ -89,75 +87,48 @@ const DEFAULT_CHAT_MODELS = [
     supportReasoningControl: false,
   },
   {
-    modelKey: 'doubao-seed-2-0-lite-260215',
-    displayName: 'Doubao Seed 2.0 Lite',
+    modelKey: 'doubao-seed-2-1-turbo-260628',
+    displayName: 'Doubao Seed 2.1 Turbo',
     provider: 'seed',
     isReasoning: true,
     sortOrder: 30,
-    supportVision: false,
+    supportVision: true,
     supportReasoningControl: true,
   },
   {
-    modelKey: 'doubao-seed-2-0-pro-260215',
-    displayName: 'Doubao Seed 2.0 Pro',
+    modelKey: 'doubao-seed-2-1-pro-260628',
+    displayName: 'Doubao Seed 2.1 Pro',
     provider: 'seed',
     isReasoning: true,
     sortOrder: 40,
-    supportVision: false,
+    supportVision: true,
     supportReasoningControl: true,
   },
   {
-    modelKey: 'doubao-seed-2-0-mini-260215',
-    displayName: 'Doubao Seed 2.0 Mini',
+    modelKey: 'doubao-seed-evolving-latest-version',
+    displayName: 'Doubao Seed Evolving',
     provider: 'seed',
     isReasoning: true,
     sortOrder: 50,
-    supportVision: false,
+    supportVision: true,
     supportReasoningControl: true,
   },
   {
-    modelKey: 'doubao-seed-character-251128',
-    displayName: 'Doubao Seed Character',
-    provider: 'seed',
-    isReasoning: true,
-    sortOrder: 55,
-    supportVision: false,
-    supportReasoningControl: true,
-  },
-  {
-    modelKey: 'glm-4-7-251222',
-    displayName: 'GLM-4.7',
-    provider: 'seed',
-    isReasoning: true,
-    sortOrder: 60,
-    supportVision: false,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'qwen3.5-plus',
-    displayName: 'Qwen 3.5 Plus',
+    modelKey: 'qwen3.7-plus',
+    displayName: 'Qwen 3.7 Plus',
     provider: 'bailian',
     isReasoning: true,
     sortOrder: 70,
-    supportVision: false,
+    supportVision: true,
     supportReasoningControl: false,
   },
   {
-    modelKey: 'qwen3.5-flash',
-    displayName: 'Qwen 3.5 Flash',
-    provider: 'bailian',
-    isReasoning: true,
-    sortOrder: 71,
-    supportVision: false,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'qwen3-max',
-    displayName: 'Qwen 3 Max',
+    modelKey: 'qwen3.7-max',
+    displayName: 'Qwen 3.7 Max',
     provider: 'bailian',
     isReasoning: true,
     sortOrder: 72,
-    supportVision: false,
+    supportVision: true,
     supportReasoningControl: false,
   },
 ] as const
@@ -578,445 +549,6 @@ function extractReasoningFromRawResponse(raw: unknown): string {
   return values.join('')
 }
 
-export interface ParsedChatInput {
-  inputMessages: BaseMessage[]
-  lastMessageText: string
-  selectedModel: string
-  reasoningEffort: ReasoningEffort
-  imageCount: number
-}
-
-const IMAGE_PLACEHOLDER_PROMPT = '请描述这张图片'
-
-function normalizeImageUrls(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
-
-  return raw
-    .map(item => (typeof item === 'string' ? item.trim() : ''))
-    .filter(Boolean)
-    .filter(
-      url =>
-        /^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url)
-    )
-    .map(url =>
-      url.startsWith('http://') ? url.replace(/^http:\/\//i, 'https://') : url
-    )
-    .slice(0, 3)
-}
-
-function withLastUserImageMessage(
-  inputMessages: BaseMessage[],
-  text: string,
-  imageUrls: string[]
-): BaseMessage[] {
-  if (!imageUrls.length) return inputMessages
-
-  const nextMessages = [...inputMessages]
-  const content = [
-    {
-      type: 'text',
-      text: text.trim() || IMAGE_PLACEHOLDER_PROMPT,
-    },
-    ...imageUrls.map(url => ({
-      type: 'image_url' as const,
-      // Keep image_url as string for broader OpenAI-compatible provider support.
-      image_url: url,
-    })),
-  ]
-  const lastUserIndex = [...nextMessages]
-    .reverse()
-    .findIndex(message => message instanceof HumanMessage)
-
-  const multimodalMessage = new HumanMessage({ content })
-
-  if (lastUserIndex < 0) {
-    nextMessages.push(multimodalMessage)
-    return nextMessages
-  }
-
-  const targetIndex = nextMessages.length - 1 - lastUserIndex
-  nextMessages[targetIndex] = multimodalMessage
-  return nextMessages
-}
-
-export async function parseChatInput(
-  body: unknown
-): Promise<ParsedChatInput | null> {
-  const payload = (body ?? {}) as {
-    messages?: unknown[]
-    message?: unknown
-    model?: unknown
-    reasoningEffort?: unknown
-    reasoning_effort?: unknown
-    images?: unknown
-  }
-  const hasUiMessages =
-    Array.isArray(payload.messages) && payload.messages.length > 0
-
-  const fallbackMessage = hasUiMessages
-    ? ([...payload.messages!]
-        .reverse()
-        .find(
-          raw =>
-            raw &&
-            typeof raw === 'object' &&
-            (raw as { role?: string }).role === 'user'
-        ) ?? payload.messages![payload.messages!.length - 1])
-    : undefined
-
-  const candidate = payload.message ?? fallbackMessage
-  const imageUrls = normalizeImageUrls(payload.images)
-  let lastMessageText = extractTextFromMessage(candidate).trim()
-  if (!lastMessageText && imageUrls.length > 0) {
-    lastMessageText = IMAGE_PLACEHOLDER_PROMPT
-  }
-
-  if (!candidate || !lastMessageText) return null
-
-  const baseMessages = hasUiMessages
-    ? await toBaseMessages(payload.messages as any)
-    : [new HumanMessage(lastMessageText)]
-  const inputMessages = withLastUserImageMessage(
-    baseMessages as BaseMessage[],
-    lastMessageText,
-    imageUrls
-  )
-
-  const selectedModel =
-    typeof payload.model === 'string' ? payload.model.trim() : ''
-  const reasoningEffortRaw = payload.reasoningEffort ?? payload.reasoning_effort
-  const reasoningEffort =
-    typeof reasoningEffortRaw === 'string' &&
-    REASONING_EFFORT_VALUES.includes(reasoningEffortRaw as ReasoningEffort)
-      ? (reasoningEffortRaw as ReasoningEffort)
-      : 'medium'
-
-  return {
-    inputMessages: inputMessages as BaseMessage[],
-    lastMessageText,
-    selectedModel,
-    reasoningEffort,
-    imageCount: imageUrls.length,
-  }
-}
-
-export async function runChatWithBuiltInTools(
-  inputMessages: BaseMessage[],
-  selectedModel: string,
-  reasoningEffort: ReasoningEffort,
-  options?: {
-    hasImages?: boolean
-  }
-): Promise<ReadableStream<UIMessageChunk>> {
-  const tools = createBuiltinTools()
-  const modelRuntime = await createModel(selectedModel, reasoningEffort)
-  const hasImages = options?.hasImages === true
-  // Some OpenAI-compatible vision endpoints reject tool schema in the same turn.
-  // For image turns, run direct model stream without binding tools.
-  const model = hasImages
-    ? modelRuntime.model
-    : modelRuntime.model.bindTools(tools)
-  const toolMap = new Map(tools.map(tool => [tool.name, tool]))
-  const createPartId = (prefix: string) =>
-    `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-
-  const extractTextFromChunk = (chunk: AIMessageChunk) => {
-    if (typeof chunk.content === 'string') return chunk.content
-    if (!Array.isArray(chunk.content)) return ''
-
-    return chunk.content
-      .filter(
-        part =>
-          part &&
-          typeof part === 'object' &&
-          'type' in part &&
-          part.type === 'text' &&
-          typeof (part as { text?: unknown }).text === 'string'
-      )
-      .map(part => (part as { text: string }).text)
-      .join('')
-  }
-
-  const extractReasoningFromChunk = (chunk: AIMessageChunk) => {
-    const values: string[] = []
-
-    const tryPush = (value: unknown) => {
-      if (typeof value === 'string' && value.trim()) {
-        if (!values.includes(value)) {
-          values.push(value)
-        }
-      }
-    }
-
-    if (typeof chunk.content === 'string') {
-      const thinkText = extractThinkText(chunk.content)
-      tryPush(thinkText)
-    }
-
-    if (Array.isArray(chunk.content)) {
-      chunk.content.forEach(part => {
-        if (!part || typeof part !== 'object') return
-        const typedPart = part as {
-          type?: string
-          text?: unknown
-          reasoning?: unknown
-        }
-        if (
-          (typedPart.type === 'reasoning' || typedPart.type === 'thinking') &&
-          typeof typedPart.text === 'string'
-        ) {
-          values.push(typedPart.text)
-        }
-        tryPush(typedPart.reasoning)
-      })
-    }
-
-    const contentBlocks = (chunk as { contentBlocks?: unknown }).contentBlocks
-    if (Array.isArray(contentBlocks)) {
-      contentBlocks.forEach(block => {
-        if (!block || typeof block !== 'object') return
-        const typedBlock = block as {
-          type?: string
-          text?: unknown
-          reasoning?: unknown
-        }
-
-        if (
-          (typedBlock.type === 'reasoning' || typedBlock.type === 'thinking') &&
-          typeof typedBlock.text === 'string'
-        ) {
-          tryPush(typedBlock.text)
-        }
-
-        tryPush(typedBlock.reasoning)
-      })
-    }
-
-    const additional = chunk.additional_kwargs as Record<string, unknown>
-    const metadata = chunk.response_metadata as Record<string, unknown>
-
-    tryPush(additional.reasoning_content)
-    tryPush(additional.reasoning)
-    tryPush(additional.thinking)
-    tryPush(extractReasoningFromRawResponse(additional.__raw_response))
-    tryPush(metadata.reasoning_content)
-    tryPush(metadata.reasoning)
-    tryPush(metadata.thinking)
-
-    return values.join('')
-  }
-
-  const getIncrementalDelta = (raw: string, snapshot: string) => {
-    if (!raw) return { delta: '', nextSnapshot: snapshot }
-    if (raw.startsWith(snapshot)) {
-      return {
-        delta: raw.slice(snapshot.length),
-        nextSnapshot: raw,
-      }
-    }
-    return {
-      delta: raw,
-      nextSnapshot: `${snapshot}${raw}`,
-    }
-  }
-
-  return createUIMessageStream({
-    execute: async ({ writer }) => {
-      const conversation: BaseMessage[] = [...inputMessages]
-      const maxSteps = 6
-
-      for (let step = 0; step < maxSteps; step += 1) {
-        writer.write({ type: 'start-step' })
-
-        let finalChunk: AIMessageChunk | null = null
-        const stepStream = await model.stream(conversation)
-        const textPartId = createPartId(`text-${step}`)
-        const reasoningPartId = createPartId(`reasoning-${step}`)
-        let textStarted = false
-        let reasoningStarted = false
-        let reasoningSnapshot = ''
-
-        for await (const chunk of stepStream) {
-          finalChunk = finalChunk ? finalChunk.concat(chunk) : chunk
-          const text = extractTextFromChunk(chunk)
-          const reasoningRaw = extractReasoningFromChunk(chunk)
-          const reasoningDeltaResult = getIncrementalDelta(
-            reasoningRaw,
-            reasoningSnapshot
-          )
-          reasoningSnapshot = reasoningDeltaResult.nextSnapshot
-
-          if (reasoningDeltaResult.delta) {
-            if (!reasoningStarted) {
-              writer.write({ type: 'reasoning-start', id: reasoningPartId })
-              reasoningStarted = true
-            }
-            writer.write({
-              type: 'reasoning-delta',
-              id: reasoningPartId,
-              delta: reasoningDeltaResult.delta,
-            })
-          }
-
-          if (!text) continue
-
-          if (!textStarted) {
-            writer.write({ type: 'text-start', id: textPartId })
-            textStarted = true
-          }
-          writer.write({
-            type: 'text-delta',
-            id: textPartId,
-            delta: text,
-          })
-        }
-
-        if (textStarted) {
-          writer.write({ type: 'text-end', id: textPartId })
-        }
-        if (reasoningStarted) {
-          writer.write({ type: 'reasoning-end', id: reasoningPartId })
-        }
-
-        if (!finalChunk) {
-          writer.write({ type: 'finish-step' })
-          return
-        }
-
-        const toolCalls = Array.isArray(finalChunk.tool_calls)
-          ? finalChunk.tool_calls
-          : []
-
-        if (!toolCalls.length) {
-          writer.write({ type: 'finish-step' })
-          return
-        }
-
-        conversation.push(
-          new AIMessage({
-            content: finalChunk.content,
-            tool_calls: toolCalls,
-          })
-        )
-
-        for (let index = 0; index < toolCalls.length; index += 1) {
-          const call = toolCalls[index]!
-          const toolCallId = call.id ?? `${call.name}-${step}-${index}`
-          const normalizedInput = normalizeToolInput(call.args)
-
-          writer.write({
-            type: 'tool-input-start',
-            toolCallId,
-            toolName: call.name,
-            dynamic: true,
-          })
-
-          if (normalizedInput) {
-            writer.write({
-              type: 'tool-input-delta',
-              toolCallId,
-              inputTextDelta: normalizedInput,
-            })
-          }
-
-          writer.write({
-            type: 'tool-input-available',
-            toolCallId,
-            toolName: call.name,
-            input: call.args ?? normalizedInput,
-            dynamic: true,
-          })
-
-          const tool = toolMap.get(call.name)
-          if (!tool) {
-            const errorText = `工具 ${call.name} 不存在。`
-            writer.write({
-              type: 'tool-output-error',
-              toolCallId,
-              errorText,
-              dynamic: true,
-            })
-
-            conversation.push(
-              new ToolMessage({
-                tool_call_id: toolCallId,
-                content: errorText,
-              })
-            )
-            continue
-          }
-
-          logger.info({
-            msg: 'Tool called',
-            toolName: call.name,
-            step,
-            input: normalizedInput,
-          })
-
-          try {
-            const toolResult = await tool.invoke(normalizedInput)
-            const toolContent =
-              typeof toolResult === 'string'
-                ? toolResult
-                : JSON.stringify(toolResult)
-
-            writer.write({
-              type: 'tool-output-available',
-              toolCallId,
-              output: toolResult,
-              dynamic: true,
-            })
-
-            conversation.push(
-              new ToolMessage({
-                tool_call_id: toolCallId,
-                content: toolContent,
-              })
-            )
-          } catch (error) {
-            const errorText =
-              error instanceof Error ? error.message : '工具执行失败'
-
-            writer.write({
-              type: 'tool-output-error',
-              toolCallId,
-              errorText,
-              dynamic: true,
-            })
-
-            conversation.push(
-              new ToolMessage({
-                tool_call_id: toolCallId,
-                content: errorText,
-              })
-            )
-          }
-        }
-
-        writer.write({ type: 'finish-step' })
-      }
-
-      const fallbackTextId = createPartId('fallback')
-      writer.write({ type: 'start-step' })
-      writer.write({ type: 'text-start', id: fallbackTextId })
-      writer.write({
-        type: 'text-delta',
-        id: fallbackTextId,
-        delta:
-          '我尝试调用工具处理你的请求，但步骤超出上限。请换个问法再试一次。',
-      })
-      writer.write({ type: 'text-end', id: fallbackTextId })
-      writer.write({ type: 'finish-step' })
-    },
-    onError: error => {
-      logger.error({
-        msg: 'UI stream error',
-        err: error instanceof Error ? error.message : String(error),
-      })
-      return '聊天服务错误'
-    },
-  })
-}
 
 export async function generateAgentInstructions(
   description: string,

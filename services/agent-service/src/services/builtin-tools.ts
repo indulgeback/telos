@@ -3,12 +3,30 @@ import { logger } from '../config/index.js'
 import { asRecord } from '../utils/json.js'
 import { prisma } from './db.js'
 import type { AgentRunPersistence } from './persistence.js'
-import { executeCode } from './sandbox.js'
+import { executeCode, executeWorkspaceCommand } from './sandbox.js'
 import { retrieveMemories } from './memory.js'
 import { WorkspaceManager, virtualReaddir } from './workspace.js'
 import path from 'path'
 import fs from 'fs'
 import { executeGenerateImage } from './image-generator.js'
+
+export class PIISanitizer {
+  private static readonly SENSITIVE_PATTERNS = [
+    /(sk-[a-zA-Z0-9]{48})/gi,
+    /postgresql:\/\/([^:]+):([^@]+)@/gi,
+    /SecretKey=[a-zA-Z0-9]+/gi
+  ]
+
+  public static sanitize(text: string): string {
+    let cleaned = text
+    for (const pattern of this.SENSITIVE_PATTERNS) {
+      cleaned = cleaned.replace(pattern, (match) => {
+        return '*'.repeat(Math.min(match.length, 12)) + '[REDACTED]'
+      })
+    }
+    return cleaned
+  }
+}
 import { exec } from 'child_process'
 
 type BuiltinToolKey =
@@ -305,7 +323,10 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     name: 'generate_image',
     displayName: '生成图像',
     description:
-      '根据文本描述生成时尚/穿搭风格的图像（适用于穿搭效果图、氛围卡片、风格情绪板、OOTD插图）。支持通过参考图引导风格。生图成功后，你必须在最终回复中以 `![图片描述](图片直链URL)` 的 Markdown 格式将其直接渲染在聊天中，以便用户可以直接看到预览图，不要仅提供普通的超链接。',
+      '根据文本描述生成或编辑图像。支持两种模式：\n' +
+      '1. **文生图（Text-to-Image）**：仅提供 prompt，从文字描述生成全新图像。\n' +
+      '2. **图生图（Image-to-Image）**：提供 input_image_url + prompt，对已有图像进行风格迁移、局部编辑、换装、换背景等变换。\n' +
+      '生图成功后，你必须在最终回复中以 `![图片描述](图片直链URL)` 的 Markdown 格式将其直接渲染在聊天中，以便用户可以直接看到预览图，不要仅提供普通的超链接。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'generate_image' },
     parameters: {
@@ -314,7 +335,11 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
       properties: {
         prompt: {
           type: 'string',
-          description: '图像英文文本描述。详细说明服装、材质、风格、氛围、光线。',
+          description: '图像英文文本描述。文生图模式下详细说明服装、材质、风格、氛围、光线；图生图模式下描述希望对输入图像进行的变换或编辑指令。',
+        },
+        input_image_url: {
+          type: 'string',
+          description: '可选参数。提供一张输入图像的 URL 进入图生图模式。模型将基于此图像 + prompt 生成变换后的新图像。适用于风格迁移、换装、局部编辑、背景替换等场景。',
         },
         style_preset: {
           type: 'string',
@@ -332,7 +357,7 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
           type: 'array',
           items: { type: 'string' },
           maxItems: 4,
-          description: '可选参数。用于引导风格、颜色或构图的参考图 URL 数组。',
+          description: '可选参数。用于引导风格、颜色或构图的参考图 URL 数组（与 input_image_url 不同，参考图仅作风格参考而非编辑对象）。',
         },
         negative_prompt: {
           type: 'string',
@@ -989,6 +1014,8 @@ export function buildBuiltinTool(
             const style_preset = rawInput.style_preset ? String(rawInput.style_preset) : undefined
             const aspect_ratio = rawInput.aspect_ratio ? String(rawInput.aspect_ratio) : undefined
             const negative_prompt = rawInput.negative_prompt ? String(rawInput.negative_prompt) : undefined
+            const input_image_url = rawInput.input_image_url ? String(rawInput.input_image_url) : undefined
+            const model = rawInput.model ? String(rawInput.model) as 'gemini' | 'gpt-image-2' : undefined
             
             const reference_image_urls: string[] = []
             if (Array.isArray(rawInput.reference_image_urls)) {
@@ -1005,12 +1032,15 @@ export function buildBuiltinTool(
               aspect_ratio,
               reference_image_urls,
               negative_prompt,
+              input_image_url,
+              model,
             }, threadId)
 
+            const modeLabel = input_image_url ? '图生图' : '文生图'
             if (genResult.success) {
-              output = `图像生成成功！\n云存储图片直链 (可直接在浏览器中打开或向用户展示): ${genResult.image_url}\n\n【生成配置信息】\n- 所用提示词: ${genResult.metadata.prompt_used}\n- 图像比例: ${genResult.metadata.aspect_ratio}\n- 生成耗时: ${genResult.metadata.latency_ms} ms`
+              output = `${modeLabel}成功！\n云存储图片直链 (可直接在浏览器中打开或向用户展示): ${genResult.image_url}\n\n【生成配置信息】\n- 模式: ${modeLabel}\n- 所用提示词: ${genResult.metadata.prompt_used}\n- 图像比例: ${genResult.metadata.aspect_ratio}\n- 生成耗时: ${genResult.metadata.latency_ms} ms`
             } else {
-              output = `图像生成失败。错误信息: ${genResult.error}`
+              output = `${modeLabel}失败。错误信息: ${genResult.error}`
             }
           }
         }
