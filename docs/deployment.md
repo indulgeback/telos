@@ -196,28 +196,42 @@ docker system df
 
 ## 五、首次部署后:数据库初始化
 
-镜像首次启动时,需要执行 Prisma migration 把表结构建出来。**任选一种方式**:
+镜像首次启动时,需要执行 Prisma migration 把表结构建出来。
 
-### 方式 A:在 web 容器里跑(推荐,已有 prisma client)
+### 正确方式:用 agent-service 容器(web 容器是 standalone 不含 prisma CLI)
+
+⚠️ **重要**:web 容器是 Next.js standalone 构建,只含运行时代码,**没有 prisma CLI,也没有 schema.prisma**。
+必须用 agent-service 容器(它的 Dockerfile COPY 了 prisma 目录):
 
 ```bash
 cd /opt/telos
-docker compose -f docker-compose.prod.yml exec web npx prisma db push
-# 或如果有 migration 文件:
-# docker compose -f docker-compose.prod.yml exec web npx prisma migrate deploy
+
+# 1. 先确保 pgvector 扩展存在 (schema 依赖)
+docker compose -f docker-compose.prod.yml exec -T postgres \
+  psql -U telos -d telos -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+# 2. 从 .env 读数据库密码构造连接串
+PG_PWD=$(grep "^POSTGRES_PASSWORD=" .env | cut -d= -f2)
+DB_URL="postgresql://telos:${PG_PWD}@postgres:5432/telos?schema=public"
+
+# 3. 跑 prisma db push (必须显式传 --url, prisma 7 需要)
+docker compose -f docker-compose.prod.yml exec -T agent-service \
+  npx prisma db push \
+  --schema /app/prisma/schema.prisma \
+  --url "$DB_URL" \
+  --accept-data-loss
 ```
 
-### 方式 B:agent-service 里跑(若 schema 共享)
+成功输出:`🚀 Your database is now in sync with your Prisma schema.`
+
+### 验证表已建好
 
 ```bash
-docker compose -f docker-compose.prod.yml exec agent-service \
-  node node_modules/prisma/build/index.js db push
+docker compose -f docker-compose.prod.yml exec postgres \
+  psql -U telos -d telos -c "\dt"
 ```
 
-> ⚠️ 注意 `pgvector` 扩展需要在数据库中先创建。pgvector 镜像已内置,但若手工迁移:
-> ```sql
-> CREATE EXTENSION IF NOT EXISTS vector;
-> ```
+应看到 19 张表(user, session, account, agents, skills, agent_runs 等)。
 
 ---
 
