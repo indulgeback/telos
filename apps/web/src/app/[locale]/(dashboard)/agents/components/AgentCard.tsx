@@ -99,10 +99,7 @@ export function AgentCard({ agent, onUpdate }: AgentCardProps) {
   }
 
   const getTypeBadgeVariant = ():
-    | 'default'
-    | 'secondary'
-    | 'destructive'
-    | 'outline' => {
+    'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (agent.type) {
       case 'system':
         return 'default'

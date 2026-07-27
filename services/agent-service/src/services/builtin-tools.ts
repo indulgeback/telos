@@ -903,7 +903,7 @@ export function buildBuiltinTool(
             output = '错误：必须提供 command 参数。'
           } else {
             await WorkspaceManager.ensureAllFilesCached(threadId)
-            const localRoot = WorkspaceManager.getWorkspacePath(threadId)
+            const localRoot = WorkspaceManager.ensureWorkspaceDir(threadId)
             output = await new Promise<string>((resolve) => {
               exec(
                 command,

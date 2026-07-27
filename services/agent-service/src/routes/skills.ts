@@ -28,9 +28,18 @@ skillsRouter.get('/', async c => {
   }
   if (category && category !== 'all') {
     // 分类存在 metadata.category 里(Json 路径查询)
-    where.AND.push({
-      metadata: { path: ['category'], equals: category },
-    })
+    if (category === 'office') {
+      where.AND.push({
+        OR: [
+          { metadata: { path: ['category'], equals: 'office' } },
+          { metadata: { path: ['category'], equals: 'data' } },
+        ],
+      })
+    } else {
+      where.AND.push({
+        metadata: { path: ['category'], equals: category },
+      })
+    }
   }
 
   // sort: 'recent'(默认) | 'name' | 'popular'(暂按 createdAt 兜底,未来按 metadata.installs)

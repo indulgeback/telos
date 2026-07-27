@@ -34,7 +34,15 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navLinks: { href: string; label: string }[] = []
+  const navLinks: { href: string; label: string }[] = [
+    { href: '/#overview', label: 'Overview' },
+    { href: '/#use-cases', label: 'Use cases' },
+    { href: '/skills', label: 'Skills' },
+    { href: '/#prompts', label: 'Prompts' },
+    { href: '/#pricing', label: 'Pricing' },
+    { href: '/#blog', label: 'Blog' },
+    { href: '/#updates', label: 'Updates' },
+  ]
 
   return (
     <header className='fixed inset-x-0 top-0 z-40 px-3 pt-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]'>
@@ -57,7 +65,7 @@ export function Header() {
                   <NavigationMenuLink asChild>
                     <Link
                       href={link.href}
-                      className='hover:text-primary transition-colors duration-200'
+                      className='px-2 text-sm text-muted-foreground transition-colors duration-300 hover:text-foreground'
                     >
                       {link.label}
                     </Link>

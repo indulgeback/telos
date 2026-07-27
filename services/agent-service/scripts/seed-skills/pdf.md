@@ -10,6 +10,10 @@ license: Proprietary. LICENSE.txt has complete terms
 
 This guide covers essential PDF processing operations using Python libraries and command-line tools. For advanced features, JavaScript libraries, and detailed examples, see REFERENCE.md. If you need to fill out a PDF form, read FORMS.md and follow its instructions.
 
+## Execution Guidance
+
+For PDF creation tasks, prefer a single deterministic script that prepares data, creates charts/images, and writes the final PDF in one run. Avoid writing long scripts in many small chunks unless the environment rejects the write; chunked writes and repeated trial runs can exhaust agent turn budgets before the PDF is produced. If a command fails, inspect the error once, patch the existing script, and rerun it instead of restarting from scratch.
+
 ## Quick Start
 
 ```python

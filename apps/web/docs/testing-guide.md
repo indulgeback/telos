@@ -310,9 +310,7 @@ describe('功能模块', () => {
   describe('特定场景', () => {
     it('应该有预期行为', () => {
       // Arrange - 准备测试数据
-      const input = {
-        /* 测试数据 */
-      }
+      const input = {/* 测试数据 */}
 
       // Act - 执行被测试的功能
       const result = functionUnderTest(input)

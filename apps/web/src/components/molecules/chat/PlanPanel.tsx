@@ -12,11 +12,7 @@ import {
 import { Button } from '@/components/atoms'
 
 export type PlanStepStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'completed'
-  | 'skipped'
-  | 'failed'
+  'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
 
 export interface PlanPanelStep {
   description: string

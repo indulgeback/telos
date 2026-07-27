@@ -43,6 +43,7 @@ import {
   type Agent,
   type AgentMessage,
   type AgentThread,
+  type ClarifyPart,
 } from '@/service/agent'
 import {
   MessageSquare,
@@ -93,18 +94,14 @@ type AgentRunDataPart = {
 type ChatUiMessage = {
   id: string
   role: 'user' | 'assistant'
+  runId?: string | null
   parts?: unknown[]
   content?: string
   isVoiceTranscript?: boolean
 }
 type ChatStatus = 'ready' | 'submitted' | 'streaming'
 type RealtimeMicState =
-  | 'idle'
-  | 'connecting'
-  | 'reconnecting'
-  | 'listening'
-  | 'speaking'
-  | 'error'
+  'idle' | 'connecting' | 'reconnecting' | 'listening' | 'speaking' | 'error'
 type AgentStreamChunk = {
   type?: string
   id?: string
@@ -128,6 +125,7 @@ type AgentStreamChunk = {
   step_index?: number
   plan_step_status?: 'in_progress' | 'completed' | 'skipped' | 'failed'
   note?: string
+  sequence?: number
 }
 
 type RealtimeConfig = {
@@ -166,6 +164,7 @@ const messageToUiMessage = (message: AgentMessage) => {
   return {
     id: message.id,
     role: message.role === 'assistant' ? 'assistant' : 'user',
+    runId: message.run_id,
     content: message.content,
     isVoiceTranscript: hasLiveTranscriptMarker(persistedParts),
     parts:
@@ -585,11 +584,8 @@ const parsePlanPart = (
         (
           s
         ): s is
-          | 'pending'
-          | 'in_progress'
-          | 'completed'
-          | 'skipped'
-          | 'failed' => typeof s === 'string'
+          'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed' =>
+          typeof s === 'string'
       )
     : undefined
 
@@ -612,6 +608,42 @@ const parsePlanPart = (
     status,
     stepStatuses,
     text,
+  }
+}
+
+const parseClarifyPart = (
+  part: unknown
+): {
+  question: string
+  options: string[]
+  status: 'pending' | 'answered'
+  selectedOption?: string | null
+} | null => {
+  if (!part || typeof part !== 'object') return null
+  const raw = part as Record<string, unknown>
+  if (raw.type !== 'clarify') return null
+
+  const clarifyObj =
+    raw.clarify && typeof raw.clarify === 'object'
+      ? (raw.clarify as Record<string, unknown>)
+      : raw
+
+  const question =
+    typeof clarifyObj.question === 'string' ? clarifyObj.question : ''
+  const options = Array.isArray(clarifyObj.options)
+    ? clarifyObj.options.map(String)
+    : []
+  const status = clarifyObj.status === 'answered' ? 'answered' : 'pending'
+  const selectedOption =
+    typeof clarifyObj.selectedOption === 'string'
+      ? clarifyObj.selectedOption
+      : null
+
+  return {
+    question,
+    options,
+    status,
+    selectedOption,
   }
 }
 
@@ -695,6 +727,16 @@ const extractAssistantContentParts = (parts: unknown[]): ContentPartItem[] => {
       result.push({
         type: 'plan',
         plan,
+      })
+      return
+    }
+
+    const clarify = parseClarifyPart(part)
+    if (clarify) {
+      flushText()
+      result.push({
+        type: 'clarify',
+        clarify,
       })
       return
     }
@@ -851,6 +893,7 @@ export function ChatView() {
     null
   )
   const abortControllerRef = useRef<AbortController | null>(null)
+  const activeRunIdRef = useRef<string | null>(null)
   const realtimeSocketRef = useRef<WebSocket | null>(null)
   const realtimeStreamRef = useRef<MediaStream | null>(null)
   const realtimeAudioContextRef = useRef<AudioContext | null>(null)
@@ -1460,6 +1503,7 @@ export function ChatView() {
       abortControllerRef.current = controller
       setStatus('submitted')
       setActiveAssistantId(assistantId)
+      let runId: string | null = null
 
       try {
         const response = await fetch(`${API_BASE_URL}/api/agent`, {
@@ -1471,14 +1515,46 @@ export function ChatView() {
         })
 
         if (!response.ok) {
-          throw new Error(`Chat stream failed: ${response.status}`)
+          throw new Error(`Chat run failed: ${response.status}`)
         }
-        if (!response.body) {
-          throw new Error('Chat stream response is empty')
+        const payload = (await response.json()) as {
+          data?: { run_id?: string; thread_id?: string; status?: string }
+        }
+        runId = payload.data?.run_id || null
+        const threadId = payload.data?.thread_id || null
+        if (!runId) {
+          throw new Error('Chat run response is missing run_id')
+        }
+        activeRunIdRef.current = runId
+        setMessages(prev =>
+          prev.map(message =>
+            message.id === assistantId ? { ...message, runId } : message
+          )
+        )
+        if (threadId) {
+          const shouldRefreshThreads = currentThreadIdRef.current !== threadId
+          currentThreadIdRef.current = threadId
+          setCurrentThreadId(threadId)
+          if (shouldRefreshThreads) {
+            void loadThreads()
+          }
         }
 
+        const streamResponse = await fetch(
+          `${API_BASE_URL}/api/runs/${runId}/stream`,
+          {
+            credentials: 'include',
+            signal: controller.signal,
+          }
+        )
+        if (!streamResponse.ok) {
+          throw new Error(`Run stream failed: ${streamResponse.status}`)
+        }
+        if (!streamResponse.body) {
+          throw new Error('Run stream response is empty')
+        }
         setStatus('streaming')
-        const reader = response.body.getReader()
+        const reader = streamResponse.body.getReader()
         const decoder = new TextDecoder()
         let buffer = ''
 
@@ -1517,6 +1593,9 @@ export function ChatView() {
         })
       } finally {
         abortControllerRef.current = null
+        if (activeRunIdRef.current === runId) {
+          activeRunIdRef.current = null
+        }
         setActiveAssistantId(null)
         // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
         // 不让复制/重试按钮过早出现
@@ -1527,8 +1606,121 @@ export function ChatView() {
         }
       }
     },
-    [applyAgentStreamChunk, updateAssistantParts]
+    [applyAgentStreamChunk, loadThreads, updateAssistantParts]
   )
+
+  const subscribeExistingRun = useCallback(
+    async (runId: string, assistantId: string) => {
+      if (activeRunIdRef.current === runId) return
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+      activeRunIdRef.current = runId
+      setStatus('streaming')
+      setActiveAssistantId(assistantId)
+
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/runs/${runId}/stream`,
+          {
+            credentials: 'include',
+            signal: controller.signal,
+          }
+        )
+        if (!response.ok) {
+          throw new Error(`Run stream failed: ${response.status}`)
+        }
+        if (!response.body) {
+          throw new Error('Run stream response is empty')
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { value, done } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const frames = buffer.split(/\n\n/)
+          buffer = frames.pop() ?? ''
+
+          frames.forEach(frame => {
+            frame.split(/\n/).forEach(line => {
+              if (!line.startsWith('data:')) return
+              const chunk = parseUiMessageStreamChunk(line.slice(5))
+              if (chunk) applyAgentStreamChunk(assistantId, chunk)
+            })
+          })
+        }
+
+        if (buffer.trim()) {
+          buffer.split(/\n/).forEach(line => {
+            if (!line.startsWith('data:')) return
+            const chunk = parseUiMessageStreamChunk(line.slice(5))
+            if (chunk) applyAgentStreamChunk(assistantId, chunk)
+          })
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') return
+        const message = error instanceof Error ? error.message : String(error)
+        updateAssistantParts(assistantId, parts => {
+          parts.push(createTextPart(t('chatError', { error: message })))
+        })
+      } finally {
+        abortControllerRef.current = null
+        if (activeRunIdRef.current === runId) {
+          activeRunIdRef.current = null
+        }
+        setActiveAssistantId(null)
+        setStatus(pendingPlanRef.current ? 'submitted' : 'ready')
+      }
+    },
+    [applyAgentStreamChunk, t, updateAssistantParts]
+  )
+
+  useEffect(() => {
+    if (!currentThreadId || activeRunIdRef.current) return
+
+    let disposed = false
+    const restoreRun = async () => {
+      try {
+        const runs = await agentService.listThreadRuns(currentThreadId)
+        if (disposed || activeRunIdRef.current) return
+        const runningRun = runs.find(
+          run => run.status === 'queued' || run.status === 'running'
+        )
+        if (!runningRun) return
+
+        let assistantId =
+          messages.find(
+            message =>
+              message.role === 'assistant' && message.runId === runningRun.id
+          )?.id || ''
+        if (!assistantId) {
+          assistantId = createClientMessageId('assistant')
+          setMessages(prev => [
+            ...prev,
+            {
+              id: assistantId,
+              role: 'assistant',
+              runId: runningRun.id,
+              content: '',
+              parts: [],
+            },
+          ])
+        }
+        void subscribeExistingRun(runningRun.id, assistantId)
+      } catch (error) {
+        console.error('Failed to restore running run', error)
+      }
+    }
+
+    void restoreRun()
+    return () => {
+      disposed = true
+    }
+  }, [currentThreadId, messages, subscribeExistingRun])
 
   const streamRealtimeTextMessage = useCallback(
     async (input: string, assistantId: string) => {
@@ -2457,6 +2649,41 @@ export function ChatView() {
       setPlanPanelStatus('pending')
       setPlanStatuses([])
     }, 2000)
+    textareaRef.current?.focus()
+  }
+
+  /**
+   * 选择澄清选项：提交用户所选项，并以用户身份发送回复以使对话继续执行。
+   */
+  const handleClarifySelect = async (messageId: string, option: string) => {
+    if (isLoading || !currentThreadId) return
+    try {
+      await agentService.answerClarify(messageId, option)
+      // 局部更新本地消息列表中的 clarify part 状态，避免二次刷新导致重复点选
+      setMessages(prev =>
+        prev.map(msg => {
+          if (msg.id !== messageId || !Array.isArray(msg.parts)) return msg
+          const newParts = msg.parts.map((part: any) => {
+            if (part && part.type === 'clarify' && part.clarify) {
+              return {
+                ...part,
+                clarify: {
+                  ...part.clarify,
+                  status: 'answered',
+                  selectedOption: option,
+                },
+              }
+            }
+            return part
+          })
+          return { ...msg, parts: newParts }
+        })
+      )
+    } catch (err) {
+      console.error('Failed to answer clarify question:', err)
+    }
+    // 自动将用户的选择作为新指令发送
+    handleSend(option)
   }
 
   // 消费 pendingPrompt:当 selectedAgent 就绪后,自动发送预填消息(仅一次)。
@@ -2597,9 +2824,17 @@ export function ChatView() {
   }
 
   const handleStop = () => {
+    const runId = activeRunIdRef.current
+    if (runId) {
+      void agentService.cancelRun(runId).catch(error => {
+        console.error('Failed to cancel run', error)
+      })
+    }
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
+    activeRunIdRef.current = null
     setStatus('ready')
+    setActiveAssistantId(null)
     shouldAutoScrollRef.current = false
   }
 
@@ -2965,6 +3200,7 @@ export function ChatView() {
             pendingPlanMessageId={pendingPlan?.messageId ?? null}
             onApprovePlan={handleApprovePlan}
             onRejectPlan={handleRejectPlan}
+            onClarifySelect={handleClarifySelect}
             onClear={handleClear}
             onScrollToBottom={handleScrollToBottom}
             onModelChange={setSelectedModel}

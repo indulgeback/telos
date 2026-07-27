@@ -9,11 +9,7 @@ interface GradientBlobProps {
   color?: 'primary' | 'secondary' | 'accent'
   size?: 'sm' | 'md' | 'lg'
   position?:
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
-    | 'center'
+    'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
   animate?: boolean
 }
 

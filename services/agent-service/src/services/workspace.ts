@@ -192,8 +192,16 @@ export class WorkspaceManager {
     return path.join('/tmp', 'telos-workspaces', threadId)
   }
 
-  static async ensureFileCached(threadId: string, relativePath: string): Promise<string | null> {
+  static ensureWorkspaceDir(threadId: string): string {
     const localDir = this.getWorkspacePath(threadId)
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true })
+    }
+    return localDir
+  }
+
+  static async ensureFileCached(threadId: string, relativePath: string): Promise<string | null> {
+    const localDir = this.ensureWorkspaceDir(threadId)
     const localFilePath = path.join(localDir, relativePath)
 
     const release = await FileMutex.acquire(localFilePath)
@@ -215,7 +223,7 @@ export class WorkspaceManager {
   }
 
   static async syncFileToCloud(threadId: string, relativePath: string): Promise<boolean> {
-    const localDir = this.getWorkspacePath(threadId)
+    const localDir = this.ensureWorkspaceDir(threadId)
     const localFilePath = path.join(localDir, relativePath)
 
     const release = await FileMutex.acquire(localFilePath)
@@ -280,11 +288,11 @@ export class WorkspaceManager {
   }
 
   static resolvePath(threadId: string, inputPath: string): string {
-    const wsRoot = path.resolve(this.getWorkspacePath(threadId))
+    const wsRoot = path.resolve(this.ensureWorkspaceDir(threadId))
     const resolved = path.resolve(wsRoot, inputPath)
 
     // 1. 获取工作空间的物理真实路径
-    let realWsRoot = wsRoot
+    let realWsRoot = fs.realpathSync(wsRoot)
     try {
       if (fs.existsSync(wsRoot)) {
         realWsRoot = fs.realpathSync(wsRoot)

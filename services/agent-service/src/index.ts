@@ -21,6 +21,7 @@ import { db } from './services/db.js'
 import { performRegistration } from './services/registry.js'
 import { handleVolcRealtimeAudioSocket } from './services/realtime/volc-realtime.js'
 import { ANONYMOUS_OWNER_ID } from './services/session.js'
+import { closeAgentRunWorker, startAgentRunWorker } from './services/run-queue.js'
 
 validateConfig()
 
@@ -143,6 +144,12 @@ const server = serve(
       })
     })
     void performRegistration()
+    void startAgentRunWorker().catch(error => {
+      logger.error({
+        msg: 'Failed to start agent run worker',
+        err: error,
+      })
+    })
   }
 )
 
@@ -249,6 +256,7 @@ const shutdown = async () => {
 
   server.close(async () => {
     try {
+      await closeAgentRunWorker()
       await db.disconnect()
       logger.info({ msg: 'Database disconnected' })
       process.exit(0)

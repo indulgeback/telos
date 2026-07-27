@@ -92,56 +92,64 @@ export function SkillEditModal({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className='sm:max-w-2xl h-[85vh] flex flex-col p-6 overflow-hidden'>
+        <DialogHeader className='shrink-0 pb-2'>
           <DialogTitle>{isEdit ? t('edit') : t('create')}</DialogTitle>
           <DialogDescription>{t('subtitle')}</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-4 py-2'>
-          {/* 技能名称 */}
-          <div className='space-y-2'>
-            <Label htmlFor='skill-name'>{t('form.name')}</Label>
-            <Input
-              id='skill-name'
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder={t('form.namePlaceholder')}
-              disabled={isSaving || isSystem}
-              className='font-mono'
-            />
+        <form
+          onSubmit={handleSubmit}
+          className='flex flex-col flex-1 overflow-hidden min-h-0'
+        >
+          {/* Scrollable Form Content */}
+          <div className='flex-1 overflow-y-auto pr-1 py-2 space-y-4 min-h-0'>
+            {/* 技能名称 */}
+            <div className='space-y-2'>
+              <Label htmlFor='skill-name'>{t('form.name')}</Label>
+              <Input
+                id='skill-name'
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={t('form.namePlaceholder')}
+                disabled={isSaving || isSystem}
+                className='font-mono'
+              />
+            </div>
+
+            {/* 技能描述 */}
+            <div className='space-y-2'>
+              <Label htmlFor='skill-desc'>{t('form.description')}</Label>
+              <Input
+                id='skill-desc'
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder={t('form.descriptionPlaceholder')}
+                disabled={isSaving || isSystem}
+              />
+            </div>
+
+            {/* 技能内容 */}
+            <div className='space-y-2 flex flex-col h-[380px]'>
+              <Label htmlFor='skill-content' className='mb-1'>
+                {t('form.content')}
+              </Label>
+              <Textarea
+                id='skill-content'
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                placeholder={t('form.contentPlaceholder')}
+                disabled={isSaving || isSystem}
+                className='flex-1 font-mono text-sm resize-none'
+              />
+              <p className='text-xs text-muted-foreground mt-1'>
+                {t('form.contentHelp')}
+              </p>
+            </div>
           </div>
 
-          {/* 技能描述 */}
-          <div className='space-y-2'>
-            <Label htmlFor='skill-desc'>{t('form.description')}</Label>
-            <Input
-              id='skill-desc'
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder={t('form.descriptionPlaceholder')}
-              disabled={isSaving || isSystem}
-            />
-          </div>
-
-          {/* 技能内容 */}
-          <div className='space-y-2'>
-            <Label htmlFor='skill-content'>{t('form.content')}</Label>
-            <Textarea
-              id='skill-content'
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder={t('form.contentPlaceholder')}
-              disabled={isSaving || isSystem}
-              rows={10}
-              className='resize-y font-mono text-sm'
-            />
-            <p className='text-xs text-muted-foreground'>
-              {t('form.contentHelp')}
-            </p>
-          </div>
-
-          <DialogFooter>
+          {/* Sticky Footer */}
+          <DialogFooter className='shrink-0 border-t pt-4 mt-4'>
             <Button
               type='button'
               variant='ghost'

@@ -125,6 +125,7 @@ services:
       - SHORTAPI_BASE_URL=${SHORTAPI_BASE_URL:-https://api.shortapi.ai/v1}
       - DEFAULT_AGENT_MODEL=${DEFAULT_AGENT_MODEL:-deepseek-v4-flash}
       - DATABASE_URL=${DATABASE_URL:-postgresql://telos:telos123@postgres:5432/telos?schema=public}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - REGISTRY_URL=http://registry:8090
       - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:-dev-gateway-internal-secret-change-me}
       - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
@@ -133,6 +134,8 @@ services:
       registry:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - telos-network

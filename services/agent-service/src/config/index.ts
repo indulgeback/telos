@@ -11,6 +11,11 @@ export const config = {
 
   // 数据库
   databaseUrl: process.env.DATABASE_URL || '',
+  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+  agentRunWorkerConcurrency: parseInt(
+    process.env.AGENT_RUN_WORKER_CONCURRENCY || '2',
+    10
+  ),
 
   // OpenAI
   openaiApiKey: process.env.OPENAI_API_KEY || '',

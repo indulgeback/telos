@@ -108,7 +108,7 @@
     },
     "toolbar": {
       "online": "connect to the internet",
-      "reasoning": "Depth of thought:",
+      "reasoning": "Reasoning",
       "mcp": "MCP",
       "canvas": "Canvas",
       "plan": "Plan",
@@ -468,7 +468,7 @@
       "instructions": "Run command",
       "instructionsPlaceholder": "Write down the roles, boundaries, and execution methods that this Agent needs to follow in the loop...",
       "modelKey": "Model",
-      "maxTurns": "Maximum round",
+      "maxTurns": "Maximum turns per run",
       "loopMode": "Loop Mode",
       "loopAuto": "Automatic",
       "loopSingleTurn": "Single wheel",

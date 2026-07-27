@@ -33,7 +33,8 @@ function parseApprovedPlan(raw: unknown): StructuredPlan | null {
   return null
 }
 import {
-  agentRuntimeService,
+  DEFAULT_AGENT_TURNS,
+  MAX_AGENT_TURNS,
   parseExplicitSkillTrigger,
 } from '../services/runtime.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
@@ -49,6 +50,7 @@ import {
   ensureBuiltinTools,
 } from '../services/builtin-tools.js'
 import { generateAgentInstructions, generateAgentInstructionsAsync } from '../services/chat.js'
+import { enqueueAgentRun } from '../services/run-queue.js'
 
 export const agentsRouter = new Hono()
 
@@ -75,6 +77,17 @@ function normalizeReasoningEffort(value: unknown) {
     return value
   }
   return null
+}
+
+function normalizeMaxTurns(value: unknown, fallback?: number) {
+  if (value === undefined || value === null) return fallback
+  if (!Number.isInteger(value) || (value as number) < 1) {
+    throw new Error(`maxTurns must be an integer between 1 and ${MAX_AGENT_TURNS}`)
+  }
+  if ((value as number) > MAX_AGENT_TURNS) {
+    throw new Error(`maxTurns cannot exceed ${MAX_AGENT_TURNS}`)
+  }
+  return value as number
 }
 
 async function replaceBindings(
@@ -161,6 +174,15 @@ agentsRouter.post('/', async c => {
     return fail(c, 400, 'Agent name and description are required')
   }
 
+  let maxTurns: number
+  try {
+    maxTurns =
+      normalizeMaxTurns(body.maxTurns, DEFAULT_AGENT_TURNS) ??
+      DEFAULT_AGENT_TURNS
+  } catch (error) {
+    return fail(c, 400, error instanceof Error ? error.message : String(error))
+  }
+
   const modelKey =
     typeof body.modelKey === 'string' && body.modelKey.trim()
       ? body.modelKey.trim()
@@ -176,7 +198,7 @@ agentsRouter.post('/', async c => {
       modelKey: modelKey || config.defaultModel,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : 0.7,
-      maxTurns: typeof body.maxTurns === 'number' ? body.maxTurns : 8,
+      maxTurns,
       loopMode: normalizeLoopMode(body.loopMode),
       status: normalizeStatus(body.status),
       ownerId: userId,
@@ -230,6 +252,13 @@ agentsRouter.put('/:id', async c => {
   )
   if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
 
+  let maxTurns: number | undefined
+  try {
+    maxTurns = normalizeMaxTurns(body.maxTurns)
+  } catch (error) {
+    return fail(c, 400, error instanceof Error ? error.message : String(error))
+  }
+
   const agent = await prisma.agent.update({
     where: { id: c.req.param('id') },
     data: {
@@ -250,7 +279,7 @@ agentsRouter.put('/:id', async c => {
           : undefined,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : undefined,
-      maxTurns: typeof body.maxTurns === 'number' ? body.maxTurns : undefined,
+      maxTurns,
       loopMode:
         typeof body.loopMode === 'string'
           ? normalizeLoopMode(body.loopMode)
@@ -471,97 +500,50 @@ agentsRouter.post('/:id/runs', async c => {
     thread.id,
     effectiveInput
   )
-  const runtimeContext = await agentSessionService.buildRuntimeInput(thread.id)
-
-  const run = await createAgentRun({
-    agentId,
-    threadId: thread.id,
-    input: { input: effectiveInput },
-    metadata: { source: 'run_api', userMessageId: userMessage.id },
-  })
-
-  if (body.stream === true) {
-    const { createAgentStreamResponse } = await import('./chat.js')
-    return createAgentStreamResponse(c, {
-      agentId: c.req.param('id'),
-      runId: run.id,
-      input: effectiveInput,
-      threadId: thread.id,
-      ownerId,
-      runtimeInput: runtimeContext.input,
-      memoryInstructions: runtimeContext.memoryInstructions,
-      modelOverride:
-        typeof body.model === 'string' && body.model.trim()
-          ? body.model.trim()
-          : null,
-      reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
-      planMode:
-        body.planMode === 'plan' || body.planMode === 'execute'
-          ? body.planMode
-          : undefined,
-      approvedPlan: parseApprovedPlan(body.approvedPlan),
-      forceSkillName: forceSkillName || undefined,
-      userId: ownerId,
-    })
-  }
-
+  const modelOverride =
+    typeof body.model === 'string' && body.model.trim()
+      ? body.model.trim()
+      : null
+  const reasoningEffort = normalizeReasoningEffort(body.reasoningEffort)
   const planMode =
     body.planMode === 'plan' || body.planMode === 'execute'
       ? body.planMode
       : undefined
-  try {
-    const { result, persistence } = await agentRuntimeService.run(agentId, {
-      runId: run.id,
-      input: runtimeContext.input,
-      threadId: thread.id,
-      memoryInstructions: runtimeContext.memoryInstructions,
-      modelOverride:
-        typeof body.model === 'string' && body.model.trim()
-          ? body.model.trim()
-          : null,
-      reasoningEffort: normalizeReasoningEffort(body.reasoningEffort),
-      planMode,
-      approvedPlan: parseApprovedPlan(body.approvedPlan),
-      forceSkillName: forceSkillName || undefined,
-      userId: ownerId,
-    })
-    const finalOutput = String(result.finalOutput ?? '')
-    await persistence.complete(
-      finalOutput,
-      result.lastAgent?.name,
-      result.lastResponseId
-    )
-    // 计划模式下，从 runtime 的 pendingPlanCache 取出结构化计划并持久化
-    const structuredPlan =
-      planMode === 'plan'
-        ? agentRuntimeService.consumePendingPlan(run.id)
-        : null
-    const runParts =
-      structuredPlan
-        ? [
-            {
-              type: 'plan',
-              plan: {
-                summary: structuredPlan.summary,
-                steps: structuredPlan.steps,
-                status: 'pending',
-              },
-            },
-          ]
-        : undefined
-    await agentSessionService.appendAssistantMessage(
-      thread.id,
-      run.id,
-      finalOutput,
-      runParts
-    )
-    agentSessionService.scheduleSummaries(thread.id, agentId, ownerId)
+  const approvedPlan = parseApprovedPlan(body.approvedPlan)
 
-    return ok(c, { run_id: run.id, thread_id: thread.id, status: 'completed' })
-  } finally {
-    const { WorkspaceManager } = await import('../services/workspace.js')
-    WorkspaceManager.cleanupWorkspace(thread.id)
-  }
+  const run = await createAgentRun({
+    agentId,
+    threadId: thread.id,
+    input: {
+      input: effectiveInput,
+      effectiveInput,
+      model: modelOverride,
+      reasoningEffort,
+      planMode,
+    },
+    metadata: {
+      source: 'run_api',
+      userMessageId: userMessage.id,
+      approvedPlan,
+      forceSkillName: forceSkillName || null,
+    },
+  })
+
+  await enqueueAgentRun({
+    runId: run.id,
+    agentId,
+    threadId: thread.id,
+    input: effectiveInput,
+    ownerId,
+    modelOverride,
+    reasoningEffort,
+    planMode,
+    approvedPlan,
+    forceSkillName: forceSkillName || undefined,
+    userId: ownerId,
+  })
+
+  return ok(c, { run_id: run.id, thread_id: thread.id, status: 'queued' }, 202)
 })
 
 agentsRouter.post('/:id/regenerate-instructions', async c => {

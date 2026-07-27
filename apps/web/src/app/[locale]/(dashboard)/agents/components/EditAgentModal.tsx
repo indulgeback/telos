@@ -31,6 +31,9 @@ import {
 import { toast } from 'sonner'
 import { ConfigureSkillsModal } from './ConfigureSkillsModal'
 
+const DEFAULT_AGENT_TURNS = 50
+const MAX_AGENT_TURNS = 200
+
 interface EditAgentModalProps {
   agent: Agent
   onClose: () => void
@@ -52,7 +55,9 @@ export function EditAgentModal({
   const [modelKey, setModelKey] = useState(
     agent.model_key || 'deepseek-v4-flash'
   )
-  const [maxTurns, setMaxTurns] = useState(agent.max_turns || 8)
+  const [maxTurns, setMaxTurns] = useState(
+    agent.max_turns || DEFAULT_AGENT_TURNS
+  )
   const [loopMode, setLoopMode] = useState<'auto' | 'single_turn'>(
     agent.loop_mode || 'auto'
   )
@@ -60,6 +65,8 @@ export function EditAgentModal({
     agent.type === 'system' ? 'private' : (agent.type as 'public' | 'private')
   )
   const [isSaving, setIsSaving] = useState(false)
+  const clampMaxTurns = (value: number) =>
+    Math.min(MAX_AGENT_TURNS, Math.max(1, value || DEFAULT_AGENT_TURNS))
 
   // Voice Configuration States
   const [showVoiceSettings, setShowVoiceSettings] = useState(false)
@@ -122,7 +129,7 @@ export function EditAgentModal({
           agent.instruction_status === 'generating' ? undefined : instructions,
         type,
         modelKey: modelKey.trim() || 'deepseek-v4-flash',
-        maxTurns,
+        maxTurns: clampMaxTurns(maxTurns),
         loopMode,
         metadata: updatedMetadata,
       })
@@ -281,9 +288,11 @@ export function EditAgentModal({
                   id='edit-maxTurns'
                   type='number'
                   min={1}
-                  max={20}
+                  max={200}
                   value={maxTurns}
-                  onChange={e => setMaxTurns(Number(e.target.value) || 8)}
+                  onChange={e =>
+                    setMaxTurns(clampMaxTurns(Number(e.target.value)))
+                  }
                   disabled={isReadOnly || isSaving}
                 />
               </div>

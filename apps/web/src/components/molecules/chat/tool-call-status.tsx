@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 
 export interface ToolCallPreview {
   toolCallId: string
@@ -55,6 +56,7 @@ function compactText(input?: string) {
 
 export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
   const t = useTranslations('Chat')
+  const [open, setOpen] = useState(false)
   const meta = getStateMeta(tool.state, t)
   const Icon = meta.icon
   const input = tool.inputText ?? ''
@@ -66,9 +68,17 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
   const hasDetail = Boolean(input || output || errorText)
 
   return (
-    <details className='chat-tool-details text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'>
+    <details
+      className='chat-tool-details text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'
+      onToggle={event => setOpen(event.currentTarget.open)}
+    >
       <summary className='inline-flex cursor-pointer list-none items-center gap-2 rounded-md py-0.5 pr-2 transition-colors hover:text-foreground'>
-        <ChevronRight className='chat-tool-chevron size-3.5' />
+        <ChevronRight
+          className={cn(
+            'chat-tool-chevron size-3.5 transition-transform duration-200 ease-out',
+            open && 'rotate-90'
+          )}
+        />
         <span className='inline-flex items-center gap-1.5 font-medium text-foreground/85'>
           <Wrench className='size-3.5 text-muted-foreground' />
           {formatToolName(tool.toolName)}

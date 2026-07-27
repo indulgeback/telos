@@ -239,6 +239,16 @@ html {
   scrollbar-gutter: auto;
 }
 
+@keyframes gallery-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(calc(-50% - 0.5rem), 0, 0);
+  }
+}
+
 /* Ensure scroll containers don't reserve extra gutter space */
 .overflow-auto,
 .overflow-y-auto,

@@ -19,6 +19,9 @@ import { Loader2, Globe, Lock, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
+const DEFAULT_AGENT_TURNS = 50
+const MAX_AGENT_TURNS = 200
+
 interface CreateAgentModalProps {
   onClose: () => void
   onSuccess: () => void
@@ -34,10 +37,12 @@ export function CreateAgentModal({
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [modelKey, setModelKey] = useState('deepseek-v4-flash')
-  const [maxTurns, setMaxTurns] = useState(8)
+  const [maxTurns, setMaxTurns] = useState(DEFAULT_AGENT_TURNS)
   const [loopMode, setLoopMode] = useState<'auto' | 'single_turn'>('auto')
   const [type, setType] = useState<AgentTypeOption>('private')
   const [isCreating, setIsCreating] = useState(false)
+  const clampMaxTurns = (value: number) =>
+    Math.min(MAX_AGENT_TURNS, Math.max(1, value || DEFAULT_AGENT_TURNS))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,14 +59,14 @@ export function CreateAgentModal({
         description: description.trim(),
         type,
         modelKey: modelKey.trim() || 'deepseek-v4-flash',
-        maxTurns,
+        maxTurns: clampMaxTurns(maxTurns),
         loopMode,
       })
       toast.success(t('messages.createSuccess'))
       setName('')
       setDescription('')
       setModelKey('deepseek-v4-flash')
-      setMaxTurns(8)
+      setMaxTurns(DEFAULT_AGENT_TURNS)
       setLoopMode('auto')
       setType('private')
       onSuccess()
@@ -160,9 +165,11 @@ export function CreateAgentModal({
                 id='maxTurns'
                 type='number'
                 min={1}
-                max={20}
+                max={200}
                 value={maxTurns}
-                onChange={e => setMaxTurns(Number(e.target.value) || 8)}
+                onChange={e =>
+                  setMaxTurns(clampMaxTurns(Number(e.target.value)))
+                }
                 disabled={isCreating}
               />
             </div>

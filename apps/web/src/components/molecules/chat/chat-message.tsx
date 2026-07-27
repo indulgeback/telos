@@ -15,6 +15,7 @@ import {
 import { MarkdownContent } from './markdown-content'
 import { SkillSaver } from './SkillSaver'
 import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
+import { ClarifyPanel } from './ClarifyPanel'
 import {
   Copy,
   Check,
@@ -32,11 +33,7 @@ import {
 import { cn } from '@/lib/utils'
 
 export type PlanStepStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'completed'
-  | 'skipped'
-  | 'failed'
+  'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
 
 export type AssistantContentPart =
   | { type: 'text'; text: string }
@@ -58,6 +55,15 @@ export type AssistantContentPart =
         stepStatuses?: PlanStepStatus[]
         /** 旧格式兼容：纯文本计划 */
         text?: string
+      }
+    }
+  | {
+      type: 'clarify'
+      clarify: {
+        question: string
+        options: string[]
+        status: 'pending' | 'answered'
+        selectedOption?: string | null
       }
     }
 
@@ -98,6 +104,7 @@ export interface ChatMessageProps {
   isPendingPlan?: boolean
   onApprovePlan?: () => void
   onRejectPlan?: () => void
+  onClarifySelect?: (messageId: string, option: string) => void
 }
 
 function compareToolPreview(
@@ -163,6 +170,21 @@ function compareContentParts(
       continue
     }
 
+    if (prevPart.type === 'clarify' && nextPart.type === 'clarify') {
+      if (
+        prevPart.clarify.status !== nextPart.clarify.status ||
+        prevPart.clarify.question !== nextPart.clarify.question ||
+        prevPart.clarify.selectedOption !== nextPart.clarify.selectedOption ||
+        prevPart.clarify.options.length !== nextPart.clarify.options.length ||
+        prevPart.clarify.options.some(
+          (o, idx) => o !== nextPart.clarify.options[idx]
+        )
+      ) {
+        return false
+      }
+      continue
+    }
+
     return false
   }
 
@@ -220,6 +242,7 @@ function ChatMessageInner({
   isPendingPlan = false,
   onApprovePlan,
   onRejectPlan,
+  onClarifySelect,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
   const safeImages = images ?? []
@@ -439,6 +462,26 @@ function ChatMessageInner({
                           </div>
                         )}
                       </div>
+                    )
+                  }
+
+                  if (part.type === 'clarify') {
+                    const { question, options, status, selectedOption } =
+                      part.clarify
+                    return (
+                      <ClarifyPanel
+                        key={`clarify-${id}-${index}`}
+                        messageId={id}
+                        question={question}
+                        options={options}
+                        status={status}
+                        selectedOption={selectedOption}
+                        onSelect={async option => {
+                          if (onClarifySelect) {
+                            onClarifySelect(id, option)
+                          }
+                        }}
+                      />
                     )
                   }
 

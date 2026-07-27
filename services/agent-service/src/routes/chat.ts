@@ -69,6 +69,7 @@ import {
   findAccessibleAgent,
   findDefaultAccessibleAgent,
 } from '../services/agent-access.js'
+import { enqueueAgentRun } from '../services/run-queue.js'
 
 export const chatRouter = new Hono()
 
@@ -534,6 +535,19 @@ export async function createAgentStreamResponse(
             },
           } as any)
         }
+
+        // 澄清模式：从 runtime 的 pendingClarifyCache 取出模型通过 clarify_question 产生的澄清问题
+        const structuredClarify = agentRuntimeService.consumePendingClarify(params.runId)
+        if (structuredClarify) {
+          assistantParts.push({
+            type: 'clarify',
+            clarify: {
+              question: structuredClarify.question,
+              options: structuredClarify.options,
+              status: 'pending',
+            },
+          } as any)
+        }
         if (params.threadId) {
           const savedMessage = await agentSessionService.appendAssistantMessage(
             params.threadId,
@@ -641,46 +655,60 @@ async function handleChat(c: Context) {
     effectiveInput,
     Array.isArray(body.images) ? body.images : []
   )
-  const runtimeContext = await agentSessionService.buildRuntimeInput(thread.id)
+  const modelOverride =
+    typeof body.model === 'string' && body.model.trim()
+      ? body.model.trim()
+      : null
+  const reasoningEffort =
+    body.reasoningEffort === 'minimal' ||
+    body.reasoningEffort === 'low' ||
+    body.reasoningEffort === 'medium' ||
+    body.reasoningEffort === 'high'
+      ? body.reasoningEffort
+      : null
+  const planMode =
+    body.planMode === 'plan' || body.planMode === 'execute'
+      ? body.planMode
+      : undefined
+  const approvedPlan = parseApprovedPlan(body.approvedPlan)
 
   const run = body.runId
     ? await prisma.agentRun.findUnique({ where: { id: String(body.runId) } })
     : await createAgentRun({
         agentId,
         threadId: thread.id,
-        input: body,
-        metadata: { source: 'chat', userMessageId: userMessage.id },
+        input: {
+          ...body,
+          effectiveInput,
+          model: modelOverride,
+          reasoningEffort,
+          planMode,
+        },
+        metadata: {
+          source: 'chat',
+          userMessageId: userMessage.id,
+          approvedPlan,
+          forceSkillName: forceSkillName || null,
+        },
       })
 
   if (!run) return fail(c, 404, 'Run not found')
 
-  return createAgentStreamResponse(c, {
-    agentId,
+  await enqueueAgentRun({
     runId: run.id,
-    input: effectiveInput,
+    agentId,
     threadId: thread.id,
+    input: effectiveInput,
     ownerId,
-    runtimeInput: runtimeContext.input,
-    memoryInstructions: runtimeContext.memoryInstructions,
-    modelOverride:
-      typeof body.model === 'string' && body.model.trim()
-        ? body.model.trim()
-        : null,
-    reasoningEffort:
-      body.reasoningEffort === 'minimal' ||
-      body.reasoningEffort === 'low' ||
-      body.reasoningEffort === 'medium' ||
-      body.reasoningEffort === 'high'
-        ? body.reasoningEffort
-        : null,
-    planMode:
-      body.planMode === 'plan' || body.planMode === 'execute'
-        ? body.planMode
-        : undefined,
-    approvedPlan: parseApprovedPlan(body.approvedPlan),
+    modelOverride,
+    reasoningEffort,
+    planMode,
+    approvedPlan,
     forceSkillName: forceSkillName || undefined,
     userId: ownerId,
   })
+
+  return ok(c, { run_id: run.id, thread_id: thread.id, status: 'queued' }, 202)
 }
 
 chatRouter.get('/threads', async c => {
@@ -733,6 +761,35 @@ chatRouter.get('/threads/:id/messages', async c => {
   )
 })
 
+chatRouter.get('/threads/:id/runs', async c => {
+  const threadId = c.req.param('id')
+  const ownerId = getCurrentUserId(c)
+  const thread = await prisma.agentThread.findFirst({
+    where: {
+      id: threadId,
+      ownerId,
+      status: { not: 'deleted' },
+    },
+    select: { id: true },
+  })
+  if (!thread) return fail(c, 404, 'Thread not found')
+
+  const runs = await prisma.agentRun.findMany({
+    where: { threadId },
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    select: {
+      id: true,
+      agentId: true,
+      threadId: true,
+      status: true,
+      startedAt: true,
+      completedAt: true,
+    },
+  })
+  return ok(c, toSnakeCase(runs))
+})
+
 chatRouter.patch('/threads/:id', async c => {
   const body = await parseJson(c)
   return ok(
@@ -776,4 +833,37 @@ chatRouter.get('/info', c => {
     version: '1.0.0',
     framework: 'hono + openai-agents-sdk',
   })
+})
+
+chatRouter.patch('/messages/:messageId/clarify', async c => {
+  const messageId = c.req.param('messageId')
+  const body = await parseJson(c)
+  const selectedOption = String(body.selectedOption || '')
+
+  const message = await prisma.agentMessage.findUnique({
+    where: { id: messageId },
+  })
+  if (!message) return fail(c, 404, 'Message not found')
+
+  const parts = Array.isArray(message.parts) ? message.parts : []
+  const newParts = parts.map((part: any) => {
+    if (part && part.type === 'clarify' && part.clarify) {
+      return {
+        ...part,
+        clarify: {
+          ...part.clarify,
+          status: 'answered',
+          selectedOption,
+        },
+      }
+    }
+    return part
+  })
+
+  await prisma.agentMessage.update({
+    where: { id: messageId },
+    data: { parts: newParts as any },
+  })
+
+  return ok(c, { success: true })
 })

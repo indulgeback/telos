@@ -22,6 +22,7 @@ import {
   isReadOnlyTool,
   type StructuredPlan,
 } from './plan-tools.js'
+import { buildClarifyQuestionTool, type ClarifyQuestion } from './clarify-tools.js'
 import { PlanStore } from './plan-store.js'
 import { asRecord, asStringArray, safeJsonStringify } from '../utils/json.js'
 import { buildBuiltinTool } from './builtin-tools.js'
@@ -69,6 +70,8 @@ export interface RuntimeBuildResult {
 }
 
 export type PlanMode = 'plan' | 'execute'
+export const DEFAULT_AGENT_TURNS = 50
+export const MAX_AGENT_TURNS = 200
 
 export interface RuntimeRunOptions {
   runId: string
@@ -457,21 +460,33 @@ function buildProviderData(
   reasoningEffort?: RuntimeRunOptions['reasoningEffort']
 ) {
   const effort = reasoningEffort ?? 'medium'
+  const isMinimal = effort === 'minimal'
   if (provider === 'seed') {
     return {
       reasoning_effort: effort,
-      ...(effort === 'minimal' ? { thinking: { type: 'disabled' } } : {}),
+      ...(isMinimal ? { thinking: { type: 'disabled' } } : {}),
     }
   }
   if (provider === 'bailian') {
     return {
-      enable_thinking: effort !== 'minimal',
+      enable_thinking: !isMinimal,
     }
   }
   if (provider === 'gcloud') {
-    return effort === 'minimal' ? {} : { reasoning_effort: effort }
+    return isMinimal ? {} : { reasoning_effort: effort }
   }
-  return {}
+  // OpenAI 兼容系（openai / shortapi）：o 系列等推理模型通过 reasoning_effort 控制强度，
+  // minimal 表示尽量关闭（SDK 会映射为最弱档；非推理模型会忽略该参数）。
+  if (provider === 'openai' || provider === 'shortapi') {
+    return { reasoning_effort: effort }
+  }
+  // DeepSeek 官方 API（V4 系列）：
+  // - 关闭推理：thinking: { type: 'disabled' }
+  // - 开启推理：可附带 reasoning_effort 控制强度（'high' | 'max'）
+  if (isMinimal) {
+    return { thinking: { type: 'disabled' } }
+  }
+  return { reasoning_effort: effort }
 }
 
 export class AgentRuntimeService {
@@ -482,11 +497,25 @@ export class AgentRuntimeService {
    */
   private readonly pendingPlanCache = new Map<string, StructuredPlan>()
 
+  /**
+   * 模型调用 clarify_question 工具时，缓存提问及可选项。
+   * chat.ts 在流式 run 结束后取出，用于持久化和 SSE 推送。
+   * key = runId, value = ClarifyQuestion
+   */
+  private readonly pendingClarifyCache = new Map<string, ClarifyQuestion>()
+
   /** 取出并移除缓存的计划（run 结束后调用方取走） */
   consumePendingPlan(runId: string): StructuredPlan | undefined {
     const plan = this.pendingPlanCache.get(runId)
     if (plan) this.pendingPlanCache.delete(runId)
     return plan
+  }
+
+  /** 取出并移除缓存的澄清问题（run 结束后调用方取走） */
+  consumePendingClarify(runId: string): ClarifyQuestion | undefined {
+    const clarify = this.pendingClarifyCache.get(runId)
+    if (clarify) this.pendingClarifyCache.delete(runId)
+    return clarify
   }
 
   async getDefaultAgentId() {
@@ -722,6 +751,13 @@ export class AgentRuntimeService {
       )
     }
 
+    // 注入澄清提问工具
+    tools.push(
+      buildClarifyQuestionTool(clarify =>
+        this.pendingClarifyCache.set(options?.runId ?? '', clarify)
+      )
+    )
+
     const resolvedModel = await this.resolveModel(
       options?.modelOverride || source.modelKey,
       options?.reasoningEffort
@@ -742,11 +778,14 @@ export class AgentRuntimeService {
       mcpConfig: {
         convertSchemasToStrict: false,
       },
-      // plan 模式：模型调用 create_plan 后立即停止，将其输出作为 finalOutput。
-      // 其他工具（只读工具）的输出不作为 finalOutput，模型会继续推理。
-      ...(isPlanMode
-        ? { toolUseBehavior: { stopAtToolNames: ['create_plan'] } as const }
-        : {}),
+      // stopAtToolNames 规则：
+      // - plan 模式：当模型调用 create_plan 或 clarify_question 时立即停止并挂起
+      // - 其他模式：当模型调用 clarify_question 时立即停止并挂起
+      toolUseBehavior: {
+        stopAtToolNames: isPlanMode
+          ? ['create_plan', 'clarify_question']
+          : ['clarify_question']
+      },
     } as any)
 
     return {
@@ -884,7 +923,10 @@ export class AgentRuntimeService {
     //   在调用 create_plan 时停止，无需强制 maxTurns=1（避免 MaxTurnsExceededError）
     // - execute 模式：将已批准的结构化计划作为上下文 prepend 到 input
     const isPlanMode = options.planMode === 'plan'
-    const maxTurns = source.loopMode === 'single_turn' ? 1 : source.maxTurns
+    const maxTurns =
+      source.loopMode === 'single_turn'
+        ? 1
+        : Math.max(1, Math.min(source.maxTurns, MAX_AGENT_TURNS))
 
     let runInput: string | AgentInputItem[] = options.input
     if (options.planMode === 'execute' && options.approvedPlan) {

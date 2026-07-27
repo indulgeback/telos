@@ -12,13 +12,16 @@ import Image from 'next/image'
 import {
   AiLottieIcon,
   Button,
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
   SvgIcon,
   SuggestionPromptButton,
   type SuggestionPrompt,
@@ -30,7 +33,14 @@ import {
   type AssistantContentPart,
   type ToolCallPreview,
 } from '@/components/molecules'
-import { ArrowDown, RefreshCw, X } from 'lucide-react'
+import {
+  ArrowDown,
+  BrainCircuit,
+  Check,
+  ChevronDown,
+  RefreshCw,
+  X,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const CARD_TILTS = ['-5deg', '3.5deg', '0deg', '-3deg', '5deg', '2deg'] as const
@@ -181,6 +191,7 @@ export interface ChatContainerProps {
   pendingPlanMessageId: string | null
   onApprovePlan: () => void
   onRejectPlan: () => void
+  onClarifySelect?: (messageId: string, option: string) => void
   clearConversationLabel: string
   /** 计划面板（贴在输入框上方） */
   planPanel?: ReactNode
@@ -270,6 +281,7 @@ export function ChatContainer({
   pendingPlanMessageId,
   onApprovePlan,
   onRejectPlan,
+  onClarifySelect,
   clearConversationLabel,
   planPanel,
   refreshSuggestionsLabel,
@@ -393,153 +405,171 @@ export function ChatContainer({
     }, SHUFFLE_END_MS)
   }
 
-  const modelSelector = (
-    <div className='flex min-w-0 items-center gap-1.5'>
-      <span className='sr-only'>{modelLabel}</span>
-      <Select
-        value={selectedModel || undefined}
-        onValueChange={onModelChange}
-        disabled={disableModelSelect}
-      >
-        <SelectTrigger
-          size='sm'
-          className='h-8 w-[210px] max-w-full overflow-hidden rounded-md border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 sm:w-[220px]'
+  // 当前模型对应的推理级别标签（仅在推理开启时用于 trigger）
+  const reasoningEffortLabelMap: Record<
+    'minimal' | 'low' | 'medium' | 'high',
+    string
+  > = {
+    minimal: reasoningEffortMinimal,
+    low: reasoningEffortLow,
+    medium: reasoningEffortMedium,
+    high: reasoningEffortHigh,
+  }
+
+  const providerGroups: Array<{
+    key: string
+    label?: string
+    options: ChatModelOption[]
+  }> = [
+    {
+      key: 'deepseek',
+      label: modelGroupDeepseekLabel,
+      options: groupedModelOptions.deepseek,
+    },
+    {
+      key: 'seed',
+      label: modelGroupSeedLabel,
+      options: groupedModelOptions.seed,
+    },
+    {
+      key: 'bailian',
+      label: modelGroupBailianLabel,
+      options: groupedModelOptions.bailian,
+    },
+    {
+      key: 'gcloud',
+      label: modelGroupGcloudLabel,
+      options: groupedModelOptions.gcloud,
+    },
+    {
+      key: 'openai',
+      label: modelGroupOpenAILabel,
+      options: groupedModelOptions.openai,
+    },
+    {
+      key: 'shortapi',
+      label: modelGroupShortApiLabel,
+      options: groupedModelOptions.shortapi,
+    },
+  ]
+
+  const reasoningLevels: Array<'minimal' | 'low' | 'medium' | 'high'> = [
+    'minimal',
+    'low',
+    'medium',
+    'high',
+  ]
+
+  // 合并后的「模型 + 推理强度」紧凑选择器（Codex 风格）
+  // - 模型项点击即选中并关闭菜单
+  // - 推理强度作为子菜单：hover 时向右侧展开 Off/Low/Medium/High
+  const modelReasoningPicker = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type='button'
+          disabled={disableModelSelect}
+          aria-label={modelLabel}
+          className='inline-flex h-8 max-w-[240px] shrink-0 items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 text-xs font-normal shadow-xs transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50'
         >
           {selectedModelOption ? (
-            <SelectValue>
-              <span className='flex min-w-0 items-center gap-1.5'>
-                <ModelIcon modelKey={selectedModelOption.model} />
-                <span className='truncate'>{selectedModelOption.label}</span>
-              </span>
-            </SelectValue>
+            <>
+              <ModelIcon modelKey={selectedModelOption.model} />
+              <span className='truncate'>{selectedModelOption.label}</span>
+              {showReasoningEffort && reasoningEffort !== 'minimal' && (
+                <span className='inline-flex shrink-0 items-center gap-1 rounded bg-primary/10 px-1 py-0.5 text-[10px] leading-none text-primary'>
+                  <BrainCircuit className='size-2.5' />
+                  {reasoningEffortLabelMap[reasoningEffort]}
+                </span>
+              )}
+            </>
           ) : (
-            <SelectValue placeholder={modelEmptyLabel} />
+            <span className='truncate text-muted-foreground'>
+              {modelEmptyLabel}
+            </span>
           )}
-        </SelectTrigger>
-        <SelectContent>
-          {groupedModelOptions.deepseek.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>{modelGroupDeepseekLabel}</SelectLabel>
-              {groupedModelOptions.deepseek.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span className='flex min-w-0 items-center gap-1.5'>
-                      <ModelIcon modelKey={option.model} />
-                      <span className='truncate'>{option.label}</span>
-                    </span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
+          <ChevronDown className='size-3 shrink-0 opacity-60' />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align='start'
+        side='top'
+        className='w-[260px] max-w-[calc(100vw-2rem)] p-1.5'
+      >
+        <div className='max-h-[280px] overflow-y-auto p-0.5'>
+          {providerGroups.map(
+            group =>
+              group.options.length > 0 && (
+                <DropdownMenuGroup key={group.key}>
+                  {group.label && (
+                    <DropdownMenuLabel className='px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+                      {group.label}
+                    </DropdownMenuLabel>
+                  )}
+                  {group.options.map(option => {
+                    const active = option.model === selectedModel
+                    return (
+                      <DropdownMenuItem
+                        key={option.model}
+                        onSelect={() => onModelChange(option.model)}
+                        className='gap-2 px-2 py-1.5 text-xs'
+                      >
+                        <span className='flex min-w-0 flex-1 items-center gap-1.5'>
+                          <ModelIcon modelKey={option.model} />
+                          <span className='truncate'>{option.label}</span>
+                        </span>
+                        {active && (
+                          <Check className='size-3.5 shrink-0 text-primary' />
+                        )}
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuGroup>
+              )
+          )}
+        </div>
+
+        {showReasoningEffort && (
+          <>
+            <DropdownMenuSeparator className='my-1' />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger
+                disabled={disableReasoningEffort}
+                className='gap-2 px-2 py-1.5 text-xs'
+              >
+                <BrainCircuit className='size-3.5 shrink-0' />
+                <span>{reasoningEffortLabel}</span>
+                <span className='ml-auto pl-2 text-[10px] text-muted-foreground'>
+                  {reasoningEffortLabelMap[reasoningEffort]}
+                </span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className='min-w-[7rem] p-1'>
+                {reasoningLevels.map(level => {
+                  const active = reasoningEffort === level
+                  return (
+                    <DropdownMenuItem
+                      key={level}
+                      onSelect={e => {
+                        e.preventDefault()
+                        onReasoningEffortChange(level)
+                      }}
+                      className='gap-2 px-2 py-1.5 text-xs'
+                    >
+                      <span className='flex-1'>
+                        {reasoningEffortLabelMap[level]}
                       </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-          {groupedModelOptions.seed.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>{modelGroupSeedLabel}</SelectLabel>
-              {groupedModelOptions.seed.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span className='flex min-w-0 items-center gap-1.5'>
-                      <ModelIcon modelKey={option.model} />
-                      <span className='truncate'>{option.label}</span>
-                    </span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-          {groupedModelOptions.bailian.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>{modelGroupBailianLabel}</SelectLabel>
-              {groupedModelOptions.bailian.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span className='flex min-w-0 items-center gap-1.5'>
-                      <ModelIcon modelKey={option.model} />
-                      <span className='truncate'>{option.label}</span>
-                    </span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-          {groupedModelOptions.gcloud.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>{modelGroupGcloudLabel}</SelectLabel>
-              {groupedModelOptions.gcloud.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span className='flex min-w-0 items-center gap-1.5'>
-                      <ModelIcon modelKey={option.model} />
-                      <span className='truncate'>{option.label}</span>
-                    </span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-          {groupedModelOptions.openai.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>{modelGroupOpenAILabel}</SelectLabel>
-              {groupedModelOptions.openai.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span className='flex min-w-0 items-center gap-1.5'>
-                      <ModelIcon modelKey={option.model} />
-                      <span className='truncate'>{option.label}</span>
-                    </span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-          {groupedModelOptions.shortapi.length > 0 && (
-            <SelectGroup>
-              <SelectLabel>{modelGroupShortApiLabel}</SelectLabel>
-              {groupedModelOptions.shortapi.map(option => (
-                <SelectItem key={option.model} value={option.model}>
-                  <div className='flex w-full items-center justify-between gap-2'>
-                    <span className='flex min-w-0 items-center gap-1.5'>
-                      <ModelIcon modelKey={option.model} />
-                      <span className='truncate'>{option.label}</span>
-                    </span>
-                    {option.isReasoning && (
-                      <span className='text-[10px] text-muted-foreground'>
-                        {modelReasoningLabel}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          )}
-        </SelectContent>
-      </Select>
-    </div>
+                      {active && (
+                        <Check className='size-3.5 shrink-0 text-primary' />
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 
   return (
@@ -666,6 +696,7 @@ export function ChatContainer({
                       isPendingPlan={message.id === pendingPlanMessageId}
                       onApprovePlan={onApprovePlan}
                       onRejectPlan={onRejectPlan}
+                      onClarifySelect={onClarifySelect}
                     />
                   )
                 })}
@@ -777,11 +808,10 @@ export function ChatContainer({
                   onReasoningEffortChange={onReasoningEffortChange}
                 />
                 {toolbarLeading}
-                {modelSelector}
+                {modelReasoningPicker}
                 <ChatInputActions
                   showImageUpload={false}
-                  showReasoningEffort={showReasoningEffort}
-                  showReasoningControl={showReasoningControl}
+                  showReasoningEffort={false}
                   imageUploadLabel={imageUploadLabel}
                   reasoningEffort={reasoningEffort}
                   reasoningEffortLabel={reasoningEffortLabel}

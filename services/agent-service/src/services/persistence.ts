@@ -1,23 +1,14 @@
 import { prisma } from './db.js'
 import { safeJsonStringify } from '../utils/json.js'
+import { appendRunEvent } from './run-events.js'
 
 export class AgentRunPersistence {
-  private eventSequence = 0
   private stepIndex = 0
 
   constructor(private readonly runId: string) {}
 
   async event(type: string, payload: unknown = {}, agentName?: string | null) {
-    this.eventSequence += 1
-    await prisma.agentRunEvent.create({
-      data: {
-        runId: this.runId,
-        sequence: this.eventSequence,
-        type,
-        agentName: agentName ?? null,
-        payload: payload as any,
-      },
-    })
+    await appendRunEvent(this.runId, type, payload, agentName)
   }
 
   async step(
@@ -42,8 +33,11 @@ export class AgentRunPersistence {
   }
 
   async complete(finalOutput: string, lastAgentName?: string, lastResponseId?: string) {
-    await prisma.agentRun.update({
-      where: { id: this.runId },
+    const updated = await prisma.agentRun.updateMany({
+      where: {
+        id: this.runId,
+        status: { not: 'cancelled' },
+      },
       data: {
         status: 'completed',
         finalOutput,
@@ -52,20 +46,27 @@ export class AgentRunPersistence {
         completedAt: new Date(),
       },
     })
+    if (updated.count === 0) return false
     await this.event('final', { finalOutput, lastResponseId }, lastAgentName)
+    return true
   }
 
   async fail(error: unknown) {
     const message = error instanceof Error ? error.message : safeJsonStringify(error)
-    await prisma.agentRun.update({
-      where: { id: this.runId },
+    const updated = await prisma.agentRun.updateMany({
+      where: {
+        id: this.runId,
+        status: { not: 'cancelled' },
+      },
       data: {
         status: 'failed',
         error: message,
         completedAt: new Date(),
       },
     })
+    if (updated.count === 0) return false
     await this.event('error', { message })
+    return true
   }
 
   async cancel(reason: string) {
@@ -86,6 +87,7 @@ export async function createAgentRun(data: {
   threadId?: string | null
   input: unknown
   metadata?: unknown
+  status?: 'queued' | 'running'
 }) {
   return prisma.agentRun.create({
     data: {
@@ -93,7 +95,7 @@ export async function createAgentRun(data: {
       threadId: data.threadId ?? null,
       input: data.input as any,
       metadata: (data.metadata ?? {}) as any,
-      status: 'running',
+      status: data.status ?? 'queued',
     },
   })
 }

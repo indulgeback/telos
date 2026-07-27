@@ -448,3 +448,7 @@ services/agent-service/.persisted-workspaces/
 # Temporary root-level debug scripts in agent-service (not real tests)
 services/agent-service/test-*.ts
 
+
+# 本地 AI 工具配置 (不进 git)
+.claude/
+.zcode/

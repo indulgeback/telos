@@ -23,6 +23,7 @@
     "@openai/agents-openai": "0.11.6",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "7.8.0",
+    "bullmq": "^5.79.2",
     "cos-nodejs-sdk-v5": "^2.15.4",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

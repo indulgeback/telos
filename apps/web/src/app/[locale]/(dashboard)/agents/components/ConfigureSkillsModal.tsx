@@ -45,7 +45,11 @@ export function ConfigureSkillsModal({
     setIsLoading(true)
     try {
       const skillsData = await agentService.listSkills()
-      setAvailableSkills(skillsData)
+      // 仅展示用户已安装或已创建的技能（即拥有具体 owner_id 的个人技能副本）
+      const mySkills = skillsData.filter(
+        s => s.owner_id !== null && s.owner_id !== undefined
+      )
+      setAvailableSkills(mySkills)
 
       const agentSkillsData = await agentService.getAgentSkills(agentId)
       setAgentSkills(agentSkillsData.skills)

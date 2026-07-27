@@ -21,6 +21,17 @@ export interface PlanPart {
   text: string
 }
 
+/** 澄清消歧消息 part，嵌入 assistant 消息的 parts 数组中 */
+export interface ClarifyPart {
+  type: 'clarify'
+  clarify: {
+    question: string
+    options: string[]
+    status: 'pending' | 'answered'
+    selectedOption?: string | null
+  }
+}
+
 export interface Agent {
   id: string
   name: string
@@ -121,7 +132,7 @@ export interface AgentRun {
   agent_id: string
   current_agent_id?: string | null
   thread_id?: string | null
-  status: 'running' | 'completed' | 'failed' | 'cancelled'
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
   input?: unknown
   final_output?: string | null
   error?: string | null
@@ -134,7 +145,9 @@ export interface AgentRunEvent {
   id: string
   run_id: string
   step_id?: string | null
-  event_type: string
+  event_type?: string
+  type?: string
+  agent_name?: string | null
   payload?: unknown
   sequence: number
   created_at: string
@@ -288,6 +301,23 @@ export class AgentService {
     return this.request<{ events: AgentRunEvent[] }>(
       `/api/runs/${runId}/events`
     )
+  }
+
+  cancelRun(runId: string): Promise<{ status: AgentRun['status'] }> {
+    return this.request<{ status: AgentRun['status'] }>(
+      `/api/runs/${runId}/cancel`,
+      { method: 'POST' }
+    )
+  }
+
+  listThreadRuns(
+    threadId: string
+  ): Promise<
+    Array<Pick<AgentRun, 'id' | 'status' | 'thread_id' | 'started_at'>>
+  > {
+    return this.request<
+      Array<Pick<AgentRun, 'id' | 'status' | 'thread_id' | 'started_at'>>
+    >(`/api/agent/threads/${threadId}/runs`)
   }
 
   listThreads(params?: { agentId?: string | null }): Promise<AgentThread[]> {
@@ -473,6 +503,19 @@ export class AgentService {
       `/api/agents/${agentId}/regenerate-instructions`,
       {
         method: 'POST',
+      }
+    )
+  }
+
+  answerClarify(
+    messageId: string,
+    selectedOption: string
+  ): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(
+      `/api/agent/messages/${messageId}/clarify`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ selectedOption }),
       }
     )
   }

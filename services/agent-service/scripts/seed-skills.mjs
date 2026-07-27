@@ -32,14 +32,14 @@ const prisma = new PrismaClient({
 /**
  * 分类映射:name → category。
  * category 必须与前端 category.tsx 的 SKILL_CATEGORIES id 一致:
- * writing / coding / productivity / data / translation
+ * writing / coding / productivity / office / translation
  */
 const CATEGORY_MAP = {
-  // data:文档与数据处理
-  pdf: 'data',
-  docx: 'data',
-  pptx: 'data',
-  xlsx: 'data',
+  // office:文档、演示、表格与 PDF 处理
+  pdf: 'office',
+  docx: 'office',
+  pptx: 'office',
+  xlsx: 'office',
   // coding:编程与开发
   'web-artifacts-builder': 'coding',
   'mcp-builder': 'coding',
@@ -224,7 +224,7 @@ async function main() {
       throw new Error(`[seed-skills] skill 数据不完整: ${JSON.stringify({ name: s.name, hasDesc: !!s.description, hasContent: !!s.content })}`)
     }
     const cat = s.metadata.category
-    if (!['writing', 'coding', 'productivity', 'data', 'translation'].includes(cat)) {
+    if (!['writing', 'coding', 'productivity', 'office', 'translation'].includes(cat)) {
       throw new Error(`[seed-skills] skill "${s.name}" 分类非法: ${cat}`)
     }
   }

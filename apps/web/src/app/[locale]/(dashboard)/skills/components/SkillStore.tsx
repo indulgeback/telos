@@ -24,7 +24,8 @@ interface SkillStoreProps {
 }
 
 // 分类状态:'all' = 不筛选,其余对应 metadata.category
-type Category = 'all' | 'writing' | 'coding' | 'productivity' | 'office'
+type Category =
+  'all' | 'writing' | 'coding' | 'productivity' | 'office' | 'translation'
 
 export function SkillStore({ installedNames, onInstalled }: SkillStoreProps) {
   const t = useTranslations('Skill')
@@ -97,7 +98,8 @@ export function SkillStore({ installedNames, onInstalled }: SkillStoreProps) {
     for (const s of allSystemSkills) {
       const cat =
         (s.metadata as { category?: string } | undefined)?.category ?? 'other'
-      map[cat] = (map[cat] ?? 0) + 1
+      const normalizedCat = cat === 'data' ? 'office' : cat
+      map[normalizedCat] = (map[normalizedCat] ?? 0) + 1
     }
     return map
   }, [allSystemSkills])

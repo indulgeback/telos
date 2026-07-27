@@ -61,70 +61,86 @@ export default function SkillsPage() {
   )
 
   return (
-    <div className='container mx-auto py-8'>
-      {/* Error State */}
-      {error && (
-        <div className='mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4'>
-          <p className='text-sm text-destructive'>{error}</p>
-        </div>
-      )}
-
+    <div className='flex h-full flex-col overflow-hidden'>
       {/* Tabs: 默认 Store, 可切换 My Skills。标题与场景切换/创建控件并到一行 */}
-      <Tabs defaultValue='store' onValueChange={v => setActiveTab(v)}>
-        <div className='mb-8 flex flex-wrap items-center justify-between gap-4'>
-          <div className='flex items-center gap-4'>
-            <h1 className='text-3xl font-bold'>{t('title')}</h1>
-            <TabsList>
-              <TabsTrigger value='store'>{t('store.tabStore')}</TabsTrigger>
-              <TabsTrigger value='mine'>{t('store.tabMine')}</TabsTrigger>
-            </TabsList>
-          </div>
-          {/* Create 按钮仅在「我的技能」tab 下显示:跳转聊天用 skill-creator 生成 */}
-          {activeTab === 'mine' && (
-            <Button onClick={handleCreateWithAI} className='gap-2'>
-              <Sparkles className='size-4' />
-              {t('create')}
-            </Button>
-          )}
-        </div>
-
-        {/* Store Tab */}
-        <TabsContent value='store'>
-          <SkillStore
-            installedNames={installedNames}
-            onInstalled={() => loadSkills(true)}
-          />
-        </TabsContent>
-
-        {/* My Skills Tab */}
-        <TabsContent value='mine'>
-          {loading ? (
-            <div className='flex items-center justify-center py-12'>
-              <Loader2 className='size-8 animate-spin text-muted-foreground' />
+      <Tabs
+        defaultValue='store'
+        className='h-full min-h-0 gap-0'
+        onValueChange={v => setActiveTab(v)}
+      >
+        <div className='shrink-0 border-b border-border/60 bg-background/95 px-6 py-5 backdrop-blur supports-[backdrop-filter]:bg-background/85'>
+          <div className='container mx-auto flex flex-wrap items-center justify-between gap-4'>
+            <div className='flex items-center gap-4'>
+              <h1 className='text-3xl font-bold'>{t('title')}</h1>
+              <TabsList>
+                <TabsTrigger value='store'>{t('store.tabStore')}</TabsTrigger>
+                <TabsTrigger value='mine'>{t('store.tabMine')}</TabsTrigger>
+              </TabsList>
             </div>
-          ) : mySkills.length === 0 ? (
-            /* Empty State */
-            <div className='flex flex-col items-center justify-center py-16 text-center'>
-              <div className='mb-4 flex size-20 items-center justify-center rounded-full bg-muted'>
-                <Wand2 className='size-10 text-muted-foreground' />
-              </div>
-              <h3 className='mb-2 text-lg font-semibold'>{t('empty.title')}</h3>
-              <p className='mb-6 text-sm text-muted-foreground'>
-                {t('empty.description')}
-              </p>
+            {/* Create 按钮仅在「我的技能」tab 下显示:跳转聊天用 skill-creator 生成 */}
+            {activeTab === 'mine' && (
               <Button onClick={handleCreateWithAI} className='gap-2'>
                 <Sparkles className='size-4' />
                 {t('create')}
               </Button>
-            </div>
-          ) : (
-            <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-              {mySkills.map(skill => (
-                <SkillCard key={skill.id} skill={skill} onUpdate={loadSkills} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+            )}
+          </div>
+        </div>
+
+        <div className='min-h-0 flex-1 overflow-y-auto px-6 py-8'>
+          <div className='container mx-auto'>
+            {/* Error State */}
+            {error && (
+              <div className='mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4'>
+                <p className='text-sm text-destructive'>{error}</p>
+              </div>
+            )}
+
+            {/* Store Tab */}
+            <TabsContent value='store'>
+              <SkillStore
+                installedNames={installedNames}
+                onInstalled={() => loadSkills(true)}
+              />
+            </TabsContent>
+
+            {/* My Skills Tab */}
+            <TabsContent value='mine'>
+              {loading ? (
+                <div className='flex items-center justify-center py-12'>
+                  <Loader2 className='size-8 animate-spin text-muted-foreground' />
+                </div>
+              ) : mySkills.length === 0 ? (
+                /* Empty State */
+                <div className='flex flex-col items-center justify-center py-16 text-center'>
+                  <div className='mb-4 flex size-20 items-center justify-center rounded-full bg-muted'>
+                    <Wand2 className='size-10 text-muted-foreground' />
+                  </div>
+                  <h3 className='mb-2 text-lg font-semibold'>
+                    {t('empty.title')}
+                  </h3>
+                  <p className='mb-6 text-sm text-muted-foreground'>
+                    {t('empty.description')}
+                  </p>
+                  <Button onClick={handleCreateWithAI} className='gap-2'>
+                    <Sparkles className='size-4' />
+                    {t('create')}
+                  </Button>
+                </div>
+              ) : (
+                <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                  {mySkills.map(skill => (
+                    <SkillCard
+                      key={skill.id}
+                      skill={skill}
+                      onUpdate={loadSkills}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </div>
+        </div>
       </Tabs>
 
       {/* 编辑技能由各 SkillCard 内部自行处理(Edit 按钮),无需页面级 Modal */}

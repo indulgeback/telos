@@ -9,6 +9,7 @@ import type { Components } from 'react-markdown'
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
 import { Download } from 'lucide-react'
+import { ArtifactPreviewLink } from './artifact-preview-link'
 
 interface MarkdownContentProps {
   content: string
@@ -169,15 +170,13 @@ const MARKDOWN_COMPONENTS: Components = {
   ),
   hr: props => <hr className='my-4 border-border' {...props} />,
   a: ({ children, href, ...props }) => (
-    <a
+    <ArtifactPreviewLink
       className='text-primary hover:underline'
-      href={href}
-      target='_blank'
-      rel='noopener noreferrer'
+      href={href || '#'}
       {...props}
     >
       {children}
-    </a>
+    </ArtifactPreviewLink>
   ),
   table: ({ children, ...props }) => (
     <div className='overflow-x-auto mb-4'>

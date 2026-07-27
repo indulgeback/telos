@@ -43,11 +43,19 @@ export async function executeCode(
   const image = language === 'javascript' ? 'node:20-alpine' : 'python:3.11-alpine'
   const command = language === 'javascript' ? 'node' : 'python'
   const args = language === 'javascript' ? [] : ['-']
+  const containerName = `telos-code-sandbox-${language}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+
+  const killContainer = () => {
+    try {
+      execSync(`${dockerPath} kill ${containerName}`, { stdio: 'ignore', env: customEnv })
+    } catch {}
+  }
 
   const dockerArgs = [
     'run',
     '-i',
     '--rm',
+    '--name', containerName,
     '--network=none',
     '--memory=256m',
     '--cpus=0.5',
@@ -84,6 +92,7 @@ export async function executeCode(
       try {
         child.kill('SIGKILL')
       } catch {}
+      killContainer()
       resolve({
         stdout,
         stderr: stderr + '\nExecution Timeout: Limit of 10s exceeded.',
@@ -107,6 +116,7 @@ export async function executeCode(
       if (isFinished) return
       isFinished = true
       clearTimeout(timeoutId)
+      killContainer()
 
       resolve({
         stdout,
@@ -126,6 +136,7 @@ export async function executeCode(
       try {
         child.kill('SIGKILL')
       } catch {}
+      killContainer()
       resolve({
         stdout,
         stderr: stderr + `\nFailed to write code to stdin: ${err.message}`,

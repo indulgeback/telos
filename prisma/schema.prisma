@@ -90,7 +90,7 @@ model Agent {
   type         AgentType     @default(public)
   modelKey     String        @default("deepseek-v4-flash") @map("model_key")
   temperature  Float         @default(0.7)
-  maxTurns     Int           @default(8) @map("max_turns")
+  maxTurns     Int           @default(50) @map("max_turns")
   loopMode     AgentLoopMode @default(auto) @map("loop_mode")
   status       AgentStatus   @default(active)
   ownerId      String?       @map("owner_id")
@@ -308,7 +308,7 @@ model AgentRun {
   id             String         @id @default(uuid())
   agentId        String         @map("agent_id")
   threadId       String?        @map("thread_id")
-  status         AgentRunStatus @default(running)
+  status         AgentRunStatus @default(queued)
   input          Json
   finalOutput    String?        @map("final_output")
   lastAgentName  String?        @map("last_agent_name")
@@ -419,6 +419,7 @@ enum AgentRelationMode {
 }
 
 enum AgentRunStatus {
+  queued
   running
   completed
   failed
