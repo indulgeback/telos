@@ -22,9 +22,9 @@ COPY prisma ./prisma
 # 安装依赖 (--ignore-scripts 跳过根 package.json 的 husky prepare, 容器里不需要)
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# 单独执行 web 的 prisma generate (postinstall 被 ignore-scripts 跳过了, 这里补上)
-# web/prisma.config.ts 引用 ../../prisma/schema.prisma, 所以在 apps/web 目录执行
-RUN cd apps/web && npx prisma generate
+# 单独执行 prisma generate (postinstall 被 ignore-scripts 跳过了, 这里补上)
+# web/prisma.config.ts 引用 ../../prisma/schema.prisma, 显式指定 schema 路径
+RUN cd apps/web && npx prisma generate --schema ../../prisma/schema.prisma
 
 # 构建阶段
 FROM base AS builder
