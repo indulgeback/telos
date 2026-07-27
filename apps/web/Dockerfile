@@ -54,13 +54,18 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 复制构建产物
-COPY --from=builder /app/apps/web/public ./public
+# 复制 standalone 构建产物 (monorepo 下保留 apps/web 结构, server.js 在 apps/web/server.js)
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
+# 复制静态资源到对应位置 (与 server.js 同级的 .next/static)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# 复制 public 目录 (Next.js 会从 server.js 同级找 public)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 # 设置用户
 USER nextjs
+
+# 工作目录指向 server.js 所在位置 (monorepo standalone 结构)
+WORKDIR /app/apps/web
 
 # 暴露端口
 EXPOSE 8800
