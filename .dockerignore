@@ -119,13 +119,20 @@ docker-compose*.yml
 
 # Kubernetes
 k8s/
-*.yaml
-*.yml
+k8s/**/*.yaml
+k8s/**/*.yml
+*.kube.yaml
+*.kube.yml
+deploy*.yaml
+deploy*.yml
+!pnpm-workspace.yaml
 
 # Terraform
 *.tfstate
 *.tfstate.*
 .terraform/
+*.tf
+*.tfvars
 
 # Misc
 .husky/

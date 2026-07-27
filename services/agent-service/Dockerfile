@@ -6,8 +6,8 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy package files
-COPY services/agent-service/package.json services/agent-service/pnpm-lock.yaml ./services/agent-service/
+# Copy package files (monorepo 共用根 pnpm-lock.yaml, 子项目无独立 lock)
+COPY services/agent-service/package.json ./services/agent-service/
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
 # Install dependencies
@@ -28,7 +28,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Copy package files
-COPY services/agent-service/package.json services/agent-service/pnpm-lock.yaml ./services/agent-service/
+COPY services/agent-service/package.json ./services/agent-service/
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
 # Install production dependencies only
