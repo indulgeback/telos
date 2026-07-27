@@ -1,0 +1,97 @@
+name: 🚀 Deploy to Server
+
+# =============================================================================
+# 部署流水线
+#   - 由 docker-build.yml 构建完成后自动触发 (传入 image_tag)
+#   - 也支持手动触发,可输入指定 tag 用于回滚
+# SSH 登录服务器,执行 deploy.sh 完成滚动更新 + 健康检查
+# =============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: '要部署的镜像 tag (如 main / 1.0.0 / sha-abc1234)'
+        required: true
+        default: 'main'
+      build_sha:
+        description: '对应构建的 commit SHA (仅用于展示,可空)'
+        required: false
+  workflow_call:
+    inputs:
+      image_tag:
+        type: string
+        required: true
+        description: '要部署的镜像 tag'
+      build_sha:
+        type: string
+        required: false
+
+# 同一时刻只允许一次部署,避免互相覆盖
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+      DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/opt/telos' }}
+    steps:
+      - name: 📋 部署信息
+        run: |
+          echo "## 🚀 部署信息" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| 项目 | 值 |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|----|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| 镜像 Tag | \`${{ inputs.image_tag }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "${{ inputs.build_sha }}" ]]; then
+            echo "| Commit | [\`${{ inputs.build_sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ inputs.build_sha }}) |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "| 服务器 | \`${{ secrets.SSH_HOST }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| 部署目录 | \`${{ vars.DEPLOY_DIR || '/opt/telos' }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 🔑 加载 SSH 私钥
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # 加入主机指纹避免交互提示
+          if [[ -n "${{ secrets.SSH_HOST_KEY }}" ]]; then
+            echo "${{ secrets.SSH_HOST_KEY }}" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+
+      - name: 🚀 执行远程部署
+        id: deploy
+        run: |
+          set -euo pipefail
+          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+
+          echo "🔄 SSH 连接服务器并执行部署..."
+          ssh $SSH_OPTS ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "cd '${DEPLOY_DIR}' && bash deploy/deploy.sh '${IMAGE_TAG}'"
+
+      - name: ✅ 部署完成通知
+        if: success()
+        run: |
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "🎉 **部署成功!** 镜像 tag \`${{ inputs.image_tag }}\` 已滚动到生产环境。" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ❌ 部署失败处理
+        if: failure()
+        run: |
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "❌ **部署失败!** 请检查上方日志。" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "排查步骤:" >> "$GITHUB_STEP_SUMMARY"
+          echo "1. SSH 登录服务器: \`ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "2. 查看服务状态: \`cd ${{ vars.DEPLOY_DIR || '/opt/telos' }} && docker compose -f docker-compose.prod.yml ps\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "3. 查看日志: \`docker compose -f docker-compose.prod.yml logs --tail=100 <service>\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "4. 如需回滚: 在 Actions 页面手动触发 deploy workflow,输入旧 tag" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

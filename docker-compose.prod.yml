@@ -1,0 +1,282 @@
+# =============================================================================
+# Telos 生产环境 Docker Compose (修正版)
+# -----------------------------------------------------------------------------
+# 真实架构 (修正了之前误判):
+#
+#   Browser ──HTTPS──> Nginx/Caddy ──> web (8800) + api-gateway (8890)
+#                                            │
+#                                            │ 发现服务
+#                                            ▼
+#                              registry (8891, Consul HTTP 封装)
+#                                            │
+#                                            ▼
+#                              Consul (8500, 真正的注册中心) ★
+#                                            ▲
+#                                            │ 注册自己
+#                              agent-service (8895)
+#
+# 关键修正:
+#   1. 补 Consul 服务 (之前漏了,会导致 registry 启动失败)
+#   2. registry 监听 8891 (agent-service 代码硬编码请求 8891)
+#   3. agent-service 通过 REGISTRY_URL 注册到 registry
+#   4. api-gateway 通过 REGISTRY_SERVICE_URL 发现服务
+# =============================================================================
+
+name: telos-prod
+
+services:
+  # ---------------------------------------------------------------------------
+  # Consul - 真正的服务注册中心 (★ 必需,registry 依赖它)
+  # ---------------------------------------------------------------------------
+  consul:
+    image: hashicorp/consul:1.18
+    container_name: telos-consul
+    restart: unless-stopped
+    command: agent -dev -client=0.0.0.0 -ui
+    ports:
+      # UI 和 API: 8500 (默认不对外,调试可设 CONSUL_UI_PORT=8500)
+      - "${CONSUL_UI_PORT:-}:8500"
+    volumes:
+      - consul_data:/consul/data
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'curl', '-sf', 'http://localhost:8500/v1/status/leader']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL - 使用 pgvector (schema 依赖 vector 扩展)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: telos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-telos}
+      POSTGRES_USER: ${POSTGRES_USER:-telos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须在 .env 中设置}
+    ports:
+      - "${EXPOSE_DB_PORT:-}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-telos}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Redis 缓存
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: telos-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 服务注册中心 (Go) - Consul 的 HTTP 封装层
+  # 必须监听 8891: agent-service 代码硬编码请求 http://registry:8891/api/register
+  # ---------------------------------------------------------------------------
+  registry:
+    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-registry:${IMAGE_TAG:-latest}
+    container_name: telos-registry
+    restart: unless-stopped
+    environment:
+      # ★ 必须是 8891,与 agent-service 注册代码一致
+      - REGISTRY_PORT=8891
+      # 连接容器内的 Consul
+      - CONSUL_ADDRESS=consul:8500
+      - LOG_LEVEL=info
+    depends_on:
+      consul:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8891/api/health']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # API 网关 (Go) - 通过 REGISTRY_SERVICE_URL 发现下游服务
+  # ---------------------------------------------------------------------------
+  api-gateway:
+    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-api-gateway:${IMAGE_TAG:-latest}
+    container_name: telos-api-gateway
+    restart: unless-stopped
+    ports:
+      - "${API_GATEWAY_PORT:-8890}:8890"
+    environment:
+      - GATEWAY_PORT=8890
+      # 发现服务时访问 registry 的 HTTP API
+      - REGISTRY_SERVICE_URL=http://registry:8891
+      # 鉴权: 调用 web 校验 session
+      - BETTER_AUTH_BASE_URL=http://web:8800
+      - BETTER_AUTH_SESSION_PATH=/api/auth/get-session
+      - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:?GATEWAY_INTERNAL_SECRET 必须在 .env 中设置}
+      - AUTH_CACHE_TTL_SECONDS=${AUTH_CACHE_TTL_SECONDS:-60}
+      - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
+      - LOG_LEVEL=info
+    depends_on:
+      registry:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8890/ping']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # Agent 服务 (Node/TypeScript) - 注册自己到 registry
+  # ---------------------------------------------------------------------------
+  agent-service:
+    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-agent-service:${IMAGE_TAG:-latest}
+    container_name: telos-agent-service
+    restart: unless-stopped
+    ports:
+      - "${AGENT_SERVICE_PORT:-8895}:8895"
+    environment:
+      - NODE_ENV=production
+      - PORT=8895
+      - SERVICE_NAME=agent-service
+      # 注册到 registry (agent-service 代码请求 http://registry:8891/api/register)
+      - REGISTRY_URL=http://registry:8891
+      # 数据库 / 缓存
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-telos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-telos}?schema=public
+      - REDIS_URL=redis://redis:6379
+      # 网关内部通信密钥
+      - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET}
+      - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
+      - ALLOW_ANONYMOUS_OWNER=${ALLOW_ANONYMOUS_OWNER:-false}
+      - LOG_LEVEL=info
+      - AGENT_RUN_WORKER_CONCURRENCY=${AGENT_RUN_WORKER_CONCURRENCY:-2}
+      # 默认 Agent 模型
+      - DEFAULT_AGENT_MODEL=${DEFAULT_AGENT_MODEL:-google/gemini-2.5-pro}
+      # ===== LLM 提供商 (按需配置) =====
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      - SEED_API_KEY=${SEED_API_KEY:-}
+      - SEED_BASE_URL=${SEED_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+      - BAILIAN_API_KEY=${BAILIAN_API_KEY:-}
+      - BAILIAN_BASE_URL=${BAILIAN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - SHORTAPI_API_KEY=${SHORTAPI_API_KEY:-}
+      - SHORTAPI_BASE_URL=${SHORTAPI_BASE_URL:-https://api.shortapi.ai/v1}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      # Embedding (可选)
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-gcloud}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-multilingual-embedding-002}
+      # 腾讯云 COS (文件上传)
+      - COS_SECRET_ID=${COS_SECRET_ID:-}
+      - COS_SECRET_KEY=${COS_SECRET_KEY:-}
+      - COS_BUCKET=${COS_BUCKET:-}
+      - COS_REGION=${COS_REGION:-}
+      - COS_PREFIX=${COS_PREFIX:-}
+      # 火山引擎实时语音 (可选)
+      - VOLC_REALTIME_APP_ID=${VOLC_REALTIME_APP_ID:-}
+      - VOLC_REALTIME_ACCESS_KEY=${VOLC_REALTIME_ACCESS_KEY:-}
+      - VOLC_REALTIME_APP_KEY=${VOLC_REALTIME_APP_KEY:-}
+      - VOLC_REALTIME_ENDPOINT=${VOLC_REALTIME_ENDPOINT:-}
+      - VOLC_REALTIME_RESOURCE_ID=${VOLC_REALTIME_RESOURCE_ID:-}
+      - VOLC_REALTIME_MODEL=${VOLC_REALTIME_MODEL:-}
+      - VOLC_REALTIME_SPEAKER=${VOLC_REALTIME_SPEAKER:-}
+    depends_on:
+      registry:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8895/health']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Web 前端 (Next.js standalone)
+  # ---------------------------------------------------------------------------
+  web:
+    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-web:${IMAGE_TAG:-latest}
+    container_name: telos-web
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8800}:8800"
+    environment:
+      - PORT=8800
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      # ===== Better-Auth (必填) =====
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET 必须设置}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:?BETTER_AUTH_URL 必须设置}
+      - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL:-${BETTER_AUTH_URL}}
+      - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-${BETTER_AUTH_URL}}
+      # ===== 数据库 (web 也直接读数据库做 Better-Auth) =====
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-telos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-telos}?schema=public
+      # ===== 浏览器侧 API 地址 (公网域名, 浏览器实际能访问到) =====
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL 必须设置}
+      - NEXT_PUBLIC_DOMAIN=${NEXT_PUBLIC_DOMAIN:-}
+      - NEXT_PUBLIC_NODE_ENV=production
+      # ===== OAuth 登录 (可选) =====
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+      - SLACK_CLIENT_ID=${SLACK_CLIENT_ID:-}
+      - SLACK_CLIENT_SECRET=${SLACK_CLIENT_SECRET:-}
+      # ===== 邮件 (可选) =====
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
+      # ===== 腾讯云 COS (图片上传) =====
+      - COS_SECRET_ID=${COS_SECRET_ID:-}
+      - COS_SECRET_KEY=${COS_SECRET_KEY:-}
+      - COS_BUCKET=${COS_BUCKET:-}
+      - COS_REGION=${COS_REGION:-}
+      - COS_PREFIX=${COS_PREFIX:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8800']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+networks:
+  telos-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  consul_data:
