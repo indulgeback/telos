@@ -10,8 +10,8 @@ RUN npm install -g pnpm
 COPY services/agent-service/package.json ./services/agent-service/
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN cd services/agent-service && pnpm install --frozen-lockfile
+# Install dependencies (--ignore-scripts 跳过根 package.json 的 husky prepare, 容器里不需要)
+RUN cd services/agent-service && pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source code
 COPY services/agent-service ./services/agent-service
@@ -31,8 +31,8 @@ RUN npm install -g pnpm
 COPY services/agent-service/package.json ./services/agent-service/
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Install production dependencies only
-RUN cd services/agent-service && pnpm install --prod --frozen-lockfile
+# Install production dependencies only (--ignore-scripts 跳过 husky prepare)
+RUN cd services/agent-service && pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist

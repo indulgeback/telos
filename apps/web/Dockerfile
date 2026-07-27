@@ -16,9 +16,15 @@ FROM base AS deps
 # 复制 package.json 文件
 COPY package.json ./
 COPY apps/web/package.json ./apps/web/
+# 复制 prisma schema (web 的 postinstall: prisma generate 需要, web/prisma.config.ts 引用 ../../prisma/schema.prisma)
+COPY prisma ./prisma
 
-# 安装依赖
-RUN pnpm install --frozen-lockfile
+# 安装依赖 (--ignore-scripts 跳过根 package.json 的 husky prepare, 容器里不需要)
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+# 单独执行 web 的 prisma generate (postinstall 被 ignore-scripts 跳过了, 这里补上)
+# web/prisma.config.ts 引用 ../../prisma/schema.prisma, 所以在 apps/web 目录执行
+RUN cd apps/web && npx prisma generate
 
 # 构建阶段
 FROM base AS builder
@@ -28,8 +34,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 
-# 复制源代码
+# 复制源代码 (含 prisma schema, build 时也可能需要)
 COPY apps/web ./apps/web
+COPY prisma ./prisma
 
 # 设置环境变量
 ENV NEXT_TELEMETRY_DISABLED 1
