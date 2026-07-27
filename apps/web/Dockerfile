@@ -42,6 +42,14 @@ COPY prisma ./prisma
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
+# ===== 关键: NEXT_PUBLIC_* 变量在构建时内联进 bundle, 必须在 build 前注入 =====
+# 通过 ARG 接收, 转成 ENV 供 pnpm build 读取
+# 这些都是 public 变量 (会暴露到浏览器), 不含敏感信息, 写进镜像安全
+ARG NEXT_PUBLIC_API_URL=http://localhost:8890
+ARG NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:8800
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
+
 # 构建应用
 WORKDIR /app/apps/web
 RUN pnpm build

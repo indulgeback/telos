@@ -136,6 +136,11 @@ jobs:
           # 生成的镜像使用 buildx provenance 简化引用
           provenance: false
           load: false
+          # web 镜像构建时注入 NEXT_PUBLIC_* (这些变量在 build 时内联进 bundle, 运行时注入无效)
+          # 仅 web 服务会用到这些 ARG, 其他服务的 Dockerfile 不声明 ARG 会自动忽略
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://api.telos.indulgeback.icu' }}
+            NEXT_PUBLIC_BETTER_AUTH_URL=${{ vars.NEXT_PUBLIC_BETTER_AUTH_URL || 'https://telos.indulgeback.icu' }}
 
       - name: 📝 输出镜像 digest
         run: |
