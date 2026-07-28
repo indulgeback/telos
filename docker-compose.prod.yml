@@ -130,7 +130,7 @@ services:
       - REGISTRY_SERVICE_URL=http://registry:8891
       # 鉴权: 调用 web 校验 session
       - BETTER_AUTH_BASE_URL=http://web:8800
-      - BETTER_AUTH_SESSION_PATH=/api/auth/get-session
+      - BETTER_AUTH_SESSION_PATH=/api/auth/get-session/
       - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:?GATEWAY_INTERNAL_SECRET 必须在 .env 中设置}
       - AUTH_CACHE_TTL_SECONDS=${AUTH_CACHE_TTL_SECONDS:-60}
       - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
