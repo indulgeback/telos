@@ -187,8 +187,9 @@ if [[ "$CLEAN_IMAGES" == "true" ]]; then
 
   # 2. 删除未被容器使用的旧 telos 镜像 (ghcr.io/indulgeback/telos-*, 保留当前 tag)
   # 只针对 telos 镜像, 绝不碰 safeline/agent-lab 等其他服务
+  # 注意: grep 无匹配返回 1, 在 set -o pipefail 下会导致脚本退出, 加 || true 兜底
   OLD_TELOS_IMAGES=$(docker images --filter "reference=ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-*" \
-    --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v ":${IMAGE_TAG} " | grep -v "<none>" | awk '{print $2}' | sort -u)
+    --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v ":${IMAGE_TAG} " | grep -v "<none>" | awk '{print $2}' | sort -u || true)
   OLD_COUNT=0
   if [[ -n "$OLD_TELOS_IMAGES" ]]; then
     # 只删当前没有任何容器在用的镜像
