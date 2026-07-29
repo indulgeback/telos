@@ -156,5 +156,16 @@ export const auth = betterAuth({
     trustedOrigins: process.env.TRUSTED_ORIGINS
       ? process.env.TRUSTED_ORIGINS.split(',')
       : [],
+    // 跨子域共享 cookie (telos.indulgeback.icu ↔ api.telos.indulgeback.icu)
+    // 不配置的话, SameSite=Lax 会让跨子域 XHR 请求不带 cookie → api-gateway 401
+    // domain 设为根域, SameSite=None 必须搭配 Secure
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: 'indulgeback.icu',
+    },
+    defaultCookieAttributes: {
+      sameSite: 'none',
+      secure: true,
+    },
   },
 })
