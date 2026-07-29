@@ -17,6 +17,7 @@ import { skillsRouter } from './routes/skills.js'
 import { toolsRouter } from './routes/tools.js'
 import { gatewayIdentityMiddleware } from './middleware/gatewayIdentity.js'
 import { ensureBuiltinTools } from './services/builtin-tools.js'
+import { ensureDefaultAgent } from './services/default-agent.js'
 import { db } from './services/db.js'
 import { performRegistration } from './services/registry.js'
 import { handleVolcRealtimeAudioSocket } from './services/realtime/volc-realtime.js'
@@ -140,6 +141,12 @@ const server = serve(
     void ensureBuiltinTools({ attachToExistingAgents: true }).catch(error => {
       logger.error({
         msg: 'Failed to ensure builtin tools',
+        err: error,
+      })
+    })
+    void ensureDefaultAgent().catch(error => {
+      logger.error({
+        msg: 'Failed to ensure default agent',
         err: error,
       })
     })
