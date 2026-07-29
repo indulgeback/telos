@@ -173,6 +173,39 @@ if [[ -n "$FAILED_SERVICE" ]]; then
   exit 1
 fi
 
+# ---------------------------- 镜像清理 -------------------------------------
+# 部署成功后清理无用镜像, 避免多次部署累积撑满磁盘
+# 只在成功时清理, 失败时保留所有镜像便于回滚排查
+# 注意: 只清 telos 相关的旧镜像 + 悬空镜像, 不影响服务器上其他服务
+CLEAN_IMAGES=${CLEAN_IMAGES:-true}
+if [[ "$CLEAN_IMAGES" == "true" ]]; then
+  log "🧹 清理无用镜像..."
+
+  # 1. 删除悬空镜像 (dangling <none>:<none>, 最安全, 无副作用)
+  PRUNE_COUNT=$(docker images -f "dangling=true" -q | wc -l | tr -d ' ')
+  docker image prune -f >/dev/null 2>&1 || true
+
+  # 2. 删除未被容器使用的旧 telos 镜像 (ghcr.io/indulgeback/telos-*, 保留当前 tag)
+  # 只针对 telos 镜像, 绝不碰 safeline/agent-lab 等其他服务
+  OLD_TELOS_IMAGES=$(docker images --filter "reference=ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-*" \
+    --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v ":${IMAGE_TAG} " | grep -v "<none>" | awk '{print $2}' | sort -u)
+  OLD_COUNT=0
+  if [[ -n "$OLD_TELOS_IMAGES" ]]; then
+    # 只删当前没有任何容器在用的镜像
+    RUNNING_IMAGES=$(docker ps -a --format "{{.Image}}" | sort -u)
+    for img_id in $OLD_TELOS_IMAGES; do
+      # 检查这个 image ID 是否被任何容器使用
+      IS_USED=$(docker ps -a --filter "ancestor=$img_id" -q | head -1)
+      if [[ -z "$IS_USED" ]]; then
+        docker rmi "$img_id" >/dev/null 2>&1 && OLD_COUNT=$((OLD_COUNT + 1))
+      fi
+    done
+  fi
+
+  ok "镜像清理完成 (悬空: ${PRUNE_COUNT} 个, 旧 telos 镜像: ${OLD_COUNT} 个)"
+  log "💡 磁盘: $(df -h / | awk 'NR==2 {print $3 "/" $2 " (" $5 " 已用)"}')"
+fi
+
 # ---------------------------- 成功输出 ---------------------------------------
 ok "🎉 部署成功!所有服务健康。"
 echo ""
