@@ -62,10 +62,9 @@ jobs:
           NEXT_PUBLIC_BETTER_AUTH_URL: 'http://localhost:8800'
 
       # ----- Agent Service (Node/TypeScript) -----
-      - name: 🔍 Agent Service - ESLint
-        run: pnpm --filter ./services/agent-service lint
-
-      - name: 🏗️ Agent Service - 构建 (TypeScript)
+      # 注: agent-service 未配置 ESLint (无 eslint.config + 无 eslint 依赖)
+      # tsc build 已开启 strict 模式, 等效于类型检查
+      - name: 🏗️ Agent Service - 构建 (TypeScript, strict 模式类型检查)
         run: pnpm --filter ./services/agent-service build
 
       - name: 🧪 Agent Service - 单元测试 (node:test)
@@ -128,7 +127,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| 检查项 | 结果 |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🟢 Node (web + agent-service: lint + test + build) | ${{ needs.node.result == 'success' && '✅ 通过' || '❌ 失败' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟢 Node (web: lint+test+build / agent-service: build+test) | ${{ needs.node.result == 'success' && '✅ 通过' || '❌ 失败' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔵 Go (api-gateway + registry + pkg: vet + test + build) | ${{ needs.go.result == 'success' && '✅ 通过' || '❌ 失败' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
