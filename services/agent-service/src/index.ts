@@ -18,6 +18,7 @@ import { toolsRouter } from './routes/tools.js'
 import { gatewayIdentityMiddleware } from './middleware/gatewayIdentity.js'
 import { ensureBuiltinTools } from './services/builtin-tools.js'
 import { ensureDefaultAgent } from './services/default-agent.js'
+import { ensureSystemSkills } from './services/default-skills.js'
 import { db } from './services/db.js'
 import { performRegistration } from './services/registry.js'
 import { handleVolcRealtimeAudioSocket } from './services/realtime/volc-realtime.js'
@@ -147,6 +148,12 @@ const server = serve(
     void ensureDefaultAgent().catch(error => {
       logger.error({
         msg: 'Failed to ensure default agent',
+        err: error,
+      })
+    })
+    void ensureSystemSkills().catch(error => {
+      logger.error({
+        msg: 'Failed to ensure system skills',
         err: error,
       })
     })

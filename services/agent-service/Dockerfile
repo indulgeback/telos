@@ -46,6 +46,8 @@ RUN cd services/agent-service && npx prisma generate --schema ../../prisma/schem
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist
+# Copy seed-skills markdown files (runtime 需要: ensureSystemSkills 读取这些 md 做 seed)
+COPY services/agent-service/scripts/seed-skills ./services/agent-service/scripts/seed-skills
 
 # Expose port
 EXPOSE 8895
