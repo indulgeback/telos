@@ -2,6 +2,7 @@
   "name": "telos",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.31.0",
   "scripts": {
     "prepare": "husky install",
     "web:dev": "pnpm --filter ./apps/web dev",
