@@ -76,7 +76,9 @@ export async function registerToRegistry(
 
   try {
     const body = JSON.stringify(serviceInfo)
-    const response = await fetch(`http://${address}:8891/api/register`, {
+    // 注册到 registry (用 config.registryUrl, 不是服务自己的 address)
+    // serviceInfo 里的 address/port 是告诉 registry "我在哪"
+    const response = await fetch(`${config.registryUrl}/api/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

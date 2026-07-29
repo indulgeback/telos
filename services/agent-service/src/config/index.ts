@@ -77,6 +77,7 @@ export const config = {
   port: parseInt(process.env.PORT || '8895', 10),
   serviceName: process.env.SERVICE_NAME || 'agent-service',
   serviceAddress: process.env.SERVICE_ADDRESS || '', // 服务注册地址
+  registryUrl: process.env.REGISTRY_URL || 'http://registry:8891', // 注册中心地址
 
   // 日志
   logLevel: process.env.LOG_LEVEL || 'info',
