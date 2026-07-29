@@ -15,7 +15,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "comp:add": "pnpm dlx shadcn@latest add",
-    "translate": "node scripts/translate/bing_translator.js"
+    "translate": "node scripts/translate/bing_translator.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
