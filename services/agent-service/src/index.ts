@@ -109,8 +109,12 @@ app.get('/workspaces/shares/:threadId/*', async (c) => {
     const stat = fs.statSync(absoluteFilePath)
     if (stat.isFile()) {
       const fileBuffer = fs.readFileSync(absoluteFilePath)
+      const baseName = path.basename(absoluteFilePath)
       c.header('Content-Length', stat.size.toString())
-      c.header('Content-Disposition', `attachment; filename="${encodeURIComponent(path.basename(absoluteFilePath))}"`)
+      c.header(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(baseName)}"; filename*=UTF-8''${encodeURIComponent(baseName)}`
+      )
       return c.body(fileBuffer)
     }
   }

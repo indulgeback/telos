@@ -10,6 +10,54 @@ export interface StorageProvider {
   listFiles(prefix: string): Promise<string[]>
 }
 
+// 根据扩展名推断 MIME 类型，避免 COS 上传后文件被当成 application/octet-stream
+// 导致 xlsx/docx/pptx/pdf/图片等无法在云端预览或被办公软件正确加载
+const MIME_BY_EXT: Record<string, string> = {
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.xlsm': 'application/vnd.ms-excel.sheet.macroEnabled.12',
+  '.xls': 'application/vnd.ms-excel',
+  '.csv': 'text/csv; charset=utf-8',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.doc': 'application/msword',
+  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.ppt': 'application/vnd.ms-powerpoint',
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+}
+
+function getContentType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase()
+  return MIME_BY_EXT[ext] || 'application/octet-stream'
+}
+
+// 判断是否为浏览器可内联展示的类型（图片/pdf/文本等），这些不强制下载
+function isInlineType(filePath: string): boolean {
+  const ext = path.extname(filePath).toLowerCase()
+  return [
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.gif',
+    '.webp',
+    '.svg',
+    '.pdf',
+    '.txt',
+    '.md',
+    '.html',
+    '.json',
+    '.csv',
+  ].includes(ext)
+}
+
 export class CosStorageProvider implements StorageProvider {
   private cos: COS
   private bucket: string
@@ -52,12 +100,27 @@ export class CosStorageProvider implements StorageProvider {
 
   async uploadFile(key: string, localFilePath: string): Promise<boolean> {
     return new Promise((resolve) => {
+      const fileName = path.basename(localFilePath)
+      const contentType = getContentType(localFilePath)
+      const inline = isInlineType(localFilePath)
+      // 关键：设置 Content-Type，避免 xlsx/docx/pptx 被当成 octet-stream
+      // 设置 Content-Disposition，让浏览器下载时文件名不乱码（RFC 5987 编码中文文件名）
+      // 图片/pdf/text 用 inline，其余（office 文档）用 attachment + force-download
+      const dispositionValue = inline
+        ? `inline; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+        : `attachment; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+
       this.cos.putObject(
         {
           Bucket: this.bucket,
           Region: this.region,
           Key: key,
           Body: fs.createReadStream(localFilePath),
+          ContentLength: fs.statSync(localFilePath).size,
+          Headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': dispositionValue,
+          },
         },
         (err) => {
           if (err) {
@@ -328,11 +391,17 @@ export class WorkspaceManager {
     const region = process.env.COS_REGION
 
     const normalizedRelPath = relativePath.replace(/\\/g, '/')
+    // 对路径的每一段做 URL 编码（保留 /），避免中文文件名在 URL 里裸字符
+    // 导致部分客户端解析失败或显示成 %E4%B8%80... 乱码
+    const encodedPath = normalizedRelPath
+      .split('/')
+      .map((seg) => encodeURIComponent(seg))
+      .join('/')
 
     if (secretId && secretKey && bucket && region) {
-      return `https://${bucket}.cos.${region}.myqcloud.com/workspaces/${threadId}/${normalizedRelPath}`
+      return `https://${bucket}.cos.${region}.myqcloud.com/workspaces/${threadId}/${encodedPath}`
     } else {
-      return `http://localhost:${config.port}/workspaces/shares/${threadId}/${normalizedRelPath}`
+      return `http://localhost:${config.port}/workspaces/shares/${threadId}/${encodedPath}`
     }
   }
 }
