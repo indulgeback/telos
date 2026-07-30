@@ -115,7 +115,9 @@ declare -a SERVICES=(
   "registry:telos-registry"
   "api-gateway:telos-api-gateway"
   "agent-service:telos-agent-service"
+  "admin-service:telos-admin-service"
   "web:telos-web"
+  "admin:telos-admin"
 )
 
 FAILED_SERVICE=""

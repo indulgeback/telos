@@ -1,0 +1,28 @@
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPA fallback: 所有路由都回退到 index.html (Vue Router history 模式)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # /api 反代到 admin-service (容器名: admin-service)
+    location /api/ {
+        proxy_pass ${BFF_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # 静态资源不缓存, SPA 入口也不缓存
+    }
+
+    # 静态资源缓存 (_next 风格的 hash 文件名)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+}

@@ -272,6 +272,67 @@ services:
       retries: 6
       start_period: 30s
 
+  # ---------------------------------------------------------------------------
+  # Admin Service (管理后台 API, Hono + Prisma)
+  # ---------------------------------------------------------------------------
+  admin-service:
+    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-admin-service:${IMAGE_TAG:-latest}
+    container_name: telos-admin-service
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - ADMIN_PORT=3002
+      # 复用 telos 主库
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-telos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-telos}?schema=public
+      # Admin 鉴权 (必须配置)
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD 必须在 .env 中设置}
+      - ADMIN_SESSION_KEY=${ADMIN_SESSION_KEY:?ADMIN_SESSION_KEY 必须设置 (openssl rand -hex 32)}
+      - ADMIN_SESSION_TTL=${ADMIN_SESSION_TTL:-86400}
+      # CORS (admin 前端域名)
+      - ADMIN_CORS_ORIGINS=${ADMIN_CORS_ORIGINS:-https://admin.telos.indulgeback.icu}
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3002/health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ---------------------------------------------------------------------------
+  # Admin 前端 (Vue3 + nginx, 反代 /api 到 admin-service)
+  # ---------------------------------------------------------------------------
+  admin:
+    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-admin:${IMAGE_TAG:-latest}
+    container_name: telos-admin
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-8082}:8080"
+    environment:
+      # nginx 模板用: 反代 /api 到 admin-service
+      - BFF_UPSTREAM=http://admin-service:3002
+    depends_on:
+      admin-service:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8080/']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 networks:
   telos-network:
     driver: bridge

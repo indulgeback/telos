@@ -75,8 +75,14 @@ jobs:
           - service: web
             dockerfile: apps/web/Dockerfile
             context: .
+          - service: admin
+            dockerfile: apps/admin/Dockerfile
+            context: .
           - service: agent-service
             dockerfile: services/agent-service/Dockerfile
+            context: .
+          - service: admin-service
+            dockerfile: services/admin-service/Dockerfile
             context: .
           - service: api-gateway
             dockerfile: apps/api-gateway/Dockerfile
