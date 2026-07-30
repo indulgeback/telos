@@ -591,7 +591,9 @@ export class AgentRuntimeService {
 
     // 渐进式披露：system prompt 只注入 skill 元数据（name + description），
     // 全文由 execute_skill 工具按需加载，大幅节省 token。
-    const enabledSkills = source.skillsAsAgent
+    // 对于系统默认 agent（type=system, 如 T），自动合并当前用户安装的所有 skill，
+    // 让用户安装后立即可用，无需手动绑定（system agent 不可编辑，无法走绑定流程）。
+    const agentBoundSkills = source.skillsAsAgent
       .filter((link: any) => link.skill?.enabled)
       .map((link: any) => link.skill) as {
         id: string
@@ -599,6 +601,19 @@ export class AgentRuntimeService {
         description: string
         content: string
       }[]
+
+    let userInstalledSkills: typeof agentBoundSkills = []
+    if (source.type === 'system' && options?.userId) {
+      const userSkills = await prisma.skill.findMany({
+        where: { ownerId: options.userId, enabled: true },
+        select: { id: true, name: true, description: true, content: true },
+      })
+      userInstalledSkills = userSkills
+    }
+
+    // 合并: agent 绑定的 skill + 用户安装的 skill (按 name 去重, agent 绑定优先)
+    const seenNames = new Set(agentBoundSkills.map(s => s.name))
+    const enabledSkills = [...agentBoundSkills, ...userInstalledSkills.filter(s => !seenNames.has(s.name))]
 
     // L1：元数据索引（始终注入）
     const skillIndexBlock = enabledSkills.length
