@@ -888,12 +888,28 @@ export function ChatView() {
     Record<string, string[]>
   >({})
   const [messages, setMessages] = useState<ChatUiMessage[]>([])
+  // messages 的 ref 镜像，供 restore-run effect 读最新值而不必把 messages 放进依赖
+  // （放进依赖会导致流式期间每个 chunk 都重跑 effect，引发重复订阅/双气泡）
+  const messagesRef = useRef<ChatUiMessage[]>([])
+  messagesRef.current = messages
   const [status, setStatus] = useState<ChatStatus>('ready')
   const [activeAssistantId, setActiveAssistantId] = useState<string | null>(
     null
   )
   const abortControllerRef = useRef<AbortController | null>(null)
   const activeRunIdRef = useRef<string | null>(null)
+  // 按 threadId 分桶的「本会话已订阅过的 runId」集合，防止同一 run 被当成新 run
+  // 重复恢复（导致双气泡）。按会话隔离：切回旧会话时该会话的桶不受影响，仍可恢复
+  // 其仍在跑的 run；同一会话内重复触发 restore 才会被去重。
+  const processedRunIdsRef = useRef<Map<string, Set<string>>>(new Map())
+  // 标记某 (threadId, runId) 已被订阅过；返回是否为重复（重复则调用方应跳过）
+  const markRunProcessed = (threadId: string, runId: string): boolean => {
+    const set = processedRunIdsRef.current.get(threadId) ?? new Set<string>()
+    if (set.has(runId)) return true
+    set.add(runId)
+    processedRunIdsRef.current.set(threadId, set)
+    return false
+  }
   const realtimeSocketRef = useRef<WebSocket | null>(null)
   const realtimeStreamRef = useRef<MediaStream | null>(null)
   const realtimeAudioContextRef = useRef<AudioContext | null>(null)
@@ -1526,6 +1542,9 @@ export function ChatView() {
           throw new Error('Chat run response is missing run_id')
         }
         activeRunIdRef.current = runId
+        if (currentThreadIdRef.current) {
+          markRunProcessed(currentThreadIdRef.current, runId)
+        }
         setMessages(prev =>
           prev.map(message =>
             message.id === assistantId ? { ...message, runId } : message
@@ -1612,6 +1631,9 @@ export function ChatView() {
   const subscribeExistingRun = useCallback(
     async (runId: string, assistantId: string) => {
       if (activeRunIdRef.current === runId) return
+      if (currentThreadIdRef.current) {
+        markRunProcessed(currentThreadIdRef.current, runId)
+      }
       const controller = new AbortController()
       abortControllerRef.current = controller
       activeRunIdRef.current = runId
@@ -1679,6 +1701,10 @@ export function ChatView() {
     [applyAgentStreamChunk, t, updateAssistantParts]
   )
 
+  // restore-run：进入会话时恢复尚未结束的 run。
+  // 注意：依赖里不放 messages——流式期间 messages 每个 chunk 都变，放进依赖会导致
+  // 该 effect 反复重跑、反复 subscribeExistingRun，从而出现两个回复气泡。
+  // 这里只依赖 currentThreadId（会话切换）和 subscribeExistingRun（稳定 ref）。
   useEffect(() => {
     if (!currentThreadId || activeRunIdRef.current) return
 
@@ -1691,9 +1717,16 @@ export function ChatView() {
           run => run.status === 'queued' || run.status === 'running'
         )
         if (!runningRun) return
+        // 本会话（按 threadId 隔离）已订阅过该 run，不再重复订阅；
+        // 但切回旧会话时该会话的桶独立存在，仍可恢复其仍在跑的 run
+        if (
+          processedRunIdsRef.current.get(currentThreadId)?.has(runningRun.id)
+        ) {
+          return
+        }
 
         let assistantId =
-          messages.find(
+          messagesRef.current.find(
             message =>
               message.role === 'assistant' && message.runId === runningRun.id
           )?.id || ''
@@ -1720,7 +1753,7 @@ export function ChatView() {
     return () => {
       disposed = true
     }
-  }, [currentThreadId, messages, subscribeExistingRun])
+  }, [currentThreadId, subscribeExistingRun])
 
   const streamRealtimeTextMessage = useCallback(
     async (input: string, assistantId: string) => {
