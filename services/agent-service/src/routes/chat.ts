@@ -300,6 +300,12 @@ function createOpenAiStyleStreamResponse(
   })
 }
 
+/**
+ * ⚠️ DEAD CODE：当前无任何调用者。实时聊天走 enqueueAgentRun → executeAgentRun
+ * （见 services/run-executor.ts），该路径才是权威实现，已正确处理 clarify/plan。
+ * 本函数内仍残留旧的 clarify/plan 持久化逻辑（且不发 SSE 事件），若未来复用
+ * 务必先与 run-executor 对齐，避免双份实现漂移。保留仅作历史参考。
+ */
 export async function createAgentStreamResponse(
   c: Context,
   params: {

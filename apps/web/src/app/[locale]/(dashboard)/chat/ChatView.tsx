@@ -1360,6 +1360,12 @@ export function ChatView() {
           // 同步设 ref，确保流结束后保持 submitted 状态（与 plan 一致）
           pendingClarifyRef.current = { messageId: assistantId }
           updateAssistantParts(assistantId, parts => {
+            // 模型可能在调用 clarify_question 前先输出过正文（如「请问你需要…」），
+            // 这些 text delta 已被流式 append。命中 clarify 时后端落库为空正文，
+            // 这里同步丢弃这些前置文本，使流式态与持久化态一致、避免刷新前后不一致。
+            for (let i = parts.length - 1; i >= 0; i--) {
+              if (isTextPart(parts[i])) parts.splice(i, 1)
+            }
             // 避免重复 push（completed 后端可能重放）
             if (!parts.some(p => p.type === 'clarify')) {
               parts.push({
@@ -2315,6 +2321,9 @@ export function ChatView() {
     setThreadSearch('')
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
+    // 切换 agent 时清空 pending 状态，避免遗留的 plan/clarify 阻塞新会话 loading
+    pendingPlanRef.current = null
+    pendingClarifyRef.current = null
   }, [])
 
   useEffect(() => {
