@@ -888,12 +888,18 @@ export function ChatView() {
     Record<string, string[]>
   >({})
   const [messages, setMessages] = useState<ChatUiMessage[]>([])
+  // messages 的 ref 镜像，供 restore-run effect 读最新值而不必把 messages 放进依赖
+  // （放进依赖会导致流式期间每个 chunk 都重跑 effect，引发重复订阅/双气泡）
+  const messagesRef = useRef<ChatUiMessage[]>([])
+  messagesRef.current = messages
   const [status, setStatus] = useState<ChatStatus>('ready')
   const [activeAssistantId, setActiveAssistantId] = useState<string | null>(
     null
   )
   const abortControllerRef = useRef<AbortController | null>(null)
   const activeRunIdRef = useRef<string | null>(null)
+  // 本会话已订阅过的 runId 集合，防止同一 run 被当成新 run 重复恢复（导致双气泡）
+  const processedRunIdsRef = useRef<Set<string>>(new Set())
   const realtimeSocketRef = useRef<WebSocket | null>(null)
   const realtimeStreamRef = useRef<MediaStream | null>(null)
   const realtimeAudioContextRef = useRef<AudioContext | null>(null)
@@ -1526,6 +1532,7 @@ export function ChatView() {
           throw new Error('Chat run response is missing run_id')
         }
         activeRunIdRef.current = runId
+        processedRunIdsRef.current.add(runId)
         setMessages(prev =>
           prev.map(message =>
             message.id === assistantId ? { ...message, runId } : message
@@ -1612,6 +1619,7 @@ export function ChatView() {
   const subscribeExistingRun = useCallback(
     async (runId: string, assistantId: string) => {
       if (activeRunIdRef.current === runId) return
+      processedRunIdsRef.current.add(runId)
       const controller = new AbortController()
       abortControllerRef.current = controller
       activeRunIdRef.current = runId
@@ -1679,6 +1687,10 @@ export function ChatView() {
     [applyAgentStreamChunk, t, updateAssistantParts]
   )
 
+  // restore-run：进入会话时恢复尚未结束的 run。
+  // 注意：依赖里不放 messages——流式期间 messages 每个 chunk 都变，放进依赖会导致
+  // 该 effect 反复重跑、反复 subscribeExistingRun，从而出现两个回复气泡。
+  // 这里只依赖 currentThreadId（会话切换）和 subscribeExistingRun（稳定 ref）。
   useEffect(() => {
     if (!currentThreadId || activeRunIdRef.current) return
 
@@ -1691,9 +1703,11 @@ export function ChatView() {
           run => run.status === 'queued' || run.status === 'running'
         )
         if (!runningRun) return
+        // 本会话已订阅过该 run（刚发送的或在本次 mount 内已恢复过），不再重复订阅
+        if (processedRunIdsRef.current.has(runningRun.id)) return
 
         let assistantId =
-          messages.find(
+          messagesRef.current.find(
             message =>
               message.role === 'assistant' && message.runId === runningRun.id
           )?.id || ''
@@ -1720,7 +1734,7 @@ export function ChatView() {
     return () => {
       disposed = true
     }
-  }, [currentThreadId, messages, subscribeExistingRun])
+  }, [currentThreadId, subscribeExistingRun])
 
   const streamRealtimeTextMessage = useCallback(
     async (input: string, assistantId: string) => {
