@@ -126,6 +126,10 @@ type AgentStreamChunk = {
   plan_step_status?: 'in_progress' | 'completed' | 'skipped' | 'failed'
   note?: string
   sequence?: number
+  // clarify 模式相关字段
+  clarify_message_id?: string
+  clarify_question?: string
+  clarify_options?: string[]
 }
 
 type RealtimeConfig = {
@@ -142,6 +146,10 @@ type RealtimeConfig = {
 }
 
 const THINK_TAG_REGEX = /<think>([\s\S]*?)<\/think>/gi
+
+// 这些工具的产物有专属 UI（如 clarify_question → ClarifyPanel），
+// 不应再作为普通 tool card 重复展示
+const HIDDEN_TOOL_NAMES = new Set(['clarify_question'])
 const normalizeModelProvider = (
   provider: unknown
 ): ChatModelOption['provider'] => {
@@ -470,6 +478,9 @@ const parseToolCallPart = (part: unknown): ToolCallItem | null => {
         ? raw.tool_name
         : fallbackToolName
 
+  // clarify_question 等隐藏工具：其产物由 ClarifyPanel 等专属 UI 承载，不渲染为 tool card
+  if (isHiddenTool(toolName)) return null
+
   return {
     toolCallId,
     toolName,
@@ -484,6 +495,12 @@ const parseToolCallPart = (part: unknown): ToolCallItem | null => {
           : undefined,
   }
 }
+
+/**
+ * 判断某个工具调用是否应被前端隐藏（其产物有专属 UI 承载，避免重复展示）。
+ */
+const isHiddenTool = (toolName: unknown): boolean =>
+  typeof toolName === 'string' && HIDDEN_TOOL_NAMES.has(toolName)
 
 const parseReasoningPart = (
   part: unknown
@@ -925,6 +942,8 @@ export function ChatView() {
   useEffect(() => {
     pendingPlanRef.current = pendingPlan
   }, [pendingPlan])
+  // pendingClarify 的 ref：clarify 命中时保持 submitted（loading）状态，等待用户选择
+  const pendingClarifyRef = useRef<{ messageId: string } | null>(null)
   const isLoading =
     status === 'submitted' ||
     status === 'streaming' ||
@@ -1327,6 +1346,32 @@ export function ChatView() {
         return
       }
 
+      // clarify 模式：模型调用了 clarify_question，实时把澄清问题写入 parts，
+      // 让 ClarifyPanel 在流式过程中即时渲染（而非等刷新历史才出现）
+      if (chunk.type === 'response.clarify_created') {
+        const question =
+          typeof chunk.clarify_question === 'string'
+            ? chunk.clarify_question
+            : ''
+        const options = Array.isArray(chunk.clarify_options)
+          ? chunk.clarify_options.map(String)
+          : []
+        if (question && options.length > 0) {
+          // 同步设 ref，确保流结束后保持 submitted 状态（与 plan 一致）
+          pendingClarifyRef.current = { messageId: assistantId }
+          updateAssistantParts(assistantId, parts => {
+            // 避免重复 push（completed 后端可能重放）
+            if (!parts.some(p => p.type === 'clarify')) {
+              parts.push({
+                type: 'clarify',
+                clarify: { question, options, status: 'pending' },
+              } as any)
+            }
+          })
+        }
+        return
+      }
+
       if (chunk.type === 'response.failed') {
         const errorText =
           typeof chunk.errorText === 'string'
@@ -1428,6 +1473,8 @@ export function ChatView() {
           chunk.type === 'response.output_item.added') &&
         chunk.toolCallId
       ) {
+        // clarify_question 等隐藏工具：不渲染 tool card（产物由 ClarifyPanel 承载）
+        if (isHiddenTool(chunk.toolName)) return
         updateAssistantParts(assistantId, parts => {
           if (parts.some(part => part.toolCallId === chunk.toolCallId)) return
           parts.push(
@@ -1446,6 +1493,7 @@ export function ChatView() {
           chunk.type === 'response.function_call_arguments.delta') &&
         chunk.toolCallId
       ) {
+        if (isHiddenTool(chunk.toolName)) return
         updateAssistantParts(assistantId, parts => {
           let part = parts.find(item => item.toolCallId === chunk.toolCallId)
           if (!part) {
@@ -1470,6 +1518,7 @@ export function ChatView() {
           chunk.type === 'response.function_call_arguments.done') &&
         chunk.toolCallId
       ) {
+        if (isHiddenTool(chunk.toolName)) return
         updateAssistantParts(assistantId, parts => {
           let part = parts.find(item => item.toolCallId === chunk.toolCallId)
           if (!part) {
@@ -1493,6 +1542,7 @@ export function ChatView() {
           chunk.type === 'agent.tool_call.output') &&
         chunk.toolCallId
       ) {
+        if (isHiddenTool(chunk.toolName)) return
         updateAssistantParts(assistantId, parts => {
           let part = parts.find(item => item.toolCallId === chunk.toolCallId)
           if (!part) {
@@ -1617,8 +1667,8 @@ export function ChatView() {
         }
         setActiveAssistantId(null)
         // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
-        // 不让复制/重试按钮过早出现
-        if (pendingPlanRef.current) {
+        // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
+        if (pendingPlanRef.current || pendingClarifyRef.current) {
           setStatus('submitted')
         } else {
           setStatus('ready')
@@ -1695,7 +1745,11 @@ export function ChatView() {
           activeRunIdRef.current = null
         }
         setActiveAssistantId(null)
-        setStatus(pendingPlanRef.current ? 'submitted' : 'ready')
+        setStatus(
+          pendingPlanRef.current || pendingClarifyRef.current
+            ? 'submitted'
+            : 'ready'
+        )
       }
     },
     [applyAgentStreamChunk, t, updateAssistantParts]
@@ -1822,8 +1876,8 @@ export function ChatView() {
         abortControllerRef.current = null
         setActiveAssistantId(null)
         // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
-        // 不让复制/重试按钮过早出现
-        if (pendingPlanRef.current) {
+        // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
+        if (pendingPlanRef.current || pendingClarifyRef.current) {
           setStatus('submitted')
         } else {
           setStatus('ready')
@@ -2690,6 +2744,8 @@ export function ChatView() {
    */
   const handleClarifySelect = async (messageId: string, option: string) => {
     if (isLoading || !currentThreadId) return
+    // 用户已做出选择，清空 pendingClarify，解除 loading 保持状态
+    pendingClarifyRef.current = null
     try {
       await agentService.answerClarify(messageId, option)
       // 局部更新本地消息列表中的 clarify part 状态，避免二次刷新导致重复点选

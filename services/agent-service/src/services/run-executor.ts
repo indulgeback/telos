@@ -441,11 +441,28 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         },
       } as any)
     }
+    // 澄清问题：模型调用 clarify_question 后，run 挂起，取走缓存的提问并写入 parts
+    const structuredClarify = agentRuntimeService.consumePendingClarify(
+      options.runId
+    )
+    if (structuredClarify) {
+      assistantParts.push({
+        type: 'clarify',
+        clarify: {
+          question: structuredClarify.question,
+          options: structuredClarify.options,
+          status: 'pending',
+        },
+      } as any)
+    }
     if (options.threadId) {
+      // clarify 命中时，工具返回的 JSON（clarify_created...）只是内部信号，
+      // 不应作为正文落库/下发，用空串占位，避免状态文本泄漏给用户
+      const persistOutput = structuredClarify ? '' : finalOutput
       const savedMessage = await agentSessionService.appendAssistantMessage(
         options.threadId,
         options.runId,
-        finalOutput,
+        persistOutput,
         assistantParts
       )
       planMessageId = savedMessage?.id
@@ -461,6 +478,15 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         plan_message_id: planMessageId,
         plan_summary: structuredPlan.summary,
         plan_steps: structuredPlan.steps,
+      })
+    }
+    if (structuredClarify) {
+      // 推送澄清问题事件，前端据此渲染 ClarifyPanel 交互卡片
+      emit('response.clarify_created', {
+        response_id: options.runId,
+        clarify_message_id: planMessageId,
+        clarify_question: structuredClarify.question,
+        clarify_options: structuredClarify.options,
       })
     }
 
@@ -485,7 +511,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     }
     emit('response.completed', {
       response_id: options.runId,
-      output_text: finalOutput,
+      // clarify 命中时不把工具返回的 JSON 当正文下发
+      output_text: structuredClarify ? '' : finalOutput,
     })
     await Promise.all(pendingEmits)
   } catch (error) {
