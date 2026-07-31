@@ -898,8 +898,18 @@ export function ChatView() {
   )
   const abortControllerRef = useRef<AbortController | null>(null)
   const activeRunIdRef = useRef<string | null>(null)
-  // 本会话已订阅过的 runId 集合，防止同一 run 被当成新 run 重复恢复（导致双气泡）
-  const processedRunIdsRef = useRef<Set<string>>(new Set())
+  // 按 threadId 分桶的「本会话已订阅过的 runId」集合，防止同一 run 被当成新 run
+  // 重复恢复（导致双气泡）。按会话隔离：切回旧会话时该会话的桶不受影响，仍可恢复
+  // 其仍在跑的 run；同一会话内重复触发 restore 才会被去重。
+  const processedRunIdsRef = useRef<Map<string, Set<string>>>(new Map())
+  // 标记某 (threadId, runId) 已被订阅过；返回是否为重复（重复则调用方应跳过）
+  const markRunProcessed = (threadId: string, runId: string): boolean => {
+    const set = processedRunIdsRef.current.get(threadId) ?? new Set<string>()
+    if (set.has(runId)) return true
+    set.add(runId)
+    processedRunIdsRef.current.set(threadId, set)
+    return false
+  }
   const realtimeSocketRef = useRef<WebSocket | null>(null)
   const realtimeStreamRef = useRef<MediaStream | null>(null)
   const realtimeAudioContextRef = useRef<AudioContext | null>(null)
@@ -1532,7 +1542,9 @@ export function ChatView() {
           throw new Error('Chat run response is missing run_id')
         }
         activeRunIdRef.current = runId
-        processedRunIdsRef.current.add(runId)
+        if (currentThreadIdRef.current) {
+          markRunProcessed(currentThreadIdRef.current, runId)
+        }
         setMessages(prev =>
           prev.map(message =>
             message.id === assistantId ? { ...message, runId } : message
@@ -1619,7 +1631,9 @@ export function ChatView() {
   const subscribeExistingRun = useCallback(
     async (runId: string, assistantId: string) => {
       if (activeRunIdRef.current === runId) return
-      processedRunIdsRef.current.add(runId)
+      if (currentThreadIdRef.current) {
+        markRunProcessed(currentThreadIdRef.current, runId)
+      }
       const controller = new AbortController()
       abortControllerRef.current = controller
       activeRunIdRef.current = runId
@@ -1703,8 +1717,13 @@ export function ChatView() {
           run => run.status === 'queued' || run.status === 'running'
         )
         if (!runningRun) return
-        // 本会话已订阅过该 run（刚发送的或在本次 mount 内已恢复过），不再重复订阅
-        if (processedRunIdsRef.current.has(runningRun.id)) return
+        // 本会话（按 threadId 隔离）已订阅过该 run，不再重复订阅；
+        // 但切回旧会话时该会话的桶独立存在，仍可恢复其仍在跑的 run
+        if (
+          processedRunIdsRef.current.get(currentThreadId)?.has(runningRun.id)
+        ) {
+          return
+        }
 
         let assistantId =
           messagesRef.current.find(
