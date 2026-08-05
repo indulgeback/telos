@@ -1,6 +1,5 @@
 {
   "Navbar": {
-    "home": "Startseite",
     "chat": "Gespräch",
     "agents": "Agenten",
     "settings": "Einstellungen",
@@ -24,8 +23,6 @@
     "reconnecting": "Wiederverbinden...",
     "imageUploadLabel": "Bild hochladen",
     "imageRemoveLabel": "Bild entfernen",
-    "title": "KI-Assistent",
-    "subtitle": "Jederzeit zu Ihren Diensten",
     "clearConversation": "Chat leeren",
     "emptyState": {
       "title": "Wie kann ich Ihnen helfen?",
@@ -99,18 +96,13 @@
       }
     },
     "reasoningEffort": {
-      "label": "Denkintensität",
-      "hint": "Nur das Doubao-Modell ist wirksam",
       "minimal": "Schließen",
       "low": "niedrig",
       "medium": "Mitte",
       "high": "hoch"
     },
     "toolbar": {
-      "online": "online gehen",
       "reasoning": "Denken",
-      "mcp": "MCP",
-      "canvas": "Leinwand",
       "plan": "Plan",
       "auto": "Plaudern"
     },
@@ -132,18 +124,14 @@
       "ready": "Volcano Live-Voice-Konfiguration verbunden",
       "demo": "Demo-Modus",
       "unconfigured": "Vulkan-Live-Sprachkommunikation nicht konfiguriert",
-      "textChannel": "Textkanal",
       "audioChannel": "Audiokanal",
       "modelLabel": "Volc Echtzeit",
-      "start": "Anfangen zu sprechen",
-      "stop": "Anhalten",
       "idle": "Bereitstehen",
       "connecting": "Verbinden",
       "listening": "Aufnahme läuft",
       "speaking": "Wird abgespielt",
       "error": "Verbindungsfehler",
       "missingConfig": "Fehlen {count} Konfigurationen",
-      "voiceInputMessage": "(Spracheingabe)",
       "microphoneError": "Das Mikrofon kann nicht gestartet werden. Bitte überprüfen Sie die Berechtigungen des Browsers.",
       "socketError": "Echtzeit-Sprachverbindung gestört, bitte versuchen Sie es später erneut.",
       "mute": "Mikrofon stummschalten",
@@ -160,23 +148,17 @@
       "stop": "Generierung stoppen",
       "retry": "Erneut versuchen",
       "usedModel": "Modell",
-      "tools": "Werkzeugaufruf",
       "refresh": "Wechsle eine neue Charge",
       "scrollToBottom": "Zum Ende zurückkehren",
       "previewImage": "Bildvorschau",
       "prevImage": "Vorheriges",
       "nextImage": "Nächstes Blatt"
     },
-    "error": {
-      "message": "Entschuldigung, es ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
-    },
     "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen.",
     "threads": {
       "title": "Verlauf der Gespräche",
-      "noAgent": "Agent nicht ausgewählt",
       "new": "Neue Sitzung erstellen",
       "search": "Gespräch suchen...",
-      "loading": "Lädt...",
       "empty": "Keine Unterhaltung",
       "noResults": "Sitzung nicht gefunden",
       "rename": "Umbenennen",
@@ -185,7 +167,6 @@
       "save": "Speichern",
       "saving": "Speichern...",
       "deleting": "Löschen...",
-      "renamePrompt": "Geben Sie den neuen Sitzungstitel ein",
       "renameTitle": "Sitzung umbenennen",
       "renameDescription": "Gib diesem Gespräch einen leichter erkennbaren Titel.",
       "renamePlaceholder": "Geben Sie den Sitzungstitel ein",
@@ -199,202 +180,25 @@
       "dark": "Dunkler Modus",
       "system": "Folgen Sie dem System"
     },
-    "language": "Sprache der Benutzeroberfläche",
     "toggleTheme": "Umschalten des Anzeigemodus",
     "toggleLanguage": "Umschalten der Sprache der Benutzeroberfläche"
   },
   "HomePage": {
-    "title": "Telos: Intelligente Plattform für die Orchestrierung von Agentenprozessen",
-    "subtitle": "Eine moderne, hochskalierbare Plattform für intelligente Workflow-Orchestrierung",
-    "description": "Es unterstützt die automatische Aufgabenplanung und -verwaltung, verwendet die Front-End- und Back-End-Trennung sowie die Microservice-Architektur und ist für Automatisierungsszenarien auf Unternehmensebene konzipiert.",
-    "badge": "Intelligente Workflow-Orchestrierung",
     "github": "GitHub",
     "dashboard": "Gespräch beginnen",
-    "viewWorkflows": "Workflow anzeigen",
-    "techStackSupport": "Technologiestapel-Unterstützung",
-    "flowSection": {
-      "trigger": "Auslöser für die Formularübermittlung",
-      "triggerDesc": "Zum Zeitpunkt der Übermittlung des Formulars \"Benutzer erstellen\"",
-      "agent": "KI-Agent",
-      "agentDesc": "Werkzeug-Agenten",
-      "isManager": "Ist es ein Manager?",
-      "isManagerTrue": "sein",
-      "isManagerFalse": "nicht",
-      "addToChannel": "Einem Channel beitreten",
-      "addToChannelDesc": "Benutzer einladen, dem Kanal beizutreten",
-      "updateProfile": "Aktualisieren der Informationen",
-      "updateProfileDesc": "Aktualisieren von Benutzerinformationen",
-      "anthropic": "Anthropisches Chat-Modell",
-      "anthropicDesc": "Modell",
-      "postgres": "Postgres-Chat-Speicher",
-      "postgresDesc": "Gedächtnis",
-      "entra": "Microsoft Entra ID",
-      "entraDesc": "Abrufen aller Benutzer",
-      "jira": "Jira-Software",
-      "jiraDesc": "Erstellen eines Benutzers"
-    },
-    "features": {
-      "title": "Kernfunktionen",
-      "frontend": "Das Frontend basiert auf Next.js 15 und Shadcn UI, um eine reibungslose und konsistente Benutzererfahrung zu bieten.",
-      "backend": "Das Backend verwendet die Go-Microservices-Architektur, um eine hohe Leistung und Skalierbarkeit zu gewährleisten.",
-      "communication": "tRPC/gRPC wird für eine typsichere und effiziente Service-to-Service-Kommunikation unterstützt.",
-      "monorepo": "Einheitliches Monorepo-Management für einfache Abhängigkeitszentralisierung und Teamzusammenarbeit.",
-      "deployment": "Der gesamte Prozess ist containerisiert und verfügt über eine integrierte CI/CD-Unterstützung, um eine kontinuierliche Bereitstellung zu gewährleisten."
-    },
-    "featureDescriptions": {
-      "frontend": "Next.js 15 Shadcn UI",
-      "backend": "Go-Mikroservice",
-      "communication": "tRPC/gRPC",
-      "monorepo": "Zentrale Verwaltung",
-      "deployment": "Docker K8s"
-    },
-    "architecture": {
-      "title": "Technische Architektur"
-    },
-    "techStack": {
-      "frontend": {
-        "title": "Front-End-Technologie-Stack",
-        "nextjs": "15. Next.js – Implementieren Sie serverseitige Komponenten und effizientes Routing mit App Router.",
-        "shadcn": "Shadcn UI – Eine Bibliothek mit hochwertigen Komponenten auf Basis von Tailwind CSS für die agile Entwicklung.",
-        "typescript": "TypeScript – Eine stark typisierte Sprache, die die Robustheit und Wartbarkeit des Codes verbessert.",
-        "trpc": "tRPC – Sicherheits-API-Kommunikationsschema vom Frontend- und Backend-Typ.",
-        "zustand": "Zustand – Leichtgewichtiges Zustandsmanagement für komplexe Interaktionslogik."
-      },
-      "backend": {
-        "title": "Backend-Technologie-Stack",
-        "go": "Go – Nativ hohe Parallelität, hervorragende Leistung, geeignet für Microservice-Architekturen.",
-        "gin": "Gin/Echo – Effizientes und leichtgewichtiges HTTP-Framework für eine schnelle API-Entwicklung.",
-        "grpc": "gRPC – Ein hochperformantes RPC-Framework auf Basis von Protobuf zur Optimierung der Service-Kommunikation.",
-        "postgresql": "PostgreSQL – Eine relationale Datenbank der Enterprise-Klasse, die Datenkonsistenz und -sicherheit gewährleistet.",
-        "redis": "Redis – Cache und Aufgabenwarteschlange zur Verbesserung der Effizienz des Datenzugriffs."
-      },
-      "infrastructure": {
-        "title": "Infrastruktur",
-        "docker": "Docker – Eine containerisierte Bereitstellungslösung für die Konsistenz der Umgebung.",
-        "kubernetes": "Kubernetes – Automatisierte Cluster-Orchestrierung und elastische Skalierung.",
-        "helm": "Helm – Ein standardisiertes Bereitstellungs- und Verwaltungstool für Kubernetes-Anwendungen.",
-        "monitoring": "Prometheus & Grafana – Komplette Überwachung und Visualisierung.",
-        "tracing": "Jaeger – Verteilte Ablaufverfolgung für die Analyse der Service-Performance."
-      }
-    },
-    "quickStart": {
-      "title": "Schneller Einstieg",
-      "frontend": "Starten des Frontend-Diensts",
-      "backend": "Starten des Backend-Diensts",
-      "database": "Starten des Datenbankdiensts",
-      "commands": "Allgemeine Bedienungsbefehle"
-    },
-    "stats": {
-      "languages": "Unterstützte Sprachen",
-      "services": "Mikroservice",
-      "uptime": "Verfügbarkeit",
-      "latency": "Reaktionsverzögerung"
-    },
     "cta": {
-      "getStarted": "Probieren Sie es jetzt aus",
-      "learnMore": "Weitere Informationen",
-      "viewDocs": "Sehen Sie sich die Dokumentation an",
-      "title": "Bist du bereit zu starten?",
-      "description": "Erleben Sie sofort die Telos-Plattform für intelligente Workflow-Orchestrierung und steigern Sie Ihre Automatisierungseffizienz"
-    },
-    "gsap": {
-      "animation": "Coole Einlassanimationen powered by GSAP!"
+      "getStarted": "Probieren Sie es jetzt aus"
     },
     "landing": {
-      "hero": {
-        "subtitle": "Der Workspace, um AI Agents für dein Team zu erstellen, zu verbinden, auszuführen und zu steuern.",
-        "description": "Telos bündelt Gespräche, Tools, Workflows, Langzeitgedächtnis und Identitätsrechte in einer Oberfläche, damit Agents nicht nur antworten, sondern reale Arbeit sicher erledigen."
-      },
-      "stats": {
-        "create": {
-          "value": "Create",
-          "label": "Agent-Rollen definieren"
-        },
-        "connect": {
-          "value": "Connect",
-          "label": "Tools und Kanäle anbinden"
-        },
-        "run": {
-          "value": "Run",
-          "label": "Workflows orchestrieren"
-        },
-        "govern": {
-          "value": "Govern",
-          "label": "Zugriff, Gedächtnis, Audit"
-        }
-      },
-      "product": {
-        "surfaceLabel": "telos control surface",
-        "workspaceLabel": "agent workspace",
-        "agentName": "Operator",
-        "quick": {
-          "tools": "tools",
-          "memory": "memory",
-          "workflow": "workflow",
-          "access": "access"
-        },
-        "events": {
-          "create": {
-            "label": "Agent erstellen",
-            "value": "Rolle, Modell und Fähigkeitsgrenzen"
-          },
-          "connect": {
-            "label": "Tools verbinden",
-            "value": "Mail, Kalender, Slack, interne APIs"
-          },
-          "run": {
-            "label": "Workflow ausführen",
-            "value": "Trigger, Verzweigungen, Mehrschritt-Aufgaben"
-          },
-          "remember": {
-            "label": "Gedächtnis sichern",
-            "value": "Präferenzen, Verlauf, Aufgaben-Kontext"
-          }
-        }
-      },
       "capabilities": {
-        "eyebrow": "Kernfunktionen",
-        "title": "Vom Gespräch zu einem ausführbaren Agent-Arbeitssystem.",
-        "agentStudio": {
-          "title": "Agent Studio",
-          "description": "Erstelle dedizierte Agents mit Rollen, Modellen, Tonalität, Tool-Rechten und Arbeitsgrenzen, sodass jeder Agent einer echten Aufgabe entspricht."
-        },
-        "toolRegistry": {
-          "title": "Tool Registry",
-          "description": "Binde Mail, Kalender, Slack, Discord, Browser-Aktionen oder interne APIs als aufrufbare Tools an, damit Agents echte Arbeit erledigen."
-        },
-        "workflowRuns": {
-          "title": "Workflow Runs",
-          "description": "Verbinde Trigger, Bedingungen, Mehrschritt-Aktionen und menschliche Freigaben zu Abläufen vom Eingang bis zur Lieferung."
-        },
-        "scopedMemory": {
-          "title": "Scoped Memory",
-          "description": "Trenne Langzeitgedächtnis nach Nutzer, Agent und Workspace, damit Präferenzen, Verlauf und Aufgabenstatus sicher erhalten bleiben."
-        },
-        "teamControl": {
-          "title": "Team Control",
-          "description": "Steuere mit OAuth und Organisationsidentität, wer Agents, Tools und Ausführungen erstellen, aufrufen, prüfen und auditieren darf."
-        }
-      },
-      "governance": {
-        "eyebrow": "Governance-Architektur",
-        "title": "Jede Agent-Ausführung wird autorisiert, nachvollziehbar und wiederverwendbar.",
-        "description": "Die Nutzeridentität bestimmt, was ein Agent sehen und welche Tools er aufrufen darf. Jede Ausführung hinterlässt Kontext und Aufzeichnungen, damit die nächste Aufgabe fortgesetzt werden kann.",
-        "layers": {
-          "identity": "Identitätsgrenze",
-          "tools": "Tool-Aufrufe",
-          "memory": "Langzeitgedächtnis"
-        }
+        "eyebrow": "Kernfunktionen"
       },
       "cta": {
-        "eyebrow": "Schnellstart",
-        "title": "Verbinde deinen ersten Agent mit einem echten Workflow.",
-        "description": "Erstelle einen Agent und verbinde Tools und Gedächtnis. Telos macht aus Gesprächen Automatisierung, die weiterläuft, auditierbar ist und mit deinem Team skaliert."
+        "eyebrow": "Schnellstart"
       }
     }
   },
   "Header": {
-    "home": "Heim",
     "github": "GitHub",
     "mobileMenuTitle": "Menü",
     "mobileMenuDesc": "Telos durchsuchen"
@@ -404,8 +208,7 @@
     "unknownUser": "Unbekannter Benutzer",
     "profile": "Profil",
     "settings": "Einstellungen",
-    "signOut": "Abmelden",
-    "dashboard": "Armaturenbrett"
+    "signOut": "Abmelden"
   },
   "Auth": {
     "signIn": {
@@ -414,11 +217,6 @@
       "noAccount": "Sie haben noch kein Konto?",
       "signUp": "Jetzt anmelden",
       "loginFailed": "Anmeldung fehlgeschlagen",
-      "github": "Mit GitHub anmelden",
-      "google": "Mit Google anmelden",
-      "discord": "Mit Discord anmelden",
-      "slack": "Mit Slack anmelden",
-      "magicLinkTitle": "Mit E-Mail anmelden (Passwortfrei)",
       "emailLabel": "E-Mail",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "Anmeldelink senden",
@@ -439,8 +237,6 @@
     }
   },
   "Agent": {
-    "title": "Agentenverwaltung",
-    "subtitle": "Erstellen und Verwalten Ihres KI-Agenten",
     "create": "Agent erstellen",
     "hero": {
       "title": "Agenten, die Absicht in Arbeit verwandeln.",
@@ -452,7 +248,6 @@
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
     "deleting": "Löschen...",
-    "default": "Standard",
     "types": {
       "public": "öffentlich",
       "private": "Privat",
@@ -465,7 +260,6 @@
       "namePlaceholder": "Zum Beispiel: Code-Assistent",
       "descriptionLabel": "Beschreibung",
       "descriptionPlaceholder": "Beschreiben Sie die Rolle und Fähigkeiten dieses Agenten...",
-      "instructions": "Befehl ausführen",
       "instructionsPlaceholder": "Schreiben Sie die Rolle, die Grenzen und die Vorgehensweise, die dieser Agent in der Schleife einhalten muss...",
       "modelKey": "Modell",
       "maxTurns": "Maximale Runden",
@@ -507,8 +301,6 @@
       "label": "Agent auswählen",
       "selectAgent": "Agent auswählen",
       "loading": "Lädt...",
-      "searchPlaceholder": "Agent suchen...",
-      "noResults": "Kein passender Agent gefunden",
       "noAgents": "Keine verfügbaren Agenten"
     },
     "messages": {
@@ -533,15 +325,11 @@
       "description": "Erstellen Sie Ihren ersten KI-Agenten und legen Sie los"
     },
     "created": "Gegründet in",
-    "systemAgentReadOnly": "System-Agent kann nicht bearbeitet werden",
     "configureTools": "Konfigurationstool",
-    "isUserDefault": "Aktuell Standard",
     "systemDefault": "Systemstandard",
     "setUserDefault": "Als Standard-Agent festlegen",
     "cancelUserDefault": "Standardagent abbrechen",
-    "editPrompt": "Eingabeaufforderung ändern",
     "viewPrompt": "Eingabeaufforderung anzeigen",
-    "view": "Ansehen",
     "saveChanges": "Änderungen speichern",
     "close": "Schließen",
     "editTitle": "Agent bearbeiten",
@@ -563,15 +351,12 @@
     "delete": "Löschen",
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "creating": "Erstellen...",
     "saving": "Speichere...",
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert",
     "confirmDelete": "Diese Fähigkeit löschen?",
-    "searchPlaceholder": "Suchfähigkeiten...",
     "searchSkills": "Suchfähigkeiten...",
     "hero": {
-      "badge": "Fähigkeitenladen",
       "title": "Eine Fähigkeit nach der anderen, jeden Tag schärfer.",
       "subtitle": "Entdecken Sie {count} kuratierte Skills, installieren Sie sie mit einem Klick und geben Sie Ihren Agenten neue Fähigkeiten.",
       "cta": "Alle Fertigkeiten erkunden"
@@ -591,10 +376,7 @@
     "totalSkills": "{count} Fähigkeiten",
     "selected": "{count} ausgewählt",
     "noSkillsFound": "Keine passenden Fähigkeiten gefunden",
-    "groupMine": "Meine Fähigkeiten",
-    "groupSystem": "Systemfähigkeiten",
     "groupSystemBadge": "System",
-    "systemReadOnly": "Systemfähigkeiten sind schreibgeschützt",
     "form": {
       "name": "Fähigkeitsname",
       "namePlaceholder": "z.B. übersetze-en (kleinbuchstaben, zahlen, bindestriche)",
@@ -609,11 +391,7 @@
     },
     "configureModal": {
       "title": "Fähigkeiten konfigurieren",
-      "description": "Fähigkeiten für Agent \"{name}\" hinzufügen oder entfernen",
-      "searchSkills": "Suchfähigkeiten...",
-      "totalSkills": "{count} Fähigkeiten",
-      "selected": "{count} ausgewählt",
-      "noSkillsFound": "Keine passenden Fähigkeiten gefunden"
+      "description": "Fähigkeiten für Agent \"{name}\" hinzufügen oder entfernen"
     },
     "messages": {
       "created": "Fähigkeit erfolgreich erstellt",
@@ -623,15 +401,13 @@
       "deleted": "Fähigkeit erfolgreich gelöscht",
       "deleteFailed": "Löschen der Fähigkeit fehlgeschlagen",
       "skillsConfigured": "Fähigkeitskonfiguration aktualisiert",
-      "configureFailed": "Fehler beim Konfigurieren der Fähigkeiten",
-      "systemSkillNotEditable": "Systemfähigkeiten können nicht bearbeitet werden"
+      "configureFailed": "Fehler beim Konfigurieren der Fähigkeiten"
     },
     "empty": {
       "title": "Noch keine Fähigkeiten",
       "description": "Erstelle deine erste KI-Fähigkeit"
     },
     "chatTrigger": {
-      "hint": "Geben Sie $ ein, um eine Fertigkeit auszulösen",
       "empty": "Für diesen Agenten sind keine Fähigkeiten verfügbar"
     },
     "store": {
@@ -641,7 +417,6 @@
       "categoryAll": "Alle",
       "sortRecent": "Kürzlich",
       "sortName": "Name",
-      "sortPopular": "Beliebt",
       "install": "Installieren",
       "installing": "Installieren...",
       "installed": "Installiert",
@@ -657,127 +432,24 @@
     }
   },
   "Tool": {
-    "title": "Werkzeugverwaltung",
-    "subtitle": "Werkzeug-Plugin zur Verwaltung und Konfiguration von AI-Agenten",
-    "create": "Werkzeug erstellen",
-    "edit": "Bearbeiten",
-    "delete": "Löschen",
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "previous": "Zurück",
-    "next": "Nächster Schritt",
-    "creating": "Wird erstellt...",
     "saving": "Speichern...",
-    "enabled": "Aktiviert",
-    "disabled": "Deaktiviert",
-    "confirmDelete": "Möchten Sie dieses Werkzeug wirklich löschen?",
-    "searchPlaceholder": "Suchwerkzeug...",
     "searchTools": "Suchwerkzeuge...",
     "totalTools": "Insgesamt {count} Werkzeuge",
     "selected": "{count} ausgewählt",
     "toolCategories": "Werkzeugkategorie",
     "noToolsFound": "Kein passendes Werkzeug gefunden",
-    "allCategories": "Alle Kategorien",
-    "categories": {
-      "web": "Webseite",
-      "api": "API",
-      "database": "Datenbank",
-      "custom": "Benutzerdefiniert",
-      "test": "Test"
-    },
-    "authTypes": {
-      "none": "Keine Authentifizierung",
-      "bearer": "Bearer-Token",
-      "api_key": "API-Schlüssel",
-      "basic": "Basis-Authentifizierung"
-    },
-    "fields": {
-      "id": "Werkzeug-ID",
-      "idHint": "Eindeutiger Bezeichner, darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten",
-      "idCannotChange": "ID kann nach der Erstellung nicht geändert werden",
-      "name": "Werkzeugname",
-      "nameHint": "Kennzeichen zur Code-Aufruf, z. B.: my_tool",
-      "displayName": "Anzeigename",
-      "displayNamePlaceholder": "Zum Beispiel: mein Werkzeug",
-      "description": "Beschreibung",
-      "descriptionPlaceholder": "Beschreiben Sie die Funktionen und Anwendungen dieses Werkzeugs...",
-      "category": "Kategorisierung",
-      "type": "Typ",
-      "enabled": "Aktiviert",
-      "url": "API-Adresse",
-      "urlHint": "Verwenden Sie {param} als Parameterplatzhalter, zum Beispiel: https://api.example.com/{id}",
-      "method": "Anfragemethode",
-      "headers": "Anforderungsheader",
-      "add": "Hinzufügen",
-      "authType": "Zertifizierungstyp",
-      "tokenEnv": "Token-Umgebungsvariable",
-      "tokenEnvHint": "Name der Umgebungsvariablen, z. B.: MY_API_TOKEN",
-      "timeout": "Timeoutdauer (Sekunden)",
-      "parameters": "Parameter",
-      "paramName": "Parametername",
-      "paramType": "Parameterart",
-      "paramDesc": "Parameterbeschreibung",
-      "paramDescPlaceholder": "Beschreiben Sie diesen Parameter...",
-      "required": "Pflichtfeld",
-      "extractPath": "Datenextraktionspfad",
-      "extractHint": "Verwenden Sie JSONPath, um Daten aus der Antwort zu extrahieren, zum Beispiel: $.data.items",
-      "responseFormat": "Antwortformat"
-    },
-    "createModal": {
-      "title": "Neues Werkzeug erstellen",
-      "step1Desc": "Geben Sie die grundlegenden Informationen des Tools ein",
-      "step2Desc": "API-Endpunkte und Authentifizierung konfigurieren",
-      "step3Desc": "Definition von Parametern und Antwortverarbeitung",
-      "basicInfo": "Grundinformationen",
-      "endpoint": "API-Endpunkt",
-      "parameters": "Parameterkonfiguration",
-      "response": "Antwortverarbeitung"
-    },
-    "editModal": {
-      "title": "Bearbeitungswerkzeuge",
-      "description": "Konfigurationsinformationen des Bearbeitungswerkzeugs ändern"
-    },
     "configureModal": {
       "title": "Konfigurationstool",
-      "description": "Werkzeuge für Agent \"{name}\" hinzufügen oder entfernen",
-      "searchTools": "Suchwerkzeuge...",
-      "totalTools": "Insgesamt {count} Werkzeuge",
-      "selected": "{count} ausgewählt",
-      "toolCategories": "Werkzeugkategorie",
-      "noToolsFound": "Kein passendes Werkzeug gefunden"
-    },
-    "validation": {
-      "idRequired": "Bitte geben Sie die Werkzeug-ID ein",
-      "nameRequired": "Bitte geben Sie den Namen des Werkzeugs ein",
-      "displayNameRequired": "Bitte geben Sie einen Anzeigenamen ein",
-      "urlRequired": "Bitte geben Sie die API-Adresse ein"
+      "description": "Werkzeuge für Agent \"{name}\" hinzufügen oder entfernen"
     },
     "messages": {
-      "created": "Werkzeug erfolgreich erstellt",
-      "createFailed": "Werkzeugerstellung fehlgeschlagen",
-      "updated": "Werkzeug erfolgreich aktualisiert",
-      "updateFailed": "Aktualisierungswerkzeug fehlgeschlagen",
-      "deleted": "Werkzeug erfolgreich entfernt",
-      "deleteFailed": "Löschen des Werkzeugs fehlgeschlagen",
-      "enabled": "Das Werkzeug ist aktiviert",
-      "disabled": "Das Werkzeug ist deaktiviert",
-      "toggleFailed": "Statuswechsel fehlgeschlagen",
       "toolsConfigured": "Die Werkzeugkonfiguration wurde aktualisiert",
       "configureFailed": "Konfigurationstool fehlgeschlagen"
-    },
-    "empty": {
-      "title": "Keine Werkzeuge verfügbar",
-      "description": "Erstellen Sie Ihr erstes Werkzeug-Plugin",
-      "noResults": "Kein passendes Werkzeug gefunden",
-      "tryDifferentFilter": "Versuchen Sie, andere Filterkriterien zu verwenden"
-    },
-    "noParameters": "Dieses Werkzeug hat keine definierten Parameter",
-    "endpoint": "API-Endpunkt",
-    "parameters": "Parameter"
+    }
   },
   "McpSettings": {
-    "title": "MCP Server-Konfiguration",
-    "description": "Konfigurieren Sie hier die MCP-Serververbindung, mit Unterstützung für Hinzufügen, Bearbeiten, Löschen und Verbindungstest.",
     "serverCount": "Insgesamt {count} MCP-Server",
     "add": "Neuen MCP-Server hinzufügen",
     "createTitle": "Neuen MCP-Server hinzufügen",
@@ -793,10 +465,6 @@
     "update": "Speichern",
     "saving": "Speichern...",
     "lastTest": "Anzahl der kürzlich verfügbaren Werkzeuge: {count}",
-    "transportHint": {
-      "stdio": "Startbefehl",
-      "network": "Verbindungsadresse"
-    },
     "fields": {
       "name": "Name",
       "description": "beschreiben",
@@ -878,7 +546,6 @@
       "method": "Authentifizierungsmethode",
       "methodDesc": "Die derzeit mit Ihnen verknüpfte sichere Anmeldemethode",
       "activeSessions": "Aktive Sitzung",
-      "viewSessions": "Sitzung verwalten",
       "authMethod": "Lokaler magischer Link / Soziale Authentifizierung",
       "magicLinkProvider": "E-Mail-Zauberlink",
       "loadingSessions": "Aktive Geräteliste wird geladen...",
@@ -927,9 +594,5 @@
     "actionsDesc": "Verwalten Sie Ihre Kontoeinstellungen",
     "settingsBtn": "Kontoeinstellungen",
     "viewChatBtn": "Konversationen anzeigen"
-  },
-  "Pricing": {
-    "popular": "Am beliebtesten",
-    "monthlyPeriod": "/mo"
   }
 }

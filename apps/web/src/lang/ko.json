@@ -1,6 +1,5 @@
 {
   "Navbar": {
-    "home": "홈",
     "chat": "대화",
     "agents": "대리인",
     "settings": "설정",
@@ -24,8 +23,6 @@
     "reconnecting": "Reconnecting...",
     "imageUploadLabel": "Upload Image",
     "imageRemoveLabel": "이미지 제거",
-    "title": "AI 도우미",
-    "subtitle": "언제든지 도와드리겠습니다",
     "clearConversation": "대화 지우기",
     "emptyState": {
       "title": "무엇을 도와드릴까요?",
@@ -99,18 +96,13 @@
       }
     },
     "reasoningEffort": {
-      "label": "사고 강도",
-      "hint": "콩빵 모델만 유효",
       "minimal": "닫기",
       "low": "낮다",
       "medium": "중",
       "high": "높다"
     },
     "toolbar": {
-      "online": "인터넷 연결",
       "reasoning": "추론",
-      "mcp": "MCP",
-      "canvas": "캔버스",
       "plan": "계획",
       "auto": "채팅"
     },
@@ -132,18 +124,14 @@
       "ready": "화산 실시간 음성 설정에 연결됨",
       "demo": "데모 모드",
       "unconfigured": "화산 실시간 음성 미설정",
-      "textChannel": "텍스트 채널",
       "audioChannel": "오디오 채널",
       "modelLabel": "볼크 실시간",
-      "start": "말하기 시작하다",
-      "stop": "정지",
       "idle": "대기",
       "connecting": "연결 중",
       "listening": "녹음 중",
       "speaking": "재생 중",
       "error": "연결 예외",
       "missingConfig": "구성 항목 {count}개 누락",
-      "voiceInputMessage": "（음성 입력）",
       "microphoneError": "마이크를 시작할 수 없습니다. 브라우저 권한을 확인하세요.",
       "socketError": "실시간 음성 연결이 비정상입니다. 잠시 후 다시 시도하세요.",
       "mute": "마이크 음소거",
@@ -160,23 +148,17 @@
       "stop": "생성 중지",
       "retry": "다시 시도",
       "usedModel": "모델",
-      "tools": "도구 호출",
       "refresh": "다른 걸로 바꾸다",
       "scrollToBottom": "맨 아래로 돌아가기",
       "previewImage": "이미지 미리보기",
       "prevImage": "이전 장",
       "nextImage": "다음 장"
     },
-    "error": {
-      "message": "죄송합니다, 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-    },
     "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요",
     "threads": {
       "title": "대화 기록",
-      "noAgent": "에이전트를 선택하지 않음",
       "new": "새 대화 만들기",
       "search": "대화 검색...",
-      "loading": "로딩 중...",
       "empty": "일시적으로 대화가 없습니다",
       "noResults": "세션을 찾을 수 없습니다",
       "rename": "이름 변경",
@@ -185,7 +167,6 @@
       "save": "저장",
       "saving": "저장 중...",
       "deleting": "삭제 중...",
-      "renamePrompt": "새 대화 제목 입력",
       "renameTitle": "세션 이름 바꾸기",
       "renameDescription": "이 대화에 더 알아보기 쉬운 제목을 바꿔 주세요.",
       "renamePlaceholder": "대화 제목 입력",
@@ -199,202 +180,25 @@
       "dark": "다크 모드",
       "system": "시스템을 따르십시오"
     },
-    "language": "인터페이스 언어",
     "toggleTheme": "디스플레이 모드 전환",
     "toggleLanguage": "인터페이스 언어 전환"
   },
   "HomePage": {
-    "title": "Telos: Intelligent Agent Process Orchestration 플랫폼",
-    "subtitle": "지능형 워크플로 오케스트레이션을 위한 확장성이 뛰어난 최신 플랫폼",
-    "description": "자동화된 작업 예약 및 관리를 지원하고, 프론트엔드 및 백엔드 분리와 마이크로서비스 아키텍처를 채택하며, 엔터프라이즈급 자동화 시나리오를 위해 설계되었습니다.",
-    "badge": "지능형 워크플로우 편성",
     "github": "깃허브",
     "dashboard": "대화를 시작하다",
-    "viewWorkflows": "워크플로 확인",
-    "techStackSupport": "기술 스택 지원",
-    "flowSection": {
-      "trigger": "양식 제출 트리거",
-      "triggerDesc": "'사용자 만들기' 양식이 제출된 경우",
-      "agent": "AI 에이전트",
-      "agentDesc": "도구 에이전트",
-      "isManager": "관리자인가요?",
-      "isManagerTrue": "있다",
-      "isManagerFalse": "안",
-      "addToChannel": "채널 가입",
-      "addToChannelDesc": "채널에 가입하도록 사용자 초대",
-      "updateProfile": "업데이트 정보",
-      "updateProfileDesc": "사용자 정보 업데이트",
-      "anthropic": "인류적 채팅 모델",
-      "anthropicDesc": "모델",
-      "postgres": "Postgres 채팅 메모리",
-      "postgresDesc": "기억",
-      "entra": "Microsoft Entra ID",
-      "entraDesc": "모든 사용자 가져오기",
-      "jira": "지라 소프트웨어",
-      "jiraDesc": "사용자 만들기"
-    },
-    "features": {
-      "title": "핵심 기능",
-      "frontend": "프런트 엔드는 Next.js 15 및 Shadcn UI를 기반으로 하여 원활하고 일관된 사용자 경험을 제공합니다.",
-      "backend": "백엔드는 Go 마이크로서비스 아키텍처를 사용하여 고성능과 확장성을 보장합니다.",
-      "communication": "형식이 안전하고 효율적인 서비스 간 통신을 위해 tRPC/gRPC를 지원합니다.",
-      "monorepo": "간편한 종속성 중앙 집중화 및 팀 협업을 위한 통합 Monorepo 관리.",
-      "deployment": "전체 프로세스는 컨테이너화되어 있으며 지속적인 제공을 보장하기 위해 CI/CD 지원이 내장되어 있습니다."
-    },
-    "featureDescriptions": {
-      "frontend": "Next.js 15 Shadcn UI",
-      "backend": "Go 마이크로서비스",
-      "communication": "tRPC/gRPC",
-      "monorepo": "통합 관리",
-      "deployment": "도커 K8s"
-    },
-    "architecture": {
-      "title": "기술 아키텍처"
-    },
-    "techStack": {
-      "frontend": {
-        "title": "프론트엔드 기술 스택",
-        "nextjs": "Next.js 15 – App Router를 사용하여 서버 측 구성 요소와 효율적인 라우팅을 구현합니다.",
-        "shadcn": "Shadcn UI – 민첩한 개발을 위한 Tailwind CSS를 기반으로 하는 고품질 구성 요소 라이브러리입니다.",
-        "typescript": "TypeScript – 코드 견고성과 유지 관리성을 향상시키는 강력한 형식의 언어입니다.",
-        "trpc": "tRPC – 프론트엔드 및 백엔드 유형 보안 API 통신 체계입니다.",
-        "zustand": "Zustand – 복잡한 상호 작용 논리에 대한 경량 상태 관리."
-      },
-      "backend": {
-        "title": "백엔드 기술 스택",
-        "go": "Go – 기본적으로 높은 동시성, 뛰어난 성능, 마이크로서비스 아키텍처에 적합합니다.",
-        "gin": "Gin/Echo – 신속한 API 개발을 위한 효율적이고 가벼운 HTTP 프레임워크입니다.",
-        "grpc": "gRPC – 서비스 통신을 최적화하기 위해 Protobuf를 기반으로 하는 고성능 RPC 프레임워크입니다.",
-        "postgresql": "PostgreSQL – 데이터 일관성과 보안을 보장하는 엔터프라이즈급 관계형 데이터베이스입니다.",
-        "redis": "Redis – 데이터 액세스 효율성을 개선하기 위한 캐시 및 작업 대기열."
-      },
-      "infrastructure": {
-        "title": "인프라",
-        "docker": "Docker – 환경 일관성을 위한 컨테이너화된 배포 솔루션입니다.",
-        "kubernetes": "Kubernetes – 자동화된 클러스터 오케스트레이션 및 탄력적 확장.",
-        "helm": "Helm – 쿠버네티스 애플리케이션을 위한 표준화된 배포 및 관리 도구입니다.",
-        "monitoring": "Prometheus & Grafana – 완벽한 모니터링 및 시각화.",
-        "tracing": "Jaeger – 서비스 성능 분석을 위한 분산 추적."
-      }
-    },
-    "quickStart": {
-      "title": "빠르게 시작하기",
-      "frontend": "프런트 엔드 서비스 시작",
-      "backend": "백 엔드 서비스 시작",
-      "database": "데이터베이스 서비스 시작",
-      "commands": "공통 작업 명령"
-    },
-    "stats": {
-      "languages": "지원 언어",
-      "services": "마이크로서비스",
-      "uptime": "가용성",
-      "latency": "응답 지연"
-    },
     "cta": {
-      "getStarted": "지금 사용해 보기",
-      "learnMore": "더 알아보세요",
-      "viewDocs": "문서 보기",
-      "title": "준비됐나요?",
-      "description": "지금 바로 Telos 스마트 워크플로우 오케스트레이션 플랫폼을 체험하여 자동화 효율을 향상시키세요"
-    },
-    "gsap": {
-      "animation": "GSAP에서 제공하는 멋진 입학 애니메이션!"
+      "getStarted": "지금 사용해 보기"
     },
     "landing": {
-      "hero": {
-        "subtitle": "팀의 AI Agent를 만들고, 연결하고, 실행하고, 관리하는 워크스페이스.",
-        "description": "Telos는 대화, 도구, 워크플로, 장기 기억, 신원 권한을 하나의 화면에 모아 Agent가 답변을 넘어 실제 업무를 안전하게 처리하도록 합니다."
-      },
-      "stats": {
-        "create": {
-          "value": "Create",
-          "label": "Agent 역할 정의"
-        },
-        "connect": {
-          "value": "Connect",
-          "label": "도구와 채널 연결"
-        },
-        "run": {
-          "value": "Run",
-          "label": "자동화 흐름 구성"
-        },
-        "govern": {
-          "value": "Govern",
-          "label": "권한, 기억, 감사"
-        }
-      },
-      "product": {
-        "surfaceLabel": "telos control surface",
-        "workspaceLabel": "agent workspace",
-        "agentName": "Operator",
-        "quick": {
-          "tools": "tools",
-          "memory": "memory",
-          "workflow": "workflow",
-          "access": "access"
-        },
-        "events": {
-          "create": {
-            "label": "Agent 만들기",
-            "value": "역할, 모델, 능력 경계"
-          },
-          "connect": {
-            "label": "도구 연결",
-            "value": "메일, 캘린더, Slack, 내부 API"
-          },
-          "run": {
-            "label": "흐름 실행",
-            "value": "트리거, 분기, 다단계 작업"
-          },
-          "remember": {
-            "label": "기억 저장",
-            "value": "선호, 기록, 작업 맥락"
-          }
-        }
-      },
       "capabilities": {
-        "eyebrow": "핵심 기능",
-        "title": "하나의 대화에서 실행 가능한 Agent 운영 시스템으로.",
-        "agentStudio": {
-          "title": "Agent Studio",
-          "description": "전용 Agent를 만들고 역할, 모델, 톤, 도구 권한, 작업 경계를 설정해 각 Agent가 실제 직무에 대응하도록 합니다."
-        },
-        "toolRegistry": {
-          "title": "Tool Registry",
-          "description": "메일, 캘린더, Slack, Discord, 브라우저 작업, 내부 API를 호출 가능한 도구로 연결해 Agent가 실제 업무를 처리하게 합니다."
-        },
-        "workflowRuns": {
-          "title": "Workflow Runs",
-          "description": "트리거, 조건 분기, 다단계 작업, 사람의 확인을 연결해 요청부터 결과 전달까지 자동으로 실행합니다."
-        },
-        "scopedMemory": {
-          "title": "Scoped Memory",
-          "description": "장기 기억을 사용자, Agent, 워크스페이스별로 분리해 선호, 기록, 작업 상태를 안전하게 유지합니다."
-        },
-        "teamControl": {
-          "title": "Team Control",
-          "description": "OAuth와 조직 신원으로 Agent, 도구, 실행 기록을 만들고 호출하고 확인하고 감사할 수 있는 사람을 제어합니다."
-        }
-      },
-      "governance": {
-        "eyebrow": "거버넌스 구조",
-        "title": "모든 Agent 실행을 승인 가능하고 추적 가능하며 재사용 가능하게.",
-        "description": "사용자 신원이 Agent가 볼 수 있는 것과 호출할 수 있는 도구를 결정합니다. 실행 과정에는 맥락과 기록이 남아 다음 작업을 처음부터 다시 시작하지 않아도 됩니다.",
-        "layers": {
-          "identity": "신원 경계",
-          "tools": "도구 호출",
-          "memory": "장기 기억"
-        }
+        "eyebrow": "핵심 기능"
       },
       "cta": {
-        "eyebrow": "빠른 시작",
-        "title": "첫 번째 Agent를 실제 워크플로에 연결하세요.",
-        "description": "Agent를 만들고 도구와 기억을 연결하세요. Telos는 대화를 계속 실행되고, 감사 가능하며, 확장 가능한 자동화 능력으로 바꿉니다."
+        "eyebrow": "빠른 시작"
       }
     }
   },
   "Header": {
-    "home": "집",
     "github": "깃허브",
     "mobileMenuTitle": "메뉴",
     "mobileMenuDesc": "Telos 탐색"
@@ -404,8 +208,7 @@
     "unknownUser": "알 수 없는 사용자",
     "profile": "개인 정보",
     "settings": "설정",
-    "signOut": "로그아웃",
-    "dashboard": "계기판"
+    "signOut": "로그아웃"
   },
   "Auth": {
     "signIn": {
@@ -414,11 +217,6 @@
       "noAccount": "아직 계정이 없으신가요?",
       "signUp": "지금 등록하기",
       "loginFailed": "로그인 실패",
-      "github": "GitHub로 로그인",
-      "google": "Google로 로그인",
-      "discord": "Discord로 로그인",
-      "slack": "Slack으로 로그인",
-      "magicLinkTitle": "이메일로 로그인 (비밀번호 없이)",
       "emailLabel": "이메일",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "로그인 링크 보내기",
@@ -439,8 +237,6 @@
     }
   },
   "Agent": {
-    "title": "에이전트 관리",
-    "subtitle": "AI 에이전트를 생성하고 관리하기",
     "create": "에이전트 생성",
     "hero": {
       "title": "의도를 실행 가능한 에이전트로.",
@@ -452,7 +248,6 @@
     "cancel": "취소",
     "confirm": "확인",
     "deleting": "삭제 중...",
-    "default": "기본",
     "types": {
       "public": "공개",
       "private": "사유",
@@ -465,7 +260,6 @@
       "namePlaceholder": "예: 코드 도우미",
       "descriptionLabel": "설명",
       "descriptionPlaceholder": "이 에이전트의 역할과 능력을 설명하세요...",
-      "instructions": "명령 실행",
       "instructionsPlaceholder": "이 에이전트가 루프에서 준수해야 하는 역할, 경계 및 실행 방식을 적으세요...",
       "modelKey": "모델",
       "maxTurns": "최대 라운드",
@@ -507,8 +301,6 @@
       "label": "에이전트 선택",
       "selectAgent": "에이전트 선택",
       "loading": "로딩 중...",
-      "searchPlaceholder": "에이전트 검색...",
-      "noResults": "일치하는 에이전트를 찾을 수 없습니다",
       "noAgents": "사용 가능한 에이전트가 없습니다"
     },
     "messages": {
@@ -533,15 +325,11 @@
       "description": "첫 번째 AI 에이전트 만들기 시작하기"
     },
     "created": "설립일",
-    "systemAgentReadOnly": "시스템 에이전트는 편집할 수 없습니다",
     "configureTools": "설정 도구",
-    "isUserDefault": "현재 기본값",
     "systemDefault": "시스템 기본값",
     "setUserDefault": "기본 에이전트로 설정",
     "cancelUserDefault": "기본 에이전트 취소",
-    "editPrompt": "프롬프트 수정",
     "viewPrompt": "프롬프트 보기",
-    "view": "보기",
     "saveChanges": "변경 사항 저장",
     "close": "닫기",
     "editTitle": "에이전트 편집",
@@ -563,15 +351,12 @@
     "delete": "삭제",
     "cancel": "취소",
     "save": "저장",
-    "creating": "생성 중...",
     "saving": "저장 중...",
     "enabled": "활성화됨",
     "disabled": "사용 중지됨",
     "confirmDelete": "이 스킬을 삭제하시겠습니까?",
-    "searchPlaceholder": "검색 기술...",
     "searchSkills": "검색 기술...",
     "hero": {
-      "badge": "스킬 스토어",
       "title": "한 번에 하나의 기술, 매일 더 날카롭게.",
       "subtitle": "{count}개의 엄선된 스킬을 탐색하고, 한 번의 클릭으로 설치하며, 에이전트에게 새로운 기능을 부여하세요.",
       "cta": "모든 기술 탐색"
@@ -591,10 +376,7 @@
     "totalSkills": "{count}개의 기술",
     "selected": "{count}개 선택됨",
     "noSkillsFound": "일치하는 기술을 찾을 수 없습니다",
-    "groupMine": "나의 기술",
-    "groupSystem": "시스템 기술",
     "groupSystemBadge": "시스템",
-    "systemReadOnly": "시스템 기술은 읽기 전용입니다",
     "form": {
       "name": "스킬 이름",
       "namePlaceholder": "예: translate-en (소문자, 숫자, 하이픈)",
@@ -609,11 +391,7 @@
     },
     "configureModal": {
       "title": "기술 구성",
-      "description": "에이전트 \"{name}\"의 기술을 추가하거나 제거하세요",
-      "searchSkills": "검색 기술...",
-      "totalSkills": "{count}개의 기술",
-      "selected": "{count}개 선택됨",
-      "noSkillsFound": "일치하는 기술을 찾을 수 없습니다"
+      "description": "에이전트 \"{name}\"의 기술을 추가하거나 제거하세요"
     },
     "messages": {
       "created": "스킬이 성공적으로 생성되었습니다",
@@ -623,15 +401,13 @@
       "deleted": "스킬이 성공적으로 삭제되었습니다",
       "deleteFailed": "기술 삭제 실패",
       "skillsConfigured": "기술 구성 업데이트됨",
-      "configureFailed": "기술 구성에 실패했습니다",
-      "systemSkillNotEditable": "시스템 기술은 편집할 수 없습니다"
+      "configureFailed": "기술 구성에 실패했습니다"
     },
     "empty": {
       "title": "아직 기술 없음",
       "description": "첫 번째 AI 스킬을 만들어보세요"
     },
     "chatTrigger": {
-      "hint": "스킬을 발동하려면 $를 입력하세요",
       "empty": "이 에이전트에는 사용 가능한 기술이 없습니다"
     },
     "store": {
@@ -641,7 +417,6 @@
       "categoryAll": "모두",
       "sortRecent": "최근",
       "sortName": "이름",
-      "sortPopular": "인기 있는",
       "install": "설치",
       "installing": "설치 중...",
       "installed": "설치됨",
@@ -657,127 +432,24 @@
     }
   },
   "Tool": {
-    "title": "도구 관리",
-    "subtitle": "AI 에이전트를 관리하고 구성하는 도구 플러그인",
-    "create": "도구 만들기",
-    "edit": "편집",
-    "delete": "삭제",
     "cancel": "취소",
     "save": "저장",
-    "previous": "이전 단계",
-    "next": "다음 단계",
-    "creating": "생성 중...",
     "saving": "저장 중...",
-    "enabled": "활성화됨",
-    "disabled": "비활성화됨",
-    "confirmDelete": "이 도구를 삭제하시겠습니까?",
-    "searchPlaceholder": "검색 도구...",
     "searchTools": "검색 도구...",
     "totalTools": "총 {count}개의 도구",
     "selected": "{count}개 선택됨",
     "toolCategories": "도구 분류",
     "noToolsFound": "일치하는 도구를 찾을 수 없습니다",
-    "allCategories": "전체 분류",
-    "categories": {
-      "web": "웹페이지",
-      "api": "API",
-      "database": "데이터베이스",
-      "custom": "사용자 정의",
-      "test": "테스트"
-    },
-    "authTypes": {
-      "none": "인증 없음",
-      "bearer": "베어러 토큰",
-      "api_key": "API 키",
-      "basic": "기본 인증"
-    },
-    "fields": {
-      "id": "도구 ID",
-      "idHint": "고유 식별자이며, 소문자, 숫자 및 하이픈만 포함할 수 있습니다.",
-      "idCannotChange": "ID는 생성 후 수정할 수 없습니다",
-      "name": "도구 이름",
-      "nameHint": "코드 호출에 사용되는 식별자, 예: my_tool",
-      "displayName": "표시 이름",
-      "displayNamePlaceholder": "예: 나의 도구",
-      "description": "설명",
-      "descriptionPlaceholder": "이 도구의 기능과 용도를 설명하다...",
-      "category": "분류",
-      "type": "유형",
-      "enabled": "활성화 상태",
-      "url": "API 주소",
-      "urlHint": "{param}을 매개변수 자리 표시자로 사용합니다. 예: https://api.example.com/{id}",
-      "method": "요청 방법",
-      "headers": "요청 헤더",
-      "add": "추가",
-      "authType": "인증 유형",
-      "tokenEnv": "토큰 환경 변수",
-      "tokenEnvHint": "환경 변수 이름, 예: MY_API_TOKEN",
-      "timeout": "타임아웃 시간(초)",
-      "parameters": "매개변수",
-      "paramName": "매개 변수 이름",
-      "paramType": "매개변수 유형",
-      "paramDesc": "매개변수 설명",
-      "paramDescPlaceholder": "이 매개변수를 설명합니다...",
-      "required": "필수",
-      "extractPath": "데이터 추출 경로",
-      "extractHint": "JSONPath를 사용하여 응답에서 데이터를 추출하기, 예: $.data.items",
-      "responseFormat": "응답 형식"
-    },
-    "createModal": {
-      "title": "새 도구 만들기",
-      "step1Desc": "도구의 기본 정보를 작성하세요",
-      "step2Desc": "API 엔드포인트 및 인증 구성",
-      "step3Desc": "매개변수 및 응답 처리 정의",
-      "basicInfo": "기본 정보",
-      "endpoint": "API 엔드포인트",
-      "parameters": "파라미터 설정",
-      "response": "응답 처리"
-    },
-    "editModal": {
-      "title": "편집 도구",
-      "description": "도구 설정 정보 수정"
-    },
     "configureModal": {
       "title": "구성 도구",
-      "description": "에이전트 \"{name}\"에 도구 추가 또는 제거",
-      "searchTools": "검색 도구...",
-      "totalTools": "총 {count}개의 도구",
-      "selected": "{count}개 선택됨",
-      "toolCategories": "도구 분류",
-      "noToolsFound": "일치하는 도구를 찾을 수 없습니다"
-    },
-    "validation": {
-      "idRequired": "도구 ID를 입력하세요",
-      "nameRequired": "도구 이름을 입력하세요",
-      "displayNameRequired": "표시 이름을 입력하세요",
-      "urlRequired": "API 주소를 입력하세요"
+      "description": "에이전트 \"{name}\"에 도구 추가 또는 제거"
     },
     "messages": {
-      "created": "도구 생성 성공",
-      "createFailed": "도구 생성 실패",
-      "updated": "도구 업데이트 성공",
-      "updateFailed": "업데이트 도구 실패",
-      "deleted": "도구가 성공적으로 삭제되었습니다",
-      "deleteFailed": "도구 삭제 실패",
-      "enabled": "도구가 활성화되었습니다",
-      "disabled": "도구가 비활성화되었습니다",
-      "toggleFailed": "상태 전환 실패",
       "toolsConfigured": "도구 구성이 업데이트되었습니다",
       "configureFailed": "구성 도구 실패"
-    },
-    "empty": {
-      "title": "현재 도구 없음",
-      "description": "첫 번째 도구 플러그인 만들기",
-      "noResults": "일치하는 도구를 찾을 수 없습니다",
-      "tryDifferentFilter": "다른 필터 조건을 사용해 보세요"
-    },
-    "noParameters": "이 도구에는 매개변수가 정의되어 있지 않습니다",
-    "endpoint": "API 엔드포인트",
-    "parameters": "매개변수"
+    }
   },
   "McpSettings": {
-    "title": "MCP 서버 구성",
-    "description": "여기에서 MCP 서버 연결을 구성하며, 추가, 편집, 삭제 및 연결 테스트를 지원합니다.",
     "serverCount": "총 {count}대 MCP 서버",
     "add": "새로운 MCP 서버 추가",
     "createTitle": "MCP 서버 추가",
@@ -793,10 +465,6 @@
     "update": "저장",
     "saving": "저장 중...",
     "lastTest": "최근 사용 가능한 도구 수: {count}",
-    "transportHint": {
-      "stdio": "시작 명령",
-      "network": "연결 주소"
-    },
     "fields": {
       "name": "명칭",
       "description": "설명",
@@ -878,7 +546,6 @@
       "method": "인증 방식",
       "methodDesc": "현재 연결된 보안 로그인 방식",
       "activeSessions": "활성 세션",
-      "viewSessions": "세션 관리",
       "authMethod": "로컬 매직 링크 / 소셜 인증",
       "magicLinkProvider": "이메일 마술 링크",
       "loadingSessions": "활성 장치 목록을 로드하는 중...",
@@ -927,9 +594,5 @@
     "actionsDesc": "계정 설정 관리",
     "settingsBtn": "계정 설정",
     "viewChatBtn": "대화 보기"
-  },
-  "Pricing": {
-    "popular": "가장 인기 있는",
-    "monthlyPeriod": "/모"
   }
 }
