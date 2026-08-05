@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/indulgeback/telos/apps/registry/internal/config"
 
@@ -112,66 +111,6 @@ func (c *ConsulServiceDiscovery) ListInstances(serviceName string) ([]*ServiceIn
 	}
 
 	return instances, nil
-}
-
-// Discover 发现一个可用实例
-func (c *ConsulServiceDiscovery) Discover(serviceName string) (*ServiceInfo, error) {
-	instances, err := c.ListInstances(serviceName)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(instances) == 0 {
-		return nil, fmt.Errorf("服务 %s 无可用实例", serviceName)
-	}
-
-	// 简单返回第一个可用实例（后续可扩展负载均衡）
-	for _, instance := range instances {
-		if instance.Status == "passing" {
-			return instance, nil
-		}
-	}
-
-	return nil, fmt.Errorf("服务 %s 无健康实例", serviceName)
-}
-
-// WatchService 监听服务变化
-func (c *ConsulServiceDiscovery) WatchService(serviceName string, callback func([]*ServiceInfo)) {
-	go func() {
-		var lastIndex uint64
-		for {
-			services, meta, err := c.client.Health().Service(serviceName, "", true, &consulapi.QueryOptions{
-				WaitIndex: lastIndex,
-				WaitTime:  time.Minute,
-			})
-			if err != nil {
-				color.New(color.FgRed).Printf("监听服务变化失败: %v\n", err)
-				time.Sleep(time.Second * 5)
-				continue
-			}
-
-			if meta.LastIndex == lastIndex {
-				continue
-			}
-			lastIndex = meta.LastIndex
-
-			var instances []*ServiceInfo
-			for _, service := range services {
-				instance := &ServiceInfo{
-					ID:      service.Service.ID,
-					Name:    service.Service.Service,
-					Address: service.Service.Address,
-					Port:    service.Service.Port,
-					Tags:    service.Service.Tags,
-					Meta:    service.Service.Meta,
-					Status:  service.Checks.AggregatedStatus(),
-				}
-				instances = append(instances, instance)
-			}
-
-			callback(instances)
-		}
-	}()
 }
 
 // ListServiceNames 获取所有服务名

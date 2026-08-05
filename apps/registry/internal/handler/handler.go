@@ -76,27 +76,6 @@ func (h *RegistryHandler) UnregisterService(c echo.Context) error {
 	})
 }
 
-// DiscoverService 发现服务
-func (h *RegistryHandler) DiscoverService(c echo.Context) error {
-	serviceName := c.Param("name")
-	if serviceName == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "服务名称不能为空",
-		})
-	}
-
-	instance, err := h.discovery.Discover(serviceName)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": fmt.Sprintf("发现服务失败: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"service": instance,
-	})
-}
-
 // HealthCheck 健康检查
 func (h *RegistryHandler) HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
