@@ -429,30 +429,6 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 	return proxy, nil
 }
 
-// ProxyHandler 简单的代理处理器（向后兼容）
-func ProxyHandler(authServiceURL string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if authServiceURL == "" {
-			writeErrorResponse(w, "未配置后端服务地址", http.StatusInternalServerError)
-			return
-		}
-
-		targetURL, err := url.Parse(authServiceURL)
-		if err != nil {
-			writeErrorResponse(w, "后端服务地址无效", http.StatusInternalServerError)
-			return
-		}
-
-		proxy := httputil.NewSingleHostReverseProxy(targetURL)
-		proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-			tlog.Error("简单代理请求失败", "auth_service_url", authServiceURL, "path", r.URL.Path, "error", err)
-			writeErrorResponse(w, "后端服务错误", http.StatusBadGateway)
-		}
-
-		proxy.ServeHTTP(w, r)
-	}
-}
-
 // writeErrorResponse 写入错误响应
 func writeErrorResponse(w http.ResponseWriter, message string, code int) {
 	w.Header().Set("Content-Type", "application/json")

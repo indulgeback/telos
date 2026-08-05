@@ -1,6 +1,5 @@
 {
   "Navbar": {
-    "home": "ホームページ",
     "chat": "会話",
     "agents": "代理人",
     "settings": "設定",
@@ -24,8 +23,6 @@
     "reconnecting": "再接続中...",
     "imageUploadLabel": "画像をアップロード",
     "imageRemoveLabel": "画像を削除",
-    "title": "AIアシスタント",
-    "subtitle": "いつでもご利用いただけます",
     "clearConversation": "会話をクリア",
     "emptyState": {
       "title": "何かお手伝いできることはありますか？",
@@ -99,18 +96,13 @@
       }
     },
     "reasoningEffort": {
-      "label": "思考の強度",
-      "hint": "豆包モデルのみ有効",
       "minimal": "閉じる",
       "low": "低い",
       "medium": "中",
       "high": "高い"
     },
     "toolbar": {
-      "online": "ネットワークに接続する",
       "reasoning": "推論",
-      "mcp": "MCP",
-      "canvas": "キャンバス",
       "plan": "計画",
       "auto": "チャット"
     },
@@ -132,18 +124,14 @@
       "ready": "火山リアルタイム音声設定に接続済み",
       "demo": "デモモード",
       "unconfigured": "未設定の火山リアルタイム音声",
-      "textChannel": "テキストチャネル",
       "audioChannel": "オーディオチャンネル",
       "modelLabel": "ボルクリアルタイム",
-      "start": "話し始める",
-      "stop": "停止",
       "idle": "待機",
       "connecting": "接続中",
       "listening": "受信中",
       "speaking": "再生中",
       "error": "接続異常",
       "missingConfig": "欠けている設定が {count} 件あります",
-      "voiceInputMessage": "（音声入力）",
       "microphoneError": "マイクを起動できません。ブラウザの権限を確認してください。",
       "socketError": "リアルタイム音声接続に異常が発生しました。後でもう一度お試しください。",
       "mute": "マイクをミュート",
@@ -160,23 +148,17 @@
       "stop": "生成を停止",
       "retry": "再試行",
       "usedModel": "模型",
-      "tools": "ツール呼び出し",
       "refresh": "別のものに換える",
       "scrollToBottom": "一番下まで戻る",
       "previewImage": "プレビュー画像",
       "prevImage": "前の一枚",
       "nextImage": "次のページ"
     },
-    "error": {
-      "message": "申し訳ありません、エラーが発生しました。しばらくしてから再度お試しください。"
-    },
     "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください",
     "threads": {
       "title": "会話履歴",
-      "noAgent": "Agentが選択されていません",
       "new": "新しい会話を作成",
       "search": "会話を検索中...",
-      "loading": "読み込み中...",
       "empty": "会話はありません",
       "noResults": "会話が見つかりません",
       "rename": "名前を変更する",
@@ -185,7 +167,6 @@
       "save": "保存",
       "saving": "保存中...",
       "deleting": "削除中...",
-      "renamePrompt": "新しい会話のタイトルを入力",
       "renameTitle": "セッションの名前を変更",
       "renameDescription": "この会話にもっと識別しやすいタイトルを付けてください。",
       "renamePlaceholder": "会話のタイトルを入力",
@@ -199,202 +180,25 @@
       "dark": "ダークモード",
       "system": "システムに従う"
     },
-    "language": "インターフェース言語",
     "toggleTheme": "表示モードを切り替える",
     "toggleLanguage": "インターフェース言語を切り替える"
   },
   "HomePage": {
-    "title": "Telos：インテリジェントエージェントプロセスオーケストレーションプラットフォーム",
-    "subtitle": "スマートワークフロー編成志向の現代的で高可用性のプラットフォーム",
-    "description": "自動化タスクのスケジューリングと管理をサポートし、フロントエンドとバックエンドの分離およびマイクロサービスアーキテクチャを採用し、企業レベルの自動化シナリオ専用に設計されています。",
-    "badge": "スマートワークフローオーケストレーション",
     "github": "ギットハブ",
     "dashboard": "会話を始める",
-    "viewWorkflows": "ワークフローを確認",
-    "techStackSupport": "技術スタックのサポート",
-    "flowSection": {
-      "trigger": "フォームの送信がトリガーされる",
-      "triggerDesc": "'ユーザー作成' フォームが送信された時",
-      "agent": "AIエージェント",
-      "agentDesc": "ツールインテリジェンス",
-      "isManager": "管理者ですか？",
-      "isManagerTrue": "です",
-      "isManagerFalse": "いいえ",
-      "addToChannel": "チャンネルに参加する",
-      "addToChannelDesc": "ユーザーをチャンネルに招待する",
-      "updateProfile": "資料を更新する",
-      "updateProfileDesc": "ユーザー情報を更新する",
-      "anthropic": "Anthropic チャットモデル",
-      "anthropicDesc": "模型",
-      "postgres": "Postgres チャット記憶",
-      "postgresDesc": "記憶",
-      "entra": "マイクロソフト エントラ ID",
-      "entraDesc": "全てのユーザーを取得する",
-      "jira": "Jiraソフトウェア",
-      "jiraDesc": "ユーザーを作成する"
-    },
-    "features": {
-      "title": "コア特性",
-      "frontend": "フロントエンドは Next.js 15 と Shadcn UI に基づいており、スムーズで一貫したユーザー体験を提供します。",
-      "backend": "バックエンドはGoマイクロサービスアーキテクチャを採用しており、高パフォーマンスと優れたスケーラビリティを確保しています。",
-      "communication": "tRPC/gRPCをサポートし、型安全で効率的なサービス間通信を実現します。",
-      "monorepo": "一元的Monorepo管理により、依存関係の集中とチーム協力が容易になります。",
-      "deployment": "全プロセスがコンテナ化されており、CI/CDのサポートが内蔵されていて、継続的なデリバリーを保障します。"
-    },
-    "featureDescriptions": {
-      "frontend": "Next.js 15 Shadcn UI",
-      "backend": "Go マイクロサービス",
-      "communication": "tRPC/gRPC",
-      "monorepo": "一元管理",
-      "deployment": "Docker と K8s"
-    },
-    "architecture": {
-      "title": "技術アーキテクチャ"
-    },
-    "techStack": {
-      "frontend": {
-        "title": "フロントエンド技術スタック",
-        "nextjs": "Next.js 15 - App Routerを利用してサーバーコンポーネントと効率的なルーティングを実現。",
-        "shadcn": "Shadcn UI - Tailwind CSSに基づく高品質なコンポーネントライブラリで、アジャイル開発を助けます。",
-        "typescript": "TypeScript – 強い型付け言語で、コードの堅牢性と保守性を向上させます。",
-        "trpc": "tRPC – フロントエンドとバックエンドの型安全なAPI通信ソリューション。",
-        "zustand": "Zustand - 軽量な状態管理、複雑なインタラクションロジックに適しています。"
-      },
-      "backend": {
-        "title": "バックエンド技術スタック",
-        "go": "Go - 原生の高い同時実行性と優れたパフォーマンスを持ち、マイクロサービスアーキテクチャに適しています。",
-        "gin": "Gin/Echo - 効率的で軽量なHTTPフレームワークで、迅速なAPI開発を支援します。",
-        "grpc": "gRPC - Protobufに基づく高性能RPCフレームワークで、サービス通信を最適化します。",
-        "postgresql": "PostgreSQL – エンタープライズグレードのリレーショナルデータベースで、データの一貫性と安全性を保証します。",
-        "redis": "Redis - 高速キャッシュとタスクキュー、データアクセス効率を向上させる。"
-      },
-      "infrastructure": {
-        "title": "インフラストラクチャ",
-        "docker": "Docker – 環境の一貫性を実現するコンテナ化デプロイメントソリューション。",
-        "kubernetes": "Kubernetes – クラスタの自動化オーケストレーションと弾力的な拡張。",
-        "helm": "Helm - Kubernetesアプリケーションの標準化されたデプロイと管理ツール。",
-        "monitoring": "Prometheus & Grafana - 完璧な監視と可視化システム。",
-        "tracing": "Jaeger – 分散型トレーシング、サービスパフォーマンス分析を支援します。"
-      }
-    },
-    "quickStart": {
-      "title": "迅速に習得する",
-      "frontend": "フロントエンドサービスを起動する",
-      "backend": "バックエンドサービスを起動する",
-      "database": "データベースサービスを起動する",
-      "commands": "常用操作命令"
-    },
-    "stats": {
-      "languages": "対応言語",
-      "services": "マイクロサービス",
-      "uptime": "可用性",
-      "latency": "応答遅延"
-    },
     "cta": {
-      "getStarted": "今すぐ体験する",
-      "learnMore": "詳細を理解する",
-      "viewDocs": "ドキュメントを確認する",
-      "title": "準備はできましたか？",
-      "description": "今すぐ Telos のスマートワークフローオーケストレーションプラットフォームを体験し、自動化効率を向上させましょう"
-    },
-    "gsap": {
-      "animation": "クールな入場アニメーションは GSAP が駆動しています！"
+      "getStarted": "今すぐ体験する"
     },
     "landing": {
-      "hero": {
-        "subtitle": "チームの AI Agent を作成、接続、実行、統制するためのワークスペース。",
-        "description": "Telos は会話、ツール、ワークフロー、長期記憶、ID 権限をひとつの画面にまとめ、Agent が回答だけでなく安全に実務を完了できるようにします。"
-      },
-      "stats": {
-        "create": {
-          "value": "Create",
-          "label": "Agent の役割を定義"
-        },
-        "connect": {
-          "value": "Connect",
-          "label": "ツールとチャネルを接続"
-        },
-        "run": {
-          "value": "Run",
-          "label": "ワークフローを編成"
-        },
-        "govern": {
-          "value": "Govern",
-          "label": "権限、記憶、監査"
-        }
-      },
-      "product": {
-        "surfaceLabel": "telos control surface",
-        "workspaceLabel": "agent workspace",
-        "agentName": "Operator",
-        "quick": {
-          "tools": "tools",
-          "memory": "memory",
-          "workflow": "workflow",
-          "access": "access"
-        },
-        "events": {
-          "create": {
-            "label": "Agent を作成",
-            "value": "役割、モデル、能力境界"
-          },
-          "connect": {
-            "label": "ツールを接続",
-            "value": "メール、カレンダー、Slack、内部 API"
-          },
-          "run": {
-            "label": "フローを実行",
-            "value": "トリガー、分岐、複数ステップ"
-          },
-          "remember": {
-            "label": "記憶を保存",
-            "value": "好み、履歴、タスク文脈"
-          }
-        }
-      },
       "capabilities": {
-        "eyebrow": "主な機能",
-        "title": "ひとつの会話から、実行可能な Agent ワークシステムへ。",
-        "agentStudio": {
-          "title": "Agent Studio",
-          "description": "専用 Agent を作成し、役割、モデル、口調、ツール権限、作業境界を設定して、各 Agent を実際の職務に対応させます。"
-        },
-        "toolRegistry": {
-          "title": "Tool Registry",
-          "description": "メール、カレンダー、Slack、Discord、ブラウザ操作、内部 API を呼び出し可能なツールとして接続し、Agent が実務を処理できるようにします。"
-        },
-        "workflowRuns": {
-          "title": "Workflow Runs",
-          "description": "トリガー、条件分岐、複数ステップの操作、人による確認をつなぎ、依頼から完了まで自動で実行します。"
-        },
-        "scopedMemory": {
-          "title": "Scoped Memory",
-          "description": "長期記憶をユーザー、Agent、ワークスペースごとに分離し、好み、履歴、タスク状態を安全に保持します。"
-        },
-        "teamControl": {
-          "title": "Team Control",
-          "description": "OAuth と組織 ID で、Agent、ツール、実行記録を作成、呼び出し、確認、監査できる人を管理します。"
-        }
-      },
-      "governance": {
-        "eyebrow": "ガバナンス構造",
-        "title": "すべての Agent 実行を承認済み、追跡可能、再利用可能に。",
-        "description": "ユーザー ID が Agent の閲覧範囲と呼び出せるツールを決めます。実行ごとに文脈と記録が残るため、次のタスクを最初からやり直す必要がありません。",
-        "layers": {
-          "identity": "ID 境界",
-          "tools": "ツール呼び出し",
-          "memory": "長期記憶"
-        }
+        "eyebrow": "主な機能"
       },
       "cta": {
-        "eyebrow": "クイックスタート",
-        "title": "最初の Agent を実際のワークフローにつなげる。",
-        "description": "Agent を作成し、ツールと記憶を接続します。Telos は会話を、継続実行、監査、拡張ができる自動化能力に変えます。"
+        "eyebrow": "クイックスタート"
       }
     }
   },
   "Header": {
-    "home": "ホームページ",
     "github": "ギットハブ",
     "mobileMenuTitle": "メニュー",
     "mobileMenuDesc": "Telos を閲覧"
@@ -404,8 +208,7 @@
     "unknownUser": "未知のユーザー",
     "profile": "プロフィール",
     "settings": "設定",
-    "signOut": "ログアウト",
-    "dashboard": "ダッシュボード"
+    "signOut": "ログアウト"
   },
   "Auth": {
     "signIn": {
@@ -414,11 +217,6 @@
       "noAccount": "まだアカウントをお持ちではありませんか？",
       "signUp": "今すぐ登録する",
       "loginFailed": "ログイン失敗",
-      "github": "GitHubでログイン",
-      "google": "Googleでログイン",
-      "discord": "Discordでログイン",
-      "slack": "Slackでログイン",
-      "magicLinkTitle": "メールでログイン（パスワード不要）",
       "emailLabel": "電子メール",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "ログインリンクを送信する",
@@ -439,8 +237,6 @@
     }
   },
   "Agent": {
-    "title": "エージェント管理",
-    "subtitle": "あなたのAIエージェントを作成して管理する",
     "create": "エージェントを作成",
     "hero": {
       "title": "意図を実行できるエージェントへ。",
@@ -452,7 +248,6 @@
     "cancel": "キャンセル",
     "confirm": "確認",
     "deleting": "削除中…",
-    "default": "デフォルト",
     "types": {
       "public": "公開",
       "private": "私有",
@@ -465,7 +260,6 @@
       "namePlaceholder": "例えば：コードアシスタント",
       "descriptionLabel": "説明",
       "descriptionPlaceholder": "このエージェントの役割と能力を説明する...",
-      "instructions": "コマンドを実行する",
       "instructionsPlaceholder": "このエージェントがループ内で従うべき役割、境界、および実行方法を書き留めてください...",
       "modelKey": "模型",
       "maxTurns": "最大ラウンド",
@@ -507,8 +301,6 @@
       "label": "エージェントを選択",
       "selectAgent": "エージェントを選択",
       "loading": "読み込み中...",
-      "searchPlaceholder": "エージェントを検索...",
-      "noResults": "一致するエージェントが見つかりませんでした",
       "noAgents": "利用可能なエージェントはありません"
     },
     "messages": {
@@ -533,15 +325,11 @@
       "description": "あなたの最初のAIエージェントを作成して始めましょう"
     },
     "created": "作成日",
-    "systemAgentReadOnly": "システムエージェントは編集できません",
     "configureTools": "配置ツール",
-    "isUserDefault": "現在のデフォルト",
     "systemDefault": "システムデフォルト",
     "setUserDefault": "デフォルトエージェントに設定",
     "cancelUserDefault": "デフォルトエージェントをキャンセル",
-    "editPrompt": "プロンプトを変更",
     "viewPrompt": "プロンプトを見る",
-    "view": "表示",
     "saveChanges": "変更を保存",
     "close": "閉じる",
     "editTitle": "エージェントを編集",
@@ -563,15 +351,12 @@
     "delete": "削除",
     "cancel": "キャンセル",
     "save": "保存",
-    "creating": "作成中...",
     "saving": "保存中...",
     "enabled": "有効",
     "disabled": "無効",
     "confirmDelete": "このスキルを削除しますか？",
-    "searchPlaceholder": "検索スキル...",
     "searchSkills": "検索スキル...",
     "hero": {
-      "badge": "スキルストア",
       "title": "一度に一つのスキル、毎日ますます鋭く。",
       "subtitle": "{count} の厳選されたスキルを探索し、ワンクリックでインストールして、エージェントに新しい能力を付与しましょう。",
       "cta": "すべてのスキルを探る"
@@ -591,10 +376,7 @@
     "totalSkills": "{count} スキル",
     "selected": "{count} 件選択",
     "noSkillsFound": "一致するスキルが見つかりません",
-    "groupMine": "私のスキル",
-    "groupSystem": "システムスキル",
     "groupSystemBadge": "システム",
-    "systemReadOnly": "システムスキルは読み取り専用です",
     "form": {
       "name": "スキル名",
       "namePlaceholder": "例: translate-en（小文字、数字、ハイフン）",
@@ -609,11 +391,7 @@
     },
     "configureModal": {
       "title": "スキルを設定",
-      "description": "エージェント「{name}」のスキルを追加または削除する",
-      "searchSkills": "検索スキル...",
-      "totalSkills": "{count} スキル",
-      "selected": "{count} 件選択",
-      "noSkillsFound": "一致するスキルが見つかりません"
+      "description": "エージェント「{name}」のスキルを追加または削除する"
     },
     "messages": {
       "created": "スキルが正常に作成されました",
@@ -623,15 +401,13 @@
       "deleted": "スキルが正常に削除されました",
       "deleteFailed": "スキルの削除に失敗しました",
       "skillsConfigured": "スキル設定が更新されました",
-      "configureFailed": "スキルの設定に失敗しました",
-      "systemSkillNotEditable": "システムスキルは編集できません"
+      "configureFailed": "スキルの設定に失敗しました"
     },
     "empty": {
       "title": "まだスキルがありません",
       "description": "最初のAIスキルを作成する"
     },
     "chatTrigger": {
-      "hint": "スキルを発動するには $ を入力してください",
       "empty": "このエージェントには利用できるスキルがありません"
     },
     "store": {
@@ -641,7 +417,6 @@
       "categoryAll": "すべて",
       "sortRecent": "最近の",
       "sortName": "名前",
-      "sortPopular": "人気のある",
       "install": "インストール",
       "installing": "インストール中...",
       "installed": "インストール済み",
@@ -657,127 +432,24 @@
     }
   },
   "Tool": {
-    "title": "工具管理",
-    "subtitle": "AIエージェントを管理・設定するためのツールプラグイン",
-    "create": "ツールを作成",
-    "edit": "編集",
-    "delete": "削除",
     "cancel": "キャンセル",
     "save": "保存",
-    "previous": "前のステップ",
-    "next": "次のステップ",
-    "creating": "作成中…",
     "saving": "保存中…",
-    "enabled": "有効になっています",
-    "disabled": "無効になっています",
-    "confirmDelete": "このツールを削除してもよろしいですか？",
-    "searchPlaceholder": "検索ツール…",
     "searchTools": "検索ツール...",
     "totalTools": "合計 {count} 個のツール",
     "selected": "{count} 個選択済み",
     "toolCategories": "工具の分類",
     "noToolsFound": "一致するツールが見つかりません",
-    "allCategories": "すべてのカテゴリ",
-    "categories": {
-      "web": "ウェブページ",
-      "api": "API",
-      "database": "データベース",
-      "custom": "カスタム",
-      "test": "テスト"
-    },
-    "authTypes": {
-      "none": "未認証",
-      "bearer": "ベアラートークン",
-      "api_key": "APIキー",
-      "basic": "ベーシック認証"
-    },
-    "fields": {
-      "id": "ツールID",
-      "idHint": "一意の識別子で、英小文字、数字、ハイフンのみを含めることができます",
-      "idCannotChange": "IDは作成後に変更できません",
-      "name": "工具名",
-      "nameHint": "コード呼び出しに使用される識別子、例: my_tool",
-      "displayName": "表示名",
-      "displayNamePlaceholder": "例えば：私の道具",
-      "description": "説明",
-      "descriptionPlaceholder": "このツールの機能と用途を説明する...",
-      "category": "分類",
-      "type": "タイプ",
-      "enabled": "有効状態",
-      "url": "API アドレス",
-      "urlHint": "{param} をパラメータのプレースホルダーとして使用します。例：https://api.example.com/{id}",
-      "method": "リクエスト方法",
-      "headers": "リクエストヘッダー",
-      "add": "追加",
-      "authType": "認証タイプ",
-      "tokenEnv": "トークン環境変数",
-      "tokenEnvHint": "環境変数名、例：MY_API_TOKEN",
-      "timeout": "タイムアウト時間（秒）",
-      "parameters": "パラメータ",
-      "paramName": "パラメータ名",
-      "paramType": "パラメータ型",
-      "paramDesc": "パラメータの説明",
-      "paramDescPlaceholder": "このパラメータを説明します...",
-      "required": "必須",
-      "extractPath": "データ抽出パス",
-      "extractHint": "JSONPath を使用してレスポンスからデータを抽出します。例：$.data.items",
-      "responseFormat": "応答フォーマット"
-    },
-    "createModal": {
-      "title": "新しいツールを作成",
-      "step1Desc": "ツールの基本情報を入力する",
-      "step2Desc": "APIエンドポイントと認証の設定",
-      "step3Desc": "パラメータとレスポンス処理の定義",
-      "basicInfo": "基本情報",
-      "endpoint": "API エンドポイント",
-      "parameters": "パラメータ設定",
-      "response": "応答処理"
-    },
-    "editModal": {
-      "title": "編集ツール",
-      "description": "ツールの設定情報を変更する"
-    },
     "configureModal": {
       "title": "配置ツール",
-      "description": "エージェント「{name}」にツールを追加または削除する",
-      "searchTools": "検索ツール…",
-      "totalTools": "合計 {count} 個のツール",
-      "selected": "{count} 個選択済み",
-      "toolCategories": "工具の分類",
-      "noToolsFound": "一致するツールが見つかりません"
-    },
-    "validation": {
-      "idRequired": "ツールIDを入力してください",
-      "nameRequired": "ツール名を入力してください",
-      "displayNameRequired": "表示名を入力してください",
-      "urlRequired": "API アドレスを入力してください"
+      "description": "エージェント「{name}」にツールを追加または削除する"
     },
     "messages": {
-      "created": "ツールの作成に成功しました",
-      "createFailed": "ツールの作成に失敗しました",
-      "updated": "ツールの更新に成功しました",
-      "updateFailed": "ツールの更新に失敗しました",
-      "deleted": "ツールが正常に削除されました",
-      "deleteFailed": "削除ツールに失敗しました",
-      "enabled": "ツールは有効です",
-      "disabled": "ツールは無効です",
-      "toggleFailed": "状態の切り替えに失敗しました",
       "toolsConfigured": "ツールの設定が更新されました",
       "configureFailed": "ツールの配置に失敗しました"
-    },
-    "empty": {
-      "title": "ツールはありません",
-      "description": "最初のツールプラグインを作成する",
-      "noResults": "一致するツールが見つかりません",
-      "tryDifferentFilter": "異なるフィルター条件を試してみてください"
-    },
-    "noParameters": "このツールにはパラメータが定義されていません",
-    "endpoint": "API エンドポイント",
-    "parameters": "パラメータ"
+    }
   },
   "McpSettings": {
-    "title": "MCP サーバー設定",
-    "description": "ここで MCP サーバー接続を設定でき、新規追加、編集、削除、および接続テストがサポートされています。",
     "serverCount": "共 {count} 台 MCP サーバー",
     "add": "MCPサーバーを追加",
     "createTitle": "MCPサーバーを追加",
@@ -793,10 +465,6 @@
     "update": "保存",
     "saving": "保存中...",
     "lastTest": "最近使用可能なツールの数：{count}",
-    "transportHint": {
-      "stdio": "起動コマンド",
-      "network": "接続アドレス"
-    },
     "fields": {
       "name": "名称",
       "description": "記述",
@@ -878,7 +546,6 @@
       "method": "認証方式",
       "methodDesc": "現在バインドされている安全なログイン方法",
       "activeSessions": "アクティブセッション",
-      "viewSessions": "セッション管理",
       "authMethod": "ローカルマジックリンク / ソーシャル認証",
       "magicLinkProvider": "メールマジックリンク",
       "loadingSessions": "アクティブデバイスのリストを読み込み中...",
@@ -927,9 +594,5 @@
     "actionsDesc": "アカウント設定を管理する",
     "settingsBtn": "アカウント設定",
     "viewChatBtn": "会話を見る"
-  },
-  "Pricing": {
-    "popular": "最も人気のある",
-    "monthlyPeriod": "/も"
   }
 }

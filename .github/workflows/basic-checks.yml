@@ -72,7 +72,7 @@ jobs:
         # 无 DATABASE_URL 时 diagnose 集成测试自动 skip
 
   # ---------------------------------------------------------------------------
-  # Go 后端检查 (api-gateway + registry + pkg/tlog + pkg/netutil)
+  # Go 后端检查 (api-gateway + registry + pkg/tlog)
   # ---------------------------------------------------------------------------
   go:
     name: 🔵 Go (api-gateway + registry + pkg)
@@ -85,7 +85,6 @@ jobs:
           - apps/api-gateway
           - apps/registry
           - pkg/tlog
-          - pkg/netutil
     steps:
       - name: 📥 检出代码
         uses: actions/checkout@v4

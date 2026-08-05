@@ -1,6 +1,5 @@
 {
   "Navbar": {
-    "home": "首頁",
     "chat": "對話",
     "agents": "代理人",
     "settings": "設定",
@@ -24,8 +23,6 @@
     "reconnecting": "重新連線中…",
     "imageUploadLabel": "上傳圖片",
     "imageRemoveLabel": "移除圖片",
-    "title": "AI 助手",
-    "subtitle": "隨時為您服務",
     "clearConversation": "清空對話",
     "emptyState": {
       "title": "有什麼可以幫到您？",
@@ -99,18 +96,13 @@
       }
     },
     "reasoningEffort": {
-      "label": "思考強度",
-      "hint": "僅豆包模型生效",
       "minimal": "關閉",
       "low": "低",
       "medium": "中",
       "high": "高"
     },
     "toolbar": {
-      "online": "聯網",
       "reasoning": "推理",
-      "mcp": "MCP",
-      "canvas": "畫布",
       "plan": "計畫",
       "auto": "聊天"
     },
@@ -132,18 +124,14 @@
       "ready": "已連接火山即時語音配置",
       "demo": "演示模式",
       "unconfigured": "未配置火山即時語音",
-      "textChannel": "文本通道",
       "audioChannel": "音訊通道",
       "modelLabel": "火山即時",
-      "start": "開始說話",
-      "stop": "停止",
       "idle": "待命",
       "connecting": "連接中",
       "listening": "收音中",
       "speaking": "播放中",
       "error": "連接異常",
       "missingConfig": "缺少 {count} 項配置",
-      "voiceInputMessage": "（語音輸入）",
       "microphoneError": "無法啟動麥克風，請檢查瀏覽器權限。",
       "socketError": "即時語音連接異常，請稍後重試。",
       "mute": "靜音麥克風",
@@ -160,23 +148,17 @@
       "stop": "停止生成",
       "retry": "重試",
       "usedModel": "模型",
-      "tools": "工具調用",
       "refresh": "換一批",
       "scrollToBottom": "回到底部",
       "previewImage": "預覽圖片",
       "prevImage": "上一張",
       "nextImage": "下一張"
     },
-    "error": {
-      "message": "抱歉，發生了一些錯誤。請稍後再試。"
-    },
     "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊",
     "threads": {
       "title": "會話歷史",
-      "noAgent": "未選擇代理",
       "new": "新建會話",
       "search": "搜尋會話...",
-      "loading": "加載中...",
       "empty": "暫無會話",
       "noResults": "未找到會話",
       "rename": "重命名",
@@ -185,7 +167,6 @@
       "save": "保存",
       "saving": "保存中...",
       "deleting": "刪除中...",
-      "renamePrompt": "輸入新的會話標題",
       "renameTitle": "重新命名會話",
       "renameDescription": "給這個會話換一個更容易識別的標題。",
       "renamePlaceholder": "輸入會話標題",
@@ -199,202 +180,25 @@
       "dark": "深色模式",
       "system": "跟隨系統"
     },
-    "language": "介面語言",
     "toggleTheme": "切換顯示模式",
     "toggleLanguage": "切換介面語言"
   },
   "HomePage": {
-    "title": "Telos：智慧 Agent 流程編排平臺",
-    "subtitle": "面向智慧工作流編排的現代化高可擴展平臺",
-    "description": "支援自動化任務調度與管理，採用前後端分離與微服務架構，專為企業級自動化場景設計。",
-    "badge": "智慧工作流程編排",
     "github": "GitHub",
     "dashboard": "開始對話",
-    "viewWorkflows": "查看工作流程",
-    "techStackSupport": "技術棧支持",
-    "flowSection": {
-      "trigger": "表單提交觸發",
-      "triggerDesc": "在 『創建使用者』 表單提交時",
-      "agent": "AI 代理",
-      "agentDesc": "工具智慧體",
-      "isManager": "是否為管理者？",
-      "isManagerTrue": "是",
-      "isManagerFalse": "否",
-      "addToChannel": "加入頻道",
-      "addToChannelDesc": "邀請使用者加入頻道",
-      "updateProfile": "更新資料",
-      "updateProfileDesc": "更新使用者資訊",
-      "anthropic": "Anthropic 聊天模型",
-      "anthropicDesc": "模型",
-      "postgres": "Postgres 聊天記憶",
-      "postgresDesc": "記憶",
-      "entra": "Microsoft Entra ID",
-      "entraDesc": "獲取所有使用者",
-      "jira": "Jira 軟體",
-      "jiraDesc": "創建使用者"
-    },
-    "features": {
-      "title": "核心特性",
-      "frontend": "前端基於 Next.js 15 與 Shadcn UI，提供流暢且一致的用戶體驗。",
-      "backend": "後端採用 Go 微服務架構，確保高性能與卓越可擴充性。",
-      "communication": "支援 tRPC/gRPC，實現類型安全且高效的服務間通信。",
-      "monorepo": "統一的Monorepo管理，便於依賴集中與團隊協作。",
-      "deployment": "全流程容器化，內建 CI/CD 支援，保障持續交付。"
-    },
-    "featureDescriptions": {
-      "frontend": "Next.js 15 Shadcn UI",
-      "backend": "Go 微服務",
-      "communication": "tRPC/gRPC",
-      "monorepo": "統一管理",
-      "deployment": "Docker 和 K8s"
-    },
-    "architecture": {
-      "title": "技術架構"
-    },
-    "techStack": {
-      "frontend": {
-        "title": "前端技術棧",
-        "nextjs": "Next.js 15 – 利用 App Router 實現服務端元件與高效路由。",
-        "shadcn": "Shadcn UI – 基於 Tailwind CSS 的高品質元件庫，助力敏捷開發。",
-        "typescript": "TypeScript – 強類型語言，提升代碼健壯性與可維護性。",
-        "trpc": "tRPC – 前後端類型安全 API 通信方案。",
-        "zustand": "Zustand – 輕量級狀態管理，適用於複雜交互邏輯。"
-      },
-      "backend": {
-        "title": "後端技術棧",
-        "go": "Go – 原生高併發，性能卓越，適合微服務架構。",
-        "gin": "Gin/Echo – 高效輕量的 HTTP 框架，助力快速 API 開發。",
-        "grpc": "gRPC – 基於 Protobuf 的高性能 RPC 框架，優化服務通信。",
-        "postgresql": "PostgreSQL – 企業級關係型資料庫，保障數據一致性與安全性。",
-        "redis": "Redis – 高速緩存與任務佇列，提升數據訪問效率。"
-      },
-      "infrastructure": {
-        "title": "基礎設施",
-        "docker": "Docker – 實現環境一致性的容器化部署方案。",
-        "kubernetes": "Kubernetes – 自動化集群編排與彈性擴展。",
-        "helm": "Helm – Kubernetes 應用的標準化部署與管理工具。",
-        "monitoring": "Prometheus & Grafana – 完善的監控與可視化體系。",
-        "tracing": "Jaeger – 分散式鏈路追蹤，助力服務性能分析。"
-      }
-    },
-    "quickStart": {
-      "title": "快速上手",
-      "frontend": "啟動前端服務",
-      "backend": "啟動後端服務",
-      "database": "啟動資料庫服務",
-      "commands": "常用操作命令"
-    },
-    "stats": {
-      "languages": "支援語言",
-      "services": "微服務",
-      "uptime": "可用性",
-      "latency": "響應延遲"
-    },
     "cta": {
-      "getStarted": "立即體驗",
-      "learnMore": "了解詳情",
-      "viewDocs": "查看文件",
-      "title": "準備好開始了嗎？",
-      "description": "立即體驗 Telos 智能工作流編排平台，提升您的自動化效率"
-    },
-    "gsap": {
-      "animation": "炫酷的入場動畫由 GSAP 驅動！"
+      "getStarted": "立即體驗"
     },
     "landing": {
-      "hero": {
-        "subtitle": "為團隊建立、連接、執行與治理 AI Agent 的工作台。",
-        "description": "Telos 將對話、工具、工作流、長期記憶與身份權限收束在同一個介面，讓 Agent 不只會回答，也能安全地完成真實任務。"
-      },
-      "stats": {
-        "create": {
-          "value": "Create",
-          "label": "定義 Agent 角色"
-        },
-        "connect": {
-          "value": "Connect",
-          "label": "接入工具與渠道"
-        },
-        "run": {
-          "value": "Run",
-          "label": "編排自動化流程"
-        },
-        "govern": {
-          "value": "Govern",
-          "label": "權限、記憶與稽核"
-        }
-      },
-      "product": {
-        "surfaceLabel": "telos control surface",
-        "workspaceLabel": "agent workspace",
-        "agentName": "Operator",
-        "quick": {
-          "tools": "tools",
-          "memory": "memory",
-          "workflow": "workflow",
-          "access": "access"
-        },
-        "events": {
-          "create": {
-            "label": "建立 Agent",
-            "value": "角色、模型與能力邊界"
-          },
-          "connect": {
-            "label": "接入工具",
-            "value": "郵件、日曆、Slack、內部 API"
-          },
-          "run": {
-            "label": "執行流程",
-            "value": "觸發器、分支、多步任務"
-          },
-          "remember": {
-            "label": "沉澱記憶",
-            "value": "偏好、歷史與任務上下文"
-          }
-        }
-      },
       "capabilities": {
-        "eyebrow": "核心能力",
-        "title": "從一段對話，走到一套可執行的 Agent 工作系統。",
-        "agentStudio": {
-          "title": "Agent Studio",
-          "description": "建立專屬 Agent，設定角色、模型、語氣、工具權限與工作邊界，讓每個 Agent 對應一個真實職能。"
-        },
-        "toolRegistry": {
-          "title": "Tool Registry",
-          "description": "把郵件、日曆、Slack、Discord、瀏覽器或內部 API 接成可呼叫工具，讓 Agent 能處理真實任務。"
-        },
-        "workflowRuns": {
-          "title": "Workflow Runs",
-          "description": "把觸發器、條件分支、多步動作與人工確認串成流程，從請求進入到結果交付自動運行。"
-        },
-        "scopedMemory": {
-          "title": "Scoped Memory",
-          "description": "按使用者、Agent 與工作區隔離長期記憶，保留偏好、歷史與任務狀態，避免串號與越權。"
-        },
-        "teamControl": {
-          "title": "Team Control",
-          "description": "用 OAuth 與組織身份管理存取權限，控制誰能建立、呼叫、查看 Agent、工具與執行記錄。"
-        }
-      },
-      "governance": {
-        "eyebrow": "治理架構",
-        "title": "讓每次 Agent 執行都能被授權、追蹤和復用。",
-        "description": "使用者身份決定 Agent 能看什麼、能呼叫什麼工具；執行過程會留下上下文與記錄，下一次任務可以延續，而不是重新開始。",
-        "layers": {
-          "identity": "身份邊界",
-          "tools": "工具呼叫",
-          "memory": "長期記憶"
-        }
+        "eyebrow": "核心能力"
       },
       "cta": {
-        "eyebrow": "快速上手",
-        "title": "把你的第一個 Agent 接進真實工作流。",
-        "description": "先建立一個 Agent，再給它連接工具與記憶。Telos 會把對話變成可以持續運行、可以稽核、可以擴展的自動化能力。"
+        "eyebrow": "快速上手"
       }
     }
   },
   "Header": {
-    "home": "首頁",
     "github": "GitHub",
     "mobileMenuTitle": "選單",
     "mobileMenuDesc": "瀏覽 Telos"
@@ -404,8 +208,7 @@
     "unknownUser": "未知使用者",
     "profile": "個人資料",
     "settings": "設定",
-    "signOut": "登出",
-    "dashboard": "儀表板"
+    "signOut": "登出"
   },
   "Auth": {
     "signIn": {
@@ -414,11 +217,6 @@
       "noAccount": "還沒有帳戶？",
       "signUp": "立即註冊",
       "loginFailed": "登錄失敗",
-      "github": "使用 GitHub 登入",
-      "google": "使用 Google 登入",
-      "discord": "使用 Discord 登入",
-      "slack": "使用 Slack 登入",
-      "magicLinkTitle": "使用郵箱登入 (免密)",
       "emailLabel": "電子郵箱",
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "發送登錄連結",
@@ -439,8 +237,6 @@
     }
   },
   "Agent": {
-    "title": "Agent 管理",
-    "subtitle": "創建和管理您的 AI Agent",
     "create": "建立 Agent",
     "hero": {
       "title": "把意圖變成可執行的 Agent。",
@@ -452,7 +248,6 @@
     "cancel": "取消",
     "confirm": "確認",
     "deleting": "刪除中...",
-    "default": "默認",
     "types": {
       "public": "公開",
       "private": "私有",
@@ -465,7 +260,6 @@
       "namePlaceholder": "例如：程式碼助手",
       "descriptionLabel": "描述",
       "descriptionPlaceholder": "描述這個 Agent 的角色和能力...",
-      "instructions": "運行指令",
       "instructionsPlaceholder": "Write down the roles, boundaries, and execution methods that this Agent needs to follow in the loop...",
       "modelKey": "模型",
       "maxTurns": "最大輪次",
@@ -507,8 +301,6 @@
       "label": "選擇 Agent",
       "selectAgent": "選擇 Agent",
       "loading": "加載中...",
-      "searchPlaceholder": "搜尋 Agent...",
-      "noResults": "未找到匹配的 Agent",
       "noAgents": "暫無可用 Agent"
     },
     "messages": {
@@ -533,15 +325,11 @@
       "description": "建立您的第一個 AI 代理程式開始使用"
     },
     "created": "創建於",
-    "systemAgentReadOnly": "系統 Agent 不可編輯",
     "configureTools": "配置工具",
-    "isUserDefault": "目前預設",
     "systemDefault": "系統預設",
     "setUserDefault": "設為預設代理",
     "cancelUserDefault": "取消預設代理",
-    "editPrompt": "修改提示",
     "viewPrompt": "查看提示",
-    "view": "檢視",
     "saveChanges": "保存變更",
     "close": "關閉",
     "editTitle": "編輯代理",
@@ -563,15 +351,12 @@
     "delete": "刪除",
     "cancel": "取消",
     "save": "儲存",
-    "creating": "創建中...",
     "saving": "儲存中...",
     "enabled": "已啟用",
     "disabled": "已禁用",
     "confirmDelete": "要刪除此技能嗎？",
-    "searchPlaceholder": "搜尋技巧...",
     "searchSkills": "搜尋技巧...",
     "hero": {
-      "badge": "技能商店",
       "title": "一次專注一項技能，每天變得更精進。",
       "subtitle": "探索 {count} 預先挑選的技能，一鍵安裝，並賦予您的代理新能力。",
       "cta": "探索所有技能"
@@ -591,10 +376,7 @@
     "totalSkills": "{count} 技能",
     "selected": "{count} 已選",
     "noSkillsFound": "未找到匹配的技能",
-    "groupMine": "我的技能",
-    "groupSystem": "系統技能",
     "groupSystemBadge": "系統",
-    "systemReadOnly": "系統技能為唯讀",
     "form": {
       "name": "技能名稱",
       "namePlaceholder": "例如 translate-en（小寫字母、數字、連字號）",
@@ -609,11 +391,7 @@
     },
     "configureModal": {
       "title": "配置技能",
-      "description": "為代理人「{name}」新增或移除技能",
-      "searchSkills": "搜尋技巧...",
-      "totalSkills": "{count} 技能",
-      "selected": "{count} 項已選",
-      "noSkillsFound": "未找到匹配的技能"
+      "description": "為代理人「{name}」新增或移除技能"
     },
     "messages": {
       "created": "技能建立成功",
@@ -623,15 +401,13 @@
       "deleted": "技能已成功刪除",
       "deleteFailed": "刪除技能失敗",
       "skillsConfigured": "技能配置已更新",
-      "configureFailed": "設定技能失敗",
-      "systemSkillNotEditable": "系統技能無法編輯"
+      "configureFailed": "設定技能失敗"
     },
     "empty": {
       "title": "尚未有技能",
       "description": "創建你的第一個 AI 技能"
     },
     "chatTrigger": {
-      "hint": "輸入 $ 以觸發技能",
       "empty": "此代理無可用技能"
     },
     "store": {
@@ -641,7 +417,6 @@
       "categoryAll": "全部",
       "sortRecent": "最近",
       "sortName": "名稱",
-      "sortPopular": "受歡迎的",
       "install": "安裝",
       "installing": "正在安裝...",
       "installed": "已安裝",
@@ -657,127 +432,24 @@
     }
   },
   "Tool": {
-    "title": "工具管理",
-    "subtitle": "管理和配置 AI Agent 的工具外掛",
-    "create": "建立工具",
-    "edit": "編輯",
-    "delete": "刪除",
     "cancel": "取消",
     "save": "保存",
-    "previous": "上一步",
-    "next": "下一步",
-    "creating": "創建中...",
     "saving": "保存中...",
-    "enabled": "已啟用",
-    "disabled": "已禁用",
-    "confirmDelete": "確認刪除此工具？",
-    "searchPlaceholder": "搜尋工具...",
     "searchTools": "搜尋工具...",
     "totalTools": "共 {count} 個工具",
     "selected": "已選擇 {count} 個",
     "toolCategories": "工具分類",
     "noToolsFound": "未找到匹配的工具",
-    "allCategories": "全部分類",
-    "categories": {
-      "web": "網頁",
-      "api": "API",
-      "database": "資料庫",
-      "custom": "自定義",
-      "test": "測試"
-    },
-    "authTypes": {
-      "none": "無認證",
-      "bearer": "持有者憑證",
-      "api_key": "API 金鑰",
-      "basic": "基本驗證"
-    },
-    "fields": {
-      "id": "工具 ID",
-      "idHint": "唯一標識符，只能包含小寫字母、數字和連字符",
-      "idCannotChange": "ID 建立後不可修改",
-      "name": "工具名稱",
-      "nameHint": "用於程式碼調用的識別符，如: my_tool",
-      "displayName": "顯示名稱",
-      "displayNamePlaceholder": "例如：我的工具",
-      "description": "描述",
-      "descriptionPlaceholder": "描述這個工具的功能和用途...",
-      "category": "分類",
-      "type": "類型",
-      "enabled": "啟用狀態",
-      "url": "API 位址",
-      "urlHint": "使用 {param} 作為參數占位符，如：https://api.example.com/{id}",
-      "method": "請求方法",
-      "headers": "請求頭",
-      "add": "添加",
-      "authType": "認證類型",
-      "tokenEnv": "Token 環境變數",
-      "tokenEnvHint": "環境變數名稱，如：MY_API_TOKEN",
-      "timeout": "逾時時間（秒）",
-      "parameters": "參數",
-      "paramName": "參數名",
-      "paramType": "參數類型",
-      "paramDesc": "參數描述",
-      "paramDescPlaceholder": "描述此參數...",
-      "required": "必填",
-      "extractPath": "數據提取路徑",
-      "extractHint": "使用 JSONPath 提取響應中的資料，如：$.data.items",
-      "responseFormat": "響應格式"
-    },
-    "createModal": {
-      "title": "創建新工具",
-      "step1Desc": "填寫工具的基本資訊",
-      "step2Desc": "配置 API 端點和認證",
-      "step3Desc": "定義參數和響應處理",
-      "basicInfo": "基本資訊",
-      "endpoint": "API 端點",
-      "parameters": "參數配置",
-      "response": "響應處理"
-    },
-    "editModal": {
-      "title": "編輯工具",
-      "description": "修改工具的配置信息"
-    },
     "configureModal": {
       "title": "配置工具",
-      "description": "為 Agent \"{name}\" 添加或移除工具",
-      "searchTools": "搜尋工具...",
-      "totalTools": "共 {count} 個工具",
-      "selected": "已選擇 {count} 個",
-      "toolCategories": "工具分類",
-      "noToolsFound": "未找到匹配的工具"
-    },
-    "validation": {
-      "idRequired": "請輸入工具 ID",
-      "nameRequired": "請輸入工具名稱",
-      "displayNameRequired": "請輸入顯示名稱",
-      "urlRequired": "請輸入 API 地址"
+      "description": "為 Agent \"{name}\" 添加或移除工具"
     },
     "messages": {
-      "created": "工具創建成功",
-      "createFailed": "建立工具失敗",
-      "updated": "工具更新成功",
-      "updateFailed": "更新工具失敗",
-      "deleted": "工具刪除成功",
-      "deleteFailed": "刪除工具失敗",
-      "enabled": "工具已啟用",
-      "disabled": "工具已禁用",
-      "toggleFailed": "切換狀態失敗",
       "toolsConfigured": "工具配置已更新",
       "configureFailed": "配置工具失敗"
-    },
-    "empty": {
-      "title": "暫無工具",
-      "description": "創建您的第一個工具插件",
-      "noResults": "未找到匹配的工具",
-      "tryDifferentFilter": "嘗試使用不同的篩選條件"
-    },
-    "noParameters": "此工具沒有定義參數",
-    "endpoint": "API 端點",
-    "parameters": "參數"
+    }
   },
   "McpSettings": {
-    "title": "MCP 伺服器配置",
-    "description": "在這裡配置 MCP 伺服器連接，支援新增、編輯、刪除和連通性測試。",
     "serverCount": "共 {count} 台 MCP 伺服器",
     "add": "新增 MCP 伺服器",
     "createTitle": "新增 MCP 伺服器",
@@ -793,10 +465,6 @@
     "update": "保存",
     "saving": "保存中...",
     "lastTest": "最近可用工具數：{count}",
-    "transportHint": {
-      "stdio": "啟動命令",
-      "network": "連接地址"
-    },
     "fields": {
       "name": "名稱",
       "description": "描述",
@@ -878,7 +546,6 @@
       "method": "認證方式",
       "methodDesc": "您當前綁定的安全登入方式",
       "activeSessions": "活躍會話",
-      "viewSessions": "管理會話",
       "authMethod": "本地魔術連結 / 社交授權",
       "magicLinkProvider": "郵箱魔術連結",
       "loadingSessions": "正在加載活躍設備列表...",
@@ -927,9 +594,5 @@
     "actionsDesc": "管理您的帳戶設定",
     "settingsBtn": "帳戶設定",
     "viewChatBtn": "查看對話"
-  },
-  "Pricing": {
-    "popular": "最受歡迎",
-    "monthlyPeriod": "/mo"
   }
 }

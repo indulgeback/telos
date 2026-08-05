@@ -9,24 +9,6 @@ import { WorkspaceManager, virtualReaddir } from './workspace.js'
 import path from 'path'
 import fs from 'fs'
 import { executeGenerateImage } from './image-generator.js'
-
-export class PIISanitizer {
-  private static readonly SENSITIVE_PATTERNS = [
-    /(sk-[a-zA-Z0-9]{48})/gi,
-    /postgresql:\/\/([^:]+):([^@]+)@/gi,
-    /SecretKey=[a-zA-Z0-9]+/gi
-  ]
-
-  public static sanitize(text: string): string {
-    let cleaned = text
-    for (const pattern of this.SENSITIVE_PATTERNS) {
-      cleaned = cleaned.replace(pattern, (match) => {
-        return '*'.repeat(Math.min(match.length, 12)) + '[REDACTED]'
-      })
-    }
-    return cleaned
-  }
-}
 import { exec } from 'child_process'
 
 type BuiltinToolKey =

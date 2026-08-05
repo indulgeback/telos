@@ -57,7 +57,6 @@ export const authApi = {
       body: JSON.stringify({ username, password }),
       skipAuthRedirect: true,
     }),
-  me: () => api<{ username: string; role: string }>('/api/auth/me'),
 }
 
 export const dashboardApi = {
