@@ -61,6 +61,7 @@
     "nextjs-toploader": "^3.8.16",
     "nodemailer": "^8.0.10",
     "overlayscrollbars": "^2.16.0",
+    "pdfjs-dist": "^6.2.108",
     "prisma": "^7.8.0",
     "react": "19.2.3",
     "react-day-picker": "^9.8.0",
