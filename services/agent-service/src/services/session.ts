@@ -42,10 +42,6 @@ function toStringList(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string')
 }
 
-function formatList(title: string, items: string[]) {
-  return items.length ? `${title}\n${items.map(item => `- ${item}`).join('\n')}` : ''
-}
-
 function buildMemoryInstructions(options: {
   longTermMemories: string[]
   threadSummary?: string | null
@@ -179,45 +175,6 @@ function summarizeMessages(
   return combined.length > 4000
     ? `...${combined.slice(combined.length - 4000)}`
     : combined
-}
-
-function isQuestionLike(content: string) {
-  return /[?？]/.test(content)
-}
-
-function isPreferenceLike(content: string) {
-  return !isQuestionLike(content) && /我(喜欢|偏好|更想|希望|习惯)/.test(content)
-}
-
-function isFactLike(content: string) {
-  if (isQuestionLike(content)) return false
-  return /^(请记住|记住|你要记住|我是|我叫|我的)/.test(content)
-}
-
-function cleanMemoryItems(items: unknown, matcher: (content: string) => boolean) {
-  return toStringList(items).filter(item => matcher(item.trim()))
-}
-
-function extractReusableFacts(messages: Array<{ role: string; content: string }>) {
-  const facts = new Set<string>()
-  const preferences = new Set<string>()
-
-  for (const message of messages) {
-    if (message.role !== 'user') continue
-    const content = message.content.trim()
-    if (!content) continue
-    if (isPreferenceLike(content)) {
-      preferences.add(content.slice(0, 160))
-    }
-    if (isFactLike(content)) {
-      facts.add(content.slice(0, 160))
-    }
-  }
-
-  return {
-    facts: [...facts].slice(-20),
-    preferences: [...preferences].slice(-20),
-  }
 }
 
 export class AgentSessionService {

@@ -26,7 +26,6 @@
     "bullmq": "^5.79.2",
     "cos-nodejs-sdk-v5": "^2.15.4",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1",
     "hono": "^4.12.23",
     "openai": "^6.41.0",
     "pino": "^10.3.0",
@@ -36,8 +35,6 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
     "@types/node": "^20.19.23",
     "@types/pino": "^7.0.5",
     "@types/ws": "^8.18.1",

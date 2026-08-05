@@ -119,21 +119,6 @@ export async function getServiceAddress(): Promise<string> {
 }
 
 /**
- * 获取健康检查 URL
- * 对应 Go 版本: pkg/netutil/local_ip.go:GetHealthCheckURL()
- */
-export async function getHealthCheckURL(
-  path: string = '/health'
-): Promise<string> {
-  const address = await getLocalAddress()
-  const port = config.port
-
-  // 确保使用 127.0.0.1 而不是 localhost
-  const effectiveAddress = address === 'localhost' ? '127.0.0.1' : address
-  return `http://${effectiveAddress}:${port}${path}`
-}
-
-/**
  * 执行服务注册
  * 在服务启动后调用
  */

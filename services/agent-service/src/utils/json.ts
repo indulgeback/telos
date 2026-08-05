@@ -9,11 +9,6 @@ export function asStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string')
 }
 
-export function normalizeJson(value: unknown, fallback: unknown = {}) {
-  if (value === undefined) return fallback
-  return value
-}
-
 export function safeJsonStringify(value: unknown) {
   try {
     return JSON.stringify(value)
