@@ -126,7 +126,8 @@ async function executeShortApiGenerate(
   // 2. Poll Status
   const queryUrl = `https://api.shortapi.ai/api/v1/job/query?id=${jobId}`
   let attempts = 0
-  const maxAttempts = 45 // 90 seconds max
+  // 复杂 prompt（如封面图）生成耗时较长，90s 常超时；提到 180s（90 次 × 2s）
+  const maxAttempts = 90
 
   while (attempts < maxAttempts) {
     attempts++
@@ -163,7 +164,7 @@ async function executeShortApiGenerate(
     }
   }
 
-  throw new Error('ShortAPI image generation timed out after 90 seconds.')
+  throw new Error('ShortAPI image generation timed out after 180 seconds.')
 }
 
 async function executeGeminiApiGenerate(
