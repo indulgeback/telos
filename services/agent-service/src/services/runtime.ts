@@ -726,7 +726,15 @@ export class AgentRuntimeService {
       // plan 阶段：注入 create_plan 工具，模型产出结构化计划后 run 停止
       tools.push(
         buildCreatePlanTool(plan =>
-          void this.pendingPlanCache.set(options?.runId ?? '', plan)
+          void this.pendingPlanCache.set(options?.runId ?? '', plan).catch(
+            err => {
+              logger.warn({
+                msg: 'Failed to persist pending plan (run will finish without plan part)',
+                runId: options?.runId,
+                err,
+              })
+            }
+          )
         )
       )
     } else if (planMode === 'execute' && options?.planStore) {
@@ -757,7 +765,15 @@ export class AgentRuntimeService {
     // 注入澄清提问工具
     tools.push(
       buildClarifyQuestionTool(clarify =>
-        void this.pendingClarifyCache.set(options?.runId ?? '', clarify)
+        void this.pendingClarifyCache.set(options?.runId ?? '', clarify).catch(
+          err => {
+            logger.warn({
+              msg: 'Failed to persist pending clarify (run will finish without clarify part)',
+              runId: options?.runId,
+              err,
+            })
+          }
+        )
       )
     )
 

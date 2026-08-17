@@ -55,22 +55,26 @@ runsRouter.get('/:id/stream', async c => {
   })
   if (!run) return fail(c, 404, 'Run not found')
 
-  // after 为上一条事件的 Stream ID（如 "1690000000000-3"）；缺省从头发
-  let lastSentSequence = (c.req.query('after') as string) || ''
+  // after 为上一条事件的 Stream ID（如 "1690000000000-3"）；缺省从头发。
+  // 格式校验：畸形值会让 XRANGE 抛错，回退为从头发
+  const rawAfter = (c.req.query('after') as string) || ''
+  const afterValid = /^\d+-\d+$/.test(rawAfter) ? rawAfter : ''
+  let lastSentSequence = afterValid
   const encoder = new TextEncoder()
   let closed = false
+  // 供 cancel() 回收 start() 内创建的订阅连接/心跳（controller 已失效，不能复用 close）
+  const resources: {
+    unsubscribe?: () => void
+    heartbeat?: ReturnType<typeof setInterval>
+  } = {}
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      let unsubscribe = () => {
-        // noop until subscription is created
-      }
-      let heartbeat: ReturnType<typeof setInterval> | undefined
       const close = () => {
         if (closed) return
         closed = true
-        unsubscribe()
-        if (heartbeat) clearInterval(heartbeat)
+        resources.unsubscribe?.()
+        if (resources.heartbeat) clearInterval(resources.heartbeat)
         try {
           controller.close()
         } catch {
@@ -98,20 +102,27 @@ runsRouter.get('/:id/stream', async c => {
         }
       }
 
-      unsubscribe = subscribeRunEvents(runId, event => {
-        sendPayload(event.payload, event.sequence)
-      })
-      heartbeat = setInterval(() => {
+      resources.heartbeat = setInterval(() => {
         if (!closed) controller.enqueue(encoder.encode(': ping\n\n'))
       }, 15000)
 
       c.req.raw.signal.addEventListener('abort', close, { once: true })
 
+      // 顺序关键：先回放历史、取快照最后一条 ID 作为显式 cursor 再订阅——
+      // XREAD 对显式 ID 返回严格大于它的全部条目，无丢事件/重复事件窗口
       const history = await readRunEvents(
         runId,
         lastSentSequence || undefined
       )
       history.forEach(event => sendPayload(event.payload, event.sequence))
+
+      resources.unsubscribe = subscribeRunEvents(
+        runId,
+        event => {
+          sendPayload(event.payload, event.sequence)
+        },
+        history[history.length - 1]?.id ?? lastSentSequence ?? '0-0'
+      )
 
       const latest = await prisma.agentRun.findUnique({
         where: { id: runId },
@@ -129,7 +140,10 @@ runsRouter.get('/:id/stream', async c => {
       }
     },
     cancel() {
+      // 客户端断开：释放订阅连接与心跳（controller 已失效，只做资源回收）
       closed = true
+      resources.unsubscribe?.()
+      if (resources.heartbeat) clearInterval(resources.heartbeat)
     },
   })
 

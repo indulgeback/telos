@@ -84,8 +84,14 @@ export async function appendRunEvent(
     'agent',
     agentName ?? ''
   )) as string
-  // 每次写入刷新 TTL：进行中 run 的事件持续续期，终态后不再写入则到期自动清理
-  await writeClient.expire(key, EVENT_TTL_SECONDS)
+  // 每次写入刷新 TTL：进行中 run 的事件持续续期，终态后不再写入则到期自动清理。
+  // EXPIRE 失败不让整次 append 抛错（XADD 已成功，事件本体不丢；TTL 由 30min 内
+  // 后续写入或终态 DEL 兜底），避免 pendingEmits reject 连锁跳过 run 收尾落库
+  try {
+    await writeClient.expire(key, EVENT_TTL_SECONDS)
+  } catch (err) {
+    logger.warn({ msg: 'Failed to refresh run events TTL', runId, err })
+  }
   return { id, sequence: id, type, payload: merged, agentName: agentName ?? null }
 }
 
@@ -116,12 +122,15 @@ export async function readRunEvents(
 }
 
 /**
- * 订阅 run 的新事件（从当前最新之后开始，只听增量；历史回放请用 readRunEvents）。
- * 返回取消函数。内部用独立连接 XREAD BLOCK 轮询，5s 一轮检查取消标记。
+ * 从显式 cursor 起订阅 run 事件（from 之后的所有条目，含订阅建立前已写入的）。
+ * 必须传回放快照的最后一条 ID（无历史时 '0-0'）——XREAD 对显式 ID 返回严格
+ * 大于它的全部条目，无论命令何时注册，从根上消除「先订阅('​$')再回放」的
+ * 丢事件/重复事件竞态窗口。返回取消函数。
  */
 export function subscribeRunEvents(
   runId: string,
-  listener: (event: RunEvent) => void
+  listener: (event: RunEvent) => void,
+  from?: string
 ): () => void {
   let closed = false
   let reader: Redis | null = null
@@ -133,7 +142,7 @@ export function subscribeRunEvents(
       logger.warn({ msg: 'run-events subscriber connection error', runId, err })
     )
     try {
-      let lastId = '$'
+      let lastId = from ?? '0-0'
       while (!closed) {
         const result = (await reader.xread(
           'BLOCK',
@@ -146,9 +155,10 @@ export function subscribeRunEvents(
         for (const [, rawEntries] of result) {
           for (const rawEntry of rawEntries) {
             const entry = rawEntry as [string, string[]]
+            // 先推进游标再解析：畸形数据只损失该条事件，避免 XREAD 忙循环卡死订阅
+            lastId = entry[0]
             const event = parseStreamEntry(runId, entry)
             if (event && !closed) {
-              lastId = event.id
               listener(event)
             }
           }

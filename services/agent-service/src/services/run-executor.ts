@@ -531,7 +531,9 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       response_id: options.runId,
       error: message,
     })
-    await Promise.all(pendingEmits)
+    // allSettled：若 emit 本身 reject（Redis 故障），不让二次抛错跳过
+    // 下面的 fail/cancel 落库与事件清理
+    await Promise.allSettled(pendingEmits)
     if (options.signal?.aborted) {
       await new AgentRunPersistence(options.runId).cancel('Run cancelled')
     } else {

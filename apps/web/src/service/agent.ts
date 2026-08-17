@@ -143,14 +143,15 @@ export interface AgentRun {
 
 export interface AgentRunEvent {
   id: string
-  run_id: string
+  run_id?: string
   step_id?: string | null
   event_type?: string
   type?: string
   agent_name?: string | null
   payload?: unknown
-  sequence: number
-  created_at: string
+  /** Redis Stream ID（如 "1690000000000-3"） */
+  sequence: string
+  created_at?: string
 }
 
 export interface AgentThread {
