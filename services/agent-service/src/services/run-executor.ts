@@ -3,7 +3,7 @@ import { agentRuntimeService } from './runtime.js'
 import { PlanStore } from './plan-store.js'
 import type { StructuredPlan } from './plan-tools.js'
 import { AgentRunPersistence } from './persistence.js'
-import { appendRunUiEvent } from './run-events.js'
+import { appendRunUiEvent, cleanupRunEvents } from './run-events.js'
 import { safeJsonStringify } from '../utils/json.js'
 import { WorkspaceManager } from './workspace.js'
 
@@ -24,6 +24,15 @@ export interface ExecuteAgentRunOptions {
   signal?: AbortSignal
   persistEvents?: boolean
   emit?: (type: string, event?: Record<string, unknown>) => void | Promise<void>
+}
+
+/**
+ * run 终态后延迟清理事件流：留 60s 窗口给「刚断线、马上重连」的客户端
+ * 完成最后一次回放；期间不再有新事件写入。TTL（30 分钟）兜底进程崩溃场景。
+ */
+function scheduleEventCleanup(runId: string) {
+  const timer = setTimeout(() => void cleanupRunEvents(runId), 60_000)
+  timer.unref?.()
 }
 
 type PersistedAssistantPart =
@@ -429,7 +438,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     const isPlanMode = options.planMode === 'plan'
     let planMessageId: string | undefined
     const structuredPlan = isPlanMode
-      ? agentRuntimeService.consumePendingPlan(options.runId)
+      ? await agentRuntimeService.consumePendingPlan(options.runId)
       : null
     if (isPlanMode && structuredPlan) {
       assistantParts.push({
@@ -442,7 +451,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       } as any)
     }
     // 澄清问题：模型调用 clarify_question 后，run 挂起，取走缓存的提问并写入 parts
-    const structuredClarify = agentRuntimeService.consumePendingClarify(
+    const structuredClarify = await agentRuntimeService.consumePendingClarify(
       options.runId
     )
     if (structuredClarify) {
@@ -515,18 +524,22 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       output_text: structuredClarify ? '' : finalOutput,
     })
     await Promise.all(pendingEmits)
+    scheduleEventCleanup(options.runId)
   } catch (error) {
     const message = enrichAgentRunError(error)
     emit('response.failed', {
       response_id: options.runId,
       error: message,
     })
-    await Promise.all(pendingEmits)
+    // allSettled：若 emit 本身 reject（Redis 故障），不让二次抛错跳过
+    // 下面的 fail/cancel 落库与事件清理
+    await Promise.allSettled(pendingEmits)
     if (options.signal?.aborted) {
       await new AgentRunPersistence(options.runId).cancel('Run cancelled')
     } else {
       await new AgentRunPersistence(options.runId).fail(message)
     }
+    scheduleEventCleanup(options.runId)
   } finally {
     if (options.threadId) {
       WorkspaceManager.cleanupWorkspace(options.threadId)

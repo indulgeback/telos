@@ -23,6 +23,7 @@ import {
   type StructuredPlan,
 } from './plan-tools.js'
 import { buildClarifyQuestionTool, type ClarifyQuestion } from './clarify-tools.js'
+import { PendingRunCache } from './pending-cache.js'
 import { PlanStore } from './plan-store.js'
 import { asRecord, asStringArray, safeJsonStringify } from '../utils/json.js'
 import { buildBuiltinTool } from './builtin-tools.js'
@@ -495,27 +496,23 @@ export class AgentRuntimeService {
    * chat.ts 在流式 run 结束后取出，用于持久化和 SSE 推送。
    * key = runId, value = StructuredPlan
    */
-  private readonly pendingPlanCache = new Map<string, StructuredPlan>()
+  private readonly pendingPlanCache = new PendingRunCache<StructuredPlan>('plan')
 
   /**
    * 模型调用 clarify_question 工具时，缓存提问及可选项。
-   * chat.ts 在流式 run 结束后取出，用于持久化和 SSE 推送。
-   * key = runId, value = ClarifyQuestion
+   * run 结束后由调用方取出，用于持久化和 SSE 推送。
+   * 存 Redis（带 TTL）：多实例可读 + run 异常终止时自动过期，修内存泄漏。
    */
-  private readonly pendingClarifyCache = new Map<string, ClarifyQuestion>()
+  private readonly pendingClarifyCache = new PendingRunCache<ClarifyQuestion>('clarify')
 
   /** 取出并移除缓存的计划（run 结束后调用方取走） */
-  consumePendingPlan(runId: string): StructuredPlan | undefined {
-    const plan = this.pendingPlanCache.get(runId)
-    if (plan) this.pendingPlanCache.delete(runId)
-    return plan
+  async consumePendingPlan(runId: string): Promise<StructuredPlan | undefined> {
+    return this.pendingPlanCache.consume(runId)
   }
 
   /** 取出并移除缓存的澄清问题（run 结束后调用方取走） */
-  consumePendingClarify(runId: string): ClarifyQuestion | undefined {
-    const clarify = this.pendingClarifyCache.get(runId)
-    if (clarify) this.pendingClarifyCache.delete(runId)
-    return clarify
+  async consumePendingClarify(runId: string): Promise<ClarifyQuestion | undefined> {
+    return this.pendingClarifyCache.consume(runId)
   }
 
   async getDefaultAgentId() {
@@ -729,18 +726,17 @@ export class AgentRuntimeService {
       // plan 阶段：注入 create_plan 工具，模型产出结构化计划后 run 停止
       tools.push(
         buildCreatePlanTool(plan =>
-          this.pendingPlanCache?.set(options?.runId ?? '', plan)
+          void this.pendingPlanCache.set(options?.runId ?? '', plan).catch(
+            err => {
+              logger.warn({
+                msg: 'Failed to persist pending plan (run will finish without plan part)',
+                runId: options?.runId,
+                err,
+              })
+            }
+          )
         )
       )
-      // 临时诊断日志
-      logger.info({
-        msg: '[PLAN DEBUG] create_plan tool injected',
-        runId: options?.runId,
-        toolsCount: tools.length,
-        toolNames: tools.map((t: any) => t.name),
-        hasStopAtToolNames: true,
-        instructionsHasPlan: instructions.includes('计划模式'),
-      })
     } else if (planMode === 'execute' && options?.planStore) {
       // execute 阶段：注入 update_plan_status 工具，模型逐步汇报进度
       // planStore.updateStep 返回 {ok, error?}——状态机约束的反馈直接传给工具
@@ -769,7 +765,15 @@ export class AgentRuntimeService {
     // 注入澄清提问工具
     tools.push(
       buildClarifyQuestionTool(clarify =>
-        this.pendingClarifyCache.set(options?.runId ?? '', clarify)
+        void this.pendingClarifyCache.set(options?.runId ?? '', clarify).catch(
+          err => {
+            logger.warn({
+              msg: 'Failed to persist pending clarify (run will finish without clarify part)',
+              runId: options?.runId,
+              err,
+            })
+          }
+        )
       )
     )
 

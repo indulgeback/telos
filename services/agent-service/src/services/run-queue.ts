@@ -3,7 +3,7 @@ import { prisma } from './db.js'
 import { config, logger } from '../config/index.js'
 import { agentSessionService } from './session.js'
 import { executeAgentRun } from './run-executor.js'
-import { appendRunUiEvent } from './run-events.js'
+import { appendRunUiEvent, cleanupRunEvents } from './run-events.js'
 import type { StructuredPlan } from './plan-tools.js'
 
 export interface AgentRunJobData {
@@ -92,10 +92,18 @@ async function processAgentRun(job: Job<AgentRunJobData>) {
 }
 
 async function recoverQueuedRuns() {
+  const restarting = await prisma.agentRun.findMany({
+    where: { status: 'running' },
+    select: { id: true },
+  })
   await prisma.agentRun.updateMany({
     where: { status: 'running' },
     data: { status: 'queued' },
   })
+  // 重跑前清掉上一轮的残留事件流，避免回放时新旧两轮事件混排
+  for (const run of restarting) {
+    void cleanupRunEvents(run.id)
+  }
 
   const runs = await prisma.agentRun.findMany({
     where: { status: 'queued' },
@@ -180,6 +188,7 @@ export async function startAgentRunWorker() {
         response_id: runId,
         error: error instanceof Error ? error.message : String(error),
       })
+      void cleanupRunEvents(runId)
     }
   })
 
@@ -222,6 +231,7 @@ export async function cancelAgentRun(runId: string, reason = 'Run cancelled') {
     response_id: runId,
     error: reason,
   })
+  void cleanupRunEvents(runId)
 }
 
 export async function closeAgentRunWorker() {
