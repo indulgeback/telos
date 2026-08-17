@@ -209,6 +209,12 @@ services:
       - HTTPS_PROXY=${HTTPS_PROXY:-}
       - HTTP_PROXY=${HTTP_PROXY:-}
       - NO_PROXY=${NO_PROXY:-localhost,127.0.0.1,postgres,redis,consul,registry,api-gateway,admin-service,web,myqcloud.com,deepseek.com,shortapi.ai,volces.com,aliyuncs.com}
+      # Google Cloud / Vertex AI (可选)：ADC 凭证挂载 + 项目/模型配置
+      # 凭证文件放服务器 /opt/telos/secrets/gcp-adc.json（authorized_user 或 service_account）
+      - GOOGLE_APPLICATION_CREDENTIALS=${GCLOUD_ADC_PATH:-/secrets/gcp-adc.json}
+      - GCLOUD_PROJECT_ID=${GCLOUD_PROJECT_ID:-}
+      - GCLOUD_LOCATION=${GCLOUD_LOCATION:-us-central1}
+      - VERTEX_IMAGE_MODEL=${VERTEX_IMAGE_MODEL:-gemini-2.5-flash-image}
     depends_on:
       registry:
         condition: service_healthy
@@ -219,6 +225,9 @@ services:
     extra_hosts:
       # 让容器能经 host.docker.internal 访问宿主机上的代理端口
       - 'host.docker.internal:host-gateway'
+    volumes:
+      # Google Cloud ADC 凭证（只读挂载，Vertex AI 认证用）
+      - /opt/telos/secrets/gcp-adc.json:/secrets/gcp-adc.json:ro
     networks:
       - telos-network
     healthcheck:
