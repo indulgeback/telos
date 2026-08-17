@@ -8,6 +8,9 @@ import { HTTPException } from 'hono/http-exception'
 import WebSocket, { WebSocketServer } from 'ws'
 import { logger } from './config/index.js'
 import { config, validateConfig } from './config/index.js'
+// 代理初始化必须最先执行（副作用 import：给全局 fetch 挂 EnvHttpProxyAgent），
+// 之后所有 fetch（Gemini/Vertex/gcloud 等）才会经过代理
+import './services/proxy-setup.js'
 import { agentsRouter } from './routes/agents.js'
 import { chatRouter } from './routes/chat.js'
 import { mcpRouter } from './routes/mcp.js'
