@@ -69,6 +69,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/
 # 复制 public 目录 (Next.js 会从 server.js 同级找 public)
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
+# instrumentation.ts 动态 import('undici')（服务端 HTTP 代理初始化用），
+# file tracing 不收录动态依赖，这里显式装进 standalone 产物（纯 JS 包，秒装）
+RUN cd /app/apps/web && npm install undici@^6.27.0 --no-save --no-audit --no-fund && \
+    chown -R nextjs:nodejs /app/apps/web/node_modules
+
 # 设置用户
 USER nextjs
 

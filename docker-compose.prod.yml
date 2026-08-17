@@ -279,9 +279,17 @@ services:
       - COS_BUCKET=${COS_BUCKET:-}
       - COS_REGION=${COS_REGION:-}
       - COS_PREFIX=${COS_PREFIX:-}
+      # 出海代理 (可选)：Better-Auth 的 GitHub/Google OAuth 回调、
+      # Resend 邮件 API 等服务端 fetch 需要（国内服务器无法直连）
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-localhost,127.0.0.1,postgres,redis,consul,registry,api-gateway,admin-service,web,agent-service,myqcloud.com,deepseek.com,shortapi.ai,volces.com,aliyuncs.com}
     depends_on:
       postgres:
         condition: service_healthy
+    extra_hosts:
+      # 让容器能经 host.docker.internal 访问宿主机上的代理端口
+      - 'host.docker.internal:host-gateway'
     networks:
       - telos-network
     healthcheck:
