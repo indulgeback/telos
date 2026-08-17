@@ -125,7 +125,8 @@ type AgentStreamChunk = {
   step_index?: number
   plan_step_status?: 'in_progress' | 'completed' | 'skipped' | 'failed'
   note?: string
-  sequence?: number
+  // Redis Stream ID（如 "1690000000000-3"），前端只透传不运算
+  sequence?: string
   // clarify 模式相关字段
   clarify_message_id?: string
   clarify_question?: string

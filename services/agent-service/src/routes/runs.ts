@@ -5,7 +5,11 @@ import { toSnakeCase } from '../utils/serializer.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
 import { cancelAgentRun } from '../services/run-queue.js'
 import { safeJsonStringify } from '../utils/json.js'
-import { subscribeRunEvents } from '../services/run-events.js'
+import {
+  cleanupRunEvents,
+  readRunEvents,
+  subscribeRunEvents,
+} from '../services/run-events.js'
 
 export const runsRouter = new Hono()
 
@@ -35,10 +39,7 @@ runsRouter.get('/:id/events', async c => {
     select: { id: true },
   })
   if (!run) return fail(c, 404, 'Run not found')
-  const events = await prisma.agentRunEvent.findMany({
-    where: { runId: c.req.param('id') },
-    orderBy: { sequence: 'asc' },
-  })
+  const events = await readRunEvents(c.req.param('id'))
   return ok(c, toSnakeCase(events))
 })
 
@@ -54,8 +55,8 @@ runsRouter.get('/:id/stream', async c => {
   })
   if (!run) return fail(c, 404, 'Run not found')
 
-  const rawAfter = Number(c.req.query('after') || 0)
-  let lastSentSequence = Number.isFinite(rawAfter) ? rawAfter : 0
+  // after 为上一条事件的 Stream ID（如 "1690000000000-3"）；缺省从头发
+  let lastSentSequence = (c.req.query('after') as string) || ''
   const encoder = new TextEncoder()
   let closed = false
 
@@ -77,8 +78,8 @@ runsRouter.get('/:id/stream', async c => {
         }
       }
 
-      const sendPayload = (payload: unknown, sequence: number) => {
-        if (closed || sequence <= lastSentSequence) return
+      const sendPayload = (payload: unknown, sequence: string) => {
+        if (closed || !sequence || sequence === lastSentSequence) return
         if (!payload || typeof payload !== 'object') return
         const chunk = payload as Record<string, unknown>
         if (typeof chunk.type !== 'string') return
@@ -106,13 +107,10 @@ runsRouter.get('/:id/stream', async c => {
 
       c.req.raw.signal.addEventListener('abort', close, { once: true })
 
-      const history = await prisma.agentRunEvent.findMany({
-        where: {
-          runId,
-          sequence: { gt: lastSentSequence },
-        },
-        orderBy: { sequence: 'asc' },
-      })
+      const history = await readRunEvents(
+        runId,
+        lastSentSequence || undefined
+      )
       history.forEach(event => sendPayload(event.payload, event.sequence))
 
       const latest = await prisma.agentRun.findUnique({
@@ -125,6 +123,8 @@ runsRouter.get('/:id/stream', async c => {
           latest.status === 'failed' ||
           latest.status === 'cancelled')
       ) {
+        // 终态 run：回放完即关流，并清理事件（会话恢复走 message parts）
+        void cleanupRunEvents(runId)
         close()
       }
     },
