@@ -30,26 +30,26 @@ const storyBlocks = [
     kicker: 'Capture the spark',
     title: 'Start from a note, file, link, or passing thought.',
     body: 'A request rarely arrives clean. Telos keeps the materials, goal, owner, memory, and permissions together until the agent is ready to act.',
-    image: '/landing/generated/telos-ai-capture.png',
+    image: '/landing/telos-t/capture.png',
   },
   {
     kicker: 'Deepen the work',
     title: 'Let context, tools, and memory talk to each other.',
     body: 'Agents can inspect prior runs, ask for missing context, call approved tools, and turn scattered information into a usable plan.',
-    image: '/landing/generated/telos-ai-workflow.png',
+    image: '/landing/telos-t/context.png',
   },
   {
     kicker: 'Make it real',
     title: 'Move from a conversation to a finished workflow.',
     body: 'The output is only the beginning. Your team can refine it, rerun it, audit it, and share the same operating pattern again.',
-    image: '/landing/generated/telos-ai-gallery.png',
+    image: '/landing/telos-t/complete.png',
   },
 ]
 
 const galleryImages = [
-  '/landing/generated/telos-ai-gallery.png',
-  '/landing/generated/telos-ai-workflow.png',
-  '/landing/generated/telos-ai-capture.png',
+  '/landing/telos-t/complete.png',
+  '/landing/telos-t/context.png',
+  '/landing/telos-t/capture.png',
 ]
 
 const workSamples = [
@@ -167,21 +167,26 @@ function PromptComposer({ signedIn }: { signedIn: boolean }) {
 function WorkGallery() {
   return (
     <div className='landing-reveal mx-auto max-w-7xl overflow-hidden border-y border-border py-12'>
-      <div className='flex w-max animate-[gallery-drift_42s_linear_infinite] gap-4'>
+      <div className='flex w-max animate-[gallery-drift_42s_linear_infinite] items-end gap-4 motion-reduce:animate-none'>
         {[...workSamples, ...workSamples].map(([title, type], index) => (
           <article
             key={`${title}-${index}`}
-            className='w-72 shrink-0 rounded-[1.5rem] bg-card p-2 ring-1 ring-foreground/8'
+            className={`shrink-0 overflow-hidden rounded-[1.5rem] bg-card p-2 ring-1 ring-foreground/8 ${
+              index % 3 === 0 ? 'w-80' : index % 3 === 1 ? 'w-64' : 'w-72'
+            }`}
           >
-            <div className='relative aspect-[4/3] overflow-hidden rounded-[1rem] bg-muted'>
+            <div
+              className={`relative overflow-hidden rounded-[1rem] bg-[#bfead5] ${
+                index % 3 === 1 ? 'aspect-[3/4]' : 'aspect-[4/3]'
+              }`}
+            >
               <Image
                 fill
                 src={galleryImages[index % galleryImages.length]}
                 alt=''
-                sizes='288px'
-                className='object-cover opacity-85 grayscale-[0.18]'
+                sizes='320px'
+                className='object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.025]'
               />
-              <div className='absolute inset-0 bg-[linear-gradient(180deg,transparent,hsl(var(--foreground)/0.42))]' />
             </div>
             <div className='flex items-center justify-between gap-4 px-2 py-4'>
               <h3 className='text-sm font-semibold tracking-[-0.02em]'>
@@ -206,37 +211,67 @@ export function LandingPage() {
 
   useGSAP(
     () => {
-      gsap.from('.landing-hero-copy > *', {
-        autoAlpha: 0,
-        y: 36,
-        duration: 1,
-        stagger: 0.08,
-        ease,
+      const media = gsap.matchMedia()
+
+      media.add('(prefers-reduced-motion: no-preference)', () => {
+        gsap.from('.landing-hero-copy > *', {
+          autoAlpha: 0,
+          y: 36,
+          duration: 1,
+          stagger: 0.08,
+          ease,
+        })
+
+        gsap.from('.landing-object', {
+          autoAlpha: 0,
+          y: 40,
+          scale: 0.985,
+          duration: 1.1,
+          delay: 0.16,
+          ease,
+        })
+
+        gsap.to('.t-hero-art', {
+          yPercent: 5,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#overview',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.7,
+          },
+        })
+
+        gsap.to('.t-hero-orbit', {
+          xPercent: 14,
+          yPercent: -12,
+          rotate: 8,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '#overview',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.9,
+          },
+        })
+
+        ScrollTrigger.batch('.landing-reveal', {
+          start: 'top 82%',
+          once: true,
+          onEnter: elements => {
+            gsap.from(elements, {
+              autoAlpha: 0,
+              y: 30,
+              duration: 0.95,
+              stagger: 0.08,
+              ease,
+              overwrite: true,
+            })
+          },
+        })
       })
 
-      gsap.from('.landing-object', {
-        autoAlpha: 0,
-        y: 40,
-        scale: 0.985,
-        duration: 1.1,
-        delay: 0.22,
-        ease,
-      })
-
-      ScrollTrigger.batch('.landing-reveal', {
-        start: 'top 82%',
-        once: true,
-        onEnter: elements => {
-          gsap.from(elements, {
-            autoAlpha: 0,
-            y: 30,
-            duration: 0.95,
-            stagger: 0.08,
-            ease,
-            overwrite: true,
-          })
-        },
-      })
+      return () => media.revert()
     },
     { scope: root }
   )
@@ -248,38 +283,50 @@ export function LandingPage() {
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none fixed inset-0 z-10 opacity-[0.035] [background-image:radial-gradient(hsl(var(--foreground))_0.7px,transparent_0.7px)] [background-size:18px_18px]'
+        className='pointer-events-none fixed inset-0 z-10 opacity-[0.025] mix-blend-multiply'
+        style={{
+          backgroundImage:
+            'url("data:image/svg+xml,%3Csvg viewBox=%270 0 180 180%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.9%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%27.8%27/%3E%3C/svg%3E")',
+        }}
       />
 
       <section
         id='overview'
         className='relative min-h-[100dvh] px-4 pb-16 pt-28 sm:px-6 lg:px-8'
       >
-        <div className='absolute inset-x-0 top-0 -z-10 h-[46rem] bg-[radial-gradient(circle_at_50%_0%,hsl(var(--foreground)/0.10),transparent_58%)]' />
-        <div className='landing-hero-copy mx-auto flex max-w-7xl flex-col items-center text-center'>
-          <div className='relative mb-10 aspect-[16/7] w-full max-w-4xl overflow-hidden rounded-[2rem] bg-card p-2 ring-1 ring-foreground/10 shadow-[0_44px_140px_hsl(var(--foreground)/0.10)]'>
-            <Image
-              priority
-              fill
-              src='/landing/generated/telos-ai-hero-studio.png'
-              alt='Abstract Telos agent studio interface'
-              sizes='(min-width: 1024px) 896px, 100vw'
-              className='object-cover p-2'
-            />
+        <div className='absolute -right-28 top-24 -z-10 size-[30rem] rounded-full bg-[#bfead5]/45' />
+        <div className='mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16'>
+          <div className='landing-hero-copy text-left'>
+            <p className='inline-flex rounded-full border border-[#18243b]/12 bg-[#bfead5]/45 px-4 py-2 text-xs font-medium text-[#18243b]'>
+              Telos agent creation studio
+            </p>
+            <h1 className='mt-9 max-w-4xl text-balance font-display text-[clamp(4.75rem,10vw,10rem)] font-bold leading-[0.84] tracking-[-0.055em]'>
+              Build boldly.
+            </h1>
+            <p className='mt-8 max-w-xl text-pretty text-xl leading-8 text-foreground/72 sm:text-2xl sm:leading-9'>
+              If you can imagine the work, Telos can help you shape the agent,
+              tools, memory, and workflow to make it happen.
+            </p>
           </div>
-          <p className='rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-medium text-muted-foreground shadow-[0_18px_70px_hsl(var(--foreground)/0.06)]'>
-            Telos agent creation studio
-          </p>
-          <h1 className='mt-10 max-w-6xl text-balance font-display text-[clamp(4.5rem,12vw,13.5rem)] font-bold leading-[0.84] tracking-[-0.055em]'>
-            Build boldly.
-          </h1>
-          <p className='mt-8 max-w-2xl text-pretty text-xl leading-8 text-foreground/72 sm:text-2xl sm:leading-9'>
-            If you can imagine the work, Telos can help you shape the agent,
-            tools, memory, and workflow to make it happen.
-          </p>
+
+          <div className='landing-object relative min-h-[30rem] lg:min-h-[40rem]'>
+            <div className='t-hero-orbit absolute -left-8 top-10 size-36 rounded-full border-[22px] border-[#ffd8c8]/80 sm:size-44' />
+            <div className='absolute -right-5 bottom-6 size-28 rounded-full bg-[#18243b] sm:size-36' />
+            <div className='t-hero-art absolute inset-0 overflow-hidden rounded-[2.75rem] border border-[#18243b]/12 bg-[#bfead5] shadow-[0_36px_100px_hsl(var(--foreground)/0.14)]'>
+              <Image
+                priority
+                fill
+                src='/landing/telos-t/hero.png'
+                alt='T, the Telos mascot, guiding connected agent tasks'
+                sizes='(min-width: 1024px) 58vw, 100vw'
+                className='object-cover object-[70%_center] lg:object-center'
+              />
+            </div>
+            <div className='absolute -bottom-5 left-6 right-12 h-10 rounded-full bg-[#18243b]/12 blur-xl' />
+          </div>
         </div>
 
-        <div className='mt-12'>
+        <div className='mt-14'>
           <PromptComposer signedIn={signedIn} />
         </div>
 
@@ -305,45 +352,54 @@ export function LandingPage() {
           </h2>
         </div>
 
-        <div className='mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.82fr_1.18fr]'>
-          <div className='landing-reveal'>
+        <div className='mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16'>
+          <div className='landing-reveal lg:sticky lg:top-28 lg:self-start'>
             <p className='text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground'>
               {t('landing.capabilities.eyebrow')}
             </p>
             <h2 className='mt-6 max-w-2xl text-balance font-display text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
               From a spark to an agent that can keep going.
             </h2>
+            <div className='relative mt-10 aspect-square max-w-sm overflow-hidden rounded-[2.5rem] border border-[#18243b]/10 bg-[#bfead5]'>
+              <Image
+                fill
+                src='/brand/telos-ip.png'
+                alt='T, the Telos terminal-native assistant'
+                sizes='384px'
+                className='object-cover'
+              />
+            </div>
           </div>
 
-          <div className='grid gap-4 md:grid-cols-2'>
+          <div className='grid gap-8'>
             {storyBlocks.map((item, index) => (
               <article
                 key={item.title}
-                className={`landing-reveal rounded-[2rem] bg-foreground/[0.045] p-2 ring-1 ring-foreground/10 ${
-                  index === 0 ? 'md:col-span-2' : ''
-                }`}
+                className='landing-reveal overflow-hidden rounded-[2.25rem] border border-[#18243b]/10 bg-card shadow-[0_24px_70px_hsl(var(--foreground)/0.07)]'
               >
-                <div className='grid h-full overflow-hidden rounded-[calc(2rem-0.5rem)] bg-card md:grid-cols-[0.95fr_1.05fr]'>
-                  <div className='p-7 sm:p-9'>
-                    <p className='text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>
+                <div className='grid min-h-[31rem] md:grid-cols-[0.8fr_1.2fr]'>
+                  <div className='flex flex-col p-7 sm:p-9'>
+                    <span className='font-mono text-5xl tracking-[-0.08em] text-[#18243b]/24'>
+                      0{index + 1}
+                    </span>
+                    <p className='mt-8 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>
                       {item.kicker}
                     </p>
                     <h3 className='mt-5 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl'>
                       {item.title}
                     </h3>
-                    <p className='mt-4 max-w-md text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7'>
+                    <p className='mt-4 max-w-md text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7 md:mt-auto'>
                       {item.body}
                     </p>
                   </div>
-                  <div className='relative min-h-64 overflow-hidden bg-muted'>
+                  <div className='relative min-h-72 overflow-hidden bg-[#bfead5]'>
                     <Image
                       fill
                       src={item.image}
-                      alt=''
+                      alt={`${item.kicker} with T`}
                       sizes='(min-width: 1024px) 36vw, 100vw'
-                      className='object-cover opacity-90'
+                      className='object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.02]'
                     />
-                    <div className='absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--card))_0%,transparent_42%)] md:block' />
                   </div>
                 </div>
               </article>
