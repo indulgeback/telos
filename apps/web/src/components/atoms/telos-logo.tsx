@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 import { cn } from '@/lib/utils'
 
 interface TelosMarkProps {
@@ -11,20 +13,13 @@ interface TelosLogoProps extends TelosMarkProps {
 
 export function TelosMark({ className, title = 'Telos' }: TelosMarkProps) {
   return (
-    <svg
-      viewBox='0 0 64 64'
-      role='img'
-      aria-label={title}
-      className={cn('size-8 text-foreground', className)}
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-    >
-      <circle cx='20' cy='32' r='5.5' fill='currentColor' />
-      <path
-        d='M29 18H43.5L57 32L43.5 46H29L33.7 39H40.5L47.25 32L40.5 25H33.7L29 18Z'
-        fill='currentColor'
-      />
-    </svg>
+    <Image
+      src='/brand/telos-ip.png'
+      alt={title}
+      width={64}
+      height={64}
+      className={cn('size-8 rounded-[0.65rem] object-cover', className)}
+    />
   )
 }
 

@@ -109,6 +109,12 @@
       "skillPath": "skills/brutalist-skill/SKILL.md",
       "computedHash": "8fc355c4aadb7d29c53ca28bc41be3cd6eea765d121e3737c4dc2d0f90a8effa"
     },
+    "ip-as-logo": {
+      "source": "s1dashu/ip-as-logo-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "0576d313ae87d44fef255e665aef351662a8beab810788523157978b8e2254dd"
+    },
     "minimalist-ui": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",

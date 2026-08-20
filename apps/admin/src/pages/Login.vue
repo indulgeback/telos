@@ -36,6 +36,11 @@ async function handleLogin() {
     <!-- 左侧品牌区 -->
     <div class="hidden w-1/2 flex-col justify-between bg-sidebar p-12 text-sidebar-foreground lg:flex">
       <div class="flex items-center gap-2">
+        <img
+          src="/brand/telos-ip.png"
+          alt="Telos"
+          class="size-10 rounded-xl object-cover"
+        />
         <span class="text-2xl font-bold tracking-tight">Telos</span>
         <span class="rounded bg-sidebar-accent px-2 py-0.5 text-sm">Admin</span>
       </div>
@@ -52,7 +57,14 @@ async function handleLogin() {
     <div class="flex w-full items-center justify-center lg:w-1/2">
       <div class="w-full max-w-sm space-y-6 px-8">
         <div class="lg:hidden">
-          <span class="text-2xl font-bold">Telos Admin</span>
+          <div class="flex items-center gap-2">
+            <img
+              src="/brand/telos-ip.png"
+              alt="Telos"
+              class="size-10 rounded-xl object-cover"
+            />
+            <span class="text-2xl font-bold">Telos Admin</span>
+          </div>
         </div>
         <div>
           <h1 class="text-2xl font-semibold">欢迎回来</h1>

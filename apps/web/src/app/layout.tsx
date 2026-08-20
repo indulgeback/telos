@@ -28,7 +28,6 @@ export default async function RootLayout({ children }: Iprops) {
   return (
     <html lang={lang} suppressHydrationWarning>
       <head>
-        <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
         <link rel='icon' type='image/png' href='/favicon.png' />
         <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
         {/* Libre Baskerville: 衬线标题字体(对标 youmind 设计规范) */}

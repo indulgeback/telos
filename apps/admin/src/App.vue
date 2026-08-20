@@ -48,6 +48,11 @@ function logout() {
     <!-- 侧边栏 -->
     <aside class="flex w-60 flex-col bg-sidebar text-sidebar-foreground">
       <div class="flex h-16 items-center gap-2 px-6">
+        <img
+          src="/brand/telos-ip.png"
+          alt="Telos"
+          class="size-8 rounded-[0.65rem] object-cover"
+        />
         <span class="text-xl font-bold tracking-tight">Telos</span>
         <span class="rounded bg-sidebar-accent px-1.5 py-0.5 text-xs text-sidebar-accent-foreground">Admin</span>
       </div>
