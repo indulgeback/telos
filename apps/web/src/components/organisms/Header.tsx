@@ -45,27 +45,27 @@ export function Header() {
   ]
 
   return (
-    <header className='fixed inset-x-0 top-0 z-40 px-3 pt-3 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]'>
-      <div
-        className={`mx-auto max-w-7xl rounded-full border px-4 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          scrolled
-            ? 'border-border/70 bg-background/78 shadow-[0_18px_70px_hsl(var(--foreground)/0.08)] supports-[backdrop-filter]:bg-background/72'
-            : 'border-foreground/10 bg-background/36 shadow-[0_12px_48px_hsl(var(--foreground)/0.05)] supports-[backdrop-filter]:bg-background/32'
-        } backdrop-blur-xl`}
-      >
-        <div className='flex h-12 items-center justify-between'>
+    <header
+      className={`fixed inset-x-0 top-0 z-40 border-b transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        scrolled
+          ? 'border-border/70 bg-background/92 supports-[backdrop-filter]:bg-background/82'
+          : 'border-transparent bg-background/70 supports-[backdrop-filter]:bg-background/55'
+      } backdrop-blur-xl`}
+    >
+      <div className='mx-auto max-w-[1240px] px-4 sm:px-6'>
+        <div className='flex h-16 items-center justify-between'>
           <Link href='/' className='cursor-pointer flex items-center'>
             <TelosLogo />
           </Link>
 
-          <NavigationMenu className='hidden md:flex items-center gap-3'>
+          <NavigationMenu className='hidden items-center gap-3 lg:flex'>
             <NavigationMenuList>
               {navLinks.map(link => (
                 <NavigationMenuItem key={link.href}>
                   <NavigationMenuLink asChild>
                     <Link
                       href={link.href}
-                      className='px-2 text-sm text-muted-foreground transition-colors duration-300 hover:text-foreground'
+                      className='px-2.5 text-[13px] text-muted-foreground transition-colors duration-300 hover:text-foreground'
                     >
                       {link.label}
                     </Link>
@@ -75,7 +75,7 @@ export function Header() {
             </NavigationMenuList>
           </NavigationMenu>
 
-          <div className='hidden md:flex items-center space-x-2'>
+          <div className='hidden items-center space-x-1.5 lg:flex'>
             <a
               href='https://github.com/indulgeback/telos'
               target='_blank'
@@ -84,7 +84,7 @@ export function Header() {
               <Button
                 variant='outline'
                 size='sm'
-                className='rounded-full border-foreground/10 bg-background/35 shadow-none hover:bg-background/70'
+                className='rounded-full border-foreground/10 bg-transparent shadow-none hover:bg-muted'
               >
                 <Github className='h-4 w-4 mr-2' />
                 {t('github')}
@@ -95,7 +95,7 @@ export function Header() {
             <UserAvatar />
           </div>
 
-          <div className='md:hidden flex items-center'>
+          <div className='flex items-center lg:hidden'>
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <Button

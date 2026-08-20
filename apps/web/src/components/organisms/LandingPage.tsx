@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRef } from 'react'
+import { ArrowUpRight, Paperclip, Play, Plus, Send } from 'lucide-react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -12,55 +13,84 @@ import { authClient } from '@/lib/auth-client'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger)
 
-const ease = 'power3.out'
+const modes = ['All', 'Research', 'Writing', 'Design', 'Operations', 'Code']
 
-const creationModes = ['Learning', 'Writing', 'Image', 'Slides', 'Video', 'Web']
-
-const promptChips = [
-  'Research',
-  'Operations',
-  'Support',
-  'Launch',
-  'Sales',
-  'Engineering',
-]
-
-const storyBlocks = [
+const galleryItems = [
   {
-    kicker: 'Capture the spark',
-    title: 'Start from a note, file, link, or passing thought.',
-    body: 'A request rarely arrives clean. Telos keeps the materials, goal, owner, memory, and permissions together until the agent is ready to act.',
-    image: '/landing/telos-t/capture.png',
+    title: 'Campaign research board',
+    type: 'Research',
+    image: '/landing/youmind-telos/hero-gallery.webp',
+    position: 'center',
   },
   {
-    kicker: 'Deepen the work',
-    title: 'Let context, tools, and memory talk to each other.',
-    body: 'Agents can inspect prior runs, ask for missing context, call approved tools, and turn scattered information into a usable plan.',
-    image: '/landing/telos-t/context.png',
+    title: 'Source library',
+    type: 'Knowledge',
+    image: '/landing/youmind-telos/capture.webp',
+    position: '52% center',
   },
   {
-    kicker: 'Make it real',
-    title: 'Move from a conversation to a finished workflow.',
-    body: 'The output is only the beginning. Your team can refine it, rerun it, audit it, and share the same operating pattern again.',
-    image: '/landing/telos-t/complete.png',
+    title: 'Context map',
+    type: 'Workspace',
+    image: '/landing/youmind-telos/context.webp',
+    position: '42% center',
+  },
+  {
+    title: 'Launch workflow',
+    type: 'Operations',
+    image: '/landing/youmind-telos/workflow.webp',
+    position: 'center',
+  },
+  {
+    title: 'Creative studio',
+    type: 'Design',
+    image: '/landing/youmind-telos/showcase.webp',
+    position: 'center',
+  },
+  {
+    title: 'Agent handoff',
+    type: 'Workflow',
+    image: '/landing/youmind-telos/workflow.webp',
+    position: '78% center',
+  },
+  {
+    title: 'Editorial direction',
+    type: 'Writing',
+    image: '/landing/youmind-telos/hero-gallery.webp',
+    position: '64% center',
+  },
+  {
+    title: 'Knowledge synthesis',
+    type: 'Strategy',
+    image: '/landing/youmind-telos/context.webp',
+    position: '18% center',
   },
 ]
 
-const galleryImages = [
-  '/landing/telos-t/complete.png',
-  '/landing/telos-t/context.png',
-  '/landing/telos-t/capture.png',
-]
-
-const workSamples = [
-  ['Luxury travel proposal', 'Slides'],
-  ['Minimal agency website', 'Web'],
-  ['Campaign video brief', 'Video'],
-  ['Product photo board', 'Image'],
-  ['Architect portfolio', 'Slides'],
-  ['Customer research map', 'Workflow'],
-  ['Launch desk assistant', 'Agent'],
-  ['Weekly insight digest', 'Writing'],
+const featureStories = [
+  {
+    number: '01',
+    eyebrow: 'Gather everything',
+    title: 'Give every idea a place to begin.',
+    body: 'Bring in notes, links, files, conversations, and rough requests. Telos keeps the source, goal, owner, and permissions together from the first spark.',
+    image: '/landing/youmind-telos/capture.webp',
+    position: '42% center',
+  },
+  {
+    number: '02',
+    eyebrow: 'Think with context',
+    title: 'Turn scattered material into shared understanding.',
+    body: 'Agents can inspect prior runs, connect decisions, ask for missing context, and carry the right memory into the next piece of work.',
+    image: '/landing/youmind-telos/context.webp',
+    position: '56% center',
+  },
+  {
+    number: '03',
+    eyebrow: 'Keep work moving',
+    title: 'Build workflows your team can trust and repeat.',
+    body: 'Combine agents, approved tools, and checkpoints into a run that leaves a clear trace — ready to refine, rerun, and hand to someone else.',
+    image: '/landing/youmind-telos/workflow.webp',
+    position: 'center',
+  },
 ]
 
 const testimonials = [
@@ -91,72 +121,43 @@ const milestones = [
   ['10K+', 'reusable skills built'],
 ]
 
-function ArrowGlyph() {
-  return (
-    <span
-      aria-hidden='true'
-      className='ml-3 inline-flex size-8 items-center justify-center rounded-full bg-primary-foreground/10 text-sm transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-0.5 group-hover:scale-105'
-    >
-      ↗
-    </span>
-  )
-}
-
 function PromptComposer({ signedIn }: { signedIn: boolean }) {
   return (
-    <div className='landing-object mx-auto w-full max-w-4xl'>
-      <div className='rounded-[2rem] bg-foreground/[0.045] p-2 ring-1 ring-foreground/10 shadow-[0_44px_140px_hsl(var(--foreground)/0.12)]'>
-        <div className='overflow-hidden rounded-[calc(2rem-0.5rem)] bg-card shadow-[inset_0_1px_1px_hsl(var(--background)/0.95)]'>
-          <div className='flex min-h-32 flex-col gap-5 px-5 py-5 sm:px-7'>
-            <h2 className='text-center font-display text-2xl font-bold tracking-[-0.04em] sm:text-3xl'>
-              Ready to start building?
-            </h2>
-            <div className='flex flex-wrap gap-2'>
-              {creationModes.map(mode => (
-                <span
-                  key={mode}
-                  className='rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground ring-1 ring-foreground/5'
-                >
-                  {mode}
-                </span>
-              ))}
-            </div>
-
-            <div className='grid gap-4 md:grid-cols-[1fr_auto] md:items-end'>
-              <div
-                role='textbox'
-                aria-label='Example agent request'
-                className='min-h-28 text-xl leading-8 text-foreground sm:text-2xl sm:leading-9'
+    <div className='ym-enter mx-auto w-full max-w-[940px]'>
+      <div className='rounded-[28px] border border-black/[0.08] bg-white p-3 shadow-[0_24px_70px_rgba(23,33,58,0.09)] dark:bg-[#161616]'>
+        <div className='flex min-h-40 flex-col px-3 pb-2 pt-3 sm:min-h-48 sm:px-5 sm:pt-5'>
+          <p className='max-w-3xl text-lg leading-8 text-black/45 dark:text-white/45 sm:text-[22px]'>
+            What do you want your agents to research, create, or keep moving?
+          </p>
+          <div className='mt-auto flex items-center justify-between gap-4 pt-8'>
+            <div className='flex items-center gap-2'>
+              <button
+                type='button'
+                aria-label='Add context'
+                className='flex size-9 items-center justify-center rounded-full bg-[#f1f0eb] text-black/65 transition-colors hover:bg-[#e8e6df] dark:bg-white/10 dark:text-white/65'
               >
-                Let Telos create an agent that turns scattered research into a
-                launch brief, task list, and reusable workflow.
-              </div>
-
-              <CustomLink href={signedIn ? '/chat' : '/auth/signin'}>
-                <Button className='group h-12 rounded-full px-6 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]'>
-                  Start
-                  <ArrowGlyph />
-                </Button>
-              </CustomLink>
+                <Plus className='size-4' />
+              </button>
+              <button
+                type='button'
+                aria-label='Attach a file'
+                className='flex size-9 items-center justify-center rounded-full text-black/45 transition-colors hover:bg-[#f1f0eb] hover:text-black dark:text-white/45 dark:hover:bg-white/10 dark:hover:text-white'
+              >
+                <Paperclip className='size-4' />
+              </button>
+              <span className='hidden text-xs text-black/35 dark:text-white/35 sm:inline'>
+                T can use files, links, skills, and memory
+              </span>
             </div>
-
-            <div className='flex gap-2 overflow-x-auto pb-1'>
-              {promptChips.map(chip => (
-                <span
-                  key={chip}
-                  className='shrink-0 rounded-full border border-border bg-background/70 px-3 py-1.5 text-xs text-muted-foreground'
-                >
-                  {chip}
-                </span>
-              ))}
-            </div>
-
-            <div className='grid gap-2 border-t border-border pt-4 text-xs text-muted-foreground sm:grid-cols-4'>
-              <span>Chrome extension</span>
-              <span>Android soon</span>
-              <span>iOS app</span>
-              <span>macOS beta</span>
-            </div>
+            <CustomLink href={signedIn ? '/chat' : '/auth/signin'}>
+              <Button
+                size='icon'
+                aria-label='Start with Telos'
+                className='size-10 rounded-full bg-[#17213a] text-white shadow-none hover:bg-[#27334f]'
+              >
+                <Send className='size-4' />
+              </Button>
+            </CustomLink>
           </div>
         </div>
       </div>
@@ -164,41 +165,41 @@ function PromptComposer({ signedIn }: { signedIn: boolean }) {
   )
 }
 
-function WorkGallery() {
+function WorkGrid({ compact = false }: { compact?: boolean }) {
   return (
-    <div className='landing-reveal mx-auto max-w-7xl overflow-hidden border-y border-border py-12'>
-      <div className='flex w-max animate-[gallery-drift_42s_linear_infinite] items-end gap-4 motion-reduce:animate-none'>
-        {[...workSamples, ...workSamples].map(([title, type], index) => (
-          <article
-            key={`${title}-${index}`}
-            className={`shrink-0 overflow-hidden rounded-[1.5rem] bg-card p-2 ring-1 ring-foreground/8 ${
-              index % 3 === 0 ? 'w-80' : index % 3 === 1 ? 'w-64' : 'w-72'
-            }`}
+    <div
+      className={`grid grid-cols-2 gap-2.5 sm:gap-3 ${compact ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}
+    >
+      {galleryItems.slice(0, compact ? 6 : 8).map(item => (
+        <article key={`${compact}-${item.title}`} className='group min-w-0'>
+          <div
+            className={`relative overflow-hidden rounded-[14px] bg-[#ebe8df] ${compact ? 'aspect-[4/3]' : 'aspect-[1.38/1]'}`}
           >
-            <div
-              className={`relative overflow-hidden rounded-[1rem] bg-[#bfead5] ${
-                index % 3 === 1 ? 'aspect-[3/4]' : 'aspect-[4/3]'
-              }`}
-            >
-              <Image
-                fill
-                src={galleryImages[index % galleryImages.length]}
-                alt=''
-                sizes='320px'
-                className='object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.025]'
-              />
-            </div>
-            <div className='flex items-center justify-between gap-4 px-2 py-4'>
-              <h3 className='text-sm font-semibold tracking-[-0.02em]'>
-                {title}
+            <Image
+              fill
+              src={item.image}
+              alt={item.title}
+              sizes={
+                compact
+                  ? '(min-width: 1024px) 31vw, 50vw'
+                  : '(min-width: 1024px) 23vw, 50vw'
+              }
+              className='object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.025]'
+              style={{ objectPosition: item.position }}
+            />
+          </div>
+          {compact && (
+            <div className='flex items-center justify-between gap-3 px-1 pb-2 pt-3'>
+              <h3 className='truncate text-sm font-medium tracking-[-0.02em]'>
+                {item.title}
               </h3>
-              <span className='shrink-0 rounded-full bg-muted px-2.5 py-1 text-[10px] text-muted-foreground'>
-                {type}
+              <span className='shrink-0 text-[11px] text-black/40 dark:text-white/40'>
+                {item.type}
               </span>
             </div>
-          </article>
-        ))}
-      </div>
+          )}
+        </article>
+      ))}
     </div>
   )
 }
@@ -212,65 +213,36 @@ export function LandingPage() {
   useGSAP(
     () => {
       const media = gsap.matchMedia()
-
       media.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.from('.landing-hero-copy > *', {
+        gsap.from('.ym-hero > *', {
           autoAlpha: 0,
-          y: 36,
-          duration: 1,
-          stagger: 0.08,
-          ease,
+          y: 24,
+          duration: 0.9,
+          stagger: 0.07,
+          ease: 'power3.out',
         })
-
-        gsap.from('.landing-object', {
+        gsap.from('.ym-enter', {
           autoAlpha: 0,
-          y: 40,
-          scale: 0.985,
-          duration: 1.1,
-          delay: 0.16,
-          ease,
+          y: 22,
+          scale: 0.99,
+          duration: 0.9,
+          delay: 0.18,
+          ease: 'power3.out',
         })
-
-        gsap.to('.t-hero-art', {
-          yPercent: 5,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '#overview',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.7,
-          },
-        })
-
-        gsap.to('.t-hero-orbit', {
-          xPercent: 14,
-          yPercent: -12,
-          rotate: 8,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '#overview',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.9,
-          },
-        })
-
-        ScrollTrigger.batch('.landing-reveal', {
-          start: 'top 82%',
+        ScrollTrigger.batch('.ym-reveal', {
+          start: 'top 88%',
           once: true,
-          onEnter: elements => {
+          onEnter: elements =>
             gsap.from(elements, {
               autoAlpha: 0,
-              y: 30,
-              duration: 0.95,
-              stagger: 0.08,
-              ease,
+              y: 24,
+              duration: 0.85,
+              stagger: 0.06,
+              ease: 'power3.out',
               overwrite: true,
-            })
-          },
+            }),
         })
       })
-
       return () => media.revert()
     },
     { scope: root }
@@ -279,222 +251,260 @@ export function LandingPage() {
   return (
     <main
       ref={root}
-      className='relative isolate overflow-hidden bg-background text-foreground'
+      className='relative overflow-hidden bg-[#fbfaf7] text-[#171717] dark:bg-background dark:text-foreground'
     >
-      <div
-        aria-hidden='true'
-        className='pointer-events-none fixed inset-0 z-10 opacity-[0.025] mix-blend-multiply'
-        style={{
-          backgroundImage:
-            'url("data:image/svg+xml,%3Csvg viewBox=%270 0 180 180%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.9%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%27.8%27/%3E%3C/svg%3E")',
-        }}
-      />
-
       <section
         id='overview'
-        className='relative min-h-[100dvh] px-4 pb-16 pt-28 sm:px-6 lg:px-8'
+        className='px-4 pb-24 pt-40 sm:px-6 sm:pt-48 lg:px-8'
       >
-        <div className='absolute -right-28 top-24 -z-10 size-[30rem] rounded-full bg-[#bfead5]/45' />
-        <div className='mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16'>
-          <div className='landing-hero-copy text-left'>
-            <p className='inline-flex rounded-full border border-[#18243b]/12 bg-[#bfead5]/45 px-4 py-2 text-xs font-medium text-[#18243b]'>
-              Telos agent creation studio
-            </p>
-            <h1 className='mt-9 max-w-4xl text-balance font-display text-[clamp(4.75rem,10vw,10rem)] font-bold leading-[0.84] tracking-[-0.055em]'>
-              Build boldly.
-            </h1>
-            <p className='mt-8 max-w-xl text-pretty text-xl leading-8 text-foreground/72 sm:text-2xl sm:leading-9'>
-              If you can imagine the work, Telos can help you shape the agent,
-              tools, memory, and workflow to make it happen.
-            </p>
-          </div>
-
-          <div className='landing-object relative min-h-[30rem] lg:min-h-[40rem]'>
-            <div className='t-hero-orbit absolute -left-8 top-10 size-36 rounded-full border-[22px] border-[#ffd8c8]/80 sm:size-44' />
-            <div className='absolute -right-5 bottom-6 size-28 rounded-full bg-[#18243b] sm:size-36' />
-            <div className='t-hero-art absolute inset-0 overflow-hidden rounded-[2.75rem] border border-[#18243b]/12 bg-[#bfead5] shadow-[0_36px_100px_hsl(var(--foreground)/0.14)]'>
-              <Image
-                priority
-                fill
-                src='/landing/telos-t/hero.png'
-                alt='T, the Telos mascot, guiding connected agent tasks'
-                sizes='(min-width: 1024px) 58vw, 100vw'
-                className='object-cover object-[70%_center] lg:object-center'
-              />
-            </div>
-            <div className='absolute -bottom-5 left-6 right-12 h-10 rounded-full bg-[#18243b]/12 blur-xl' />
-          </div>
+        <div className='ym-hero mx-auto max-w-6xl text-center'>
+          <p className='text-xs font-medium uppercase tracking-[0.2em] text-black/45 dark:text-white/45'>
+            Telos agent creation studio
+          </p>
+          <h1 className='mx-auto mt-8 max-w-5xl text-balance font-display text-[clamp(4.25rem,8.7vw,8.5rem)] font-semibold leading-[0.86] tracking-[-0.055em]'>
+            Create boldly.
+          </h1>
+          <p className='mx-auto mt-8 max-w-2xl text-pretty text-lg leading-8 text-black/55 dark:text-white/55 sm:text-xl'>
+            Think with context. Build with capable agents. Turn a rough idea
+            into work your team can use, trust, and repeat.
+          </p>
         </div>
 
-        <div className='mt-14'>
+        <div className='mt-12'>
           <PromptComposer signedIn={signedIn} />
         </div>
 
-        <div className='landing-reveal mx-auto mt-8 flex max-w-4xl flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground'>
-          <span>Browser tools</span>
-          <span className='size-1 rounded-full bg-muted-foreground/35' />
-          <span>Scoped memory</span>
-          <span className='size-1 rounded-full bg-muted-foreground/35' />
-          <span>Workflow runs</span>
-          <span className='size-1 rounded-full bg-muted-foreground/35' />
-          <span>Team governance</span>
-        </div>
-      </section>
-
-      <section id='use-cases' className='px-4 py-24 sm:px-6 lg:px-8 lg:py-32'>
-        <div className='landing-reveal mx-auto mb-20 max-w-5xl text-center'>
-          <p className='text-sm text-muted-foreground'>
-            Watch how persistent agent work changes what a team can create.
-          </p>
-          <h2 className='mt-8 text-balance font-display text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
-            Every idea deserves to become a finished system, and Telos makes
-            that possible.
-          </h2>
+        <div className='ym-reveal mx-auto mt-8 flex max-w-3xl items-center justify-start gap-2 overflow-x-auto pb-2 sm:justify-center'>
+          {modes.map((mode, index) => (
+            <span
+              key={mode}
+              className={`shrink-0 rounded-full px-4 py-2 text-xs ${
+                index === 0
+                  ? 'bg-[#17213a] text-white'
+                  : 'bg-[#f0eee8] text-black/55 dark:bg-white/8 dark:text-white/55'
+              }`}
+            >
+              {mode}
+            </span>
+          ))}
         </div>
 
-        <div className='mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16'>
-          <div className='landing-reveal lg:sticky lg:top-28 lg:self-start'>
-            <p className='text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground'>
-              {t('landing.capabilities.eyebrow')}
-            </p>
-            <h2 className='mt-6 max-w-2xl text-balance font-display text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
-              From a spark to an agent that can keep going.
-            </h2>
-            <div className='relative mt-10 aspect-square max-w-sm overflow-hidden rounded-[2.5rem] border border-[#18243b]/10 bg-[#bfead5]'>
-              <Image
-                fill
-                src='/brand/telos-ip.png'
-                alt='T, the Telos terminal-native assistant'
-                sizes='384px'
-                className='object-cover'
-              />
-            </div>
-          </div>
+        <div className='ym-reveal mx-auto mt-6 max-w-[1180px]'>
+          <WorkGrid />
+        </div>
 
-          <div className='grid gap-8'>
-            {storyBlocks.map((item, index) => (
-              <article
-                key={item.title}
-                className='landing-reveal overflow-hidden rounded-[2.25rem] border border-[#18243b]/10 bg-card shadow-[0_24px_70px_hsl(var(--foreground)/0.07)]'
+        <div className='ym-reveal mx-auto mt-20 max-w-5xl border-y border-black/[0.08] py-7 dark:border-white/10'>
+          <div className='grid grid-cols-2 gap-y-7 text-center sm:grid-cols-4'>
+            {[
+              'Browser tools',
+              'Scoped memory',
+              'Reusable skills',
+              'Team governance',
+            ].map((label, index) => (
+              <div
+                key={label}
+                className='flex items-center justify-center gap-3'
               >
-                <div className='grid min-h-[31rem] md:grid-cols-[0.8fr_1.2fr]'>
-                  <div className='flex flex-col p-7 sm:p-9'>
-                    <span className='font-mono text-5xl tracking-[-0.08em] text-[#18243b]/24'>
-                      0{index + 1}
-                    </span>
-                    <p className='mt-8 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground'>
-                      {item.kicker}
-                    </p>
-                    <h3 className='mt-5 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl'>
-                      {item.title}
-                    </h3>
-                    <p className='mt-4 max-w-md text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7 md:mt-auto'>
-                      {item.body}
-                    </p>
-                  </div>
-                  <div className='relative min-h-72 overflow-hidden bg-[#bfead5]'>
-                    <Image
-                      fill
-                      src={item.image}
-                      alt={`${item.kicker} with T`}
-                      sizes='(min-width: 1024px) 36vw, 100vw'
-                      className='object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.02]'
-                    />
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id='prompts' className='px-4 py-24 sm:px-6 lg:px-8 lg:py-32'>
-        <div className='landing-reveal mx-auto max-w-7xl text-center'>
-          <p className='text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground'>
-            Create with Telos
-          </p>
-          <h2 className='mx-auto mt-6 max-w-5xl text-balance font-display text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
-            Real work from real agent studios.
-          </h2>
-        </div>
-        <div className='mt-12'>
-          <WorkGallery />
-        </div>
-      </section>
-
-      <section id='blog' className='px-4 py-24 sm:px-6 lg:px-8 lg:py-32'>
-        <div className='mx-auto grid max-w-7xl gap-6 lg:grid-cols-[0.95fr_1.05fr]'>
-          <div className='landing-reveal self-end'>
-            <p className='text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground'>
-              Community
-            </p>
-            <h2 className='mt-6 max-w-3xl text-balance font-display text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
-              Builders are already turning messy ideas into repeatable work.
-            </h2>
-          </div>
-          <div className='grid gap-4'>
-            {testimonials.map(item => (
-              <article
-                key={item.name}
-                className='landing-reveal rounded-[1.75rem] bg-card p-7 ring-1 ring-foreground/8'
-              >
-                <p className='text-lg leading-8 text-foreground/82'>
-                  &ldquo;{item.quote}&rdquo;
-                </p>
-                <div className='mt-6 flex items-center justify-between gap-4 border-t border-border pt-4'>
-                  <p className='font-semibold tracking-[-0.02em]'>
-                    {item.name}
-                  </p>
-                  <p className='text-sm text-muted-foreground'>{item.role}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id='updates' className='px-4 pb-28 sm:px-6 lg:px-8 lg:pb-36'>
-        <div className='landing-reveal mx-auto max-w-7xl border-y border-border py-16 sm:py-20'>
-          <div className='grid gap-8 md:grid-cols-4'>
-            {milestones.map(([value, label]) => (
-              <div key={label}>
-                <p className='font-mono text-5xl tracking-[-0.06em] sm:text-6xl'>
-                  {value}
-                </p>
-                <p className='mt-3 text-sm text-muted-foreground'>{label}</p>
+                <span className='font-mono text-[11px] text-black/30 dark:text-white/30'>
+                  0{index + 1}
+                </span>
+                <span className='text-sm text-black/65 dark:text-white/65'>
+                  {label}
+                </span>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className='mt-16 grid items-end gap-10 lg:grid-cols-[1fr_auto]'>
-            <div>
-              <p className='text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground'>
-                {t('landing.cta.eyebrow')}
+      <section id='use-cases' className='px-4 py-32 sm:px-6 lg:px-8 lg:py-52'>
+        <div className='ym-reveal mx-auto max-w-5xl text-center'>
+          <p className='text-sm text-black/45 dark:text-white/45'>
+            An agent studio that does not lose the thread.
+          </p>
+          <h2 className='mx-auto mt-8 max-w-5xl text-balance font-display text-5xl font-semibold leading-[0.98] tracking-[-0.045em] sm:text-7xl lg:text-[5.5rem]'>
+            Your ideas, context, and tools — finally working as one.
+          </h2>
+        </div>
+
+        <div className='mx-auto mt-24 grid max-w-[1240px] gap-12 lg:grid-cols-3 lg:gap-5'>
+          {featureStories.map(story => (
+            <article key={story.number} className='ym-reveal'>
+              <div className='relative aspect-[4/5] overflow-hidden rounded-[18px] bg-[#ebe8df]'>
+                <Image
+                  fill
+                  src={story.image}
+                  alt={story.title}
+                  sizes='(min-width: 1024px) 31vw, 100vw'
+                  className='object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.02]'
+                  style={{ objectPosition: story.position }}
+                />
+              </div>
+              <div className='pt-7'>
+                <div className='flex items-center gap-3 text-[11px] uppercase tracking-[0.16em] text-black/40 dark:text-white/40'>
+                  <span className='font-mono'>{story.number}</span>
+                  <span>{story.eyebrow}</span>
+                </div>
+                <h3 className='mt-5 text-3xl font-medium leading-[1.08] tracking-[-0.04em]'>
+                  {story.title}
+                </h3>
+                <p className='mt-5 text-[15px] leading-7 text-black/52 dark:text-white/52'>
+                  {story.body}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id='prompts' className='px-4 py-28 sm:px-6 lg:px-8 lg:py-44'>
+        <div className='ym-reveal mx-auto max-w-5xl text-center'>
+          <p className='text-sm text-black/45 dark:text-white/45'>Meet Telos</p>
+          <h2 className='mx-auto mt-7 max-w-4xl text-balance font-display text-5xl font-semibold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
+            A studio for work that keeps moving.
+          </h2>
+          <p className='mx-auto mt-6 max-w-2xl text-base leading-7 text-black/50 dark:text-white/50'>
+            T helps connect the materials, decisions, tools, and people behind
+            the work — so every run starts smarter than the last.
+          </p>
+        </div>
+
+        <div className='ym-reveal group relative mx-auto mt-16 aspect-video max-w-[1180px] overflow-hidden rounded-[20px] bg-[#ebe8df]'>
+          <Image
+            fill
+            src='/landing/youmind-telos/showcase.webp'
+            alt='A gallery of work made with Telos'
+            sizes='(min-width: 1280px) 1180px, 100vw'
+            className='object-cover transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.015]'
+          />
+          <div className='absolute inset-0 flex items-center justify-center'>
+            <span className='flex size-16 items-center justify-center rounded-full bg-white/92 text-[#17213a] shadow-[0_14px_45px_rgba(23,33,58,0.18)] backdrop-blur sm:size-20'>
+              <Play className='ml-1 size-5 fill-current sm:size-6' />
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section className='px-4 py-28 sm:px-6 lg:px-8 lg:py-44'>
+        <div className='ym-reveal mx-auto flex max-w-[1180px] items-end justify-between gap-8'>
+          <div>
+            <p className='text-sm text-black/45 dark:text-white/45'>
+              Made with Telos
+            </p>
+            <h2 className='mt-6 max-w-3xl text-balance font-display text-5xl font-semibold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
+              Work worth sharing.
+            </h2>
+          </div>
+          <CustomLink href={signedIn ? '/chat' : '/auth/signin'}>
+            <Button
+              variant='ghost'
+              className='hidden rounded-full text-sm sm:inline-flex'
+            >
+              Explore the studio
+              <ArrowUpRight className='ml-2 size-4' />
+            </Button>
+          </CustomLink>
+        </div>
+        <div className='ym-reveal mx-auto mt-14 max-w-[1180px]'>
+          <WorkGrid compact />
+        </div>
+      </section>
+
+      <section id='blog' className='px-4 py-28 sm:px-6 lg:px-8 lg:py-44'>
+        <div className='ym-reveal mx-auto max-w-[1180px] text-center'>
+          <p className='text-sm text-black/45 dark:text-white/45'>
+            The people behind the work
+          </p>
+          <h2 className='mx-auto mt-7 max-w-4xl text-balance font-display text-5xl font-semibold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
+            Built for every kind of builder.
+          </h2>
+        </div>
+        <div className='mx-auto mt-16 grid max-w-[1180px] gap-4 lg:grid-cols-3'>
+          {testimonials.map((item, index) => (
+            <article
+              key={item.name}
+              className={`ym-reveal flex min-h-[23rem] flex-col rounded-[18px] p-7 sm:p-8 ${
+                index === 1
+                  ? 'bg-[#17213a] text-white'
+                  : index === 2
+                    ? 'bg-[#dbe4da] text-[#17213a]'
+                    : 'bg-[#efece4] text-[#171717]'
+              }`}
+            >
+              <span className='font-display text-5xl leading-none opacity-30'>
+                “
+              </span>
+              <p className='mt-5 text-xl leading-8 tracking-[-0.025em]'>
+                {item.quote}
               </p>
-              <h2 className='mt-5 max-w-4xl text-balance font-display text-5xl font-bold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
-                Build boldly.
-              </h2>
-              <p className='mt-6 max-w-2xl text-base leading-7 text-muted-foreground'>
-                Telos gives every agent a place to gather context, use tools,
-                create outputs, and leave a trace your team can trust.
-              </p>
-            </div>
-            <div className='flex flex-col gap-3 sm:flex-row'>
+              <div className='mt-auto flex items-end justify-between gap-4 border-t border-current/15 pt-6'>
+                <p className='font-medium'>{item.name}</p>
+                <p className='text-sm opacity-55'>{item.role}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id='updates' className='px-4 py-28 sm:px-6 lg:px-8 lg:py-44'>
+        <div className='ym-reveal mx-auto grid max-w-[1180px] gap-16 border-y border-black/[0.09] py-20 dark:border-white/10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center'>
+          <div>
+            <p className='text-sm text-black/45 dark:text-white/45'>
+              Always in motion
+            </p>
+            <h2 className='mt-7 max-w-xl text-balance font-display text-5xl font-semibold leading-[0.98] tracking-[-0.045em] sm:text-7xl'>
+              One studio. A growing body of work.
+            </h2>
+          </div>
+          <div className='grid grid-cols-2 gap-x-8 gap-y-12'>
+            {milestones.map(([value, label]) => (
+              <div key={label}>
+                <p className='font-display text-5xl tracking-[-0.05em] sm:text-6xl'>
+                  {value}
+                </p>
+                <p className='mt-3 max-w-32 text-sm leading-5 text-black/45 dark:text-white/45'>
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className='px-4 pb-24 pt-20 sm:px-6 lg:px-8 lg:pb-32'>
+        <div className='ym-reveal relative mx-auto min-h-[45rem] max-w-[1180px] overflow-hidden rounded-[22px] bg-[#f1eee7] sm:min-h-[40rem]'>
+          <Image
+            fill
+            src='/landing/youmind-telos/cta.webp'
+            alt='T waiting beside a clear workspace'
+            sizes='(min-width: 1280px) 1180px, 100vw'
+            className='hidden object-cover object-center sm:block'
+          />
+          <div className='absolute inset-x-0 bottom-0 h-[46%] sm:hidden'>
+            <Image
+              fill
+              src='/landing/youmind-telos/cta.webp'
+              alt=''
+              sizes='100vw'
+              className='object-cover object-[72%_center]'
+            />
+          </div>
+          <div className='absolute inset-x-0 top-0 z-10 p-8 sm:inset-y-0 sm:right-auto sm:flex sm:w-[58%] sm:flex-col sm:justify-center sm:p-14 lg:p-20'>
+            <p className='text-xs font-medium uppercase tracking-[0.18em] text-[#17213a]/50'>
+              {t('landing.cta.eyebrow')}
+            </p>
+            <h2 className='mt-6 max-w-xl text-balance font-display text-5xl font-semibold leading-[0.93] tracking-[-0.05em] text-[#17213a] sm:text-7xl'>
+              Bring your next idea to life.
+            </h2>
+            <p className='mt-6 max-w-md text-base leading-7 text-[#17213a]/60'>
+              Start with a sentence. T will help you gather the context, shape
+              the agent, and turn the work into something real.
+            </p>
+            <div className='mt-9'>
               <CustomLink href={signedIn ? '/chat' : '/auth/signin'}>
-                <Button className='group h-12 rounded-full px-6 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]'>
+                <Button className='h-12 rounded-full bg-[#17213a] px-6 text-white shadow-none hover:bg-[#27334f]'>
                   {signedIn ? t('dashboard') : t('cta.getStarted')}
-                  <ArrowGlyph />
-                </Button>
-              </CustomLink>
-              <CustomLink
-                href='https://github.com/indulgeback/telos'
-                target='_blank'
-              >
-                <Button
-                  variant='outline'
-                  className='h-12 rounded-full border-foreground/15 bg-background/45 px-6 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]'
-                >
-                  {t('github')}
+                  <ArrowUpRight className='ml-2 size-4' />
                 </Button>
               </CustomLink>
             </div>
