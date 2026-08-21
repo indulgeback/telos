@@ -52,10 +52,24 @@ const CATEGORY_MAP = {
   'doc-coauthoring': 'writing',
   'internal-comms': 'writing',
   research: 'writing',
+  'active-reading-coach': 'writing',
+  'interview-synthesis': 'writing',
+  'longform-to-social': 'writing',
+  'feature-interview-writer': 'writing',
+  'argument-mapper': 'writing',
+  'case-study-writer': 'writing',
   // productivity:生产力
   brainstorming: 'productivity',
   'canvas-design': 'productivity',
   'theme-factory': 'productivity',
+  'topic-miner': 'productivity',
+  'talent-evidence-coach': 'productivity',
+  'situation-puzzle-host': 'productivity',
+  'meeting-to-decisions': 'productivity',
+  'editorial-cover-director': 'productivity',
+  // office:课程与演示规划
+  'professional-deck-planner': 'office',
+  'courseware-storyboard': 'office',
   // translation:翻译
   translator: 'translation',
 }

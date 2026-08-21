@@ -7,7 +7,7 @@ import { prisma } from './db.js'
 // =============================================================================
 // 系统级 Skill 自动 seed (商店预制内容)
 // =============================================================================
-// 启动时自动 seed 17 个商店技能 + 1 个内置能力 (skill-creator).
+// 启动时自动 seed 商店技能 + 1 个内置能力 (skill-creator).
 // 仿照 seed-skills.mjs 的逻辑, 但作为 ensure 函数在启动时幂等执行.
 // 解决线上新部署 skill 商店为空的问题.
 // =============================================================================
@@ -43,10 +43,24 @@ const CATEGORY_MAP: Record<string, string> = {
   'doc-coauthoring': 'writing',
   'internal-comms': 'writing',
   research: 'writing',
+  'active-reading-coach': 'writing',
+  'interview-synthesis': 'writing',
+  'longform-to-social': 'writing',
+  'feature-interview-writer': 'writing',
+  'argument-mapper': 'writing',
+  'case-study-writer': 'writing',
   // productivity:生产力
   brainstorming: 'productivity',
   'canvas-design': 'productivity',
   'theme-factory': 'productivity',
+  'topic-miner': 'productivity',
+  'talent-evidence-coach': 'productivity',
+  'situation-puzzle-host': 'productivity',
+  'meeting-to-decisions': 'productivity',
+  'editorial-cover-director': 'productivity',
+  // office:课程与演示规划
+  'professional-deck-planner': 'office',
+  'courseware-storyboard': 'office',
   // translation:翻译
   translator: 'translation',
 }
@@ -170,7 +184,7 @@ const BUILTIN_SKILL_CREATOR: RawSkill = {
 }
 
 /**
- * 加载所有系统 skill (17 个商店 + 1 个内置 skill-creator).
+ * 加载所有系统 skill (商店技能 + 1 个内置 skill-creator).
  * 如果 seed-skills 目录不存在(如某些精简部署), 只返回内置的 skill-creator.
  */
 function loadAllSystemSkills(): RawSkill[] {
