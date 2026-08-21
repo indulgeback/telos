@@ -9,6 +9,7 @@ import {
 import { DynamicTool } from '@langchain/core/tools'
 import { logger, config } from '../config/index.js'
 import { prisma } from './db.js'
+import { formatCurrentTime } from './current-time.js'
 import {
   createModelByProvider,
   type ChatProvider,
@@ -460,14 +461,8 @@ function createBuiltinTools() {
   const timeTool = new DynamicTool({
     name: 'get_current_time',
     description:
-      'Get current date and time in Chinese locale. Input can be empty.',
-    func: async () => {
-      const formatter = new Intl.DateTimeFormat('zh-CN', {
-        dateStyle: 'full',
-        timeStyle: 'medium',
-      })
-      return `当前时间：${formatter.format(new Date())}`
-    },
+      '获取指定时区的当前日期和时间。输入可为空，默认使用中国标准时间 Asia/Shanghai；也可传 IANA 时区标识符。',
+    func: async input => formatCurrentTime(input),
   })
 
   const calculatorTool = new DynamicTool({

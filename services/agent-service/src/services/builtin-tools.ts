@@ -9,6 +9,7 @@ import { WorkspaceManager, virtualReaddir } from './workspace.js'
 import path from 'path'
 import fs from 'fs'
 import { executeGenerateImage } from './image-generator.js'
+import { formatCurrentTime } from './current-time.js'
 import { exec } from 'child_process'
 
 type BuiltinToolKey =
@@ -43,12 +44,19 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     name: 'get_current_time',
     displayName: '当前时间',
     description:
-      'Get current date and time in Chinese locale. Input can be empty.',
+      '获取指定时区的当前日期和时间。timezone 可省略，默认使用中国标准时间 Asia/Shanghai。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'get_current_time' },
     parameters: {
       type: 'object',
-      properties: {},
+      properties: {
+        timezone: {
+          type: 'string',
+          description:
+            'IANA 时区标识符，例如 Asia/Shanghai 或 America/New_York。默认 Asia/Shanghai。',
+          default: 'Asia/Shanghai',
+        },
+      },
       additionalProperties: false,
     },
     tags: ['builtin', 'time'],
@@ -627,10 +635,7 @@ export function buildBuiltinTool(
 
       let output = ''
       if (builtin === 'get_current_time') {
-        output = `当前时间：${new Intl.DateTimeFormat('zh-CN', {
-          dateStyle: 'full',
-          timeStyle: 'medium',
-        }).format(new Date())}`
+        output = formatCurrentTime(input)
       } else if (builtin === 'calculator') {
         output = calculate(input)
       } else if (builtin === 'code_interpreter') {
