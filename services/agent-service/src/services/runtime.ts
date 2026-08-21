@@ -34,6 +34,7 @@ import {
 } from './skill-loader.js'
 import { WorkspaceManager } from './workspace.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
+import { DeepSeekReasoningModel } from './deepseek-reasoning-model.js'
 import {
   Prisma,
   Tool as DbTool,
@@ -842,8 +843,10 @@ export class AgentRuntimeService {
       ? configuredModel.supportVision
       : provider === 'openai' || provider === 'gcloud'
 
+    const model = await modelProvider.getModel(modelKey)
+
     return {
-      model: await modelProvider.getModel(modelKey),
+      model: provider === 'deepseek' ? new DeepSeekReasoningModel(model) : model,
       modelKey,
       provider,
       providerData: buildProviderData(provider, reasoningEffort),
