@@ -38,6 +38,7 @@ import {
   BrainCircuit,
   Check,
   ChevronDown,
+  ImageIcon,
   RefreshCw,
   X,
 } from 'lucide-react'
@@ -214,6 +215,9 @@ export interface ChatContainerProps {
   imagePrevLabel?: string
   imageNextLabel?: string
   imageUploadLabel?: string
+  imageUploadDisabledLabel?: string
+  imageUploadingLabel?: string
+  imageDropLabel?: string
   imageRemoveLabel?: string
   showScrollToBottom: boolean
   showReasoningEffort?: boolean
@@ -303,6 +307,9 @@ export function ChatContainer({
   imagePrevLabel = 'Previous image',
   imageNextLabel = 'Next image',
   imageUploadLabel = 'Upload image',
+  imageUploadDisabledLabel = 'The selected model cannot view images',
+  imageUploadingLabel = 'Uploading image',
+  imageDropLabel = 'Drop images here',
   imageRemoveLabel = 'Remove image',
   showScrollToBottom,
   showReasoningEffort = false,
@@ -320,6 +327,7 @@ export function ChatContainer({
   const [suggestionSeed, setSuggestionSeed] = useState(0)
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!showImageUpload || isLoading || isUploadingImages) return
     const items = e.clipboardData?.items
     if (!items) return
 
@@ -517,6 +525,15 @@ export function ChatContainer({
                         <span className='flex min-w-0 flex-1 items-center gap-1.5'>
                           <ModelIcon modelKey={option.model} />
                           <span className='truncate'>{option.label}</span>
+                          {option.supportVision && (
+                            <span
+                              className='inline-flex shrink-0 text-muted-foreground/75'
+                              aria-label={imageUploadLabel}
+                              title={imageUploadLabel}
+                            >
+                              <ImageIcon className='size-3' />
+                            </span>
+                          )}
                         </span>
                         {active && (
                           <Check className='size-3.5 shrink-0 text-primary' />
@@ -746,34 +763,6 @@ export function ChatContainer({
       {/* Input Area */}
       <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-30'>
         <div className='mx-auto max-w-5xl px-4 py-4'>
-          {showImageUpload && imagePreviews.length > 0 && (
-            <div className='mb-2 flex items-center gap-2 overflow-x-auto py-2'>
-              {imagePreviews.map((src, index) => (
-                <div
-                  key={`${src.slice(0, 36)}-${index}`}
-                  className='relative h-12 w-12 shrink-0 rounded-md ring-1 ring-border/70'
-                >
-                  <Image
-                    src={src}
-                    alt={`${imageUploadLabel}-${index + 1}`}
-                    fill
-                    unoptimized
-                    sizes='48px'
-                    className='object-cover'
-                  />
-                  <button
-                    type='button'
-                    onClick={() => onRemoveImage?.(index)}
-                    className='absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border cursor-pointer hover:scale-110 transition-transform duration-300'
-                    aria-label={imageRemoveLabel}
-                    title={imageRemoveLabel}
-                  >
-                    <X className='size-2.5' />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
           {realtimeStatusPanel && (
             <div className='mb-2'>{realtimeStatusPanel}</div>
           )}
@@ -785,18 +774,63 @@ export function ChatContainer({
             placeholder={inputPlaceholder}
             onSend={onSend}
             onStop={onStop}
-            canSend={safeInput.trim().length > 0 || imagePreviews.length > 0}
+            canSend={
+              safeInput.trim().length > 0 ||
+              (showImageUpload && imagePreviews.length > 0)
+            }
             isLoading={isLoading}
             sendDisabled={isLoading || isUploadingImages}
             sendAriaLabel={sendAriaLabel}
             stopAriaLabel={stopAriaLabel}
             onPaste={handlePaste}
+            imageDropEnabled={
+              showImageUpload && !isLoading && !isUploadingImages
+            }
+            imageDropLabel={imageDropLabel}
+            onDropImages={files => onPickImages?.(files)}
+            attachments={
+              imagePreviews.length > 0 ? (
+                <div className='flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5'>
+                  {imagePreviews.map((src, index) => (
+                    <div
+                      key={`${src.slice(0, 36)}-${index}`}
+                      className='group relative size-14 shrink-0 overflow-visible rounded-lg ring-1 ring-border/70'
+                    >
+                      <Image
+                        src={src}
+                        alt={`${imageUploadLabel}-${index + 1}`}
+                        fill
+                        unoptimized
+                        sizes='56px'
+                        className='rounded-lg object-cover'
+                      />
+                      <button
+                        type='button'
+                        onClick={() => onRemoveImage?.(index)}
+                        className='absolute -right-1.5 -top-1.5 inline-flex size-5 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow-md ring-2 ring-background transition-transform duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40'
+                        aria-label={imageRemoveLabel}
+                        title={imageRemoveLabel}
+                      >
+                        <X className='size-3' />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : undefined
+            }
             actions={
               <div className='flex min-w-0 flex-wrap items-center gap-2'>
                 <ChatInputActions
-                  showImageUpload={showImageUpload}
+                  showImageUpload
                   showReasoningEffort={false}
                   imageUploadLabel={imageUploadLabel}
+                  imageUploadDisabledLabel={imageUploadDisabledLabel}
+                  imageUploadingLabel={imageUploadingLabel}
+                  imageUploadSupported={showImageUpload}
+                  disableImageUpload={
+                    !showImageUpload || isLoading || isUploadingImages
+                  }
+                  isUploadingImages={isUploadingImages}
                   reasoningEffort={reasoningEffort}
                   reasoningEffortLabel={reasoningEffortLabel}
                   reasoningEffortMinimal={reasoningEffortMinimal}

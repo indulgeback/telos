@@ -22,6 +22,13 @@
     "chatError": "聊天服务错误：{error}",
     "reconnecting": "重新连接中...",
     "imageUploadLabel": "上传图片",
+    "imageUploadDisabledLabel": "当前模型不支持查看图片，请切换到视觉模型。",
+    "imageUploadingLabel": "上传中...",
+    "imageDropLabel": "松开以添加图片",
+    "imageUploadLimitError": "最多可添加 {count} 张图片。",
+    "imageUploadTypeError": "请选择图片文件。",
+    "imageUploadFailedError": "图片上传失败，请重试。",
+    "imageUploadRemovedUnsupported": "所选模型不支持图片，已移除待发送的图片。",
     "imageRemoveLabel": "移除图片",
     "clearConversation": "清空对话",
     "emptyState": {

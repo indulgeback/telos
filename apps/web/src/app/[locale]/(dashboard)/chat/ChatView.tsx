@@ -60,6 +60,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 import { VoiceAuraOrb } from '@/components/molecules/chat/VoiceAuraOrb'
+import { toast } from 'sonner'
 
 const AUTO_SCROLL_THRESHOLD_PX = 120
 const IMAGE_PLACEHOLDER_PROMPT = 'Please describe this image'
@@ -2331,8 +2332,9 @@ export function ChatView() {
     if (!supportsImageUpload && imagePreviews.length > 0) {
       setImagePreviews([])
       setUploadedImageUrls([])
+      toast.info(t('imageUploadRemovedUnsupported'))
     }
-  }, [supportsImageUpload, imagePreviews.length])
+  }, [supportsImageUpload, imagePreviews.length, t])
 
   useEffect(() => {
     const userMessages = messages.filter(
@@ -2803,12 +2805,19 @@ export function ChatView() {
   }, [selectedAgent?.id, isLoading, messages.length])
 
   const handlePickImages = async (files: FileList | File[] | null) => {
-    if (!supportsImageUpload || !files) return
+    if (!files) return
+    if (!supportsImageUpload) {
+      toast.error(t('imageUploadDisabledLabel'))
+      return
+    }
     const remaining = Math.max(
       0,
       MAX_IMAGE_ATTACHMENTS - uploadedImageUrls.length
     )
-    if (remaining <= 0) return
+    if (remaining <= 0) {
+      toast.error(t('imageUploadLimitError', { count: MAX_IMAGE_ATTACHMENTS }))
+      return
+    }
 
     const filesArray = files instanceof FileList ? Array.from(files) : files
     if (filesArray.length === 0) return
@@ -2817,7 +2826,10 @@ export function ChatView() {
       .filter(file => file.type.startsWith('image/'))
       .slice(0, remaining)
 
-    if (!picked.length) return
+    if (!picked.length) {
+      toast.error(t('imageUploadTypeError'))
+      return
+    }
 
     try {
       setIsUploadingImages(true)
@@ -2841,6 +2853,9 @@ export function ChatView() {
           item !== null
       )
 
+      if (successPairs.length < picked.length) {
+        toast.error(t('imageUploadFailedError'))
+      }
       if (!successPairs.length) return
 
       setImagePreviews(prev =>
@@ -2857,6 +2872,7 @@ export function ChatView() {
       )
     } catch (error) {
       console.error('Failed to parse selected images', error)
+      toast.error(t('imageUploadFailedError'))
     } finally {
       setIsUploadingImages(false)
     }
@@ -3381,6 +3397,9 @@ export function ChatView() {
             onPickImages={handlePickImages}
             onRemoveImage={handleRemoveImage}
             imageUploadLabel={t('imageUploadLabel')}
+            imageUploadDisabledLabel={t('imageUploadDisabledLabel')}
+            imageUploadingLabel={t('imageUploadingLabel')}
+            imageDropLabel={t('imageDropLabel')}
             imageRemoveLabel={t('imageRemoveLabel')}
             imagePreviewLabel={t('actions.previewImage')}
             imagePrevLabel={t('actions.prevImage')}

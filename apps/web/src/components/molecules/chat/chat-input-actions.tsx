@@ -1,25 +1,34 @@
 'use client'
 
-import { useRef } from 'react'
+import { useId, useRef } from 'react'
 import {
   Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from '@/components/atoms'
-import { BrainCircuit, ClipboardList, ImagePlus, Plus } from 'lucide-react'
+import {
+  BrainCircuit,
+  ClipboardList,
+  ImagePlus,
+  LoaderCircle,
+} from 'lucide-react'
 
 export interface ChatInputActionsProps {
   showImageUpload: boolean
   showReasoningEffort: boolean
   showReasoningControl?: boolean
   imageUploadLabel: string
+  imageUploadDisabledLabel?: string
+  imageUploadingLabel?: string
+  imageUploadSupported?: boolean
+  disableImageUpload?: boolean
+  isUploadingImages?: boolean
   reasoningEffort: 'minimal' | 'low' | 'medium' | 'high'
   reasoningEffortLabel: string
   reasoningEffortMinimal: string
@@ -45,6 +54,11 @@ export function ChatInputActions({
   showReasoningEffort,
   showReasoningControl = false,
   imageUploadLabel,
+  imageUploadDisabledLabel = 'The selected model cannot view images',
+  imageUploadingLabel = 'Uploading image',
+  imageUploadSupported = true,
+  disableImageUpload = false,
+  isUploadingImages = false,
   reasoningEffort,
   reasoningEffortLow,
   reasoningEffortMedium,
@@ -60,6 +74,7 @@ export function ChatInputActions({
   onPlanModeChange,
 }: ChatInputActionsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageUploadHintId = useId()
 
   if (!showImageUpload && !showReasoningEffort && !showPlanMode) {
     return null
@@ -146,32 +161,51 @@ export function ChatInputActions({
             accept='image/*'
             multiple
             className='hidden'
+            disabled={disableImageUpload}
             onChange={event => {
               onPickImages?.(event.target.files)
               event.currentTarget.value = ''
             }}
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type='button'
-                variant='outline'
-                size='icon'
-                radius='md'
-                className='h-8 w-8 border-border/70 bg-background shadow-none hover:bg-accent/50'
-                aria-label={imageUploadLabel}
-                title={imageUploadLabel}
-              >
-                <Plus className='size-3.5' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side='top' align='start' className='w-36'>
-              <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
-                <ImagePlus className='size-3.5' />
-                {imageUploadLabel}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className='inline-flex shrink-0'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  radius='md'
+                  disabled={disableImageUpload}
+                  onClick={() => fileInputRef.current?.click()}
+                  className='h-8 gap-1.5 border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 disabled:cursor-not-allowed disabled:bg-muted/35 disabled:text-muted-foreground/55 disabled:opacity-100'
+                  aria-label={imageUploadLabel}
+                  aria-describedby={
+                    !imageUploadSupported ? imageUploadHintId : undefined
+                  }
+                >
+                  {isUploadingImages ? (
+                    <LoaderCircle className='size-3.5 animate-spin' />
+                  ) : (
+                    <ImagePlus className='size-3.5' />
+                  )}
+                  <span className='hidden sm:inline'>
+                    {isUploadingImages ? imageUploadingLabel : imageUploadLabel}
+                  </span>
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side='top' sideOffset={8}>
+              {!imageUploadSupported
+                ? imageUploadDisabledLabel
+                : isUploadingImages
+                  ? imageUploadingLabel
+                  : imageUploadLabel}
+            </TooltipContent>
+          </Tooltip>
+          {!imageUploadSupported && (
+            <span id={imageUploadHintId} className='sr-only'>
+              {imageUploadDisabledLabel}
+            </span>
+          )}
         </>
       )}
     </div>

@@ -22,6 +22,13 @@
     "chatError": "Ошибка службы чата: {error}",
     "reconnecting": "Переподключение...",
     "imageUploadLabel": "Загрузить изображение",
+    "imageUploadDisabledLabel": "Эта модель не поддерживает изображения. Выберите модель с поддержкой зрения.",
+    "imageUploadingLabel": "Загрузка...",
+    "imageDropLabel": "Перетащите изображения сюда",
+    "imageUploadLimitError": "Можно прикрепить не более {count} изображений.",
+    "imageUploadTypeError": "Выберите файл изображения.",
+    "imageUploadFailedError": "Не удалось загрузить изображение. Повторите попытку.",
+    "imageUploadRemovedUnsupported": "Вложения удалены, так как выбранная модель не поддерживает изображения.",
     "imageRemoveLabel": "Удалить изображение",
     "clearConversation": "Очистить чат",
     "emptyState": {

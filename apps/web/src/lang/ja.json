@@ -22,6 +22,13 @@
     "chatError": "チャットサービスエラー: {error}",
     "reconnecting": "再接続中...",
     "imageUploadLabel": "画像をアップロード",
+    "imageUploadDisabledLabel": "このモデルは画像を表示できません。ビジョンモデルに切り替えてください。",
+    "imageUploadingLabel": "アップロード中...",
+    "imageDropLabel": "画像をドロップして添付",
+    "imageUploadLimitError": "画像は最大 {count} 枚まで添付できます。",
+    "imageUploadTypeError": "画像ファイルを選択してください。",
+    "imageUploadFailedError": "画像のアップロードに失敗しました。もう一度お試しください。",
+    "imageUploadRemovedUnsupported": "選択したモデルは画像に対応していないため、添付画像を削除しました。",
     "imageRemoveLabel": "画像を削除",
     "clearConversation": "会話をクリア",
     "emptyState": {

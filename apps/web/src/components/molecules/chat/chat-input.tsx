@@ -20,6 +20,11 @@ interface ChatInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   stopAriaLabel?: string
   // 输入框下方的操作区域（用于工具开关、附件等）
   actions?: ReactNode
+  // 附件预览，放在输入框内部，避免与当前消息脱节
+  attachments?: ReactNode
+  imageDropEnabled?: boolean
+  imageDropLabel?: string
+  onDropImages?: (files: FileList) => void
 }
 
 export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
@@ -33,6 +38,10 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
       sendAriaLabel = 'Send message',
       stopAriaLabel = 'Stop generation',
       actions,
+      attachments,
+      imageDropEnabled = false,
+      imageDropLabel = 'Drop images here',
+      onDropImages,
       className,
       value,
       ...props
@@ -42,6 +51,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     const [isFocused, setIsFocused] = useState(false)
     const [isComposing, setIsComposing] = useState(false)
     const [isStopCooldown, setIsStopCooldown] = useState(false)
+    const [isImageDragActive, setIsImageDragActive] = useState(false)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       // 防止在输入法选词时按回车直接提交
@@ -96,13 +106,51 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
       onSend()
     }
 
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+      if (!imageDropEnabled || !event.dataTransfer.types.includes('Files')) {
+        return
+      }
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'copy'
+      setIsImageDragActive(true)
+    }
+
+    const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+      if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
+        return
+      }
+      setIsImageDragActive(false)
+    }
+
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+      if (!imageDropEnabled) return
+      event.preventDefault()
+      setIsImageDragActive(false)
+      if (event.dataTransfer.files.length > 0) {
+        onDropImages?.(event.dataTransfer.files)
+      }
+    }
+
     return (
       <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         className={cn(
-          'flex flex-col rounded-2xl border bg-background/95 p-2 shadow-sm transition-shadow',
-          isFocused ? 'border-ring/60 shadow-xl' : 'ring-0'
+          'relative flex flex-col overflow-hidden rounded-2xl border bg-background/95 p-2 shadow-sm transition-[border-color,box-shadow,background-color]',
+          isFocused ? 'border-ring/60 shadow-xl' : 'ring-0',
+          isImageDragActive &&
+            'border-primary/60 bg-primary/[0.035] shadow-lg ring-2 ring-primary/10'
         )}
       >
+        {attachments && <div className='px-2 pt-1.5'>{attachments}</div>}
+
+        {isImageDragActive && (
+          <div className='pointer-events-none absolute inset-2 z-20 flex items-center justify-center rounded-xl border border-dashed border-primary/45 bg-background/90 text-xs font-medium text-foreground backdrop-blur-sm'>
+            {imageDropLabel}
+          </div>
+        )}
+
         {/* 输入区域 */}
         <div className='flex items-end'>
           <textarea

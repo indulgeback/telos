@@ -22,6 +22,13 @@
     "chatError": "Chat-Dienstfehler: {error}",
     "reconnecting": "Wiederverbinden...",
     "imageUploadLabel": "Bild hochladen",
+    "imageUploadDisabledLabel": "Dieses Modell kann keine Bilder sehen. Wähle ein Vision-Modell.",
+    "imageUploadingLabel": "Wird hochgeladen...",
+    "imageDropLabel": "Bilder zum Anhängen hier ablegen",
+    "imageUploadLimitError": "Du kannst bis zu {count} Bilder anhängen.",
+    "imageUploadTypeError": "Wähle eine Bilddatei aus.",
+    "imageUploadFailedError": "Bild-Upload fehlgeschlagen. Bitte versuche es erneut.",
+    "imageUploadRemovedUnsupported": "Die Anhänge wurden entfernt, da das ausgewählte Modell keine Bilder unterstützt.",
     "imageRemoveLabel": "Bild entfernen",
     "clearConversation": "Chat leeren",
     "emptyState": {

@@ -22,6 +22,13 @@
     "chatError": "Chat service error: {error}",
     "reconnecting": "Reconnecting...",
     "imageUploadLabel": "Upload Image",
+    "imageUploadDisabledLabel": "This model can't view images. Choose a vision model.",
+    "imageUploadingLabel": "Uploading...",
+    "imageDropLabel": "Drop images to attach",
+    "imageUploadLimitError": "You can attach up to {count} images.",
+    "imageUploadTypeError": "Choose an image file.",
+    "imageUploadFailedError": "Image upload failed. Please try again.",
+    "imageUploadRemovedUnsupported": "Attachments were removed because the selected model can't view images.",
     "imageRemoveLabel": "Remove Image",
     "clearConversation": "Clear conversation",
     "emptyState": {
