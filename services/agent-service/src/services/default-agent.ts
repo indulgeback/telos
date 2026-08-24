@@ -1,5 +1,6 @@
 import { logger, config } from '../config/index.js'
 import { prisma } from './db.js'
+import { normalizeChatModelKey } from './chat-model-catalog.js'
 
 // =============================================================================
 // 默认系统 Agent: "T"
@@ -56,7 +57,7 @@ export const DEFAULT_AGENT = {
   ownerId: null,
   isDefault: true,
   status: 'active' as const,
-  modelKey: config.defaultModel,
+  modelKey: normalizeChatModelKey(config.defaultModel),
   temperature: 0.7,
   maxTurns: 50,
   loopMode: 'auto' as const,

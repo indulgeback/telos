@@ -172,7 +172,7 @@ services:
       - LOG_LEVEL=info
       - AGENT_RUN_WORKER_CONCURRENCY=${AGENT_RUN_WORKER_CONCURRENCY:-2}
       # 默认 Agent 模型
-      - DEFAULT_AGENT_MODEL=${DEFAULT_AGENT_MODEL:-google/gemini-2.5-pro}
+      - DEFAULT_AGENT_MODEL=${DEFAULT_AGENT_MODEL:-google/gemini-3.1-pro-preview}
       # ===== LLM 提供商 (按需配置) =====
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}

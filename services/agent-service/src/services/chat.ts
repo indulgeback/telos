@@ -15,6 +15,12 @@ import {
   type ChatProvider,
   type ReasoningEffort,
 } from './chat/providers/index.js'
+import {
+  CHAT_MODEL_MIGRATIONS,
+  DEFAULT_CHAT_MODEL_KEY,
+  DEFAULT_CHAT_MODELS,
+  normalizeChatModelKey,
+} from './chat-model-catalog.js'
 
 export interface ChatModelOption {
   model: string
@@ -32,118 +38,18 @@ const REASONING_EFFORT_VALUES: ReasoningEffort[] = [
   'high',
 ]
 
-const DEFAULT_CHAT_MODELS = [
-  {
-    modelKey: 'deepseek-v4-flash',
-    displayName: 'DeepSeek V4 Flash',
-    provider: 'deepseek',
-    isReasoning: true,
-    sortOrder: 1,
-    supportVision: false,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'deepseek-v4-pro',
-    displayName: 'DeepSeek V4 Pro',
-    provider: 'deepseek',
-    isReasoning: true,
-    sortOrder: 2,
-    supportVision: false,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'openai/gpt-5.5',
-    displayName: 'GPT-5.5',
-    provider: 'shortapi',
-    isReasoning: true,
-    sortOrder: 5,
-    supportVision: false,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'google/gemini-3.5-flash',
-    displayName: 'Gemini 3.5 Flash',
-    provider: 'gcloud',
-    isReasoning: true,
-    sortOrder: 6,
-    supportVision: true,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'google/gemini-3.1-flash-lite',
-    displayName: 'Gemini 3.1 Flash-Lite',
-    provider: 'gcloud',
-    isReasoning: true,
-    sortOrder: 7,
-    supportVision: true,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'google/gemini-2.5-pro',
-    displayName: 'Gemini 2.5 Pro',
-    provider: 'gcloud',
-    isReasoning: true,
-    sortOrder: 8,
-    supportVision: true,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'doubao-seed-2-1-turbo-260628',
-    displayName: 'Doubao Seed 2.1 Turbo',
-    provider: 'seed',
-    isReasoning: true,
-    sortOrder: 30,
-    supportVision: true,
-    supportReasoningControl: true,
-  },
-  {
-    modelKey: 'doubao-seed-2-1-pro-260628',
-    displayName: 'Doubao Seed 2.1 Pro',
-    provider: 'seed',
-    isReasoning: true,
-    sortOrder: 40,
-    supportVision: true,
-    supportReasoningControl: true,
-  },
-  {
-    modelKey: 'doubao-seed-evolving-latest-version',
-    displayName: 'Doubao Seed Evolving',
-    provider: 'seed',
-    isReasoning: true,
-    sortOrder: 50,
-    supportVision: true,
-    supportReasoningControl: true,
-  },
-  {
-    modelKey: 'qwen3.7-plus',
-    displayName: 'Qwen 3.7 Plus',
-    provider: 'bailian',
-    isReasoning: true,
-    sortOrder: 70,
-    supportVision: true,
-    supportReasoningControl: false,
-  },
-  {
-    modelKey: 'qwen3.7-max',
-    displayName: 'Qwen 3.7 Max',
-    provider: 'bailian',
-    isReasoning: true,
-    sortOrder: 72,
-    supportVision: true,
-    supportReasoningControl: false,
-  },
-] as const
-
 let modelsInitialized = false
 
 async function ensureChatModelsInitialized() {
   if (modelsInitialized) return
 
   try {
-    // 1. 同步默认模型到数据库
-    await Promise.all(
-      DEFAULT_CHAT_MODELS.map(item =>
-        prisma.chatModel.upsert({
+    const migratedAgentCounts: Record<string, number> = {}
+
+    await prisma.$transaction(async tx => {
+      // 1. 同步默认模型到数据库
+      for (const item of DEFAULT_CHAT_MODELS) {
+        await tx.chatModel.upsert({
           where: { modelKey: item.modelKey },
           update: {
             displayName: item.displayName,
@@ -164,20 +70,39 @@ async function ensureChatModelsInitialized() {
             supportReasoningControl: item.supportReasoningControl,
           },
         })
-      )
-    )
+      }
 
-    // 2. 清理不在默认列表中的过期模型
-    const validModelKeys = DEFAULT_CHAT_MODELS.map(item => item.modelKey)
-    await prisma.chatModel.deleteMany({
-      where: {
-        modelKey: {
-          notIn: validModelKeys,
+      // 2. 先迁移 Agent 绑定，避免目录清理后仍指向过期模型。
+      for (const [previousModelKey, nextModelKey] of Object.entries(
+        CHAT_MODEL_MIGRATIONS
+      )) {
+        const result = await tx.agent.updateMany({
+          where: { modelKey: previousModelKey },
+          data: { modelKey: nextModelKey },
+        })
+        if (result.count > 0) {
+          migratedAgentCounts[`${previousModelKey}->${nextModelKey}`] =
+            result.count
+        }
+      }
+
+      // 3. 清理不在默认列表中的过期模型
+      const validModelKeys = DEFAULT_CHAT_MODELS.map(item => item.modelKey)
+      await tx.chatModel.deleteMany({
+        where: {
+          modelKey: {
+            notIn: validModelKeys,
+          },
         },
-      },
+      })
     })
 
     modelsInitialized = true
+    logger.info({
+      msg: 'Chat model catalog initialized',
+      modelCount: DEFAULT_CHAT_MODELS.length,
+      migratedAgentCounts,
+    })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     throw new Error(
@@ -228,8 +153,9 @@ async function resolveSelectedModel(
   selectedModel: string
 ): Promise<ChatModelOption> {
   const availableModels = await listChatModels()
+  const normalizedModel = normalizeChatModelKey(selectedModel)
   const resolved =
-    availableModels.find(item => item.model === selectedModel) ??
+    availableModels.find(item => item.model === normalizedModel) ??
     availableModels[0]
 
   if (!resolved) {
@@ -549,7 +475,9 @@ export async function generateAgentInstructions(
   description: string,
   modelKey?: string
 ): Promise<{ instructions: string; voice?: Record<string, unknown> }> {
-  const selectedModel = modelKey || 'deepseek-v4-flash'
+  const selectedModel = normalizeChatModelKey(
+    modelKey || DEFAULT_CHAT_MODEL_KEY
+  )
   const selected = await resolveSelectedModel(selectedModel)
   const modelRuntime = await createModelByProvider(selected.provider, {
     model: selected.model,

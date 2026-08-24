@@ -11,6 +11,7 @@ import { asStringArray } from '../utils/json.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
 import type { StructuredPlan } from '../services/plan-tools.js'
+import { normalizeChatModelKey } from '../services/chat-model-catalog.js'
 
 /**
  * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
@@ -183,10 +184,11 @@ agentsRouter.post('/', async c => {
     return fail(c, 400, error instanceof Error ? error.message : String(error))
   }
 
-  const modelKey =
+  const requestedModelKey =
     typeof body.modelKey === 'string' && body.modelKey.trim()
       ? body.modelKey.trim()
-      : undefined
+      : config.defaultModel
+  const modelKey = normalizeChatModelKey(requestedModelKey)
 
   const agent = await prisma.agent.create({
     data: {
@@ -195,7 +197,7 @@ agentsRouter.post('/', async c => {
       instructions: description,
       instructionStatus: 'generating',
       type: normalizeAgentType(body.type),
-      modelKey: modelKey || config.defaultModel,
+      modelKey,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : 0.7,
       maxTurns,
@@ -275,7 +277,7 @@ agentsRouter.put('/:id', async c => {
           : undefined,
       modelKey:
         typeof body.modelKey === 'string' && body.modelKey.trim()
-          ? body.modelKey.trim()
+          ? normalizeChatModelKey(body.modelKey.trim())
           : undefined,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : undefined,

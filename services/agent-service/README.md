@@ -97,24 +97,27 @@ npm run dev
 ```json
 {
   "message": "帮我计算 123 + 456",
-  "model": "deepseek-chat",
+  "model": "deepseek-v4-flash",
   "images": ["data:image/png;base64,...."]
 }
 ```
 
 响应为 AI SDK UI Message stream。
 
-`images` 为可选字段，支持 `http(s)` URL 或 `data:image/...;base64,...`。当前可用于豆包 Seed 系列模型的图片理解。
+`images` 为可选字段，支持 `http(s)` URL 或 `data:image/...;base64,...`。可用于模型目录中 `supportVision=true` 的模型。
 
 支持的 `model` 值：
 
-- `deepseek-chat`
-- `deepseek-reasoner`
-- `doubao-seed-2.1-turbo`
-- `doubao-seed-2.1-pro`
+- `deepseek-v4-flash`
+- `deepseek-v4-pro`
+- `openai/gpt-5.5`
+- `google/gemini-3.7-flash`
+- `google/gemini-3.5-flash-lite`
+- `google/gemini-3.1-pro-preview`
+- `doubao-seed-2-1-turbo-260628`
 - `doubao-seed-evolving`
 - `qwen3.7-plus`
-- `qwen3.7-max`
+- `qwen3.8-max`
 
 **GET** `/api/agent/models`
 
@@ -126,10 +129,12 @@ npm run dev
   "message": "success",
   "data": [
     {
-      "model": "deepseek-chat",
-      "label": "DeepSeek Chat",
+      "model": "deepseek-v4-flash",
+      "label": "DeepSeek V4 Flash",
       "provider": "deepseek",
-      "isReasoning": false
+      "isReasoning": true,
+      "supportVision": false,
+      "supportReasoningControl": false
     }
   ]
 }

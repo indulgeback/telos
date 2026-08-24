@@ -35,6 +35,7 @@ import {
 import { WorkspaceManager } from './workspace.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 import { DeepSeekReasoningModel } from './deepseek-reasoning-model.js'
+import { normalizeChatModelKey } from './chat-model-catalog.js'
 import {
   Prisma,
   Tool as DbTool,
@@ -820,13 +821,14 @@ export class AgentRuntimeService {
     modelKey: string,
     reasoningEffort?: RuntimeRunOptions['reasoningEffort']
   ): Promise<RuntimeModelResolution> {
+    const normalizedModelKey = normalizeChatModelKey(modelKey)
     const configuredModel = await prisma.chatModel.findUnique({
-      where: { modelKey },
+      where: { modelKey: normalizedModelKey },
       select: { provider: true, supportVision: true },
     })
     const provider = configuredModel
       ? normalizeRuntimeProvider(configuredModel.provider)
-      : inferProviderFromModel(modelKey)
+      : inferProviderFromModel(normalizedModelKey)
     const providerOptions = providerConfig(provider)
     if (!providerOptions.apiKey) {
       throw new Error(providerOptions.missingMessage)
@@ -843,11 +845,11 @@ export class AgentRuntimeService {
       ? configuredModel.supportVision
       : provider === 'openai' || provider === 'gcloud'
 
-    const model = await modelProvider.getModel(modelKey)
+    const model = await modelProvider.getModel(normalizedModelKey)
 
     return {
       model: provider === 'deepseek' ? new DeepSeekReasoningModel(model) : model,
-      modelKey,
+      modelKey: normalizedModelKey,
       provider,
       providerData: buildProviderData(provider, reasoningEffort),
       supportVision,
