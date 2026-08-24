@@ -62,6 +62,7 @@ import {
 import { VoiceAuraOrb } from '@/components/molecules/chat/VoiceAuraOrb'
 import { toast } from 'sonner'
 import { getLatestRetryTarget, replaceLatestAssistant } from './chat-retry'
+import { resolveMessageModelLabel } from './chat-model-label'
 
 const AUTO_SCROLL_THRESHOLD_PX = 120
 const IMAGE_PLACEHOLDER_PROMPT = 'Please describe this image'
@@ -97,6 +98,7 @@ type ChatUiMessage = {
   id: string
   role: 'user' | 'assistant'
   runId?: string | null
+  modelKey?: string | null
   parts?: unknown[]
   content?: string
   isVoiceTranscript?: boolean
@@ -176,6 +178,7 @@ const messageToUiMessage = (message: AgentMessage) => {
     id: message.id,
     role: message.role === 'assistant' ? 'assistant' : 'user',
     runId: message.run_id,
+    modelKey: message.model_key,
     content: message.content,
     isVoiceTranscript: hasLiveTranscriptMarker(persistedParts),
     parts:
@@ -2462,11 +2465,15 @@ export function ChatView() {
         toolCalls: message.role === 'assistant' ? toolCalls : undefined,
         modelLabel:
           message.role === 'assistant'
-            ? assistantModelById[message.id]
+            ? resolveMessageModelLabel({
+                persistedModelKey: message.modelKey,
+                transientLabel: assistantModelById[message.id],
+                modelOptions,
+              })
             : undefined,
       }
     })
-  }, [messages, imagesByMessageId, assistantModelById])
+  }, [messages, imagesByMessageId, assistantModelById, modelOptions])
 
   useEffect(() => {
     const fallbackLabel =

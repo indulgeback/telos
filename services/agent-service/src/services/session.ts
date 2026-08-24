@@ -2,6 +2,7 @@ import type { AgentInputItem } from '@openai/agents'
 import { prisma } from './db.js'
 import { safeJsonStringify } from '../utils/json.js'
 import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
+import { resolveMessageModelKey } from './message-model.js'
 
 const RECENT_MESSAGE_LIMIT = 12
 const SUMMARY_THRESHOLD = 20
@@ -292,7 +293,8 @@ export class AgentSessionService {
     threadId: string,
     runId: string,
     finalOutput: string,
-    parts?: unknown
+    parts?: unknown,
+    metadata?: unknown
   ) {
     return this.appendMessage({
       threadId,
@@ -300,6 +302,7 @@ export class AgentSessionService {
       role: 'assistant',
       content: finalOutput,
       parts,
+      metadata,
     })
   }
 
@@ -308,7 +311,8 @@ export class AgentSessionService {
     threadId: string,
     runId: string,
     finalOutput: string,
-    parts?: unknown
+    parts?: unknown,
+    metadata?: unknown
   ) {
     return prisma.$transaction(async tx => {
       const existing = await tx.agentMessage.findFirst({
@@ -317,7 +321,7 @@ export class AgentSessionService {
           threadId,
           role: 'assistant',
         },
-        select: { id: true },
+        select: { id: true, metadata: true },
       })
       if (!existing) return null
 
@@ -327,6 +331,14 @@ export class AgentSessionService {
           runId,
           content: finalOutput,
           parts: (parts ?? []) as any,
+          metadata: {
+            ...(existing.metadata && typeof existing.metadata === 'object'
+              ? (existing.metadata as Record<string, unknown>)
+              : {}),
+            ...(metadata && typeof metadata === 'object'
+              ? (metadata as Record<string, unknown>)
+              : {}),
+          } as any,
         },
       })
       await tx.agentThread.update({
@@ -463,10 +475,24 @@ export class AgentSessionService {
   }
 
   async listMessages(threadId: string) {
-    return prisma.agentMessage.findMany({
+    const messages = await prisma.agentMessage.findMany({
       where: { threadId },
       orderBy: { sequence: 'asc' },
+      include: {
+        run: {
+          select: {
+            input: true,
+          },
+        },
+      },
     })
+    return messages.map(({ run, ...message }) => ({
+      ...message,
+      modelKey: resolveMessageModelKey({
+        messageMetadata: message.metadata,
+        runInput: run?.input,
+      }),
+    }))
   }
 
   async listMessagesForOwner(threadId: string, ownerId: string) {
@@ -479,10 +505,24 @@ export class AgentSessionService {
       select: { id: true },
     })
     if (!thread) throw new Error('Thread not found')
-    return prisma.agentMessage.findMany({
+    const messages = await prisma.agentMessage.findMany({
       where: { threadId },
       orderBy: { sequence: 'asc' },
+      include: {
+        run: {
+          select: {
+            input: true,
+          },
+        },
+      },
     })
+    return messages.map(({ run, ...message }) => ({
+      ...message,
+      modelKey: resolveMessageModelKey({
+        messageMetadata: message.metadata,
+        runInput: run?.input,
+      }),
+    }))
   }
 
   async updateThread(

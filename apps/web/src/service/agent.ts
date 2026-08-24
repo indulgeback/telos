@@ -173,6 +173,7 @@ export interface AgentMessage {
   id: string
   thread_id: string
   run_id?: string | null
+  model_key?: string | null
   role: 'user' | 'assistant' | 'tool' | 'system'
   content: string
   parts?: unknown

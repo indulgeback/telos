@@ -66,6 +66,8 @@ export type LoadedMcpServer = DbMcpServer
 export interface RuntimeBuildResult {
   agent: Agent
   source: LoadedAgent
+  /** 规范化后实际交给 provider 的模型标识 */
+  modelKey: string
   /** 解析出的模型 provider */
   provider: RuntimeProvider
   /** 当前模型是否支持多模态视觉 */
@@ -817,6 +819,7 @@ export class AgentRuntimeService {
     return {
       agent,
       source,
+      modelKey: resolvedModel.modelKey,
       provider: resolvedModel.provider,
       supportVision: resolvedModel.supportVision,
     }
@@ -870,7 +873,7 @@ export class AgentRuntimeService {
         ? options.input
         : extractPromptFromBody({ messages: options.input as any })
 
-    const { agent, source, provider, supportVision } = await this.buildAgent(agentId, {
+    const { agent, source, modelKey, provider, supportVision } = await this.buildAgent(agentId, {
       persistence,
       modelOverride: options.modelOverride,
       reasoningEffort: options.reasoningEffort,
@@ -989,7 +992,7 @@ export class AgentRuntimeService {
         signal: options.signal,
         toolNotFoundBehavior: 'return_error_to_model',
       })
-      return { result, persistence }
+      return { result, persistence, modelKey }
     }
 
     const result = await runner.run(agent, runInput, {
@@ -997,7 +1000,7 @@ export class AgentRuntimeService {
       signal: options.signal,
       toolNotFoundBehavior: 'return_error_to_model',
     })
-    return { result, persistence }
+    return { result, persistence, modelKey }
   }
 }
 

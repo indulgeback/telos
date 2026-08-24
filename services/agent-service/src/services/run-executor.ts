@@ -268,7 +268,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       })
     }
 
-    const { result, persistence } = await agentRuntimeService.run(
+    const { result, persistence, modelKey } = await agentRuntimeService.run(
       options.agentId,
       {
         runId: options.runId,
@@ -476,7 +476,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
             options.threadId,
             options.runId,
             persistOutput,
-            assistantParts
+            assistantParts,
+            { modelKey }
           )
         : null
       const savedMessage =
@@ -485,7 +486,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
           options.threadId,
           options.runId,
           persistOutput,
-          assistantParts
+          assistantParts,
+          { modelKey }
         ))
       planMessageId = savedMessage?.id
       agentSessionService.scheduleSummaries(
