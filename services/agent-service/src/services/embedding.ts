@@ -41,8 +41,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
   if (provider === 'gcloud') {
     try {
-      const token = getGcloudAccessToken()
-      const projectId = getGcloudProjectId()
+      const [token, projectId] = await Promise.all([
+        getGcloudAccessToken(),
+        getGcloudProjectId(),
+      ])
       const location = config.gcloudLocation && config.gcloudLocation !== 'global' ? config.gcloudLocation : 'us-central1'
       const model = config.embeddingModel || 'text-embedding-004'
 
@@ -112,5 +114,4 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     throw error
   }
 }
-
 

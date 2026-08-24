@@ -8,12 +8,14 @@ import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 
 let openaiClient: OpenAI | null = null
 
-function getOpenAIClient(): OpenAI {
+async function getOpenAIClient(): Promise<OpenAI> {
   const model = config.defaultModel || 'gpt-4o-mini'
 
   if (model.startsWith('gemini-') || model.startsWith('google/gemini-')) {
-    const apiKey = getGcloudAccessToken()
-    const baseURL = getGcloudOpenAIBaseUrl()
+    const [apiKey, baseURL] = await Promise.all([
+      getGcloudAccessToken(),
+      getGcloudOpenAIBaseUrl(),
+    ])
     return new OpenAI({
       apiKey,
       baseURL,
@@ -332,7 +334,7 @@ export async function extractAndSynthesizeMemories(
     try {
       logger.info({ msg: '\x1b[1;33m[Memory Extraction] Starting background long-term memory extraction...\x1b[0m', agentId, ownerId })
       
-      const client = getOpenAIClient()
+      const client = await getOpenAIClient()
       const chatHistoryText = chatHistory
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n')

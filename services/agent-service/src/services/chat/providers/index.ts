@@ -9,7 +9,9 @@ import type {
   ProviderModelResult,
 } from './types.js'
 
-type ProviderHandler = (request: ProviderModelRequest) => ProviderModelResult
+type ProviderHandler = (
+  request: ProviderModelRequest
+) => ProviderModelResult | Promise<ProviderModelResult>
 
 const PROVIDER_HANDLERS: Record<ChatProvider, ProviderHandler> = {
   openai: createOpenAIModel,
@@ -22,12 +24,12 @@ const PROVIDER_HANDLERS: Record<ChatProvider, ProviderHandler> = {
   },
 }
 
-export function createModelByProvider(
+export async function createModelByProvider(
   provider: ChatProvider,
   request: ProviderModelRequest
-): ProviderModelResult {
+): Promise<ProviderModelResult> {
   const handler = PROVIDER_HANDLERS[provider]
-  return handler(request)
+  return await handler(request)
 }
 
 export type {

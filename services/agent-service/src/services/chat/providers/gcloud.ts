@@ -2,14 +2,19 @@ import { ChatOpenAI } from '@langchain/openai'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from '../../gcloud.js'
 import type { ProviderModelRequest, ProviderModelResult } from './types.js'
 
-export function createGcloudModel({
+export async function createGcloudModel({
   model,
   reasoningEffort,
-}: ProviderModelRequest): ProviderModelResult {
+}: ProviderModelRequest): Promise<ProviderModelResult> {
+  const [apiKey, baseURL] = await Promise.all([
+    getGcloudAccessToken(),
+    getGcloudOpenAIBaseUrl(),
+  ])
+
   return {
     provider: 'gcloud',
     model: new ChatOpenAI({
-      apiKey: getGcloudAccessToken(),
+      apiKey,
       model,
       temperature: 0.7,
       modelKwargs:
@@ -20,7 +25,7 @@ export function createGcloudModel({
             },
       __includeRawResponse: true,
       configuration: {
-        baseURL: getGcloudOpenAIBaseUrl(),
+        baseURL,
       },
     }),
   }

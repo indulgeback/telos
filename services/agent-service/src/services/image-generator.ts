@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { GoogleGenAI } from '@google/genai'
 import { WorkspaceManager } from './workspace.js'
 import { logger } from '../config/logger.js'
-import { getGcloudAccessToken, getGcloudProjectId } from './gcloud.js'
+import { getGcloudProjectId } from './gcloud.js'
 import { config } from '../config/index.js'
 
 const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview'
@@ -356,7 +356,7 @@ export async function executeGenerateImage(
 
   // Try 2: Vertex AI Mode (via local ADC)
   try {
-    const projectId = getGcloudProjectId()
+    const projectId = await getGcloudProjectId()
     const client = new GoogleGenAI({
       vertexai: true,
       project: projectId,

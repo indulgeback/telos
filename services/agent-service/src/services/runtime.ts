@@ -373,7 +373,7 @@ function inferProviderFromModel(modelKey: string): RuntimeProvider {
   return 'openai'
 }
 
-function providerConfig(provider: RuntimeProvider) {
+async function providerConfig(provider: RuntimeProvider) {
   switch (provider) {
     case 'deepseek':
       return {
@@ -399,13 +399,18 @@ function providerConfig(provider: RuntimeProvider) {
         baseURL: config.shortapiBaseUrl,
         missingMessage: 'SHORTAPI_API_KEY is required for ShortAPI agent runs',
       }
-    case 'gcloud':
+    case 'gcloud': {
+      const [apiKey, baseURL] = await Promise.all([
+        getGcloudAccessToken(),
+        getGcloudOpenAIBaseUrl(),
+      ])
       return {
-        apiKey: getGcloudAccessToken(),
-        baseURL: getGcloudOpenAIBaseUrl(),
+        apiKey,
+        baseURL,
         missingMessage:
           'Google Cloud authentication is required for Gemini agent runs',
       }
+    }
     case 'openai':
     default:
       return {
@@ -829,7 +834,7 @@ export class AgentRuntimeService {
     const provider = configuredModel
       ? normalizeRuntimeProvider(configuredModel.provider)
       : inferProviderFromModel(normalizedModelKey)
-    const providerOptions = providerConfig(provider)
+    const providerOptions = await providerConfig(provider)
     if (!providerOptions.apiKey) {
       throw new Error(providerOptions.missingMessage)
     }
