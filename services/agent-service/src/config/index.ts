@@ -50,6 +50,7 @@ export const config = {
     process.env.GOOGLE_CLOUD_LOCATION ||
     process.env.VERTEX_AI_LOCATION ||
     'global',
+  gcloudChatLocation: process.env.GCLOUD_CHAT_LOCATION || 'global',
   gcloudAccessToken:
     process.env.GCLOUD_ACCESS_TOKEN ||
     process.env.GOOGLE_OAUTH_ACCESS_TOKEN ||

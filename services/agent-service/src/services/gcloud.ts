@@ -47,7 +47,7 @@ export async function getGcloudAccessToken(): Promise<string> {
 
 export async function getGcloudOpenAIBaseUrl(): Promise<string> {
   const projectId = await getGcloudProjectId()
-  const location = config.gcloudLocation || 'global'
+  const location = config.gcloudChatLocation
   const host =
     location === 'global'
       ? 'https://aiplatform.googleapis.com'

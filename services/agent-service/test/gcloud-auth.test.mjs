@@ -12,6 +12,8 @@ describe('Google Cloud authentication', () => {
     const script = `
       process.env.GCLOUD_PROJECT_ID = 'telos-test-project'
       process.env.GCLOUD_ACCESS_TOKEN = 'test-access-token'
+      process.env.GCLOUD_LOCATION = 'us-central1'
+      process.env.GCLOUD_CHAT_LOCATION = 'global'
       const auth = await import(${JSON.stringify(moduleUrl)})
       console.log('GCLOUD_AUTH_RESULT=' + JSON.stringify({
         projectId: await auth.getGcloudProjectId(),

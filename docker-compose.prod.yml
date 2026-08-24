@@ -214,6 +214,9 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=${GCLOUD_ADC_PATH:-/secrets/gcp-adc.json}
       - GCLOUD_PROJECT_ID=${GCLOUD_PROJECT_ID:-}
       - GCLOUD_LOCATION=${GCLOUD_LOCATION:-us-central1}
+      # Gemini 3.x OpenAI-compatible chat models are published on the global endpoint.
+      # Keep GCLOUD_LOCATION regional for embeddings/images.
+      - GCLOUD_CHAT_LOCATION=${GCLOUD_CHAT_LOCATION:-global}
       - VERTEX_IMAGE_MODEL=${VERTEX_IMAGE_MODEL:-gemini-2.5-flash-image}
     depends_on:
       registry:
