@@ -5,6 +5,7 @@ import { toSnakeCase } from '../utils/serializer.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
 import { cancelAgentRun } from '../services/run-queue.js'
 import { safeJsonStringify } from '../utils/json.js'
+import { normalizeRunEventCursor } from '../services/run-event-cursor.js'
 import {
   cleanupRunEvents,
   readRunEvents,
@@ -121,7 +122,9 @@ runsRouter.get('/:id/stream', async c => {
         event => {
           sendPayload(event.payload, event.sequence)
         },
-        history[history.length - 1]?.id ?? lastSentSequence ?? '0-0'
+        normalizeRunEventCursor(
+          history[history.length - 1]?.id || lastSentSequence
+        )
       )
 
       const latest = await prisma.agentRun.findUnique({

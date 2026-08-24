@@ -13,6 +13,7 @@
 import Redis from 'ioredis'
 import { config } from '../config/index.js'
 import { logger } from '../config/index.js'
+import { normalizeRunEventCursor } from './run-event-cursor.js'
 
 const EVENT_TTL_SECONDS = 30 * 60
 const READ_BLOCK_MS = 5_000
@@ -142,7 +143,7 @@ export function subscribeRunEvents(
       logger.warn({ msg: 'run-events subscriber connection error', runId, err })
     )
     try {
-      let lastId = from ?? '0-0'
+      let lastId = normalizeRunEventCursor(from)
       while (!closed) {
         const result = (await reader.xread(
           'BLOCK',
