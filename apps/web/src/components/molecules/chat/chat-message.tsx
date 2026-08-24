@@ -3,7 +3,7 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import {
-  AiLottieIcon,
+  LiquidOrbIcon,
   Button,
   Card,
   Dialog,
@@ -287,13 +287,13 @@ function ChatMessageInner({
         <button
           type='button'
           onClick={handleAssistantAvatarClick}
-          aria-label='Animate assistant avatar'
+          aria-label='Animate liquid orb avatar'
           className={cn(
             'flex size-14 shrink-0 items-center justify-center outline-none',
             isAvatarBouncing && 'chat-assistant-avatar-jelly'
           )}
         >
-          <AiLottieIcon className='size-14' play={isLoading} />
+          <LiquidOrbIcon className='size-14' play={isLoading} />
         </button>
       )}
 

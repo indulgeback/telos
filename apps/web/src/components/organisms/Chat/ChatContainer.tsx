@@ -10,7 +10,7 @@ import {
 } from 'react'
 import Image from 'next/image'
 import {
-  AiLottieIcon,
+  LiquidOrbIcon,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -115,6 +115,7 @@ export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  runId?: string | null
   images?: string[]
   contentParts?: AssistantContentPart[]
   toolCalls?: ToolCallPreview[]
@@ -151,7 +152,7 @@ export interface ChatContainerProps {
   onInputChange: (value: string) => void
   onSend: (messageContent?: string) => void
   onStop: () => void
-  onRetry: () => void
+  onRetry: (runId: string) => void
   onCopy: (content: string, id: string) => void
   onClear: () => void
   onScrollToBottom: () => void
@@ -599,7 +600,7 @@ export function ChatContainer({
               <div className='flex min-h-[50vh] flex-col items-center justify-center py-10'>
                 <div className='mb-8 text-center'>
                   <div className='mb-4 inline-flex items-center justify-center'>
-                    <AiLottieIcon className='size-20' />
+                    <LiquidOrbIcon className='size-20' />
                   </div>
                   <h2 className='mb-2 text-xl font-semibold'>
                     {emptyStateTitle}
@@ -668,13 +669,15 @@ export function ChatContainer({
                     .find(m => m.role === 'assistant')
                   const isLastAssistantMessage =
                     message.role === 'assistant' &&
-                    message.id === lastAssistantMessage?.id
+                    message.id === lastAssistantMessage?.id &&
+                    message.id === messages[messages.length - 1]?.id
                   const isCurrentGenerating =
                     message.id === activeAssistantId ||
                     message.id === 'pending-assistant'
                   const showRetry =
                     isLastAssistantMessage &&
                     lastUserMessage &&
+                    Boolean(message.runId) &&
                     message.id !== activeAssistantId
 
                   return (
@@ -691,7 +694,11 @@ export function ChatContainer({
                       copyLabel={copyLabel}
                       copiedLabel={copiedLabel}
                       isLoading={isCurrentGenerating}
-                      onRetry={showRetry ? onRetry : undefined}
+                      onRetry={
+                        showRetry && message.runId
+                          ? () => onRetry(message.runId!)
+                          : undefined
+                      }
                       retryLabel={retryLabel}
                       assistantModelLabel={message.modelLabel}
                       usedModelLabel={usedModelLabel}

@@ -1,7 +1,7 @@
 import { User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from './avatar'
-import { AiLottieIcon } from './ai-lottie-icon'
+import { LiquidOrbIcon } from './liquid-orb-icon'
 
 type ChatAvatarType = 'assistant' | 'user'
 
@@ -31,15 +31,5 @@ export function ChatAvatar({
     )
   }
 
-  // Assistant 使用默认图标
-  return (
-    <div
-      className={cn(
-        'flex size-8 shrink-0 items-center justify-center rounded-full border bg-primary/10',
-        className
-      )}
-    >
-      <AiLottieIcon className='size-5' />
-    </div>
-  )
+  return <LiquidOrbIcon className={cn('size-8', className)} />
 }

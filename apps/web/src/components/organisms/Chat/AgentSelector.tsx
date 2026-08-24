@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  AiLottieIcon,
+  LiquidOrbIcon,
   Select,
   SelectContent,
   SelectItem,
@@ -60,7 +60,7 @@ export function AgentSelector({
   const getTypeIcon = (type: Agent['type']) => {
     switch (type) {
       case 'system':
-        return <AiLottieIcon className='size-3.5 shrink-0' />
+        return <LiquidOrbIcon className='size-3.5 shrink-0' />
       case 'private':
         return <Lock className='size-3.5 shrink-0' />
       case 'public':

@@ -6,7 +6,6 @@ import { agentSessionService } from '../services/session.js'
 import { PlanStore } from '../services/plan-store.js'
 import type { StructuredPlan } from '../services/plan-tools.js'
 
-
 /**
  * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
  */
@@ -41,6 +40,7 @@ import {
   findDefaultAccessibleAgent,
 } from '../services/agent-access.js'
 import { enqueueAgentRun } from '../services/run-queue.js'
+import { canReplaceLatestAssistant } from '../services/chat-retry.js'
 
 export const chatRouter = new Hono()
 
@@ -51,9 +51,10 @@ async function handleChat(c: Context) {
 
   // 解析显式 skill 触发（对标 Codex 的 $skill-name 语法）。
   // 若触发，剥离前缀，用户看到 / 落库的是纯净消息，skill 全文由 runtime 注入。
-  const { skillName: forceSkillName, message: skillMessage } =
+  const { skillName: parsedSkillName, message: skillMessage } =
     parseExplicitSkillTrigger(input)
-  const effectiveInput = forceSkillName ? skillMessage : input
+  let forceSkillName = parsedSkillName
+  let effectiveInput = forceSkillName ? skillMessage : input
 
   const ownerId = getCurrentUserId(c)
   const defaultAgent =
@@ -76,11 +77,101 @@ async function handleChat(c: Context) {
     firstInput: effectiveInput,
     metadata: { source: 'chat' },
   })
-  const userMessage = await agentSessionService.appendUserMessage(
-    thread.id,
-    effectiveInput,
-    Array.isArray(body.images) ? body.images : []
-  )
+  const retryRunId =
+    typeof body.retryRunId === 'string' && body.retryRunId.trim()
+      ? body.retryRunId.trim()
+      : null
+  let replaceAssistantMessageId: string | null = null
+  let userMessage
+
+  if (retryRunId) {
+    const retryRun = await prisma.agentRun.findFirst({
+      where: {
+        id: retryRunId,
+        threadId: thread.id,
+        agentId,
+      },
+      select: {
+        status: true,
+        metadata: true,
+      },
+    })
+    if (!retryRun) return fail(c, 404, 'Retry run not found')
+    if (retryRun.status === 'queued' || retryRun.status === 'running') {
+      return fail(c, 409, 'Run is still in progress')
+    }
+
+    const retryMetadata =
+      retryRun.metadata && typeof retryRun.metadata === 'object'
+        ? (retryRun.metadata as Record<string, unknown>)
+        : {}
+    const retryUserMessageId =
+      typeof retryMetadata.userMessageId === 'string'
+        ? retryMetadata.userMessageId
+        : ''
+    const previousReplacementMessageId =
+      typeof retryMetadata.replaceAssistantMessageId === 'string'
+        ? retryMetadata.replaceAssistantMessageId
+        : null
+    if (!retryUserMessageId) {
+      return fail(c, 409, 'Run cannot be retried safely')
+    }
+
+    const retryUserMessage = await prisma.agentMessage.findFirst({
+      where: {
+        id: retryUserMessageId,
+        threadId: thread.id,
+        role: 'user',
+      },
+    })
+    if (!retryUserMessage) {
+      return fail(c, 409, 'Retry user message not found')
+    }
+
+    const laterUserMessage = await prisma.agentMessage.findFirst({
+      where: {
+        threadId: thread.id,
+        role: 'user',
+        sequence: { gt: retryUserMessage.sequence },
+      },
+      select: { id: true },
+    })
+    if (laterUserMessage) {
+      return fail(c, 409, 'Only the latest turn can be retried')
+    }
+
+    const latestAssistantMessage = await prisma.agentMessage.findFirst({
+      where: {
+        threadId: thread.id,
+        role: 'assistant',
+        sequence: { gt: retryUserMessage.sequence },
+      },
+      orderBy: { sequence: 'desc' },
+      select: { id: true, runId: true },
+    })
+    if (
+      !canReplaceLatestAssistant(
+        latestAssistantMessage,
+        retryRunId,
+        previousReplacementMessageId
+      )
+    ) {
+      return fail(c, 409, 'Only the latest answer can be retried')
+    }
+    replaceAssistantMessageId = latestAssistantMessage?.id ?? null
+    userMessage = retryUserMessage
+    effectiveInput = retryUserMessage.content
+    forceSkillName =
+      typeof retryMetadata.forceSkillName === 'string'
+        ? retryMetadata.forceSkillName
+        : null
+  } else {
+    userMessage = await agentSessionService.appendUserMessage(
+      thread.id,
+      effectiveInput,
+      Array.isArray(body.images) ? body.images : []
+    )
+  }
   const modelOverride =
     typeof body.model === 'string' && body.model.trim()
       ? body.model.trim()
@@ -115,6 +206,8 @@ async function handleChat(c: Context) {
           userMessageId: userMessage.id,
           approvedPlan,
           forceSkillName: forceSkillName || null,
+          retryOfRunId: retryRunId,
+          replaceAssistantMessageId,
         },
       })
 
@@ -131,6 +224,7 @@ async function handleChat(c: Context) {
     planMode,
     approvedPlan,
     forceSkillName: forceSkillName || undefined,
+    replaceAssistantMessageId,
     userId: ownerId,
   })
 

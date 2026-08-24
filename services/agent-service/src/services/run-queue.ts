@@ -17,6 +17,7 @@ export interface AgentRunJobData {
   planMode?: 'plan' | 'execute'
   approvedPlan?: StructuredPlan | null
   forceSkillName?: string
+  replaceAssistantMessageId?: string | null
   userId?: string
 }
 
@@ -78,7 +79,10 @@ async function processAgentRun(job: Job<AgentRunJobData>) {
   activeControllers.set(data.runId, controller)
 
   try {
-    const runtimeContext = await agentSessionService.buildRuntimeInput(data.threadId)
+    const runtimeContext = await agentSessionService.buildRuntimeInput(
+      data.threadId,
+      { excludeMessageId: data.replaceAssistantMessageId }
+    )
     await executeAgentRun({
       ...data,
       runtimeInput: runtimeContext.input,
@@ -133,9 +137,12 @@ async function recoverQueuedRuns() {
       agentId: run.agentId,
       threadId: run.threadId,
       ownerId: run.thread.ownerId,
-      input: typeof input.effectiveInput === 'string' ? input.effectiveInput : '',
+      input:
+        typeof input.effectiveInput === 'string' ? input.effectiveInput : '',
       modelOverride:
-        typeof input.model === 'string' && input.model.trim() ? input.model : null,
+        typeof input.model === 'string' && input.model.trim()
+          ? input.model
+          : null,
       reasoningEffort:
         input.reasoningEffort === 'minimal' ||
         input.reasoningEffort === 'low' ||
@@ -155,6 +162,10 @@ async function recoverQueuedRuns() {
         typeof metadata.forceSkillName === 'string'
           ? metadata.forceSkillName
           : undefined,
+      replaceAssistantMessageId:
+        typeof metadata.replaceAssistantMessageId === 'string'
+          ? metadata.replaceAssistantMessageId
+          : null,
       userId: run.thread.ownerId ?? undefined,
     })
   }
@@ -163,10 +174,14 @@ async function recoverQueuedRuns() {
 export async function startAgentRunWorker() {
   if (worker) return worker
 
-  worker = new Worker<AgentRunJobData, void, 'run'>(QUEUE_NAME, processAgentRun, {
-    connection,
-    concurrency: config.agentRunWorkerConcurrency,
-  })
+  worker = new Worker<AgentRunJobData, void, 'run'>(
+    QUEUE_NAME,
+    processAgentRun,
+    {
+      connection,
+      concurrency: config.agentRunWorkerConcurrency,
+    }
+  )
 
   worker.on('failed', async (job, error) => {
     const runId = job?.data.runId

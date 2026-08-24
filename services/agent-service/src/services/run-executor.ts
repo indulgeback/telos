@@ -20,6 +20,7 @@ export interface ExecuteAgentRunOptions {
   planMode?: 'plan' | 'execute'
   approvedPlan?: StructuredPlan | null
   forceSkillName?: string
+  replaceAssistantMessageId?: string | null
   userId?: string
   signal?: AbortSignal
   persistEvents?: boolean
@@ -341,7 +342,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
           if (event.type === 'tool_end') {
             const toolName = toolNameFromPayload(event.payload)
             const toolCallId =
-              activeToolCalls.get(toolName) || toolCallIdFromPayload(event.payload)
+              activeToolCalls.get(toolName) ||
+              toolCallIdFromPayload(event.payload)
             emit('agent.tool_call.output', {
               response_id: options.runId,
               item_id: toolCallId,
@@ -468,12 +470,23 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       // clarify 命中时，工具返回的 JSON（clarify_created...）只是内部信号，
       // 不应作为正文落库/下发，用空串占位，避免状态文本泄漏给用户
       const persistOutput = structuredClarify ? '' : finalOutput
-      const savedMessage = await agentSessionService.appendAssistantMessage(
-        options.threadId,
-        options.runId,
-        persistOutput,
-        assistantParts
-      )
+      const replacedMessage = options.replaceAssistantMessageId
+        ? await agentSessionService.replaceAssistantMessage(
+            options.replaceAssistantMessageId,
+            options.threadId,
+            options.runId,
+            persistOutput,
+            assistantParts
+          )
+        : null
+      const savedMessage =
+        replacedMessage ||
+        (await agentSessionService.appendAssistantMessage(
+          options.threadId,
+          options.runId,
+          persistOutput,
+          assistantParts
+        ))
       planMessageId = savedMessage?.id
       agentSessionService.scheduleSummaries(
         options.threadId,

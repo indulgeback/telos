@@ -53,7 +53,9 @@ function buildMemoryInstructions(options: {
     const memoryList = options.longTermMemories
       .map(item => `- ${item}`)
       .join('\n')
-    blocks.push(`# Long-term Memory\nHere are relevant facts from previous conversations with the user:\n${memoryList}`)
+    blocks.push(
+      `# Long-term Memory\nHere are relevant facts from previous conversations with the user:\n${memoryList}`
+    )
   }
 
   if (options.threadSummary?.trim()) {
@@ -61,7 +63,9 @@ function buildMemoryInstructions(options: {
   }
 
   if (options.approvedPlan?.trim()) {
-    blocks.push(`# Approved Plan\n用户已批准以下执行计划，请严格参照执行：\n${options.approvedPlan.trim()}`)
+    blocks.push(
+      `# Approved Plan\n用户已批准以下执行计划，请严格参照执行：\n${options.approvedPlan.trim()}`
+    )
   }
 
   return blocks.join('\n\n')
@@ -108,7 +112,11 @@ function messageToAgentInput(message: {
       ? message.role
       : 'user'
 
-  if (role === 'user' && Array.isArray(message.parts) && message.parts.length > 0) {
+  if (
+    role === 'user' &&
+    Array.isArray(message.parts) &&
+    message.parts.length > 0
+  ) {
     const imageUrls: string[] = []
     message.parts.forEach((part: any) => {
       if (!part || typeof part !== 'object') return
@@ -116,7 +124,10 @@ function messageToAgentInput(message: {
       if (part.type === 'image_url' && part.image_url) {
         if (typeof part.image_url === 'string') {
           url = part.image_url
-        } else if (typeof part.image_url === 'object' && typeof part.image_url.url === 'string') {
+        } else if (
+          typeof part.image_url === 'object' &&
+          typeof part.image_url.url === 'string'
+        ) {
           url = part.image_url.url
         }
       } else if (part.type === 'image' && typeof part.url === 'string') {
@@ -254,11 +265,12 @@ export class AgentSessionService {
             const url = item.trim()
             if (
               url &&
-              (/^https?:\/\//i.test(url) || /^data:image\/[a-zA-Z]+;base64,/i.test(url))
+              (/^https?:\/\//i.test(url) ||
+                /^data:image\/[a-zA-Z]+;base64,/i.test(url))
             ) {
               return {
                 type: 'image_url',
-                image_url: { url }
+                image_url: { url },
               }
             }
           } else if (item && typeof item === 'object') {
@@ -291,7 +303,44 @@ export class AgentSessionService {
     })
   }
 
-  async buildRuntimeInput(threadId: string): Promise<RuntimeContextInput> {
+  async replaceAssistantMessage(
+    messageId: string,
+    threadId: string,
+    runId: string,
+    finalOutput: string,
+    parts?: unknown
+  ) {
+    return prisma.$transaction(async tx => {
+      const existing = await tx.agentMessage.findFirst({
+        where: {
+          id: messageId,
+          threadId,
+          role: 'assistant',
+        },
+        select: { id: true },
+      })
+      if (!existing) return null
+
+      const message = await tx.agentMessage.update({
+        where: { id: messageId },
+        data: {
+          runId,
+          content: finalOutput,
+          parts: (parts ?? []) as any,
+        },
+      })
+      await tx.agentThread.update({
+        where: { id: threadId },
+        data: { lastMessageAt: new Date() },
+      })
+      return message
+    })
+  }
+
+  async buildRuntimeInput(
+    threadId: string,
+    options?: { excludeMessageId?: string | null }
+  ): Promise<RuntimeContextInput> {
     const thread = await prisma.agentThread.findUnique({
       where: { id: threadId },
       include: {
@@ -301,7 +350,12 @@ export class AgentSessionService {
     if (!thread) throw new Error('Thread not found')
 
     const messages = await prisma.agentMessage.findMany({
-      where: { threadId },
+      where: {
+        threadId,
+        ...(options?.excludeMessageId
+          ? { id: { not: options.excludeMessageId } }
+          : {}),
+      },
       orderBy: { sequence: 'desc' },
       take: RECENT_MESSAGE_LIMIT,
       select: { role: true, content: true, parts: true },
@@ -334,7 +388,11 @@ export class AgentSessionService {
     }
   }
 
-  scheduleSummaries(threadId: string, agentId: string, ownerId?: string | null) {
+  scheduleSummaries(
+    threadId: string,
+    agentId: string,
+    ownerId?: string | null
+  ) {
     void this.updateSummaries(threadId, agentId, ownerId).catch(() => undefined)
   }
 

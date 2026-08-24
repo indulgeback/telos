@@ -61,6 +61,7 @@ import {
 } from 'lucide-react'
 import { VoiceAuraOrb } from '@/components/molecules/chat/VoiceAuraOrb'
 import { toast } from 'sonner'
+import { getLatestRetryTarget, replaceLatestAssistant } from './chat-retry'
 
 const AUTO_SCROLL_THRESHOLD_PX = 120
 const IMAGE_PLACEHOLDER_PROMPT = 'Please describe this image'
@@ -2446,6 +2447,7 @@ export function ChatView() {
       return {
         id: message.id,
         role: message.role,
+        runId: message.runId,
         content: textContent,
         isVoiceTranscript:
           message.role === 'user'
@@ -2883,38 +2885,34 @@ export function ChatView() {
     setUploadedImageUrls(prev => prev.filter((_, i) => i !== index))
   }
 
-  const handleRetry = () => {
-    if (!lastUserMessage || isLoading) return
+  const handleRetry = (retryRunId: string) => {
+    const retryTarget = getLatestRetryTarget(messages)
+    if (!retryTarget || retryTarget.runId !== retryRunId || isLoading) {
+      return
+    }
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
     pendingReplyModelLabelRef.current = selectedModelDisplayLabel
     const assistantMessageId = createClientMessageId('assistant')
     setActiveAssistantId(assistantMessageId)
-    setMessages(prev => {
-      const lastAssistantIndex = [...prev]
-        .reverse()
-        .findIndex(message => message.role === 'assistant')
-      if (lastAssistantIndex === -1) {
-        return [
-          ...prev,
-          { id: assistantMessageId, role: 'assistant', content: '', parts: [] },
-        ]
-      }
-      const removeIndex = prev.length - 1 - lastAssistantIndex
-      return [
-        ...prev.slice(0, removeIndex),
-        { id: assistantMessageId, role: 'assistant', content: '', parts: [] },
-      ]
-    })
+    setMessages(prev =>
+      replaceLatestAssistant(prev, {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        parts: [],
+      })
+    )
     void streamAgentMessage(
       {
         messages: [
           {
             role: 'user',
-            parts: [{ type: 'text', text: lastUserMessage }],
+            parts: [{ type: 'text', text: retryTarget.userContent }],
           },
         ],
         ...buildRequestBody(undefined, currentThreadId),
+        retryRunId,
       },
       assistantMessageId
     )
