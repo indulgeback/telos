@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   isReadOnlyTool,
   validatePlanInput,
+  parseApprovedPlan,
   executeCreatePlan,
   executeUpdatePlanStatus,
   buildCreatePlanTool,
@@ -14,15 +15,31 @@ import { PlanStore } from '../dist/services/plan-store.js'
 describe('isReadOnlyTool', () => {
   it('builtin 工具判定为只读', () => {
     assert.strictEqual(
-      isReadOnlyTool({ endpoint: { kind: 'builtin' } }),
+      isReadOnlyTool({
+        name: 'calculator',
+        endpoint: { kind: 'builtin' },
+      }),
       true
     )
   })
 
   it('builtin 工具（大写 KIND）判定为只读', () => {
     assert.strictEqual(
-      isReadOnlyTool({ endpoint: { kind: 'Builtin' } }),
+      isReadOnlyTool({
+        name: 'calculator',
+        endpoint: { kind: 'Builtin' },
+      }),
       true
+    )
+  })
+
+  it('未知 builtin 默认拒绝', () => {
+    assert.strictEqual(
+      isReadOnlyTool({
+        name: 'unknown_builtin',
+        endpoint: { kind: 'builtin' },
+      }),
+      false
     )
   })
 
@@ -55,10 +72,7 @@ describe('isReadOnlyTool', () => {
   })
 
   it('HTTP 工具默认 method（无 method 字段）判定为只读', () => {
-    assert.strictEqual(
-      isReadOnlyTool({ endpoint: { kind: 'http' } }),
-      true
-    )
+    assert.strictEqual(isReadOnlyTool({ endpoint: { kind: 'http' } }), true)
   })
 
   it('endpoint 为 null 时判定为非只读', () => {
@@ -67,6 +81,44 @@ describe('isReadOnlyTool', () => {
 
   it('endpoint 为非对象时判定为非只读', () => {
     assert.strictEqual(isReadOnlyTool({ endpoint: 'invalid' }), false)
+  })
+})
+
+// ===== parseApprovedPlan 客户端已批准计划边界测试 =====
+describe('parseApprovedPlan', () => {
+  const validPlan = {
+    summary: '执行已批准计划',
+    steps: [{ description: '完成第一步' }],
+  }
+
+  it('接受对象或 JSON 字符串，空值返回 null', () => {
+    assert.deepStrictEqual(parseApprovedPlan(validPlan), validPlan)
+    assert.deepStrictEqual(
+      parseApprovedPlan(JSON.stringify(validPlan)),
+      validPlan
+    )
+    assert.strictEqual(parseApprovedPlan(null), null)
+  })
+
+  it('拒绝非法 JSON 和非对象 step', () => {
+    assert.throws(() => parseApprovedPlan('{bad json'), /JSON/)
+    assert.throws(
+      () => parseApprovedPlan({ summary: 'x', steps: [null] }),
+      /step/
+    )
+  })
+
+  it('拒绝超过上限的步骤数', () => {
+    assert.throws(
+      () =>
+        parseApprovedPlan({
+          summary: 'x',
+          steps: Array.from({ length: 21 }, (_, index) => ({
+            description: `step ${index}`,
+          })),
+        }),
+      /20/
+    )
   })
 })
 
@@ -129,7 +181,9 @@ describe('executeCreatePlan', () => {
     let captured = null
     const result = executeCreatePlan(
       { summary: '测试计划', steps: [{ description: '第一步' }] },
-      plan => { captured = plan }
+      plan => {
+        captured = plan
+      }
     )
     const parsed = JSON.parse(result)
     assert.strictEqual(parsed.plan_created, true)
@@ -241,7 +295,10 @@ describe('PlanStore', () => {
   it('初始状态全部为 pending', () => {
     const updates = []
     const store = new PlanStore(samplePlan, u => updates.push(u))
-    assert.deepStrictEqual([...store.getStatuses()], ['pending', 'pending', 'pending'])
+    assert.deepStrictEqual(
+      [...store.getStatuses()],
+      ['pending', 'pending', 'pending']
+    )
     assert.strictEqual(store.isAllDone(), false)
   })
 
@@ -342,12 +399,20 @@ describe('PlanStore', () => {
 
   // ===== finalize 兜底收尾测试 =====
 
-  it('finalize 把残留 in_progress 标记为 completed', () => {
+  it('finalize 把残留 in_progress 标记为 failed，不伪造完成', () => {
     const updates = []
     const store = new PlanStore(samplePlan, u => updates.push(u))
     store.updateStep(0, 'in_progress')
     store.finalize()
-    assert.deepStrictEqual([...store.getStatuses()], ['completed', 'skipped', 'skipped'])
+    assert.deepStrictEqual(
+      [...store.getStatuses()],
+      ['failed', 'skipped', 'skipped']
+    )
+    assert.deepStrictEqual(updates.at(-3), {
+      step_index: 0,
+      status: 'failed',
+      note: 'Run ended before the step was explicitly completed',
+    })
   })
 
   it('finalize 把残留 pending 标记为 skipped', () => {
@@ -359,7 +424,15 @@ describe('PlanStore', () => {
     store.updateStep(1, 'completed')
     // step 2 仍是 pending
     store.finalize()
-    assert.deepStrictEqual([...store.getStatuses()], ['completed', 'completed', 'skipped'])
+    assert.deepStrictEqual(
+      [...store.getStatuses()],
+      ['completed', 'completed', 'skipped']
+    )
+    assert.deepStrictEqual(updates.at(-1), {
+      step_index: 2,
+      status: 'skipped',
+      note: 'Run ended before the step started',
+    })
   })
 
   it('finalize 对已完成的计划不产生副作用', () => {

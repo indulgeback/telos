@@ -3,14 +3,18 @@ import { logger } from '../config/index.js'
 import { asRecord } from '../utils/json.js'
 import { prisma } from './db.js'
 import type { AgentRunPersistence } from './persistence.js'
-import { executeCode, executeWorkspaceCommand } from './sandbox.js'
+import {
+  executeCode,
+  executeWorkspaceCommand,
+  isWorkspaceSandboxAvailable,
+} from './sandbox.js'
 import { retrieveMemories } from './memory.js'
 import { WorkspaceManager, virtualReaddir } from './workspace.js'
 import path from 'path'
 import fs from 'fs'
 import { executeGenerateImage } from './image-generator.js'
 import { formatCurrentTime } from './current-time.js'
-import { exec } from 'child_process'
+import { toolRequiresApproval } from './tool-approval-policy.js'
 
 type BuiltinToolKey =
   | 'get_current_time'
@@ -133,7 +137,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_list_directory',
     name: 'list_directory',
     displayName: '列出目录',
-    description: '列出指定目录下的子文件和子目录列表。如果不传路径，默认列出工作区根目录。',
+    description:
+      '列出指定目录下的子文件和子目录列表。如果不传路径，默认列出工作区根目录。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'list_directory' },
     parameters: {
@@ -141,7 +146,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
       properties: {
         path: {
           type: 'string',
-          description: '要列出的目录路径（建议传入工作区内的相对路径，默认为 \'.\'）',
+          description:
+            "要列出的目录路径（建议传入工作区内的相对路径，默认为 '.'）",
         },
       },
       additionalProperties: false,
@@ -152,7 +158,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_view_file',
     name: 'view_file',
     displayName: '查看文件',
-    description: '只读查看指定文件的全部或部分行内容（行号从 1 开始）。查看前会自动确保本地存在该文件的缓存。',
+    description:
+      '只读查看指定文件的全部或部分行内容（行号从 1 开始）。查看前会自动确保本地存在该文件的缓存。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'view_file' },
     parameters: {
@@ -180,7 +187,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_write_file',
     name: 'write_file',
     displayName: '新建文件',
-    description: '在指定路径新建文件并写入内容。若文件已存在则会覆盖。写入后会自动实时同步到云存储。',
+    description:
+      '在指定路径新建文件并写入内容。若文件已存在则会覆盖。写入后会自动实时同步到云存储。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'write_file' },
     parameters: {
@@ -204,7 +212,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_patch_file',
     name: 'patch_file',
     displayName: '修改文件',
-    description: '通过精确字符串匹配和替换来局部修改现有文件。如果 old_content 在文件中不存在或者不唯一，将会报错。修改完成后会自动实时同步到云存储。',
+    description:
+      '通过精确字符串匹配和替换来局部修改现有文件。如果 old_content 在文件中不存在或者不唯一，将会报错。修改完成后会自动实时同步到云存储。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'patch_file' },
     parameters: {
@@ -240,7 +249,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
       properties: {
         query: {
           type: 'string',
-          description: '要搜索的正则表达式模式或字符串（如 “function getUser”）',
+          description:
+            '要搜索的正则表达式模式或字符串（如 “function getUser”）',
         },
       },
       required: ['query'],
@@ -252,7 +262,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_file_search',
     name: 'file_search',
     displayName: '文件搜索',
-    description: '在工作区内查找匹配文件名模式（如 glob 模式：*.tsx，*repo* 等）的文件相对路径。',
+    description:
+      '在工作区内查找匹配文件名模式（如 glob 模式：*.tsx，*repo* 等）的文件相对路径。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'file_search' },
     parameters: {
@@ -272,7 +283,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_run_command',
     name: 'run_command',
     displayName: '运行命令',
-    description: '在宿主机工作区根目录下执行指定的 shell 终端命令，并返回其标准输出与错误。最多允许执行 30 秒。',
+    description:
+      '在隔离且断网的临时容器中执行工作区 shell 命令，并返回标准输出与错误。最多允许执行 30 秒。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'run_command' },
     parameters: {
@@ -280,7 +292,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
       properties: {
         command: {
           type: 'string',
-          description: '要执行的完整 shell 命令（如 pnpm test，go test ./... 等）',
+          description:
+            '要执行的完整 shell 命令（如 pnpm test，go test ./... 等）',
         },
       },
       required: ['command'],
@@ -292,7 +305,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_web_search',
     name: 'web_search',
     displayName: '网络搜索',
-    description: '使用 Tavily API 查询实时互联网的最新信息、第三方文档、API 说明等。输入 query 应为详细清晰的语义搜索词。',
+    description:
+      '使用 Tavily API 查询实时互联网的最新信息、第三方文档、API 说明等。输入 query 应为详细清晰的语义搜索词。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'web_search' },
     parameters: {
@@ -325,29 +339,39 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
       properties: {
         prompt: {
           type: 'string',
-          description: '图像英文文本描述。文生图模式下详细说明服装、材质、风格、氛围、光线；图生图模式下描述希望对输入图像进行的变换或编辑指令。',
+          description:
+            '图像英文文本描述。文生图模式下详细说明服装、材质、风格、氛围、光线；图生图模式下描述希望对输入图像进行的变换或编辑指令。',
         },
         input_image_url: {
           type: 'string',
-          description: '可选参数。提供一张输入图像的 URL 进入图生图模式。模型将基于此图像 + prompt 生成变换后的新图像。适用于风格迁移、换装、局部编辑、背景替换等场景。',
+          description:
+            '可选参数。提供一张输入图像的 URL 进入图生图模式。模型将基于此图像 + prompt 生成变换后的新图像。适用于风格迁移、换装、局部编辑、背景替换等场景。',
         },
         style_preset: {
           type: 'string',
-          enum: ['photo_realistic', 'illustration', 'vibe_card', 'moodboard', 'sketch'],
+          enum: [
+            'photo_realistic',
+            'illustration',
+            'vibe_card',
+            'moodboard',
+            'sketch',
+          ],
           description: '视觉风格预设。默认为 photo_realistic。',
           default: 'photo_realistic',
         },
         aspect_ratio: {
           type: 'string',
           enum: ['1:1', '9:16', '16:9', '4:3', '3:4'],
-          description: '图像比例。9:16 适合故事/氛围卡片，1:1 适合 feed 流展示。',
+          description:
+            '图像比例。9:16 适合故事/氛围卡片，1:1 适合 feed 流展示。',
           default: '9:16',
         },
         reference_image_urls: {
           type: 'array',
           items: { type: 'string' },
           maxItems: 4,
-          description: '可选参数。用于引导风格、颜色或构图的参考图 URL 数组（与 input_image_url 不同，参考图仅作风格参考而非编辑对象）。',
+          description:
+            '可选参数。用于引导风格、颜色或构图的参考图 URL 数组（与 input_image_url 不同，参考图仅作风格参考而非编辑对象）。',
         },
         negative_prompt: {
           type: 'string',
@@ -356,7 +380,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
         model: {
           type: 'string',
           enum: ['gemini', 'gpt-image-2'],
-          description: '指定使用的图像生成模型。默认为 gemini。如果在需要生成带有精确文本、电商海报、促销文字的画面时，强烈建议使用 gpt-image-2。',
+          description:
+            '指定使用的图像生成模型。默认为 gemini。如果在需要生成带有精确文本、电商海报、促销文字的画面时，强烈建议使用 gpt-image-2。',
           default: 'gemini',
         },
       },
@@ -368,12 +393,35 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
 
 const BUILTIN_TOOL_IDS = BUILTIN_TOOL_DEFINITIONS.map(tool => tool.id)
 
+// Keep this list explicit so adding a new builtin cannot accidentally widen
+// the default capability set for every agent.
+export const AUTO_ATTACHED_BUILTIN_TOOL_IDS = BUILTIN_TOOL_IDS.filter(
+  toolId => toolId !== 'builtin_run_command'
+)
+
+/**
+ * Running arbitrary shell commands is an opt-in capability. Keep this check
+ * at runtime so an old database binding cannot silently turn it back on.
+ */
+export function isBuiltinRunCommandEnabled(): boolean {
+  return process.env.ENABLE_BUILTIN_RUN_COMMAND === 'true'
+}
+
+export function isBuiltinRunCommandTool(raw: {
+  endpoint?: unknown
+  id?: string
+  name?: string
+}): boolean {
+  return builtinKeyFromRaw(raw) === 'run_command'
+}
+
 function builtinKeyFromRaw(raw: {
   endpoint?: unknown
   id?: string
   name?: string
 }): BuiltinToolKey | null {
   const endpoint = asRecord(raw.endpoint)
+  const endpointKind = String(endpoint.kind || '').toLowerCase()
   const configured =
     typeof endpoint.builtin === 'string'
       ? endpoint.builtin
@@ -381,7 +429,16 @@ function builtinKeyFromRaw(raw: {
         ? endpoint.tool
         : ''
 
-  const candidate = configured || raw.name || raw.id || ''
+  // An HTTP/custom tool whose display name happens to match a builtin must
+  // remain an endpoint tool. Accept explicit builtin declarations and legacy
+  // builtin IDs only.
+  const declaredBuiltin =
+    endpointKind === 'builtin' ||
+    Boolean(configured) ||
+    Boolean(raw.id?.startsWith('builtin_'))
+  if (!declaredBuiltin) return null
+
+  const candidate = configured || raw.id || raw.name || ''
   if (candidate === 'get_current_time') return 'get_current_time'
   if (candidate === 'calculator') return 'calculator'
   if (candidate === 'code_interpreter') return 'code_interpreter'
@@ -409,6 +466,27 @@ function builtinKeyFromRaw(raw: {
   if (candidate === 'builtin_web_search') return 'web_search'
   if (candidate === 'builtin_generate_image') return 'generate_image'
   return null
+}
+
+/** Filter builtin bindings before constructing SDK tools. */
+export function isBuiltinToolAllowed(raw: {
+  endpoint?: unknown
+  id?: string
+  name?: string
+}): boolean {
+  const builtin = builtinKeyFromRaw(raw)
+  const endpoint = asRecord(raw.endpoint)
+  const declaresBuiltin =
+    String(endpoint.kind || '').toLowerCase() === 'builtin' ||
+    typeof endpoint.builtin === 'string' ||
+    typeof endpoint.tool === 'string' ||
+    Boolean(raw.id?.startsWith('builtin_'))
+  if (declaresBuiltin && !builtin) return false
+  if (builtin === 'code_interpreter') return isWorkspaceSandboxAvailable()
+  if (builtin === 'run_command') {
+    return isBuiltinRunCommandEnabled() && isWorkspaceSandboxAvailable()
+  }
+  return true
 }
 
 function normalizeToolInput(args: unknown): string {
@@ -617,7 +695,13 @@ export function buildBuiltinTool(
   const builtin = builtinKeyFromRaw(raw)
   if (!builtin) return null
 
-  const definition = BUILTIN_TOOL_DEFINITIONS.find(item => item.name === builtin)
+  if (builtin === 'run_command' && !isBuiltinRunCommandEnabled()) {
+    return null
+  }
+
+  const definition = BUILTIN_TOOL_DEFINITIONS.find(
+    item => item.name === builtin
+  )
   const parameters = asRecord(raw.parameters)
 
   return tool({
@@ -627,6 +711,7 @@ export function buildBuiltinTool(
       ? (parameters as any)
       : ((definition?.parameters ?? {}) as any),
     strict: false,
+    needsApproval: toolRequiresApproval(raw),
     async execute(input) {
       await persistence?.event('tool_builtin_start', {
         toolId: raw.id,
@@ -641,27 +726,28 @@ export function buildBuiltinTool(
       } else if (builtin === 'code_interpreter') {
         const rawInput = asRecord(input)
         const code = String(rawInput.code || '')
-        const language = String(rawInput.language || 'javascript') as 'javascript' | 'python'
-        
+        const language = String(rawInput.language || 'javascript') as
+          'javascript' | 'python'
+
         const res = await executeCode(code, language)
         output = JSON.stringify({
           stdout: res.stdout,
           stderr: res.stderr,
-          exitCode: res.exitCode
+          exitCode: res.exitCode,
         })
       } else if (builtin === 'search_memory') {
         const rawInput = asRecord(input)
         const query = String(rawInput.query || '')
-        
+
         let memories: string[] = []
-        
+
         if (persistence && typeof (persistence as any).runId === 'string') {
           const runId = (persistence as any).runId
           const run = await prisma.agentRun.findUnique({
             where: { id: runId },
             include: {
-              thread: true
-            }
+              thread: true,
+            },
           })
           if (run && run.thread) {
             const agentId = run.agentId
@@ -669,10 +755,10 @@ export function buildBuiltinTool(
             memories = await retrieveMemories(agentId, ownerId, query)
           }
         }
-        
+
         output = JSON.stringify({
           query,
-          memories
+          memories,
         })
       } else if (
         builtin === 'list_directory' ||
@@ -690,7 +776,7 @@ export function buildBuiltinTool(
           const runId = (persistence as any).runId
           const run = await prisma.agentRun.findUnique({
             where: { id: runId },
-            select: { threadId: true }
+            select: { threadId: true },
           })
           if (run && run.threadId) {
             threadId = run.threadId
@@ -700,14 +786,20 @@ export function buildBuiltinTool(
         if (builtin === 'list_directory') {
           const rawInput = asRecord(input)
           const targetPath = String(rawInput.path || '.')
-          const resolvedPath = WorkspaceManager.resolvePath(threadId, targetPath)
-          const relPath = path.relative(WorkspaceManager.getWorkspacePath(threadId), resolvedPath)
+          const resolvedPath = WorkspaceManager.resolvePath(
+            threadId,
+            targetPath
+          )
+          const relPath = path.relative(
+            WorkspaceManager.getWorkspacePath(threadId),
+            resolvedPath
+          )
 
           const allFiles = await WorkspaceManager.listFiles(threadId)
           const items = virtualReaddir(allFiles, relPath)
           output = JSON.stringify({
             path: targetPath,
-            items: items.map((item) => ({
+            items: items.map(item => ({
               name: item.name,
               type: item.isDirectory ? 'directory' : 'file',
             })),
@@ -718,9 +810,18 @@ export function buildBuiltinTool(
           if (!filePath) {
             output = '错误：必须提供 path 参数。'
           } else {
-            const resolvedPath = WorkspaceManager.resolvePath(threadId, filePath)
-            const relPath = path.relative(WorkspaceManager.getWorkspacePath(threadId), resolvedPath)
-            const localPath = await WorkspaceManager.ensureFileCached(threadId, relPath)
+            const resolvedPath = WorkspaceManager.resolvePath(
+              threadId,
+              filePath
+            )
+            const relPath = path.relative(
+              WorkspaceManager.getWorkspacePath(threadId),
+              resolvedPath
+            )
+            const localPath = await WorkspaceManager.ensureFileCached(
+              threadId,
+              relPath
+            )
             if (!localPath) {
               output = `错误：找不到文件或无法从云存储拉取: ${filePath}`
             } else {
@@ -728,10 +829,19 @@ export function buildBuiltinTool(
               const lines = content.split('\n')
               const totalLines = lines.length
 
-              const startLine = rawInput.start_line ? Number(rawInput.start_line) : 1
-              const endLine = rawInput.end_line ? Number(rawInput.end_line) : totalLines
-              
-              if (isNaN(startLine) || isNaN(endLine) || startLine < 1 || endLine < startLine) {
+              const startLine = rawInput.start_line
+                ? Number(rawInput.start_line)
+                : 1
+              const endLine = rawInput.end_line
+                ? Number(rawInput.end_line)
+                : totalLines
+
+              if (
+                isNaN(startLine) ||
+                isNaN(endLine) ||
+                startLine < 1 ||
+                endLine < startLine
+              ) {
                 output = `错误：起止行号无效（总行数：${totalLines}）。`
               } else {
                 const slicedLines = lines.slice(startLine - 1, endLine)
@@ -752,13 +862,34 @@ export function buildBuiltinTool(
           if (!filePath) {
             output = '错误：必须提供 path 参数。'
           } else {
-            const resolvedPath = WorkspaceManager.resolvePath(threadId, filePath)
-            const relPath = path.relative(WorkspaceManager.getWorkspacePath(threadId), resolvedPath)
+            const resolvedPath = WorkspaceManager.resolvePath(
+              threadId,
+              filePath
+            )
+            const relPath = path.relative(
+              WorkspaceManager.getWorkspacePath(threadId),
+              resolvedPath
+            )
             const parentDir = path.dirname(resolvedPath)
             if (!fs.existsSync(parentDir)) {
               fs.mkdirSync(parentDir, { recursive: true })
             }
-            await fs.promises.writeFile(resolvedPath, content, 'utf-8')
+            // Revalidate after mkdir, then reject a final-component symlink at
+            // open time so sandbox-created links cannot target host files.
+            WorkspaceManager.resolvePath(threadId, filePath)
+            const fileHandle = await fs.promises.open(
+              resolvedPath,
+              fs.constants.O_WRONLY |
+                fs.constants.O_CREAT |
+                fs.constants.O_TRUNC |
+                (fs.constants.O_NOFOLLOW ?? 0),
+              0o600
+            )
+            try {
+              await fileHandle.writeFile(content, 'utf-8')
+            } finally {
+              await fileHandle.close()
+            }
             const ok = await WorkspaceManager.syncFileToCloud(threadId, relPath)
             if (ok) {
               const url = WorkspaceManager.getFileUrl(threadId, relPath)
@@ -775,9 +906,18 @@ export function buildBuiltinTool(
           if (!filePath) {
             output = '错误：必须提供 path 参数。'
           } else {
-            const resolvedPath = WorkspaceManager.resolvePath(threadId, filePath)
-            const relPath = path.relative(WorkspaceManager.getWorkspacePath(threadId), resolvedPath)
-            const localPath = await WorkspaceManager.ensureFileCached(threadId, relPath)
+            const resolvedPath = WorkspaceManager.resolvePath(
+              threadId,
+              filePath
+            )
+            const relPath = path.relative(
+              WorkspaceManager.getWorkspacePath(threadId),
+              resolvedPath
+            )
+            const localPath = await WorkspaceManager.ensureFileCached(
+              threadId,
+              relPath
+            )
             if (!localPath) {
               output = `错误：找不到文件或无法从云存储拉取: ${filePath}`
             } else {
@@ -789,8 +929,22 @@ export function buildBuiltinTool(
                 output = `修改失败：old_content 在文件 '${filePath}' 中匹配到 ${occurrences} 次，不唯一。请提供更长、更具唯一性的上下文来匹配。`
               } else {
                 const updatedContent = content.replace(oldContent, newContent)
-                await fs.promises.writeFile(localPath, updatedContent, 'utf-8')
-                const ok = await WorkspaceManager.syncFileToCloud(threadId, relPath)
+                WorkspaceManager.resolvePath(threadId, filePath)
+                const fileHandle = await fs.promises.open(
+                  localPath,
+                  fs.constants.O_WRONLY |
+                    fs.constants.O_TRUNC |
+                    (fs.constants.O_NOFOLLOW ?? 0)
+                )
+                try {
+                  await fileHandle.writeFile(updatedContent, 'utf-8')
+                } finally {
+                  await fileHandle.close()
+                }
+                const ok = await WorkspaceManager.syncFileToCloud(
+                  threadId,
+                  relPath
+                )
                 if (ok) {
                   const url = WorkspaceManager.getFileUrl(threadId, relPath)
                   output = `文件修改成功并已同步到云端: ${filePath}\n云存储下载直链 (可分享给用户浏览器访问): ${url}`
@@ -808,8 +962,9 @@ export function buildBuiltinTool(
           } else {
             await WorkspaceManager.ensureAllFilesCached(threadId)
             const localRoot = WorkspaceManager.getWorkspacePath(threadId)
-            const results: { file: string; line: number; content: string }[] = []
-            
+            const results: { file: string; line: number; content: string }[] =
+              []
+
             let regex: RegExp
             try {
               regex = new RegExp(query, 'i')
@@ -824,7 +979,7 @@ export function buildBuiltinTool(
               for (const entry of entries) {
                 const fullPath = path.join(dir, entry.name)
                 const relPath = path.relative(localRoot, fullPath)
-                
+
                 if (
                   entry.name === 'node_modules' ||
                   entry.name === '.git' ||
@@ -839,8 +994,36 @@ export function buildBuiltinTool(
                   searchDir(fullPath)
                 } else if (entry.isFile()) {
                   const ext = path.extname(entry.name).toLowerCase()
-                  const textExtensions = ['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.txt', '.go', '.rs', '.py', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml', '.toml', '.proto', '.css', '.html', '.prisma']
-                  if (textExtensions.includes(ext) || entry.name.startsWith('.') || entry.name === 'Dockerfile' || entry.name === 'Makefile') {
+                  const textExtensions = [
+                    '.ts',
+                    '.tsx',
+                    '.js',
+                    '.jsx',
+                    '.json',
+                    '.md',
+                    '.txt',
+                    '.go',
+                    '.rs',
+                    '.py',
+                    '.java',
+                    '.c',
+                    '.cpp',
+                    '.h',
+                    '.sh',
+                    '.yaml',
+                    '.yml',
+                    '.toml',
+                    '.proto',
+                    '.css',
+                    '.html',
+                    '.prisma',
+                  ]
+                  if (
+                    textExtensions.includes(ext) ||
+                    entry.name.startsWith('.') ||
+                    entry.name === 'Dockerfile' ||
+                    entry.name === 'Makefile'
+                  ) {
                     try {
                       const text = fs.readFileSync(fullPath, 'utf-8')
                       const lines = text.split('\n')
@@ -875,9 +1058,11 @@ export function buildBuiltinTool(
             output = '错误：必须提供 pattern 参数。'
           } else {
             const allFiles = await WorkspaceManager.listFiles(threadId)
-            const escapedPattern = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')
+            const escapedPattern = pattern
+              .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+              .replace(/\*/g, '.*')
             const regex = new RegExp(escapedPattern, 'i')
-            const matched = allFiles.filter((file) => regex.test(file))
+            const matched = allFiles.filter(file => regex.test(file))
             output = JSON.stringify({
               pattern,
               matches: matched.slice(0, 100),
@@ -890,70 +1075,87 @@ export function buildBuiltinTool(
             output = '错误：必须提供 command 参数。'
           } else {
             await WorkspaceManager.ensureAllFilesCached(threadId)
-            const localRoot = WorkspaceManager.ensureWorkspaceDir(threadId)
-            output = await new Promise<string>((resolve) => {
-              exec(
-                command,
-                {
-                  cwd: localRoot,
-                  timeout: 30000,
-                  env: {
-                    ...process.env,
-                    PATH: `/Applications/Docker.app/Contents/Resources/bin:${process.env.PATH || ''}`
-                  }
-                },
-                (err, stdout, stderr) => {
-                  const res = {
-                    stdout: stdout.toString(),
-                    stderr: stderr.toString(),
-                    exitCode: err ? err.code : 0,
-                    timedOut: err && (err as any).killed ? true : false,
-                  }
-                  
-                  void (async () => {
-                    try {
-                      const scanAndSync = async (dir: string) => {
-                        if (!fs.existsSync(dir)) return
-                        const entries = fs.readdirSync(dir, { withFileTypes: true })
-                        for (const entry of entries) {
-                          const fullPath = path.join(dir, entry.name)
-                          const relPath = path.relative(localRoot, fullPath)
-                          
-                          if (
-                            entry.name === 'node_modules' ||
-                            entry.name === '.git' ||
-                            entry.name === 'dist' ||
-                            entry.name === '.persisted-workspaces' ||
-                            entry.name === '.workspaces'
-                          ) {
-                            continue
-                          }
-                          
-                          if (entry.isDirectory()) {
-                            await scanAndSync(fullPath)
-                          } else if (entry.isFile()) {
-                            await WorkspaceManager.syncFileToCloud(threadId, relPath)
-                          }
+            try {
+              const res = await executeWorkspaceCommand(threadId, command)
+              const localRoot = WorkspaceManager.ensureWorkspaceDir(threadId)
+              const sharedFiles: { path: string; url: string }[] = []
+              let syncedFileCount = 0
+
+              // Docker writes to the mounted workspace. Sync only after the
+              // isolated process has finished, and never on a host fallback.
+              try {
+                const scanAndSync = async (dir: string) => {
+                  if (!fs.existsSync(dir)) return
+                  const entries = fs.readdirSync(dir, { withFileTypes: true })
+                  for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name)
+                    const relPath = path.relative(localRoot, fullPath)
+
+                    if (
+                      entry.name === 'node_modules' ||
+                      entry.name === '.git' ||
+                      entry.name === 'dist' ||
+                      entry.name === '.persisted-workspaces' ||
+                      entry.name === '.workspaces'
+                    ) {
+                      continue
+                    }
+
+                    if (entry.isDirectory()) {
+                      await scanAndSync(fullPath)
+                    } else if (entry.isFile()) {
+                      const synced = await WorkspaceManager.syncFileToCloud(
+                        threadId,
+                        relPath
+                      )
+                      if (synced) {
+                        syncedFileCount += 1
+                        if (sharedFiles.length < 100) {
+                          sharedFiles.push({
+                            path: relPath,
+                            url: WorkspaceManager.getFileUrl(threadId, relPath),
+                          })
                         }
                       }
-                      await scanAndSync(localRoot)
-                    } catch (syncErr) {
-                      logger.error({ msg: 'Failed to sync back files after run_command', syncErr })
                     }
-                  })()
-
-                  resolve(JSON.stringify(res))
+                  }
                 }
-              )
-            })
+                await scanAndSync(localRoot)
+              } catch (syncErr) {
+                logger.error({
+                  msg: 'Failed to sync back files after run_command',
+                  syncErr,
+                })
+              }
+
+              output = JSON.stringify({
+                stdout: res.stdout,
+                stderr: res.stderr,
+                exitCode: res.exitCode,
+                timedOut: res.timedOut || false,
+                method: res.method,
+                sharedFiles,
+                sharedFilesTruncated: syncedFileCount > sharedFiles.length,
+              })
+            } catch (error) {
+              // Fail closed when Docker is unavailable or cannot be started.
+              output = JSON.stringify({
+                stdout: '',
+                stderr: error instanceof Error ? error.message : String(error),
+                exitCode: -2,
+                timedOut: false,
+                method: 'none',
+              })
+            }
           }
         } else if (builtin === 'web_search') {
           const rawInput = asRecord(input)
           const query = String(rawInput.query || '')
           const apiKey = process.env.TAVILY_API_KEY
-          
+
           if (!apiKey) {
-            output = '错误：当前系统未配置 TAVILY_API_KEY 环境变量，无法执行网页搜索。请联系系统管理员或在 .env 文件中进行配置。'
+            output =
+              '错误：当前系统未配置 TAVILY_API_KEY 环境变量，无法执行网页搜索。请联系系统管理员或在 .env 文件中进行配置。'
           } else if (!query) {
             output = '错误：必须提供 query 参数。'
           } else {
@@ -970,21 +1172,23 @@ export function buildBuiltinTool(
                   include_answer: false,
                 }),
               })
-              
+
               if (!res.ok) {
                 const errText = await res.text()
                 output = `错误：Tavily 搜索请求失败（状态码 ${res.status}）：${errText}`
               } else {
-                const data = await res.json() as {
+                const data = (await res.json()) as {
                   results?: { title: string; url: string; content: string }[]
                 }
                 const searchResults = data.results || []
                 if (searchResults.length === 0) {
                   output = `网页搜索没有找到与 "${query}" 相关的结果。`
                 } else {
-                  const formatted = searchResults.map((item, index) => {
-                    return `[${index + 1}] 标题: ${item.title}\n    链接: ${item.url}\n    摘要: ${item.content}`
-                  }).join('\n\n')
+                  const formatted = searchResults
+                    .map((item, index) => {
+                      return `[${index + 1}] 标题: ${item.title}\n    链接: ${item.url}\n    摘要: ${item.content}`
+                    })
+                    .join('\n\n')
                   output = `搜索查询: "${query}"\n\n结果:\n\n${formatted}`
                 }
               }
@@ -998,12 +1202,22 @@ export function buildBuiltinTool(
           if (!prompt) {
             output = '错误：必须提供 prompt 参数。'
           } else {
-            const style_preset = rawInput.style_preset ? String(rawInput.style_preset) : undefined
-            const aspect_ratio = rawInput.aspect_ratio ? String(rawInput.aspect_ratio) : undefined
-            const negative_prompt = rawInput.negative_prompt ? String(rawInput.negative_prompt) : undefined
-            const input_image_url = rawInput.input_image_url ? String(rawInput.input_image_url) : undefined
-            const model = rawInput.model ? String(rawInput.model) as 'gemini' | 'gpt-image-2' : undefined
-            
+            const style_preset = rawInput.style_preset
+              ? String(rawInput.style_preset)
+              : undefined
+            const aspect_ratio = rawInput.aspect_ratio
+              ? String(rawInput.aspect_ratio)
+              : undefined
+            const negative_prompt = rawInput.negative_prompt
+              ? String(rawInput.negative_prompt)
+              : undefined
+            const input_image_url = rawInput.input_image_url
+              ? String(rawInput.input_image_url)
+              : undefined
+            const model = rawInput.model
+              ? (String(rawInput.model) as 'gemini' | 'gpt-image-2')
+              : undefined
+
             const reference_image_urls: string[] = []
             if (Array.isArray(rawInput.reference_image_urls)) {
               for (const item of rawInput.reference_image_urls) {
@@ -1013,15 +1227,18 @@ export function buildBuiltinTool(
               }
             }
 
-            const genResult = await executeGenerateImage({
-              prompt,
-              style_preset,
-              aspect_ratio,
-              reference_image_urls,
-              negative_prompt,
-              input_image_url,
-              model,
-            }, threadId)
+            const genResult = await executeGenerateImage(
+              {
+                prompt,
+                style_preset,
+                aspect_ratio,
+                reference_image_urls,
+                negative_prompt,
+                input_image_url,
+                model,
+              },
+              threadId
+            )
 
             const modeLabel = input_image_url ? '图生图' : '文生图'
             if (genResult.success) {
@@ -1032,7 +1249,6 @@ export function buildBuiltinTool(
           }
         }
       }
-
 
       await persistence?.event('tool_builtin_end', {
         toolId: raw.id,
@@ -1094,7 +1310,9 @@ export async function ensureBuiltinTools(options?: {
 
 export async function attachBuiltinToolsToAgent(agentId: string) {
   await prisma.agentTool.createMany({
-    data: BUILTIN_TOOL_IDS.map((toolId, index) => ({
+    // run_command is intentionally excluded from automatic attachment. It
+    // remains available for explicit, audited binding when enabled.
+    data: AUTO_ATTACHED_BUILTIN_TOOL_IDS.map((toolId, index) => ({
       agentId,
       toolId,
       enabled: true,

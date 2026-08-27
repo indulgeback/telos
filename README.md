@@ -1,347 +1,267 @@
-# Telos: Intelligent Workflow Orchestration Agent
+# Telos: AI Agent Orchestration Platform
 
 [中文版 (Chinese Version)](./docs/README_zh.md)
 
-**Author: LeviLiu**  
+**Author: LeviLiu**
 **Email: <liuwenyu1937@outlook.com>**
 
 ## 1. Project Introduction
 
-Telos is an intelligent workflow orchestration agent platform designed for enterprise-level automation scenarios. The system implements automated task scheduling, management, and execution through a modern microservices architecture.
+Telos is an AI agent orchestration platform built as a modern microservices monorepo. Users create agents, equip them with skills, tools and MCP servers, and chat with them — while the platform executes every agent run asynchronously with streaming events, tool-call approvals, budget limits and full audit trails.
 
 **Project Highlights:**
 
-- **Next.js 15** frontend with App Router and React 19 concurrent features
-- **Go microservices** backend with high performance and easy scalability
-- **Service discovery** with built-in registry and health checks
-- **Multi-language support** with internationalization for 18 languages
-- **Visual workflow builder** based on React Flow components
-- **Monorepo management** for unified dependencies and streamlined development
-- **Unified logging** with custom tlog package for structured logging across all services
+- **Agent workspace**: agent management, skill/tool/MCP binding, multi-agent relations
+- **Streaming chat** backed by multiple LLM providers (DeepSeek, Volcano Ark / Seed, Alibaba Bailian, OpenAI, Google Gemini, ShortAPI)
+- **Async run engine**: queue + lease-based workers, event streams with resumable cursors, budget guards, tool-call approval flows, outbox-pattern persistence
+- **Realtime voice** (Volcano realtime audio) via WebSocket
+- **Security-first gateway**: Better Auth session validation at the edge, HMAC-signed internal request forwarding with nonce replay protection
+- **Service discovery**: Consul-backed registry with health checks; services self-register on startup
+- **Monorepo** managed by pnpm workspaces covering TypeScript apps, Go services and shared packages
+- **Unified logging** with the custom `tlog` package across all Go services
 
 ---
 
-## 2. Directory Structure
+## 2. Architecture Overview
+
+```plaintext
+┌──────────────┐   ┌────────────────┐   ┌─────────────────┐
+│  Web (Next)  │   │ Mobile (RN)    │   │ Admin (Vue+Vite)│
+│    :8800     │   │ Metro :8081    │   │     :5174       │
+└──────┬───────┘   └────────────────┘   └────────┬────────┘
+       │                                         │
+       ▼                                         ▼
+┌────────────────────────────────┐   ┌──────────────────────────┐
+│  API Gateway (Go Echo) :8890   │   │ admin-service (TS) :3002 │
+│  - Better Auth session check   │   └──────────────────────────┘
+│  - Rate limiting / CORS        │
+│  - HMAC-signed forwarding      │
+└──────────────┬─────────────────┘
+               │ signed requests
+               ▼
+┌────────────────────────────────────────────────┐
+│  agent-service (TypeScript Hono) :8895          │
+│  agents · chat · runs · tools · skills · mcp ·  │
+│  realtime                                       │
+└──────┬───────────────┬────────────────┬────────┘
+       ▼               ▼                ▼
+┌────────────┐  ┌───────────┐  ┌───────────────────────┐
+│ PostgreSQL │  │   Redis   │  │ Registry (Go)         │
+│  (Prisma)  │  │ cache/queue│ │ REGISTRY_PORT (Consul)│
+└────────────┘  └───────────┘  └───────────────────────┘
+```
+
+All business APIs are routed through the gateway. The gateway validates the user's Better Auth session (hosted by the web app), then forwards requests to downstream services with an HMAC signature, timestamp and one-time nonce. Downstream services reject any request that does not carry a valid gateway identity.
+
+---
+
+## 3. Directory Structure
 
 ```plaintext
 telos/
-├── apps/                   # Application Layer
-│   ├── web/               # Next.js Frontend Application
-│   ├── mobile/            # React Native Mobile Application
-│   ├── api-gateway/       # API Gateway (Go Echo)
-│   └── registry/          # Service Registry (Go Echo)
-├── services/              # Microservices Layer
-│   └── agent-service/     # AI Agent Service (TypeScript Express)
-├── docs/                  # Documentation
-├── pkg/                   # Shared Go Packages
-├── node_modules/          # Root Dependencies
-└── package.json           # Monorepo Configuration
+├── apps/                        # Client & edge applications
+│   ├── web/                    # Next.js 15 frontend (dashboard: agents/chat/skills/profile)
+│   ├── mobile/                 # React Native mobile app
+│   ├── admin/                  # Vue 3 + Vite admin console (:5174)
+│   ├── api-gateway/            # API Gateway (Go Echo, :8890)
+│   └── registry/               # Service registry (Go Echo, Consul-backed)
+├── services/                    # Backend microservices (TypeScript)
+│   ├── agent-service/          # AI agent orchestration service (:8895)
+│   └── admin-service/          # Admin dashboard API (:3002)
+├── pkg/                         # Shared Go packages (tlog)
+├── prisma/                      # Prisma schema & migrations (root-level, shared)
+├── deploy/                      # Deployment scripts (deploy.sh)
+├── docs/                        # Documentation
+└── package.json                 # pnpm workspace root
 ```
 
 ---
 
-## 3. Technology Stack
+## 4. Technology Stack
 
-### 3.1 Frontend Stack
+### 4.1 Frontend
 
-#### Web Application (Next.js)
+- **Web (apps/web)**: Next.js 15 App Router, React 19, TypeScript strict mode, Tailwind CSS, shadcn/ui (Radix), next-intl (7 locales: en / zh / tw / ko / ja / de / ru), Zustand, React Hook Form + Zod, Better Auth SDK, Vitest
+- **Mobile (apps/mobile)**: React Native, Metro bundler, Jest
+- **Admin console (apps/admin)**: Vue 3, Vite, Tailwind CSS v4
 
- - **Next.js**: App Router with server components and SSR
- - **React**: Latest React with concurrent features
- - **TypeScript**: Full application strict type checking
- - **Tailwind CSS**: Utility-first CSS framework
-- **Shadcn UI**: Component library built on Radix UI primitives
-- **Next-intl**: Internationalization supporting 18 languages
-- **React Flow**: Visual workflow builder components
-- **Zustand**: Lightweight state management
-- **React Hook Form + Zod**: Form handling and validation
+### 4.2 Backend
 
-#### Mobile Application (React Native)
+- **Go services (Go ≥ 1.22)**:
+  - Echo for both the gateway and the registry
+  - Viper for configuration, `pkg/tlog` for structured logging
+  - Consul-backed service discovery with health checks
+- **agent-service / admin-service (Node.js ≥ 22)**:
+  - Hono HTTP framework (`@hono/node-server`)
+  - OpenAI Agents SDK + LangChain for agent orchestration
+  - BullMQ (Redis) for async run queuing
+  - Prisma 7 + PostgreSQL for persistence (schema shared at repo root)
+  - Pino structured logging; `ws` for WebSocket realtime voice
 
- - **React Native**: Cross-platform mobile development
- - **React**: Latest React with concurrent features
- - **TypeScript**: Full application strict type checking
-- **Metro**: JavaScript bundler for React Native
-- **Jest**: Testing framework with React Native testing utilities
-- **ESLint + Prettier**: Code formatting and linting
+### 4.3 Infrastructure & Tools
 
-### 3.2 Backend Stack
-
- - **Go**: High-performance backend services
- - **Gin**: Web framework for microservice business logic
-- **Echo**: Lightweight framework for API Gateway and Registry
-- **GORM**: Database ORM operations
-- **Viper**: Configuration management with .env support
-- **JWT**: Authentication and authorization
-- **PostgreSQL**: Primary database
-- **Redis**: Caching and session storage
-
-### 3.3 Infrastructure & Tools
-
-- **Docker**: Containerization for all services
-- **Air**: Hot reload for Go development
-- **Husky**: Git hooks for code quality
-- **Commitlint**: Conventional commit standards
-- **ESLint + Prettier**: Code formatting and linting
-- **golangci-lint**: Go code quality checks
+- Docker Compose (PostgreSQL 15, Redis 7)
+- Husky git hooks + commitlint (conventional commits)
+- ESLint + Prettier (TS), golangci-lint (Go)
+- GitHub Actions workflows under `.github/workflows/` (basic-checks, docker-build, deploy)
 
 ---
 
-## 4. Quick Start
+## 5. Services & Ports
 
-### 4.1 Frontend Development
+| Service       | Default Port          | Notes                                                   |
+| ------------- | --------------------- | ------------------------------------------------------- |
+| Web (Next.js) | `8800`                | dev server; `next start` uses 8802                      |
+| API Gateway   | `8890`                | entry point for all `/api/*` routes                     |
+| Agent Service | `8895`                | Hono server, `/ready` health endpoint                   |
+| Registry      | `REGISTRY_PORT`       | `.env.example` default `8081`; prod compose uses `8891` |
+| Admin Console | `5174`                | Vite dev server                                         |
+| Admin Service | `ADMIN_PORT` = `3002` | admin dashboard API                                     |
+| Mobile Metro  | `8081`                | development only                                        |
+| PostgreSQL    | `5432`                | primary datastore (Prisma)                              |
+| Redis         | `6379`                | cache, queues, auth caches, nonces                      |
+
+Gateway route table (all require a valid session): `/api/agents`, `/api/tools`, `/api/skills`, `/api/mcp-servers`, `/api/runs`, `/api/agent` (chat/SSE), `/workspaces/shares`.
+
+---
+
+## 6. Core Capabilities
+
+### 6.1 Chat & Agents (agent-service)
+
+- Streaming chat over SSE with per-message model selection and retry support
+- Multi-provider model catalog (DeepSeek, Seed/Ark, Bailian, OpenAI, Gemini, ShortAPI); Gemini authenticates via ADC
+- Agent CRUD with skills, built-in/custom tools and MCP servers attached; image generation tools included
+- Thread/message/memory persistence with anonymous-owner support gating
+
+### 6.2 Async Run Engine
+
+- Redis/BullMQ run queue with lease-based workers (`AGENT_RUN_LEASE_MS`, worker concurrency configurable)
+- Per-run budgets: input bytes, output characters/tokens, tool-call count, timeout, estimated cost caps
+- Tool-call approval workflow with TTL-bound pending approvals
+- Run events persisted for trace/replay (`/api/runs`), resumable event cursors
+- Outbox pattern (`AgentOutboxEvent`) for reliable domain-event publishing
+
+### 6.3 Security Model
+
+- Web app owns authentication via [Better Auth](https://www.better-auth.com/) (user/session/account tables live in the same Prisma schema)
+- Gateway validates sessions (with TTL caching) before proxying
+- Internal calls carry HMAC signatures + timestamps + nonces; downstream validates identity and rejects replays (`GATEWAY_INTERNAL_SECRET`, `GATEWAY_NONCE_TTL_SECONDS`)
+- Sandbox execution and built-in command execution are opt-in flags (`SANDBOX_ENABLED`, `ENABLE_BUILTIN_RUN_COMMAND`)
+
+---
+
+## 7. Quick Start
+
+### 7.1 Prerequisites
+
+- Node.js ≥ 22 and pnpm ≥ 10
+- Go ≥ 1.22 (for gateway & registry)
+- Docker + Docker Compose (for Postgres/Redis, or full-stack)
+
+### 7.2 Local Development
 
 ```bash
-# Web Development
-pnpm web:dev                    # Start dev server on port 8800
-pnpm --filter ./apps/web dev    # Alternative dev command
+# 1. Install dependencies (Node + Go)
+pnpm install:all
 
-# Build & Deploy
-pnpm --filter ./apps/web build  # Production build
-pnpm --filter ./apps/web start  # Start production server
+# 2. Start infrastructure
+docker-compose up -d postgres redis
 
-# Code Quality
-pnpm --filter ./apps/web lint      # ESLint checks
-pnpm --filter ./apps/web lint:fix  # Auto-fix lint issues
-pnpm --filter ./apps/web format    # Prettier formatting
+# 3. Prepare environment files (copy each *.env.example to .env)
+cp services/agent-service/.env.example services/agent-service/.env
+cp apps/web/.env.example apps/web/.env   # if present; else configure manually
 
-# Mobile Development
-pnpm --filter ./apps/mobile start    # Start Metro bundler
-pnpm --filter ./apps/mobile android  # Run on Android
-pnpm --filter ./apps/mobile ios      # Run on iOS
-pnpm --filter ./apps/mobile test     # Run mobile tests
-pnpm --filter ./apps/mobile lint     # ESLint checks for mobile
+# 4. Apply database schema & seed skills
+pnpm db:push                             # or: npx prisma migrate deploy
+pnpm --filter ./services/agent-service db:seed-skills
+
+# 5. Start services (each in its own terminal, or use docker compose)
+pnpm agent-service:dev                   # agent service on :8895
+pnpm api-gateway:dev                     # API gateway on :8890
+pnpm registry:dev                        # registry on $REGISTRY_PORT
+pnpm web:dev                             # web on :8800
 ```
 
-### 4.2 Backend Services
+Environment variables that must be set before chatting: at least one LLM provider key in agent-service (e.g. `DEEPSEEK_API_KEY`) plus `GATEWAY_INTERNAL_SECRET` shared between gateway and downstream services.
 
-Each Go service supports these Makefile commands:
+### 7.3 Testing & Code Quality
 
 ```bash
-# Development
-make dev        # Hot reload with Air
-make run        # Standard go run
-make build      # Build binary to bin/
+# Web
+pnpm --filter ./apps/web test            # Vitest once-through
+pnpm --filter ./apps/web lint
+pnpm --filter ./apps/web format:check
 
-# Code Quality
-make fmt        # Format code with go fmt
-make lint       # Run golangci-lint
-make test       # Run all tests
+# Agent service
+pnpm --filter ./services/agent-service test   # builds then runs node:test suites
 
-# Dependencies
-make deps       # go mod tidy + download
-
-# Docker
-make docker-build  # Build Docker image
-make docker-run    # Run with docker-compose
-make docker-stop   # Stop containers
-
-# Cleanup
-make clean      # Remove build artifacts
+# Go services (run inside apps/api-gateway or apps/registry)
+make test                                # go test ./...
+make lint                                # golangci-lint
+make fmt                                 # go fmt
 ```
 
-### 4.3 Monorepo Commands (from root)
+---
 
-```bash
-# Specific service development
-pnpm agent-service:dev     # Start agent service with hot reload
-pnpm api-gateway:dev       # Start API gateway with hot reload
-pnpm registry:dev          # Start service registry with hot reload
+## 8. Deployment
 
-# Mobile development
-pnpm mobile:start          # Start Metro bundler
-pnpm mobile:android        # Run on Android
-pnpm mobile:ios            # Run on iOS
+- Full-stack production: `docker-compose.prod.yml` (web, gateway, registry, agent-service, Postgres, Redis). See header comments inside the file for topology.
+- Scripted deploy: `deploy/deploy.sh`
+- CI/CD: GitHub Actions workflows handle basic checks, image builds and deployment.
+- Production deploys stop the old Agent worker, back up PostgreSQL, run the
+  reviewed migrations with `prisma migrate deploy`, verify the migration
+  ledger, and only then start the new services.
 
-# Git hooks
-pnpm prepare              # Install Husky hooks
+---
+
+## 9. Configuration Management
+
+Each service ships an `env.example` describing its variables. Key groups:
+
+- **Gateway**: `PORT`, `REGISTRY_SERVICE_URL`, `BETTER_AUTH_BASE_URL` (where sessions are validated), `GATEWAY_INTERNAL_SECRET`, rate-limit window/requests, auth cache TTL
+- **Agent service**: provider keys/base URLs (`DEEPSEEK_*`, `SEED_*`, `BAILIAN_*`, `OPENAI_*`, `SHORTAPI_*`), `DATABASE_URL`, `REDIS_URL`, run-engine limits (`AGENT_RUN_*`), feature flags (`SANDBOX_ENABLED`, `ENABLE_BUILTIN_RUN_COMMAND`, `ALLOW_SENSITIVE_TRACING`)
+- **Registry**: `REGISTRY_PORT`, Consul connection settings
+- **Web**: `NEXT_PUBLIC_API_URL`, Better Auth secrets/OAuth client credentials
+
+Never commit real secrets or `.env` files.
+
+---
+
+## 10. Contribution Guide
+
+1. Fork and branch (e.g. `feature/xxx`, `fix/xxx`)
+2. Keep style consistent: ESLint/Prettier for TS, golangci-lint for Go; pre-commit hooks enforce this
+3. Add tests for new features and make sure existing suites pass
+4. Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) — enforced by commitlint:
+
+```text
+feat: add streaming retry for chat messages
+fix: resume run event cursor after reconnect
 ```
 
-### 4.4 Development Workflow
-
-1. **Environment Setup**: Each service has `.env` files for configuration
-2. **Hot Reload**: Use `make dev` for Go services, `pnpm web:dev` for frontend
-3. **Code Quality**: Pre-commit hooks enforce linting and conventional commits
-4. **Testing**: Run `make test` in service directories
-5. **Docker**: Use `docker-compose up -d` for full-stack development
-
 ---
 
-## 5. Module Design
+## 11. Troubleshooting
 
-### 5.1 Frontend Modules
+### Service registration issues
 
-#### Web Application (apps/web)
+1. Confirm the registry is running on `$REGISTRY_PORT` (default `8081` locally; `docker-compose.prod.yml` sets `8891`)
+2. Registration endpoint is `POST /api/register` (not `/register`)
+3. Check `REGISTRY_URL` on registering services and `REGISTRY_SERVICE_URL` on the gateway
 
-- App Router: Organize code by page routes, support dynamic routing and SSR
-- Component Library: Follows atomic design (atomic, molecular, organism)
-- API Services: Use tRPC or REST to call backend, integrate React Query for data caching
+### Database connection issues
 
-#### Mobile Application (apps/mobile)
+1. Ensure Postgres is up (`docker-compose up -d postgres`) and `DATABASE_URL` points at it
+2. For local development, apply schema with `pnpm db:push`; for production,
+   use only the reviewed `prisma migrate deploy` release path
+3. Ensure the database/user exist and have sufficient privileges
 
-- Cross-platform mobile app for iOS and Android
-- Native navigation and platform-specific UI components
-- Shared business logic with web application
-- Offline-first architecture with local data synchronization
+### Gateway returns 401
 
-### 5.2 Backend Modules
-
-- **API Gateway (apps/api-gateway)**: Handles frontend requests, forwards to microservices, implements authentication, rate limiting, CORS, and service discovery
-- **Registry (apps/registry)**: Service registration, deregistration, discovery, health check with RESTful API
-- **Microservices (services/\*):**
-  - **Agent Service**: AI agent orchestration, session management, and system prompt generation
-
-### 5.3 Shared Modules (pkg)
-
-- **tlog**: Unified structured logging package with support for:
-  - Multiple output formats (JSON, text, colored console)
-  - Log levels and filtering
-  - Gin middleware integration
-  - Request ID tracking
-  - Production and development presets
-  - File rotation and remote logging capabilities
-
----
-
-## 6. Development & Deployment Process
-
-### 6.1 Development Environment
-
-- Web Frontend:
-
-  ```bash
-  cd apps/web
-  pnpm install
-  pnpm dev
-  ```
-
-- Mobile Frontend:
-
-  ```bash
-  cd apps/mobile
-  pnpm install
-  pnpm start    # Start Metro bundler
-  pnpm android  # Run on Android (in another terminal)
-  pnpm ios      # Run on iOS (in another terminal)
-  ```
-
-- Backend:
-
-  ```bash
-  cd services/agent-service
-  pnpm install
-  pnpm dev
-  ```
-
-- Debugging tools: Use Docker Compose to quickly start dependencies (e.g., DB, Redis)
-
-### 6.2 Production Deployment
-
-- Containerization: Write Dockerfile for each service to build images
-- Kubernetes: Use Helm Chart to define resources and deploy to K8s cluster
-- CI/CD: Use GitHub Actions for automated build, test, and release
-
----
-
-## 7. Configuration Management
-
-### 7.1 Environment Variables
-
-- **Backend**: Each microservice has a `.env` file in its root directory for service-specific configurations:
-
-  - `PORT`: Service port number
-  - `SERVICE_NAME`: Service identifier for logging and registration
-  - `REGISTRY_URL`: Service registry endpoint (e.g., `http://localhost:8891`)
-  - `DB_*`: Database connection parameters
-  - `JWT_SECRET`: Authentication secret key
-  - `LOG_*`: Logging configuration (level, format, output)
-
-- **Frontend**: Use `process.env` in `next.config.js` for environment variables
-
-### 7.2 Config Loading
-
-- **Go microservices**: Use Viper for multi-level config loading (.env, env vars, config files)
-- **Next.js**: Use `next.config.js` and `.env.local` for sensitive information
-
-### 7.3 Service Registration
-
-All microservices automatically register with the service registry on startup:
-
-- **Registry endpoint**: `/api/register` (not `/register`)
-- **Service info**: Includes name, address, port, tags, and metadata
-- **Health checks**: Built-in health check endpoints at `/health`
-
----
-
-## 8. Contribution Guide
-
-1. Fork this repo and create a new branch (e.g., feature/xxx, fix/xxx)
-2. Keep code style consistent: ESLint/Prettier for frontend, golangci-lint for backend
-3. Ensure all tests pass before submitting PR
-4. PR description should clearly explain changes and impact
-
----
-
-## 9. Commit Message Convention
-
-This project uses [Commitlint](https://commitlint.js.org/) and [Husky](https://typicode.github.io/husky/) to enforce commit message conventions. Please use the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification:
-
-- feat: New feature
-- fix: Bug fix
-- docs: Documentation change
-- style: Code style (formatting, etc.)
-- refactor: Code refactoring (not bug fix or feature)
-- perf: Performance improvement
-- test: Add or modify tests
-- chore: Build process or auxiliary tool changes
-
-**Example:**
-
-```textplain
-feat: add user login API
-fix: correct typo in README
-```
-
-Commit messages not following the convention will be rejected.
-
----
-
-## 10. Troubleshooting
-
-### 10.1 Service Registration Issues
-
-If microservices fail to register with the registry, check:
-
-1. **Registry Status**: Ensure the registry is running on port `8891`
-2. **Registration Path**: Services should POST to `/api/register`, not `/register`
-3. **Network Connectivity**: Verify `REGISTRY_URL` configuration is correct
-4. **Log Output**: Check service startup logs for registration status
-
-### 10.2 Database Connection Issues
-
-1. **Database Service**: Ensure PostgreSQL is running on the specified port
-2. **Connection Parameters**: Verify `DB_*` configurations in `.env` files
-3. **Permissions**: Ensure database user has sufficient privileges
-
-### 10.3 Port Conflicts
-
-Default ports for each service:
-
-- Frontend (web): `8800`
-- Api-Gateway: `8890`
-- Registry: `8891`
-- Agent Service: `3001`
-
-## 11. FAQ
-
-- **Q:** How does the agent service run?
-  **A:** Make sure to copy services/agent-service/.env.example to .env and configure your LLM/speech keys, then run `pnpm agent-service:dev` at root.
-- **Q:** How does the frontend call backend APIs?
-  **A:** Use tRPC or REST, manage all APIs in apps/web/services.
-- **Q:** How to debug DB/Redis locally?
-  **A:** Use Docker Compose to start dependencies, see infrastructure/docker for configs.
-- **Q:** Service registration fails, what to do?
-  **A:** Check if registry is running, confirm registration path is `/api/register`, and review service logs for detailed error information.
+1. The web app must be running so the gateway can validate Better Auth sessions (`BETTER_AUTH_BASE_URL`)
+2. `GATEWAY_INTERNAL_SECRET` must match between gateway and downstream services
+3. Large clock skews between hosts will trip signature validation (`AUTH_CLOCK_SKEW_SECONDS`)
 
 ---
 
@@ -356,17 +276,6 @@ Default ports for each service:
 ## 13. License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-### License Summary
-
-The MIT License is a permissive license that allows you to:
-
-- ✅ Use the software for any purpose
-- ✅ Modify and distribute the software
-- ✅ Use it commercially
-- ✅ Integrate it into proprietary software
-
-The only requirement is that you include the original copyright and license notice.
 
 For detailed license information and usage guidelines, see [docs/LICENSE_zh.md](docs/LICENSE_zh.md).
 

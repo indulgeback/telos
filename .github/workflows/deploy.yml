@@ -2,9 +2,10 @@ name: 🚀 Deploy to Server
 
 # =============================================================================
 # 部署流水线
-#   - 由 docker-build.yml 构建完成后自动触发 (传入 image_tag)
+#   - 由 docker-build.yml 构建完成后自动触发 (传入不可变 sha tag)
 #   - 也支持手动触发,可输入指定 tag 用于回滚
-# SSH 登录服务器,执行 deploy.sh 完成滚动更新 + 健康检查
+#   - 将与 build_sha 对应的 Compose/部署脚本同步到服务器
+# SSH 登录服务器,执行 deploy.sh 完成备份、迁移、滚动更新与健康检查
 # =============================================================================
 
 on:
@@ -15,7 +16,7 @@ on:
         required: true
         default: 'main'
       build_sha:
-        description: '对应构建的 commit SHA (仅用于展示,可空)'
+        description: '对应构建的完整 commit SHA (用于同步部署清单,回滚时可空)'
         required: false
   workflow_call:
     inputs:
@@ -40,48 +41,165 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_TAG: ${{ inputs.image_tag }}
+      BUILD_SHA: ${{ inputs.build_sha }}
       DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/opt/telos' }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
     steps:
+      - name: 🛡️ 校验部署参数
+        run: |
+          set -euo pipefail
+          if [[ ! "$IMAGE_TAG" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]]; then
+            echo "非法镜像 tag" >&2
+            exit 1
+          fi
+          if [[ -n "$BUILD_SHA" && ! "$BUILD_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "build_sha 必须是完整的 40 位 commit SHA" >&2
+            exit 1
+          fi
+          if [[ ! "$DEPLOY_DIR" =~ ^/[A-Za-z0-9._/-]+$ || "$DEPLOY_DIR" == "/" ]]; then
+            echo "DEPLOY_DIR 必须是安全的绝对目录且不能为根目录" >&2
+            exit 1
+          fi
+          if [[ -z "$SSH_HOST" || -z "$SSH_USER" ]]; then
+            echo "SSH_HOST/SSH_USER 未配置" >&2
+            exit 1
+          fi
+
+      - name: 📥 检出部署清单
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.build_sha || github.sha }}
+
       - name: 📋 部署信息
         run: |
           echo "## 🚀 部署信息" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| 项目 | 值 |" >> "$GITHUB_STEP_SUMMARY"
           echo "|------|----|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| 镜像 Tag | \`${{ inputs.image_tag }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          if [[ -n "${{ inputs.build_sha }}" ]]; then
-            echo "| Commit | [\`${{ inputs.build_sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ inputs.build_sha }}) |" >> "$GITHUB_STEP_SUMMARY"
+          printf '| 镜像 Tag | `%s` |\n' "$IMAGE_TAG" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "$BUILD_SHA" ]]; then
+            printf '| Commit | [`%s`](%s/%s/commit/%s) |\n' \
+              "$BUILD_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$BUILD_SHA" \
+              >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "| 服务器 | \`${{ secrets.SSH_HOST }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| 部署目录 | \`${{ vars.DEPLOY_DIR || '/opt/telos' }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          printf '| 服务器 | `%s` |\n' "$SSH_HOST" >> "$GITHUB_STEP_SUMMARY"
+          printf '| 部署目录 | `%s` |\n' "$DEPLOY_DIR" >> "$GITHUB_STEP_SUMMARY"
 
       - name: 🔑 加载 SSH 私钥
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           # 加入主机指纹避免交互提示
-          if [[ -n "${{ secrets.SSH_HOST_KEY }}" ]]; then
-            echo "${{ secrets.SSH_HOST_KEY }}" >> ~/.ssh/known_hosts
+          if [[ -n "$SSH_HOST_KEY" ]]; then
+            printf '%s\n' "$SSH_HOST_KEY" >> ~/.ssh/known_hosts
           else
-            ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+            ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
           fi
+
+      - name: 📤 同步部署清单
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+          )
+
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            "mkdir -p '$DEPLOY_DIR/deploy'"
+          scp "${SSH_OPTS[@]}" docker-compose.prod.yml \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/docker-compose.prod.yml.next"
+          scp "${SSH_OPTS[@]}" deploy/deploy.sh \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/deploy/deploy.sh.next"
 
       - name: 🚀 执行远程部署
         id: deploy
         run: |
           set -euo pipefail
-          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+          )
 
           echo "🔄 SSH 连接服务器并执行部署..."
-          ssh $SSH_OPTS ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "cd '${DEPLOY_DIR}' && bash deploy/deploy.sh '${IMAGE_TAG}'"
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            bash -s -- "$DEPLOY_DIR" "$IMAGE_TAG" "$BUILD_SHA" <<'REMOTE'
+          set -euo pipefail
+          deploy_dir="$1"
+          image_tag="$2"
+          build_sha="${3:-manual}"
+          backup_id="${build_sha:0:12}-$(date -u +%Y%m%dT%H%M%SZ)"
+          backup_dir="$deploy_dir/deploy/backups/release-$backup_id"
+          had_compose="false"
+          had_deploy_script="false"
+
+          mkdir -p "$backup_dir"
+          if [[ -f "$deploy_dir/docker-compose.prod.yml" ]]; then
+            had_compose="true"
+            cp "$deploy_dir/docker-compose.prod.yml" "$backup_dir/"
+          fi
+          if [[ -f "$deploy_dir/deploy/deploy.sh" ]]; then
+            had_deploy_script="true"
+            cp "$deploy_dir/deploy/deploy.sh" "$backup_dir/"
+          fi
+
+          restore_partial_manifest_install() {
+            install_status="$?"
+            trap - EXIT
+            set +e
+            if [[ "$had_compose" == "true" ]]; then
+              install -m 0644 "$backup_dir/docker-compose.prod.yml" \
+                "$deploy_dir/docker-compose.prod.yml"
+            else
+              rm -f "$deploy_dir/docker-compose.prod.yml"
+            fi
+            if [[ "$had_deploy_script" == "true" ]]; then
+              install -m 0755 "$backup_dir/deploy.sh" \
+                "$deploy_dir/deploy/deploy.sh"
+            else
+              rm -f "$deploy_dir/deploy/deploy.sh"
+            fi
+            exit "$install_status"
+          }
+          trap restore_partial_manifest_install EXIT
+          install -m 0644 "$deploy_dir/docker-compose.prod.yml.next" \
+            "$deploy_dir/docker-compose.prod.yml"
+          install -m 0755 "$deploy_dir/deploy/deploy.sh.next" \
+            "$deploy_dir/deploy/deploy.sh"
+          rm -f "$deploy_dir/docker-compose.prod.yml.next" \
+            "$deploy_dir/deploy/deploy.sh.next"
+          trap - EXIT
+
+          cd "$deploy_dir"
+          set +e
+          env PREVIOUS_RELEASE_BACKUP_DIR="$backup_dir" \
+            bash deploy/deploy.sh "$image_tag"
+          deploy_status=$?
+          set -e
+          if (( deploy_status != 0 )); then
+            if [[ -f "$backup_dir/docker-compose.prod.yml" ]]; then
+              install -m 0644 "$backup_dir/docker-compose.prod.yml" \
+                "$deploy_dir/docker-compose.prod.yml"
+            fi
+            if [[ -f "$backup_dir/deploy.sh" ]]; then
+              install -m 0755 "$backup_dir/deploy.sh" \
+                "$deploy_dir/deploy/deploy.sh"
+            fi
+          fi
+          exit "$deploy_status"
+          REMOTE
 
       - name: ✅ 部署完成通知
         if: success()
         run: |
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "🎉 **部署成功!** 镜像 tag \`${{ inputs.image_tag }}\` 已滚动到生产环境。" >> "$GITHUB_STEP_SUMMARY"
+          printf '🎉 **部署成功!** 镜像 tag `%s` 已滚动到生产环境。\n' \
+            "$IMAGE_TAG" >> "$GITHUB_STEP_SUMMARY"
 
       - name: ❌ 部署失败处理
         if: failure()
@@ -90,8 +208,8 @@ jobs:
           echo "❌ **部署失败!** 请检查上方日志。" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "排查步骤:" >> "$GITHUB_STEP_SUMMARY"
-          echo "1. SSH 登录服务器: \`ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "2. 查看服务状态: \`cd ${{ vars.DEPLOY_DIR || '/opt/telos' }} && docker compose -f docker-compose.prod.yml ps\`" >> "$GITHUB_STEP_SUMMARY"
+          printf '1. SSH 登录服务器: `ssh %s@%s`\n' "$SSH_USER" "$SSH_HOST" >> "$GITHUB_STEP_SUMMARY"
+          printf '2. 查看服务状态: `cd %s && docker compose -f docker-compose.prod.yml ps`\n' "$DEPLOY_DIR" >> "$GITHUB_STEP_SUMMARY"
           echo "3. 查看日志: \`docker compose -f docker-compose.prod.yml logs --tail=100 <service>\`" >> "$GITHUB_STEP_SUMMARY"
           echo "4. 如需回滚: 在 Actions 页面手动触发 deploy workflow,输入旧 tag" >> "$GITHUB_STEP_SUMMARY"
           exit 1

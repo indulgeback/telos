@@ -4,19 +4,14 @@ name: 🐳 Build & Push Docker Images
 # 镜像构建流水线
 #   - push 到 main        → 推送 :main 与 :sha-<short> 标签
 #   - 打 v* 形式的 tag    → 推送 :<version> 与 :latest 标签
-# 4 个服务 (web / agent-service / api-gateway / registry) 通过 matrix 并发构建
+# 6 个服务通过 matrix 并发构建
 # =============================================================================
 
 on:
   push:
     branches: [main]
     tags: ['v*']
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: '构建的分支/tag/commit (默认 main)'
-        required: false
-        default: 'main'
+  workflow_dispatch: {}
 
 # 防止同一分支并发构建造成镜像覆盖
 concurrency:
@@ -63,7 +58,7 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
-  # Job 2: matrix 并发构建 4 个服务镜像
+  # Job 2: matrix 并发构建 6 个服务镜像
   # ---------------------------------------------------------------------------
   build:
     needs: prepare
@@ -94,7 +89,8 @@ jobs:
       - name: 📥 检出代码
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref || github.ref }}
+          # 始终构建触发本次 workflow 的精确 commit，避免 tag 与内容错配。
+          ref: ${{ github.sha }}
 
       - name: 📦 设置 QEMU (多架构支持预留)
         uses: docker/setup-qemu-action@v3
@@ -174,7 +170,9 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const tag = '${{ needs.prepare.outputs.image_tag }}'
+            const primaryTag = '${{ needs.prepare.outputs.image_tag }}'
+            const isRelease = '${{ needs.prepare.outputs.is_release }}' === 'true'
+            const tag = isRelease ? primaryTag : `sha-${context.sha.slice(0, 7)}`
             const result = await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -182,7 +180,7 @@ jobs:
               ref: 'main',
               inputs: {
                 image_tag: tag,
-                build_sha: '${{ github.sha }}'
+                build_sha: context.sha
               }
             })
             core.info(`✅ 已触发 deploy.yml,镜像 tag: ${tag}`)

@@ -74,9 +74,20 @@ func TestAuthenticateCachesUserIDByCookie(t *testing.T) {
 }
 
 func TestSignMatchesGatewayPayloadContract(t *testing.T) {
-	signature := Sign("secret", "GET", "/api/agent/threads", "user-1", "100", "nonce")
-	expected := "87ad54ef7e07b56d76492ec82de23260ce3f30999a6cd69d63bbe28bf07d2be5"
-	if signature != expected {
-		t.Fatalf("expected %s, got %s", expected, signature)
+	digest := DigestBody(nil)
+	canonical, err := CanonicalRequest("get", "/api/agent/threads", "q=hello+world&tag=b&tag=a", digest, "user-1", "100", "nonce")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedCanonical := "GET\n/api/agent/threads\nq=hello%20world&tag=a&tag=b\n" + digest + "\nuser-1\n100\nnonce"
+	if canonical != expectedCanonical {
+		t.Fatalf("expected canonical request %q, got %q", expectedCanonical, canonical)
+	}
+	signature, err := Sign("secret", "GET", "/api/agent/threads", "tag=b&q=hello+world&tag=a", digest, "user-1", "100", "nonce")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(signature) != 64 {
+		t.Fatalf("expected SHA-256 signature, got %q", signature)
 	}
 }

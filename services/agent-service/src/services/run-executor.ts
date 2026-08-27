@@ -3,9 +3,24 @@ import { agentRuntimeService } from './runtime.js'
 import { PlanStore } from './plan-store.js'
 import type { StructuredPlan } from './plan-tools.js'
 import { AgentRunPersistence } from './persistence.js'
-import { appendRunUiEvent, cleanupRunEvents } from './run-events.js'
+import {
+  appendRunEventForLease,
+  appendRunUiEvent,
+  cleanupRunEvents,
+  closeRunEventFence,
+} from './run-events.js'
 import { safeJsonStringify } from '../utils/json.js'
 import { WorkspaceManager } from './workspace.js'
+import {
+  calculateUsageCost,
+  loadRunBudgetLimits,
+  parseModelPricing,
+  RunBudgetTracker,
+} from './run-budget.js'
+import type { RunLease } from './run-lease.js'
+import { suspendRunForApproval } from './approval-persistence.js'
+import { prisma } from './db.js'
+import { isTerminalUiEventType } from './run-terminal.js'
 
 export interface ExecuteAgentRunOptions {
   agentId: string
@@ -23,6 +38,12 @@ export interface ExecuteAgentRunOptions {
   replaceAssistantMessageId?: string | null
   userId?: string
   signal?: AbortSignal
+  lease?: RunLease
+  resumeState?: string
+  resumeStateHash?: string
+  stateVersion?: number
+  partialOutput?: string | null
+  partialParts?: unknown
   persistEvents?: boolean
   emit?: (type: string, event?: Record<string, unknown>) => void | Promise<void>
 }
@@ -225,15 +246,71 @@ function upsertToolPart(
   }
 }
 
+function restoreAssistantParts(value: unknown): PersistedAssistantPart[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((part): part is PersistedAssistantPart =>
+      Boolean(
+        part &&
+        typeof part === 'object' &&
+        ['text', 'reasoning', 'tool'].includes(
+          String((part as { type?: unknown }).type ?? '')
+        )
+      )
+    )
+    .map(part => structuredClone(part))
+}
+
+function approvalTtlMs() {
+  const raw = Number(process.env.AGENT_TOOL_APPROVAL_TTL_MS || 15 * 60_000)
+  if (!Number.isFinite(raw)) return 15 * 60_000
+  return Math.max(60_000, Math.min(24 * 60 * 60_000, Math.floor(raw)))
+}
+
+export function mergeResumedOutput(
+  partialOutput: string | null | undefined,
+  sdkFinalOutput: string,
+  streamedOutput: string
+) {
+  if (!sdkFinalOutput) return streamedOutput
+  if (!partialOutput || sdkFinalOutput.startsWith(partialOutput)) {
+    return sdkFinalOutput
+  }
+  return `${partialOutput}${sdkFinalOutput}`
+}
+
 export async function executeAgentRun(options: ExecuteAgentRunOptions) {
+  const budget = new RunBudgetTracker(loadRunBudgetLimits(), options.signal)
   const pendingEmits: Promise<void>[] = []
-  const emit = (type: string, event: Record<string, unknown> = {}) => {
+  let localEventFenceClosed = false
+  const flushPendingEmits = async () => {
+    const pending = pendingEmits.splice(0, pendingEmits.length)
+    if (pending.length) await Promise.allSettled(pending)
+  }
+  const closeExecutionEventFence = async () => {
+    // Seal the process-local gate before draining. This prevents callbacks
+    // that arrive while the drain is waiting from creating a second batch of
+    // lease-scoped writes. A later attempt opens a higher durable generation.
+    localEventFenceClosed = true
+    await flushPendingEmits()
+    if (options.lease) {
+      await closeRunEventFence(options.lease).catch(() => false)
+    }
+  }
+  const emit = (
+    type: string,
+    event: Record<string, unknown> = {},
+    requireActiveLease = !isTerminalUiEventType(type)
+  ) => {
     const payload = { ...event, type }
+    if (options.lease && requireActiveLease && localEventFenceClosed) return
     const result = options.emit
       ? options.emit(type, event)
       : options.persistEvents === false
         ? undefined
-        : appendRunUiEvent(options.runId, type, payload)
+        : options.lease && requireActiveLease
+          ? appendRunEventForLease(options.lease, type, payload)
+          : appendRunUiEvent(options.runId, type, payload)
 
     if (result && typeof (result as Promise<void>).then === 'function') {
       pendingEmits.push(Promise.resolve(result).then(() => undefined))
@@ -242,17 +319,34 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
 
   const textId = `text-${options.runId}`
   const activeToolCalls = new Map<string, string>()
-  const assistantParts: PersistedAssistantPart[] = []
+  const assistantParts = restoreAssistantParts(options.partialParts)
   let planStore: PlanStore | undefined
 
   try {
-    emit('agent.run.created', {
-      data: {
-        threadId: options.threadId,
-        runId: options.runId,
-        agentId: options.agentId,
-      },
+    budget.assertInput({
+      input: options.runtimeInput ?? options.input,
+      memoryInstructions: options.memoryInstructions ?? '',
+      approvedPlan: options.approvedPlan ?? null,
     })
+    if (options.partialOutput) budget.recordOutput(options.partialOutput)
+    if (options.resumeState) {
+      const priorExecutedTools = await prisma.agentToolCall.count({
+        where: {
+          runId: options.runId,
+          status: { in: ['completed', 'failed'] },
+        },
+      })
+      budget.recordToolCall(priorExecutedTools)
+      emit('agent.run.resumed', { data: { runId: options.runId } })
+    } else {
+      emit('agent.run.created', {
+        data: {
+          threadId: options.threadId,
+          runId: options.runId,
+          agentId: options.agentId,
+        },
+      })
+    }
     emit('response.in_progress', {
       response_id: options.runId,
     })
@@ -275,7 +369,12 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         input: options.runtimeInput ?? options.input,
         threadId: options.threadId,
         stream: true,
-        signal: options.signal,
+        signal: budget.signal,
+        maxOutputTokens: budget.limits.maxOutputTokens,
+        lease: options.lease,
+        resumeState: options.resumeState,
+        resumeStateHash: options.resumeStateHash,
+        stateVersion: options.stateVersion,
         modelOverride: options.modelOverride,
         reasoningEffort: options.reasoningEffort,
         memoryInstructions: options.memoryInstructions,
@@ -286,6 +385,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         userId: options.userId,
         onEvent: event => {
           if (event.type === 'tool_start') {
+            budget.recordToolCall()
             const toolCallId = toolCallIdFromPayload(event.payload)
             const toolName = toolNameFromPayload(event.payload)
             const input = toolInputFromPayload(event.payload)
@@ -371,7 +471,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     )
     const streamedResult = result as any
 
-    let finalText = ''
+    let finalText = options.partialOutput ?? ''
     let textStarted = false
     const reasoningId = `reasoning-${options.runId}`
     let reasoningStarted = false
@@ -396,6 +496,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
 
       const value = extractTextDeltaFromStreamEvent(event)
       if (!value) continue
+      budget.recordOutput(value)
       finalText += value
       if (!textStarted) {
         emit('response.output_text.start', {
@@ -413,6 +514,61 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     }
 
     await streamedResult.completed
+    const interruptions = Array.isArray(streamedResult.interruptions)
+      ? streamedResult.interruptions
+      : []
+    if (interruptions.length) {
+      if (!options.lease || !options.ownerId) {
+        throw new Error(
+          'Durable lease and owner are required for tool approval suspension'
+        )
+      }
+      const approvals = interruptions.map((item: any) => {
+        const rawItem = item?.rawItem ?? {}
+        const toolCallId = String(
+          rawItem.callId ?? rawItem.call_id ?? rawItem.id ?? ''
+        )
+        const toolName = String(item?.name ?? item?.toolName ?? '')
+        if (!toolCallId || !toolName) {
+          throw new Error('SDK approval interruption is missing tool identity')
+        }
+        return {
+          toolCallId,
+          toolName,
+          arguments: parseToolArguments(item?.arguments ?? rawItem.arguments),
+        }
+      })
+      await closeExecutionEventFence()
+      const suspended = await suspendRunForApproval(options.lease, {
+        ownerId: options.ownerId,
+        approvals,
+        sdkState: streamedResult.state.toString(),
+        partialOutput: finalText,
+        partialParts: assistantParts,
+        expiresAt: new Date(Date.now() + approvalTtlMs()),
+      })
+      if (!suspended) {
+        throw new Error('Run lease was lost while suspending for approval')
+      }
+      return
+    }
+    const rawUsage = streamedResult.state?.usage
+    const usage = rawUsage
+      ? {
+          requests: Number(rawUsage.requests || 0),
+          inputTokens: Number(rawUsage.inputTokens || 0),
+          outputTokens: Number(rawUsage.outputTokens || 0),
+          totalTokens: Number(rawUsage.totalTokens || 0),
+        }
+      : undefined
+    const usageCostUsd = usage
+      ? calculateUsageCost({
+          modelKey,
+          inputTokens: usage.inputTokens,
+          outputTokens: usage.outputTokens,
+          pricing: parseModelPricing(process.env.AGENT_MODEL_PRICING_JSON),
+        })
+      : null
     if (textStarted) {
       emit('response.output_text.done', {
         response_id: options.runId,
@@ -426,17 +582,12 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       })
     }
 
-    const finalOutput = String(streamedResult.finalOutput ?? finalText)
-    const completed = await persistence.complete(
-      finalOutput,
-      streamedResult.lastAgent?.name,
-      streamedResult.lastResponseId
+    const sdkFinalOutput = String(streamedResult.finalOutput ?? '')
+    const finalOutput = mergeResumedOutput(
+      options.partialOutput,
+      sdkFinalOutput,
+      finalText
     )
-    if (!completed) {
-      await Promise.all(pendingEmits)
-      return
-    }
-
     const isPlanMode = options.planMode === 'plan'
     let planMessageId: string | undefined
     const structuredPlan = isPlanMode
@@ -466,53 +617,6 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         },
       } as any)
     }
-    if (options.threadId) {
-      // clarify 命中时，工具返回的 JSON（clarify_created...）只是内部信号，
-      // 不应作为正文落库/下发，用空串占位，避免状态文本泄漏给用户
-      const persistOutput = structuredClarify ? '' : finalOutput
-      const replacedMessage = options.replaceAssistantMessageId
-        ? await agentSessionService.replaceAssistantMessage(
-            options.replaceAssistantMessageId,
-            options.threadId,
-            options.runId,
-            persistOutput,
-            assistantParts,
-            { modelKey }
-          )
-        : null
-      const savedMessage =
-        replacedMessage ||
-        (await agentSessionService.appendAssistantMessage(
-          options.threadId,
-          options.runId,
-          persistOutput,
-          assistantParts,
-          { modelKey }
-        ))
-      planMessageId = savedMessage?.id
-      agentSessionService.scheduleSummaries(
-        options.threadId,
-        options.agentId,
-        options.ownerId
-      )
-    }
-    if (isPlanMode && structuredPlan) {
-      emit('response.plan_proposed', {
-        response_id: options.runId,
-        plan_message_id: planMessageId,
-        plan_summary: structuredPlan.summary,
-        plan_steps: structuredPlan.steps,
-      })
-    }
-    if (structuredClarify) {
-      // 推送澄清问题事件，前端据此渲染 ClarifyPanel 交互卡片
-      emit('response.clarify_created', {
-        response_id: options.runId,
-        clarify_message_id: planMessageId,
-        clarify_question: structuredClarify.question,
-        clarify_options: structuredClarify.options,
-      })
-    }
 
     if (planStore) {
       planStore.finalize()
@@ -523,39 +627,119 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         part.state !== 'output-available' &&
         part.state !== 'output-error'
       ) {
-        part.state = 'output-available'
+        part.state = 'output-error'
         emit('agent.tool_call.output', {
           response_id: options.runId,
           item_id: part.toolCallId,
           toolCallId: part.toolCallId,
           toolName: part.toolName,
-          output: '(completed)',
+          output: 'Tool call ended without a result',
         })
       }
+    }
+
+    // Seal and drain all lease-scoped output, then close the Redis fence before
+    // committing terminal state. Late callbacks cannot enqueue new writes.
+    await closeExecutionEventFence()
+
+    // Run terminal state and assistant history are one database commit. Redis
+    // UI events are a replayable projection and can be rebuilt from this row.
+    let completed = false
+    if (options.threadId) {
+      const completion = await persistence.completeWithAssistant({
+        threadId: options.threadId,
+        finalOutput,
+        // clarify 命中时，工具返回的内部信号不作为正文落库。
+        persistedOutput: structuredClarify ? '' : finalOutput,
+        parts: assistantParts,
+        metadata: {
+          modelKey,
+          ...(usage ? { usage } : {}),
+          ...(usageCostUsd !== null ? { usageCostUsd } : {}),
+        },
+        replaceAssistantMessageId: options.replaceAssistantMessageId,
+        lastAgentName: streamedResult.lastAgent?.name,
+        lastResponseId: streamedResult.lastResponseId,
+      })
+      completed = completion.completed
+      planMessageId = completion.messageId
+      if (completed) {
+        agentSessionService.scheduleSummaries(
+          options.threadId,
+          options.agentId,
+          options.ownerId
+        )
+      }
+    } else {
+      completed = await persistence.complete(
+        finalOutput,
+        streamedResult.lastAgent?.name,
+        streamedResult.lastResponseId
+      )
+    }
+    if (!completed) {
+      await flushPendingEmits()
+      return
+    }
+    if (isPlanMode && structuredPlan) {
+      emit(
+        'response.plan_proposed',
+        {
+          response_id: options.runId,
+          plan_message_id: planMessageId,
+          plan_summary: structuredPlan.summary,
+          plan_steps: structuredPlan.steps,
+        },
+        false
+      )
+    }
+    if (structuredClarify) {
+      // 推送澄清问题事件，前端据此渲染 ClarifyPanel 交互卡片
+      emit(
+        'response.clarify_created',
+        {
+          response_id: options.runId,
+          clarify_message_id: planMessageId,
+          clarify_question: structuredClarify.question,
+          clarify_options: structuredClarify.options,
+        },
+        false
+      )
     }
     emit('response.completed', {
       response_id: options.runId,
       // clarify 命中时不把工具返回的 JSON 当正文下发
       output_text: structuredClarify ? '' : finalOutput,
     })
-    await Promise.all(pendingEmits)
+    await flushPendingEmits()
     scheduleEventCleanup(options.runId)
   } catch (error) {
-    const message = enrichAgentRunError(error)
-    emit('response.failed', {
-      response_id: options.runId,
-      error: message,
-    })
-    // allSettled：若 emit 本身 reject（Redis 故障），不让二次抛错跳过
-    // 下面的 fail/cancel 落库与事件清理
-    await Promise.allSettled(pendingEmits)
-    if (options.signal?.aborted) {
-      await new AgentRunPersistence(options.runId).cancel('Run cancelled')
-    } else {
-      await new AgentRunPersistence(options.runId).fail(message)
+    const effectiveError = budget.normalizeError(error)
+    const message = enrichAgentRunError(effectiveError)
+    const callerCancelled = Boolean(options.signal?.aborted && !budget.exceeded)
+    await closeExecutionEventFence()
+    const terminalTransitioned = callerCancelled
+      ? await new AgentRunPersistence(options.runId, options.lease).cancel(
+          'Run cancelled'
+        )
+      : await new AgentRunPersistence(options.runId, options.lease).fail(
+          message
+        )
+
+    // Only the worker that won the durable terminal CAS may publish the UI
+    // failure. If completion already committed, Redis can rebuild from DB and
+    // must never be overwritten by a late error projection.
+    if (terminalTransitioned) {
+      emit('response.failed', {
+        response_id: options.runId,
+        error: callerCancelled ? 'Run cancelled' : message,
+      })
     }
+    // Redis is a rebuildable projection. A failed emit must not skip DB state.
+    await flushPendingEmits()
     scheduleEventCleanup(options.runId)
   } finally {
+    budget.dispose()
     if (options.threadId) {
       WorkspaceManager.cleanupWorkspace(options.threadId)
     }

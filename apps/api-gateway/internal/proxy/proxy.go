@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -153,7 +154,7 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 	req.Host = ""
 	req.Header.Set("X-Forwarded-Host", c.Request().Host)
 	req.Header.Set("X-Forwarded-Proto", getScheme(c.Request()))
-	if err := pm.injectIdentityHeaders(req, route, identity, requestPath); err != nil {
+	if err := pm.injectIdentityHeaders(req, route, identity, req.URL.EscapedPath()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "注入身份信息失败")
 	}
 
@@ -276,7 +277,7 @@ func (pm *ProxyManager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 设置请求头
 	r.Header.Set("X-Forwarded-Host", r.Host)
 	r.Header.Set("X-Forwarded-Proto", getScheme(r))
-	if err := pm.injectIdentityHeaders(r, route, identity, r.URL.Path); err != nil {
+	if err := pm.injectIdentityHeaders(r, route, identity, r.URL.EscapedPath()); err != nil {
 		writeErrorResponse(w, "注入身份信息失败", http.StatusInternalServerError)
 		return
 	}
@@ -322,15 +323,48 @@ func (pm *ProxyManager) injectIdentityHeaders(r *http.Request, route *RouteConfi
 	if route.AuthMode != AuthModeRequired || identity == nil {
 		return nil
 	}
-	timestamp, nonce, signature, err := pm.authenticator.Sign(r.Method, path, identity.UserID)
+	bodyDigest, err := gatewayauth.BodyDigest(r, pm.authenticator.BodyMaxBytes())
+	if err != nil {
+		return err
+	}
+	body, err := readRestoredBody(r, bodyDigest, pm.authenticator.BodyMaxBytes())
+	if err != nil {
+		return err
+	}
+	timestamp, nonce, signature, bodyDigest, err := pm.authenticator.Sign(r.Method, path, r.URL.RawQuery, body, identity.UserID)
 	if err != nil {
 		return err
 	}
 	r.Header.Set("X-User-ID", identity.UserID)
 	r.Header.Set("X-Gateway-Timestamp", timestamp)
 	r.Header.Set("X-Gateway-Nonce", nonce)
+	r.Header.Set("X-Gateway-Body-SHA256", bodyDigest)
 	r.Header.Set("X-Gateway-Signature", signature)
 	return nil
+}
+
+// readRestoredBody obtains bytes after BodyDigest has restored the request
+// stream. It restores the stream again so the signer and proxy observe exactly
+// the same payload without a second read from the client connection.
+func readRestoredBody(r *http.Request, digest string, maxBytes int64) ([]byte, error) {
+	if r.Body == nil {
+		return nil, nil
+	}
+	if maxBytes <= 0 {
+		maxBytes = 10 << 20
+	}
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	r.Body = io.NopCloser(bytes.NewReader(body))
+	if int64(len(body)) > maxBytes {
+		return nil, fmt.Errorf("request body exceeds signing limit")
+	}
+	if gatewayauth.DigestBody(body) != digest {
+		return nil, fmt.Errorf("request body changed while signing")
+	}
+	return body, nil
 }
 
 func sanitizeIdentityHeaders(header http.Header) {

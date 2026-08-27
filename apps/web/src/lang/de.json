@@ -123,6 +123,22 @@
       "executing": "Plan ausführen",
       "executeTrigger": "Bitte führen Sie gemäß dem oben genehmigten Plan aus"
     },
+    "approval": {
+      "title": "Werkzeugfreigabe erforderlich",
+      "description": "Prüfen Sie jeden Werkzeugaufruf, bevor der Agent fortfährt.",
+      "tool": "Werkzeug",
+      "arguments": "Argumente",
+      "expires": "Läuft ab: {time}",
+      "approve": "Freigeben",
+      "deny": "Ablehnen",
+      "waiting": "Entscheidung ausstehend",
+      "approved": "Freigegeben",
+      "denied": "Abgelehnt",
+      "expired": "Abgelaufen",
+      "empty": "Keine Freigabeanfragen verfügbar.",
+      "decideFailed": "Entscheidung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "refreshFailed": "Genehmigungsstatus konnte nicht aktualisiert werden. Bitte erneut versuchen."
+    },
     "voice": {
       "title": "Echtzeit-Spracherkennung",
       "shortLabel": "Sprache",

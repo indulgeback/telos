@@ -7,16 +7,45 @@ export interface SandboxResult {
   exitCode: number | null
 }
 
-// 构造自定义环境变量，优先将 Docker 官方桌面版工具路径加入 PATH 以防 keychain 或 credential 软链接损坏
-const customEnv = {
-  ...process.env,
-  PATH: `/Applications/Docker.app/Contents/Resources/bin:${process.env.PATH || ''}`
+// Docker CLI 只需要一个最小环境。不要把 agent-service 的完整环境（其中可能包含
+// 数据库/API 密钥）传给执行子进程。
+const executionEnv = {
+  PATH: `/Applications/Docker.app/Contents/Resources/bin:${process.env.PATH || ''}`,
+}
+
+const MAX_SANDBOX_OUTPUT_BYTES = 1024 * 1024
+const MAX_SANDBOX_CODE_BYTES = 256 * 1024
+const MAX_WORKSPACE_COMMAND_BYTES = 16 * 1024
+const sandboxUser =
+  typeof process.getuid === 'function' && typeof process.getgid === 'function'
+    ? `${process.getuid()}:${process.getgid()}`
+    : '65534:65534'
+
+interface OutputAccumulator {
+  value: string
+  bytes: number
+  truncated: boolean
+}
+
+function appendSandboxOutput(target: OutputAccumulator, chunk: unknown) {
+  if (target.truncated) return
+  const data = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk))
+  const remaining = MAX_SANDBOX_OUTPUT_BYTES - target.bytes
+  if (data.byteLength <= remaining) {
+    target.value += data.toString()
+    target.bytes += data.byteLength
+    return
+  }
+  target.value += data.subarray(0, Math.max(0, remaining)).toString()
+  target.value += '\n...[sandbox output truncated]'
+  target.bytes = MAX_SANDBOX_OUTPUT_BYTES
+  target.truncated = true
 }
 
 let dockerPath = 'docker'
 try {
   // 必须真正执行命令以验证其可用性（防止 which 匹配到死链接）
-  execSync('docker --version', { stdio: 'ignore', env: customEnv })
+  execSync('docker --version', { stdio: 'ignore', env: executionEnv })
 } catch {
   const candidates = [
     '/Applications/Docker.app/Contents/Resources/bin/docker',
@@ -26,7 +55,7 @@ try {
   ]
   for (const c of candidates) {
     try {
-      execSync(`${c} --version`, { stdio: 'ignore', env: customEnv })
+      execSync(`${c} --version`, { stdio: 'ignore', env: executionEnv })
       dockerPath = c
       break
     } catch {}
@@ -40,14 +69,27 @@ export async function executeCode(
   code: string,
   language: 'javascript' | 'python'
 ): Promise<SandboxResult> {
-  const image = language === 'javascript' ? 'node:20-alpine' : 'python:3.11-alpine'
+  if (Buffer.byteLength(code, 'utf8') > MAX_SANDBOX_CODE_BYTES) {
+    throw new Error('Code exceeds the sandbox input limit')
+  }
+  if (!isWorkspaceSandboxAvailable()) {
+    throw new Error(
+      'Code sandbox is unavailable; refusing to execute code without Docker isolation.'
+    )
+  }
+
+  const image =
+    language === 'javascript' ? 'node:20-alpine' : 'python:3.11-alpine'
   const command = language === 'javascript' ? 'node' : 'python'
   const args = language === 'javascript' ? [] : ['-']
   const containerName = `telos-code-sandbox-${language}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
 
   const killContainer = () => {
     try {
-      execSync(`${dockerPath} kill ${containerName}`, { stdio: 'ignore', env: customEnv })
+      execSync(`${dockerPath} kill ${containerName}`, {
+        stdio: 'ignore',
+        env: executionEnv,
+      })
     } catch {}
   }
 
@@ -55,73 +97,82 @@ export async function executeCode(
     'run',
     '-i',
     '--rm',
-    '--name', containerName,
+    '--name',
+    containerName,
     '--network=none',
+    '--read-only',
+    '--cap-drop=ALL',
+    '--security-opt=no-new-privileges',
+    '--pids-limit=64',
+    '--user',
+    sandboxUser,
+    '--tmpfs',
+    '/tmp:rw,noexec,nosuid,nodev,size=64m',
     '--memory=256m',
     '--cpus=0.5',
     image,
     command,
-    ...args
+    ...args,
   ]
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     logger.info({ msg: `Spawning sandbox container for ${language}...` })
 
     const child = spawn(dockerPath, dockerArgs, {
-      env: customEnv
+      env: executionEnv,
     })
-    
-    let stdout = ''
-    let stderr = ''
+
+    const stdout = { value: '', bytes: 0, truncated: false }
+    const stderr = { value: '', bytes: 0, truncated: false }
     let isFinished = false
 
-    child.stdout.on('data', (data) => {
-      stdout += data.toString()
+    child.stdout.on('data', data => {
+      appendSandboxOutput(stdout, data)
     })
 
-    child.stderr.on('data', (data) => {
-      stderr += data.toString()
+    child.stderr.on('data', data => {
+      appendSandboxOutput(stderr, data)
     })
 
     // 设置 10 秒超时强制退出
     const timeoutId = setTimeout(() => {
       if (isFinished) return
       isFinished = true
-      
+
       logger.warn({ msg: 'Sandbox execution timed out. Killing container...' })
       try {
         child.kill('SIGKILL')
       } catch {}
       killContainer()
       resolve({
-        stdout,
-        stderr: stderr + '\nExecution Timeout: Limit of 10s exceeded.',
-        exitCode: -1
+        stdout: stdout.value,
+        stderr: stderr.value + '\nExecution Timeout: Limit of 10s exceeded.',
+        exitCode: -1,
       })
     }, 10000)
 
-    child.on('close', (code) => {
+    child.on('close', code => {
       if (isFinished) return
       isFinished = true
       clearTimeout(timeoutId)
 
       resolve({
-        stdout,
-        stderr,
-        exitCode: code
+        stdout: stdout.value,
+        stderr: stderr.value,
+        exitCode: code,
       })
     })
 
-    child.on('error', (err) => {
+    child.on('error', err => {
       if (isFinished) return
       isFinished = true
       clearTimeout(timeoutId)
       killContainer()
 
       resolve({
-        stdout,
-        stderr: stderr + `\nProcess error: ${err.message}`,
-        exitCode: -2
+        stdout: stdout.value,
+        stderr: stderr.value + `\nProcess error: ${err.message}`,
+        exitCode: -2,
       })
     })
 
@@ -138,9 +189,10 @@ export async function executeCode(
       } catch {}
       killContainer()
       resolve({
-        stdout,
-        stderr: stderr + `\nFailed to write code to stdin: ${err.message}`,
-        exitCode: -3
+        stdout: stdout.value,
+        stderr:
+          stderr.value + `\nFailed to write code to stdin: ${err.message}`,
+        exitCode: -3,
       })
     }
   })
@@ -152,22 +204,42 @@ import path from 'path'
 // 检测 Docker 是否真正运行且可用
 let isDockerReady = false
 try {
-  execSync(`${dockerPath} ps`, { stdio: 'ignore', env: customEnv })
-  isDockerReady = true
+  // Sandbox execution is an explicit capability. The absence of an opt-in or
+  // Docker is never a reason to execute on the host.
+  if (process.env.SANDBOX_ENABLED === 'true') {
+    execSync(`${dockerPath} ps`, { stdio: 'ignore', env: executionEnv })
+    isDockerReady = true
+  }
 } catch {
   isDockerReady = false
 }
 
+/** Return whether the isolated workspace executor is currently available. */
+export function isWorkspaceSandboxAvailable(): boolean {
+  return isDockerReady
+}
+
 /**
- * 在挂载的工作空间 Docker 隔离沙箱中执行命令。如果 Docker 不可用，安全回退到宿主机执行。
+ * 在挂载的工作空间 Docker 隔离沙箱中执行命令。
+ *
+ * Docker 不可用时必须拒绝执行；绝不能回退到宿主机 shell。
  */
 export async function executeWorkspaceCommand(
   threadId: string,
   command: string
-): Promise<SandboxResult & { method: 'docker' | 'host'; timedOut?: boolean }> {
+): Promise<SandboxResult & { method: 'docker'; timedOut?: boolean }> {
   // 1. threadId 正则强校验，彻底防御挂载路径穿越与参数注入
   if (!/^[a-zA-Z0-9_-]+$/.test(threadId)) {
     throw new Error(`Access denied: Invalid threadId format '${threadId}'`)
+  }
+  if (Buffer.byteLength(command, 'utf8') > MAX_WORKSPACE_COMMAND_BYTES) {
+    throw new Error('Workspace command exceeds the sandbox input limit')
+  }
+
+  if (!isDockerReady) {
+    throw new Error(
+      'Workspace sandbox is unavailable; refusing to execute command without Docker isolation.'
+    )
   }
 
   const hostWsPath = path.join('/tmp', 'telos-workspaces', threadId)
@@ -184,142 +256,116 @@ export async function executeWorkspaceCommand(
       'run',
       '-i',
       '--rm',
-      '--name', containerName,
+      '--name',
+      containerName,
       '--network=none',
+      '--read-only',
+      '--cap-drop=ALL',
+      '--security-opt=no-new-privileges',
+      '--pids-limit=64',
+      '--user',
+      sandboxUser,
+      '--tmpfs',
+      '/tmp:rw,noexec,nosuid,nodev,size=128m',
       '--memory=512m',
       '--cpus=1.0',
-      '-v', `${hostWsPath}:${containerWsPath}`,
-      '--workdir', containerWsPath,
+      '-v',
+      `${hostWsPath}:${containerWsPath}`,
+      '--workdir',
+      containerWsPath,
       image,
-      'sh', '-c', command
+      'sh',
+      '-c',
+      command,
     ]
 
-    return new Promise((resolve) => {
-      logger.info({ msg: `Spawning workspace sandbox Docker for command execution`, threadId, command, containerName })
-      const child = spawn(dockerPath, dockerArgs, { env: customEnv })
-      let stdout = ''
-      let stderr = ''
+    return new Promise(resolve => {
+      logger.info({
+        msg: 'Spawning workspace sandbox Docker for command execution',
+        threadId,
+        containerName,
+      })
+      const child = spawn(dockerPath, dockerArgs, { env: executionEnv })
+      const stdout = { value: '', bytes: 0, truncated: false }
+      const stderr = { value: '', bytes: 0, truncated: false }
       let isFinished = false
 
-      child.stdout.on('data', (data) => {
-        stdout += data.toString()
+      child.stdout.on('data', data => {
+        appendSandboxOutput(stdout, data)
       })
 
-      child.stderr.on('data', (data) => {
-        stderr += data.toString()
+      child.stderr.on('data', data => {
+        appendSandboxOutput(stderr, data)
       })
 
       const timeoutId = setTimeout(() => {
         if (isFinished) return
         isFinished = true
-        
+
         // 彻底终结容器生命周期，解决孤儿容器无休止运行漏洞
-        logger.warn({ msg: `Execution Timeout: Killing Docker container`, containerName })
+        logger.warn({
+          msg: `Execution Timeout: Killing Docker container`,
+          containerName,
+        })
         try {
           child.kill('SIGKILL')
         } catch {}
         try {
-          execSync(`${dockerPath} kill ${containerName}`, { stdio: 'ignore', env: customEnv })
+          execSync(`${dockerPath} kill ${containerName}`, {
+            stdio: 'ignore',
+            env: executionEnv,
+          })
         } catch {}
-        
+
         resolve({
-          stdout,
-          stderr: stderr + '\nExecution Timeout: Limit of 30s exceeded in Docker sandbox.',
+          stdout: stdout.value,
+          stderr:
+            stderr.value +
+            '\nExecution Timeout: Limit of 30s exceeded in Docker sandbox.',
           exitCode: -1,
           method: 'docker',
-          timedOut: true
+          timedOut: true,
         })
       }, 30000)
 
-      child.on('close', (code) => {
+      child.on('close', code => {
         if (isFinished) return
         isFinished = true
         clearTimeout(timeoutId)
         resolve({
-          stdout,
-          stderr,
+          stdout: stdout.value,
+          stderr: stderr.value,
           exitCode: code,
-          method: 'docker'
+          method: 'docker',
         })
       })
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         if (isFinished) return
         isFinished = true
         clearTimeout(timeoutId)
-        
+
         // 报错时同样尝试清理可能正在运行的容器
         try {
-          execSync(`${dockerPath} kill ${containerName}`, { stdio: 'ignore', env: customEnv })
+          execSync(`${dockerPath} kill ${containerName}`, {
+            stdio: 'ignore',
+            env: executionEnv,
+          })
         } catch {}
-        
+
         resolve({
-          stdout,
-          stderr: stderr + `\nSandbox daemon error: ${err.message}`,
+          stdout: stdout.value,
+          stderr: stderr.value + `\nSandbox daemon error: ${err.message}`,
           exitCode: -2,
-          method: 'docker'
+          method: 'docker',
         })
       })
     })
   }
 
-  // 降级回退到宿主机执行
-  logger.warn({ msg: `Docker sandbox not available. Falling back to host execution for thread: ${threadId}`, command })
-  return new Promise((resolve) => {
-    const child = spawn('sh', ['-c', command], {
-      cwd: hostWsPath,
-      env: customEnv
-    })
-    let stdout = ''
-    let stderr = ''
-    let isFinished = false
-
-    child.stdout.on('data', (data) => {
-      stdout += data.toString()
-    })
-
-    child.stderr.on('data', (data) => {
-      stderr += data.toString()
-    })
-
-    const timeoutId = setTimeout(() => {
-      if (isFinished) return
-      isFinished = true
-      try {
-        child.kill('SIGKILL')
-      } catch {}
-      resolve({
-        stdout,
-        stderr: stderr + '\nExecution Timeout: Limit of 30s exceeded on Host.',
-        exitCode: -1,
-        method: 'host',
-        timedOut: true
-      })
-    }, 30000)
-
-    child.on('close', (code) => {
-      if (isFinished) return
-      isFinished = true
-      clearTimeout(timeoutId)
-      const warning = stderr ? '\n' : '' + '[Security Warning: Docker sandbox is unavailable, command executed on host]\n'
-      resolve({
-        stdout,
-        stderr: warning + stderr,
-        exitCode: code,
-        method: 'host'
-      })
-    })
-
-    child.on('error', (err) => {
-      if (isFinished) return
-      isFinished = true
-      clearTimeout(timeoutId)
-      resolve({
-        stdout,
-        stderr: stderr + `\nHost spawn error: ${err.message}`,
-        exitCode: -2,
-        method: 'host'
-      })
-    })
-  })
+  // Kept as a final guard in case the availability state changes while this
+  // function is being refactored; no host execution fallback is permitted.
+  throw new Error(
+    'Workspace sandbox is unavailable; refusing to execute command without Docker isolation.'
+  )
 }

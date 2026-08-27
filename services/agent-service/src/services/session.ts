@@ -3,10 +3,17 @@ import { prisma } from './db.js'
 import { safeJsonStringify } from '../utils/json.js'
 import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
 import { resolveMessageModelKey } from './message-model.js'
+import { normalizeUserImageParts } from './image-input.js'
 
 const RECENT_MESSAGE_LIMIT = 12
 const SUMMARY_THRESHOLD = 20
 export const ANONYMOUS_OWNER_ID = 'anonymous'
+export {
+  MAX_USER_IMAGE_PARTS,
+  MAX_USER_IMAGE_TOTAL_BYTES,
+  MAX_USER_IMAGE_URL_LENGTH,
+  MAX_USER_IMAGE_URL_TOTAL_LENGTH,
+} from './image-input.js'
 
 type MessageRole = 'user' | 'assistant' | 'tool' | 'system'
 
@@ -258,29 +265,7 @@ export class AgentSessionService {
   }
 
   async appendUserMessage(threadId: string, input: string, parts?: unknown) {
-    let formattedParts: any[] = []
-    if (Array.isArray(parts)) {
-      formattedParts = parts
-        .map(item => {
-          if (typeof item === 'string') {
-            const url = item.trim()
-            if (
-              url &&
-              (/^https?:\/\//i.test(url) ||
-                /^data:image\/[a-zA-Z]+;base64,/i.test(url))
-            ) {
-              return {
-                type: 'image_url',
-                image_url: { url },
-              }
-            }
-          } else if (item && typeof item === 'object') {
-            return item
-          }
-          return null
-        })
-        .filter(Boolean)
-    }
+    const formattedParts = normalizeUserImageParts(parts)
     return this.appendMessage({
       threadId,
       role: 'user',

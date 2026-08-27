@@ -12,6 +12,10 @@ const DEFAULT_TTL_SECONDS = 30 * 60
 
 const client = new Redis(config.redisUrl, {
   maxRetriesPerRequest: null,
+  // This module is imported by the generic runtime. Defer the Redis socket
+  // until cache I/O is actually requested so unrelated execution modes do
+  // not inherit a reconnecting handle just by importing the runtime.
+  lazyConnect: true,
 })
 client.on('error', err =>
   logger.error({ msg: 'pending-cache redis client error', err })
@@ -29,7 +33,12 @@ export class PendingRunCache<T> {
 
   async set(runId: string, value: T): Promise<void> {
     if (!runId) return
-    await client.set(this.key(runId), JSON.stringify(value), 'EX', this.ttlSeconds)
+    await client.set(
+      this.key(runId),
+      JSON.stringify(value),
+      'EX',
+      this.ttlSeconds
+    )
   }
 
   /** 取出并删除（一次性消费）。Redis 故障时返回 undefined 而非抛错，不阻断 run 收尾 */
@@ -39,7 +48,11 @@ export class PendingRunCache<T> {
       const raw = await client.getdel(this.key(runId))
       return raw ? (JSON.parse(raw) as T) : undefined
     } catch (err) {
-      logger.warn({ msg: 'pending-cache consume failed', key: this.key(runId), err })
+      logger.warn({
+        msg: 'pending-cache consume failed',
+        key: this.key(runId),
+        err,
+      })
       return undefined
     }
   }

@@ -17,6 +17,11 @@ export interface StructuredPlan {
   steps: PlanStep[]
 }
 
+const MAX_PLAN_STEPS = 20
+const MAX_PLAN_SUMMARY_LENGTH = 4_000
+const MAX_PLAN_STEP_LENGTH = 4_000
+const MAX_PLAN_TOOL_HINT_LENGTH = 128
+
 /**
  * 计划步骤的执行状态。
  * - pending: 尚未开始
@@ -26,11 +31,7 @@ export interface StructuredPlan {
  * - failed: 执行失败
  */
 export type PlanStepStatus =
-  | 'pending'
-  | 'in_progress'
-  | 'completed'
-  | 'skipped'
-  | 'failed'
+  'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
 
 /**
  * 判断一个工具是否为只读工具（plan 模式下允许使用）。
@@ -58,10 +59,10 @@ export function isReadOnlyTool(tool: {
       'grep_search',
       'file_search',
       'code_interpreter',
-      'web_search'
+      'web_search',
     ]
     const name = String(raw.builtin || tool.name || '')
-    if (!name) return true
+    if (!name) return false
     return readOnlyBuiltins.includes(name)
   }
 
@@ -83,28 +84,63 @@ export function validatePlanInput(input: unknown): StructuredPlan {
   if (!summary) {
     throw new Error('create_plan 的 summary 不能为空')
   }
+  if (summary.length > MAX_PLAN_SUMMARY_LENGTH) {
+    throw new Error(
+      `create_plan 的 summary 不能超过 ${MAX_PLAN_SUMMARY_LENGTH} 个字符`
+    )
+  }
   const stepsRaw = Array.isArray(raw.steps) ? raw.steps : []
   if (stepsRaw.length === 0) {
     throw new Error('create_plan 的 steps 不能为空')
   }
-  const steps: PlanStep[] = stepsRaw
-    .filter((s): s is Record<string, unknown> => !!s && typeof s === 'object')
-    .map(s => {
-      const description =
-        typeof s.description === 'string' ? s.description.trim() : ''
-      if (!description) {
-        throw new Error('每个 step 必须有非空的 description')
+  if (stepsRaw.length > MAX_PLAN_STEPS) {
+    throw new Error(`create_plan 的 steps 不能超过 ${MAX_PLAN_STEPS} 步`)
+  }
+  const steps: PlanStep[] = stepsRaw.map(s => {
+    if (!s || typeof s !== 'object') {
+      throw new Error('每个 step 必须是一个对象')
+    }
+    const rawStep = s as Record<string, unknown>
+    const description =
+      typeof rawStep.description === 'string' ? rawStep.description.trim() : ''
+    if (!description) {
+      throw new Error('每个 step 必须有非空的 description')
+    }
+    if (description.length > MAX_PLAN_STEP_LENGTH) {
+      throw new Error(
+        `step description 不能超过 ${MAX_PLAN_STEP_LENGTH} 个字符`
+      )
+    }
+    const step: PlanStep = { description }
+    if (typeof rawStep.tool_hint === 'string' && rawStep.tool_hint.trim()) {
+      const toolHint = rawStep.tool_hint.trim()
+      if (toolHint.length > MAX_PLAN_TOOL_HINT_LENGTH) {
+        throw new Error(
+          `step tool_hint 不能超过 ${MAX_PLAN_TOOL_HINT_LENGTH} 个字符`
+        )
       }
-      const step: PlanStep = { description }
-      if (typeof s.tool_hint === 'string' && s.tool_hint.trim()) {
-        step.tool_hint = s.tool_hint.trim()
-      }
-      return step
-    })
+      step.tool_hint = toolHint
+    }
+    return step
+  })
   if (steps.length === 0) {
     throw new Error('create_plan 解析后没有任何有效 step')
   }
   return { summary, steps }
+}
+
+/** Parse and validate a client-submitted approved plan. */
+export function parseApprovedPlan(raw: unknown): StructuredPlan | null {
+  if (raw === undefined || raw === null || raw === '') return null
+  let parsed = raw
+  if (typeof raw === 'string') {
+    try {
+      parsed = JSON.parse(raw)
+    } catch {
+      throw new Error('approvedPlan 不是有效的 JSON')
+    }
+  }
+  return validatePlanInput(parsed)
 }
 
 /**
@@ -175,7 +211,9 @@ export function executeUpdatePlanStatus(
   return JSON.stringify({ updated: true, step_index: stepIndex, status })
 }
 
-export function buildCreatePlanTool(onPlanCreated?: (plan: StructuredPlan) => void) {
+export function buildCreatePlanTool(
+  onPlanCreated?: (plan: StructuredPlan) => void
+) {
   return tool({
     name: 'create_plan',
     description:
@@ -184,15 +222,19 @@ export function buildCreatePlanTool(onPlanCreated?: (plan: StructuredPlan) => vo
       '注意：调用此工具前应先充分探索（如 search_memory、读取资料），不要在信息不足时草率出计划。',
     parameters: z.object({
       summary: z.string().describe('计划的整体说明（一句话概括要达成什么）'),
-      steps: z.array(
-        z.object({
-          description: z.string().describe('这一步具体要做什么'),
-          tool_hint: z
-            .string()
-            .nullable()
-            .describe('预计会用到哪些工具（必须为 string 或 null，如 search_memory, calculator）'),
-        })
-      ).describe('按顺序排列的执行步骤'),
+      steps: z
+        .array(
+          z.object({
+            description: z.string().describe('这一步具体要做什么'),
+            tool_hint: z
+              .string()
+              .nullable()
+              .describe(
+                '预计会用到哪些工具（必须为 string 或 null，如 search_memory, calculator）'
+              ),
+          })
+        )
+        .describe('按顺序排列的执行步骤'),
     }),
     strict: true,
     async execute(input: unknown) {
@@ -226,12 +268,14 @@ export function buildUpdatePlanStatusTool(
       status: z
         .enum(['in_progress', 'completed', 'skipped', 'failed'])
         .describe(
-            'in_progress=开始执行这一步, completed=这一步已完成, skipped=跳过这一步, failed=这一步失败'
+          'in_progress=开始执行这一步, completed=这一步已完成, skipped=跳过这一步, failed=这一步失败'
         ),
       note: z
         .string()
         .nullable()
-        .describe('可选说明（必须为 string 或 null，如失败原因、完成结果摘要）'),
+        .describe(
+          '可选说明（必须为 string 或 null，如失败原因、完成结果摘要）'
+        ),
     }),
     strict: true,
     async execute(input: unknown) {

@@ -123,6 +123,22 @@
       "executing": "执行计划",
       "executeTrigger": "请按照上述批准的计划执行"
     },
+    "approval": {
+      "title": "需要批准工具调用",
+      "description": "请逐项检查工具调用，批准后代理人才能继续执行。",
+      "tool": "工具",
+      "arguments": "参数",
+      "expires": "过期时间：{time}",
+      "approve": "批准",
+      "deny": "拒绝",
+      "waiting": "等待决定",
+      "approved": "已批准",
+      "denied": "已拒绝",
+      "expired": "已过期",
+      "empty": "当前没有可处理的审批请求。",
+      "decideFailed": "无法保存该决定，请重试。",
+      "refreshFailed": "无法刷新审批状态，请重试。"
+    },
     "voice": {
       "title": "实时语音",
       "shortLabel": "语音",

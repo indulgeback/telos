@@ -1,7 +1,5 @@
 import { serve } from '@hono/node-server'
-import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { IncomingMessage } from 'node:http'
-import fs from 'node:fs'
 import path from 'node:path'
 import { Hono } from 'hono'
 import { HTTPException } from 'hono/http-exception'
@@ -18,15 +16,31 @@ import { realtimeRouter } from './routes/realtime.js'
 import { runsRouter } from './routes/runs.js'
 import { skillsRouter } from './routes/skills.js'
 import { toolsRouter } from './routes/tools.js'
-import { gatewayIdentityMiddleware } from './middleware/gatewayIdentity.js'
+import {
+  gatewayIdentityMiddleware,
+  getAuthenticatedUserId,
+  verifyGatewayIdentity,
+} from './middleware/gatewayIdentity.js'
 import { ensureBuiltinTools } from './services/builtin-tools.js'
 import { ensureDefaultAgent } from './services/default-agent.js'
 import { ensureSystemSkills } from './services/default-skills.js'
-import { db } from './services/db.js'
+import { db, prisma } from './services/db.js'
 import { performRegistration } from './services/registry.js'
 import { handleVolcRealtimeAudioSocket } from './services/realtime/volc-realtime.js'
 import { ANONYMOUS_OWNER_ID } from './services/session.js'
-import { closeAgentRunWorker, startAgentRunWorker } from './services/run-queue.js'
+import {
+  closeAgentRunWorker,
+  isAgentRunWorkerReady,
+  startAgentRunWorker,
+} from './services/run-queue.js'
+import {
+  closeOutboxDispatcher,
+  startOutboxDispatcher,
+} from './services/outbox.js'
+import {
+  openSharedFile,
+  SharedPathAccessError,
+} from './services/workspace-share.js'
 
 validateConfig()
 
@@ -59,7 +73,9 @@ app.onError((err, c) => {
     {
       code: 500,
       message:
-        config.nodeEnv === 'development' ? err.message : 'Internal Server Error',
+        config.nodeEnv === 'development'
+          ? err.message
+          : 'Internal Server Error',
     },
     500
   )
@@ -86,7 +102,20 @@ app.get('/health', c =>
   })
 )
 
-app.get('/ready', c => c.json({ status: 'ready' }))
+app.get('/ready', async c => {
+  const [database, runWorker] = await Promise.all([
+    db.healthCheck(),
+    isAgentRunWorkerReady(),
+  ])
+  const ready = database && runWorker
+  return c.json(
+    {
+      status: ready ? 'ready' : 'not_ready',
+      checks: { database, run_worker: runWorker },
+    },
+    ready ? 200 : 503
+  )
+})
 app.get('/info', c =>
   c.json({
     service: 'agent-service',
@@ -96,32 +125,57 @@ app.get('/info', c =>
   })
 )
 
-app.get('/workspaces/shares/:threadId/*', async (c) => {
+app.use('/workspaces/shares/*', gatewayIdentityMiddleware)
+
+app.get('/workspaces/shares/:threadId/*', async c => {
   const threadId = c.req.param('threadId')
-  const relativePath = decodeURIComponent(c.req.path.slice(`/workspaces/shares/${threadId}/`.length))
-  
+  const userId = getAuthenticatedUserId(c)
+  if (!userId) return c.text('Unauthorized', 401)
+
+  const thread = await prisma.agentThread.findFirst({
+    where: { id: threadId, ownerId: userId, status: { not: 'deleted' } },
+    select: { id: true },
+  })
+  if (!thread) return c.text('File Not Found', 404)
+
+  let relativePath: string
+  try {
+    relativePath = decodeURIComponent(
+      c.req.path.slice(`/workspaces/shares/${threadId}/`.length)
+    )
+  } catch {
+    return c.text('Invalid path', 400)
+  }
+
   const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
   const wsRoot = path.join(persistedDir, 'workspaces', threadId)
-  const absoluteFilePath = path.resolve(wsRoot, relativePath)
 
-  if (!absoluteFilePath.startsWith(wsRoot)) {
-    return c.text('Access Denied', 403)
-  }
-
-  if (fs.existsSync(absoluteFilePath)) {
-    const stat = fs.statSync(absoluteFilePath)
-    if (stat.isFile()) {
-      const fileBuffer = fs.readFileSync(absoluteFilePath)
-      const baseName = path.basename(absoluteFilePath)
-      c.header('Content-Length', stat.size.toString())
-      c.header(
-        'Content-Disposition',
-        `attachment; filename="${encodeURIComponent(baseName)}"; filename*=UTF-8''${encodeURIComponent(baseName)}`
-      )
-      return c.body(fileBuffer)
+  let openedFile: Awaited<ReturnType<typeof openSharedFile>>
+  try {
+    openedFile = await openSharedFile(wsRoot, relativePath)
+  } catch (error) {
+    if (error instanceof SharedPathAccessError) {
+      return c.text('Access Denied', 403)
     }
+    return c.text('File Not Found', 404)
   }
-  return c.text('File Not Found', 404)
+
+  try {
+    const fileBuffer = await openedFile.fileHandle.readFile()
+    const baseName = path.basename(openedFile.realFilePath)
+    c.header('Content-Length', openedFile.stat.size.toString())
+    c.header('Cache-Control', 'private, no-store')
+    c.header('X-Content-Type-Options', 'nosniff')
+    c.header(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(baseName)}"; filename*=UTF-8''${encodeURIComponent(baseName)}`
+    )
+    return c.body(fileBuffer)
+  } catch {
+    return c.text('File Not Found', 404)
+  } finally {
+    await openedFile.fileHandle.close().catch(() => undefined)
+  }
 })
 
 app.use('/api/*', gatewayIdentityMiddleware)
@@ -171,95 +225,67 @@ const server = serve(
         err: error,
       })
     })
+    startOutboxDispatcher()
   }
 )
 
 const realtimeAudioWss = new WebSocketServer({ noServer: true })
 
-function signGatewayIdentity(options: {
-  method: string
-  path: string
-  userId: string
-  timestamp: string
-  nonce: string
-}) {
-  return createHmac('sha256', config.gatewayInternalSecret)
-    .update(
-      [
-        options.method,
-        options.path,
-        options.userId,
-        options.timestamp,
-        options.nonce,
-      ].join('\n')
-    )
-    .digest('hex')
-}
-
-function safeEqual(left: string, right: string) {
-  const leftBuffer = Buffer.from(left)
-  const rightBuffer = Buffer.from(right)
-  if (leftBuffer.length !== rightBuffer.length) return false
-  return timingSafeEqual(leftBuffer, rightBuffer)
-}
-
-function resolveRealtimeSocketUserId(request: {
+async function resolveRealtimeSocketUserId(request: {
   method?: string
   url?: string
   headers: Record<string, string | string[] | undefined>
 }) {
   if (config.allowAnonymousOwner) return ANONYMOUS_OWNER_ID
 
-  const rawPath = request.url || '/api/agent/realtime/audio'
-  const path = rawPath.split('?')[0] || '/api/agent/realtime/audio'
+  const rawUrl = request.url || '/api/agent/realtime/audio'
   const userId = String(request.headers['x-user-id'] || '').trim()
   const timestamp = String(request.headers['x-gateway-timestamp'] || '').trim()
   const nonce = String(request.headers['x-gateway-nonce'] || '').trim()
+  const bodyHeader = String(
+    request.headers['x-gateway-body-sha256'] || ''
+  ).trim()
   const signature = String(request.headers['x-gateway-signature'] || '').trim()
 
-  if (!userId || !timestamp || !nonce || !signature) return null
+  if (!userId || !timestamp || !nonce || !bodyHeader || !signature) return null
 
-  const timestampSeconds = Number(timestamp)
-  if (!Number.isFinite(timestampSeconds)) return null
-  const nowSeconds = Math.floor(Date.now() / 1000)
-  if (
-    Math.abs(nowSeconds - timestampSeconds) >
-    config.authClockSkewSeconds
-  ) {
-    return null
-  }
-
-  const expected = signGatewayIdentity({
+  const valid = await verifyGatewayIdentity({
     method: request.method || 'GET',
-    path,
+    rawUrl,
+    bodyDigest:
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    bodyHeader,
     userId,
     timestamp,
     nonce,
+    signature,
   })
-  return safeEqual(expected, signature) ? userId : null
+  return valid ? userId : null
 }
 
 server.on('upgrade', (request, socket, head) => {
-  const pathname = request.url?.split('?')[0]
-  logger.info({
-    msg: 'Realtime audio upgrade request',
-    path: pathname,
-  })
-  if (pathname !== '/api/agent/realtime/audio') {
-    socket.destroy()
-    return
-  }
+  void (async () => {
+    const pathname = request.url?.split('?')[0]
+    logger.info({
+      msg: 'Realtime audio upgrade request',
+      path: pathname,
+    })
+    if (pathname !== '/api/agent/realtime/audio') {
+      socket.destroy()
+      return
+    }
 
-  const userId = resolveRealtimeSocketUserId(request)
-  if (!userId) {
-    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
-    socket.destroy()
-    return
-  }
+    const userId = await resolveRealtimeSocketUserId(request)
+    if (!userId) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
+      socket.destroy()
+      return
+    }
 
-  realtimeAudioWss.handleUpgrade(request, socket, head, ws => {
-    realtimeAudioWss.emit('connection', ws, request, userId)
-  })
+    realtimeAudioWss.handleUpgrade(request, socket, head, ws => {
+      realtimeAudioWss.emit('connection', ws, request, userId)
+    })
+  })()
 })
 
 realtimeAudioWss.on(
@@ -277,6 +303,7 @@ const shutdown = async () => {
 
   server.close(async () => {
     try {
+      closeOutboxDispatcher()
       await closeAgentRunWorker()
       await db.disconnect()
       logger.info({ msg: 'Database disconnected' })

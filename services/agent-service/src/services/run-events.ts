@@ -6,31 +6,185 @@
  *   多实例并发写入也保证全局有序——彻底取代旧实现里「进程内锁 +
  *   SELECT MAX(sequence) + INSERT 到 agent_run_events 表」的写放大
  * - 断线续传：SSE 端点用 XRANGE(after) 回放 + XREAD BLOCK 订阅
- * - 生命周期：key 带 TTL（默认 30 分钟）兜底；run 终态后显式 DEL
- *   （会话恢复走 message parts 全量落库，事件只服务进行中 run）
+ * - 生命周期：key 带 TTL（默认 30 分钟）兜底；run 终态后只缩短 TTL，
+ *   保留一段时间供断线重连/诊断读取（不会立即 DEL）
  * - agent_run_events 表不再写入（存量数据待清理，表保留观察期）
  */
 import Redis from 'ioredis'
 import { config } from '../config/index.js'
 import { logger } from '../config/index.js'
 import { normalizeRunEventCursor } from './run-event-cursor.js'
+import { isTerminalUiEventType } from './run-terminal.js'
+import type { RunLease } from './run-lease.js'
 
 const EVENT_TTL_SECONDS = 30 * 60
+const CANCEL_MARKER_TTL_SECONDS = 24 * 60 * 60
 const READ_BLOCK_MS = 5_000
+const READ_BATCH_SIZE = 128
+const DEFAULT_HISTORY_LIMIT = 2_000
+const EVENT_FENCE_CLOSE_TIMEOUT_MS = 2_000
+const WRITE_CONNECT_TIMEOUT_MS = 1_000
+const WRITE_COMMAND_TIMEOUT_MS = 2_000
 
-const writeClient = new Redis(config.redisUrl, {
-  maxRetriesPerRequest: null,
-  lazyConnect: false,
-})
-writeClient.on('error', err =>
-  logger.error({ msg: 'run-events redis write client error', err })
-)
+let writeClient: Redis | null = null
+let connectingClient: Redis | null = null
+let connectingPromise: Promise<void> | null = null
+
+function newWriteClient() {
+  const client = new Redis(config.redisUrl, getRunEventsWriteOptions())
+  client.on('error', err =>
+    logger.error({ msg: 'run-events redis write client error', err })
+  )
+  client.on('end', () => {
+    if (writeClient === client) writeClient = null
+  })
+  return client
+}
+
+/** Exposed without creating a client so the bounded write contract is testable. */
+export function getRunEventsWriteOptions() {
+  return {
+    connectTimeout: WRITE_CONNECT_TIMEOUT_MS,
+    enableOfflineQueue: false,
+    lazyConnect: true,
+    // Projection writes are best effort. Never leave a command pending until
+    // Redis comes back, and never resend a command whose caller has timed out.
+    maxRetriesPerRequest: 1,
+    autoResendUnfulfilledCommands: false,
+    commandTimeout: WRITE_COMMAND_TIMEOUT_MS,
+    retryStrategy: (times: number) => (times <= 2 ? times * 100 : null),
+  }
+}
+
+/**
+ * Explicitly establish readiness before issuing a projection command. With
+ * offline queues disabled, commands cannot be silently replayed after a
+ * terminal DB transition when Redis recovers.
+ */
+async function readyWriteClient() {
+  const client =
+    writeClient && writeClient.status !== 'end'
+      ? writeClient
+      : (writeClient = newWriteClient())
+
+  if (client.status === 'ready') return client
+  if (client.status === 'wait') {
+    if (connectingClient !== client) {
+      connectingClient = client
+      connectingPromise = client.connect().finally(() => {
+        if (connectingClient === client) {
+          connectingClient = null
+          connectingPromise = null
+        }
+      })
+    }
+  }
+  // Concurrent first writes share the same explicit connection attempt. They
+  // must not fail merely because the first caller changed wait -> connecting.
+  if (connectingClient === client && connectingPromise) {
+    await connectingPromise
+  }
+  if ((client.status as string) !== 'ready') {
+    throw new Error(`run-events Redis is not ready (${client.status})`)
+  }
+  return client
+}
+
+async function withWriteClient<T>(operation: (client: Redis) => Promise<T>) {
+  return operation(await readyWriteClient())
+}
 
 function streamKey(runId: string) {
   return `run:events:${runId}`
 }
 
-interface RunEvent {
+function cancelKey(runId: string) {
+  return `run:cancelled:${runId}`
+}
+
+function terminalEventKey(runId: string) {
+  return `run:terminal-event:${runId}`
+}
+
+function eventFenceKey(runId: string) {
+  return `run:event-fence:${runId}`
+}
+
+function uiEventDedupeKey(runId: string, dedupeKey: string) {
+  return `run:ui-event:${runId}:${dedupeKey}`
+}
+
+const APPEND_TERMINAL_EVENT_SCRIPT = `
+local existing = redis.call('GET', KEYS[2])
+if existing then
+  return existing
+end
+local id = redis.call(
+  'XADD', KEYS[1], '*',
+  'type', ARGV[1],
+  'payload', ARGV[2],
+  'agent', ARGV[3]
+)
+redis.call('EXPIRE', KEYS[1], ARGV[4])
+redis.call('SET', KEYS[2], id, 'EX', ARGV[4])
+return id
+`
+
+// Redis is the live projection, so generation fencing is enforced in the
+// same atomic operation as XADD. The expiry supplied here is the last lease
+// expiry successfully committed by PostgreSQL; a stale worker cannot extend
+// it locally because only a successful DB heartbeat mutates the lease object.
+const APPEND_FENCED_EVENT_SCRIPT = `
+local requested_fence = tonumber(ARGV[4])
+local current = redis.call('GET', KEYS[2])
+if current then
+  local current_fence, current_attempt, current_state = string.match(current, '^([^:]+):([^:]+):([^:]+)$')
+  current_fence = tonumber(current_fence)
+  if current_fence > requested_fence then
+    return ''
+  end
+  if current_fence == requested_fence and (current_attempt ~= ARGV[5] or current_state ~= 'open') then
+    return ''
+  end
+end
+local now = redis.call('TIME')
+local now_ms = (tonumber(now[1]) * 1000) + math.floor(tonumber(now[2]) / 1000)
+if now_ms >= tonumber(ARGV[6]) then
+  return ''
+end
+if not current or tonumber(string.match(current, '^([^:]+):')) < requested_fence then
+  redis.call('SET', KEYS[2], ARGV[4] .. ':' .. ARGV[5] .. ':open', 'EX', ARGV[7])
+else
+  redis.call('EXPIRE', KEYS[2], ARGV[7])
+end
+local id = redis.call(
+  'XADD', KEYS[1], '*',
+  'type', ARGV[1],
+  'payload', ARGV[2],
+  'agent', ARGV[3]
+)
+redis.call('EXPIRE', KEYS[1], ARGV[7])
+return id
+`
+
+const CLOSE_EVENT_FENCE_SCRIPT = `
+local current = redis.call('GET', KEYS[1])
+local requested_fence = tonumber(ARGV[1])
+if current then
+  local current_fence, current_attempt = string.match(current, '^([^:]+):([^:]+):')
+  current_fence = tonumber(current_fence)
+  if current_fence > requested_fence then
+    return 0
+  end
+  if current_fence == requested_fence and current_attempt ~= ARGV[2] then
+    return 0
+  end
+end
+redis.call('SET', KEYS[1], ARGV[1] .. ':' .. ARGV[2] .. ':closed', 'EX', ARGV[3])
+return 1
+`
+
+export interface RunEvent {
   id: string
   sequence: string
   type: string
@@ -75,25 +229,116 @@ export async function appendRunEvent(
 ): Promise<RunEvent> {
   const key = streamKey(runId)
   const merged = { ...(payload as Record<string, unknown>), type }
-  const id = (await writeClient.xadd(
-    key,
-    '*',
-    'type',
+  const id = await withWriteClient(async client => {
+    const eventId = (await client.xadd(
+      key,
+      '*',
+      'type',
+      type,
+      'payload',
+      JSON.stringify(merged),
+      'agent',
+      agentName ?? ''
+    )) as string
+    // 每次写入刷新 TTL：进行中 run 的事件持续续期，终态后不再写入则到期自动清理。
+    // EXPIRE 失败不让整次 append 抛错（XADD 已成功，事件本体不丢；TTL 由 30min 内
+    // 后续写入或终态 DEL 兜底），避免 pendingEmits reject 连锁跳过 run 收尾落库
+    try {
+      await client.expire(key, EVENT_TTL_SECONDS)
+    } catch (err) {
+      logger.warn({ msg: 'Failed to refresh run events TTL', runId, err })
+    }
+    return eventId
+  })
+  return {
+    id,
+    sequence: id,
     type,
-    'payload',
-    JSON.stringify(merged),
-    'agent',
-    agentName ?? ''
-  )) as string
-  // 每次写入刷新 TTL：进行中 run 的事件持续续期，终态后不再写入则到期自动清理。
-  // EXPIRE 失败不让整次 append 抛错（XADD 已成功，事件本体不丢；TTL 由 30min 内
-  // 后续写入或终态 DEL 兜底），避免 pendingEmits reject 连锁跳过 run 收尾落库
-  try {
-    await writeClient.expire(key, EVENT_TTL_SECONDS)
-  } catch (err) {
-    logger.warn({ msg: 'Failed to refresh run events TTL', runId, err })
+    payload: merged,
+    agentName: agentName ?? null,
   }
-  return { id, sequence: id, type, payload: merged, agentName: agentName ?? null }
+}
+
+/**
+ * Append a non-terminal event only while this exact attempt generation still
+ * owns an unexpired lease. A newer fence or an explicitly closed generation
+ * rejects queued callbacks atomically before they can reach the stream.
+ */
+export async function appendRunEventForLease(
+  lease: RunLease,
+  type: string,
+  payload: unknown = {},
+  agentName?: string | null
+): Promise<RunEvent | null> {
+  const merged = {
+    ...(payload as Record<string, unknown>),
+    type,
+    attempt_id: lease.attemptId,
+    fence_token: lease.fenceToken,
+  }
+  const id = (await withWriteClient(client =>
+    client.eval(
+      APPEND_FENCED_EVENT_SCRIPT,
+      2,
+      streamKey(lease.runId),
+      eventFenceKey(lease.runId),
+      type,
+      JSON.stringify(merged),
+      agentName ?? '',
+      String(lease.fenceToken),
+      lease.attemptId,
+      String(lease.leaseExpiresAt.getTime()),
+      String(EVENT_TTL_SECONDS)
+    )
+  )) as string
+  if (!id) return null
+  return {
+    id,
+    sequence: id,
+    type,
+    payload: merged,
+    agentName: agentName ?? null,
+  }
+}
+
+/** Prevent any later callback from this attempt from appending live output. */
+export async function closeRunEventFence(lease: RunLease) {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  try {
+    const close = withWriteClient(client =>
+      client.eval(
+        CLOSE_EVENT_FENCE_SCRIPT,
+        1,
+        eventFenceKey(lease.runId),
+        String(lease.fenceToken),
+        lease.attemptId,
+        String(EVENT_TTL_SECONDS)
+      )
+    )
+    const result = await Promise.race([
+      close,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error('run event fence close timed out')),
+          EVENT_FENCE_CLOSE_TIMEOUT_MS
+        )
+        timeout.unref?.()
+      }),
+    ])
+    return result === 1
+  } catch (err) {
+    // The process-local gate is already sealed by the executor. Redis is a
+    // rebuildable projection, so a bounded failure must not block the durable
+    // approval/terminal database transition.
+    logger.warn({
+      msg: 'run event fence close failed',
+      runId: lease.runId,
+      err,
+    })
+    return false
+  } finally {
+    if (timeout) clearTimeout(timeout)
+  }
 }
 
 export async function appendRunUiEvent(
@@ -101,7 +346,100 @@ export async function appendRunUiEvent(
   type: string,
   payload: Record<string, unknown>
 ) {
+  if (isTerminalUiEventType(type)) {
+    const key = streamKey(runId)
+    const merged = { ...payload, type }
+    const { id, entries } = await withWriteClient(async client => {
+      const eventId = (await client.eval(
+        APPEND_TERMINAL_EVENT_SCRIPT,
+        2,
+        key,
+        terminalEventKey(runId),
+        type,
+        JSON.stringify(merged),
+        '',
+        String(EVENT_TTL_SECONDS)
+      )) as string
+      const streamEntries = (await client.xrange(key, eventId, eventId)) as [
+        string,
+        string[],
+      ][]
+      return { id: eventId, entries: streamEntries }
+    })
+    const existing = entries[0] ? parseStreamEntry(runId, entries[0]) : null
+    return (
+      existing ?? {
+        id,
+        sequence: id,
+        type,
+        payload: merged,
+        agentName: null,
+      }
+    )
+  }
   return appendRunEvent(runId, type, payload)
+}
+
+/** Idempotent non-terminal UI projection, keyed by the durable outbox row. */
+export async function appendRunUiEventOnce(
+  runId: string,
+  type: string,
+  payload: Record<string, unknown>,
+  dedupeKey: string
+) {
+  const key = streamKey(runId)
+  const merged = { ...payload, type }
+  const { id, entries } = await withWriteClient(async client => {
+    const eventId = (await client.eval(
+      APPEND_TERMINAL_EVENT_SCRIPT,
+      2,
+      key,
+      uiEventDedupeKey(runId, dedupeKey),
+      type,
+      JSON.stringify(merged),
+      '',
+      String(EVENT_TTL_SECONDS)
+    )) as string
+    const streamEntries = (await client.xrange(key, eventId, eventId)) as [
+      string,
+      string[],
+    ][]
+    return { id: eventId, entries: streamEntries }
+  })
+  return (
+    (entries[0] ? parseStreamEntry(runId, entries[0]) : null) ?? {
+      id,
+      sequence: id,
+      type,
+      payload: merged,
+      agentName: null,
+    }
+  )
+}
+
+/**
+ * Distributed cancellation marker.  The local AbortController is only an
+ * optimization: a request can be served by a different worker replica.
+ */
+export async function markRunCancelled(runId: string, reason: string) {
+  await withWriteClient(client =>
+    client.set(
+      cancelKey(runId),
+      reason || 'Run cancelled',
+      'EX',
+      CANCEL_MARKER_TTL_SECONDS
+    )
+  )
+}
+
+export async function isRunCancelled(runId: string) {
+  return (
+    (await withWriteClient(client => client.exists(cancelKey(runId)))) === 1
+  )
+}
+
+export async function clearRunCancellation(runId: string) {
+  await withWriteClient(client => client.del(cancelKey(runId)))
 }
 
 /**
@@ -110,12 +448,14 @@ export async function appendRunUiEvent(
  */
 export async function readRunEvents(
   runId: string,
-  after?: string
+  after?: string,
+  limit = DEFAULT_HISTORY_LIMIT
 ): Promise<RunEvent[]> {
   const key = streamKey(runId)
-  const rangeArgs = after ? [key, `(${after}`, '+'] : [key, '-', '+']
-  const entries = (await writeClient.xrange(
-    ...(rangeArgs as [string, string, string])
+  const boundedLimit = Math.max(1, Math.min(limit, DEFAULT_HISTORY_LIMIT))
+  const start = after ? `(${after}` : '-'
+  const entries = (await withWriteClient(client =>
+    client.xrange(key, start, '+', 'COUNT', boundedLimit)
   )) as [string, string[]][]
   return entries
     .map(entry => parseStreamEntry(runId, entry))
@@ -146,6 +486,8 @@ export function subscribeRunEvents(
       let lastId = normalizeRunEventCursor(from)
       while (!closed) {
         const result = (await reader.xread(
+          'COUNT',
+          READ_BATCH_SIZE,
           'BLOCK',
           READ_BLOCK_MS,
           'STREAMS',
@@ -183,10 +525,20 @@ export function subscribeRunEvents(
   }
 }
 
-/** run 终态后清理事件流（会话恢复走 message parts，事件已无读者） */
+/**
+ * Retain terminal events for reconnects and support diagnostics. Redis TTL is
+ * the eventual cleanup mechanism; callers may invoke this after a terminal
+ * transition without destroying the stream immediately.
+ */
 export async function cleanupRunEvents(runId: string) {
   try {
-    await writeClient.del(streamKey(runId))
+    await withWriteClient(client =>
+      Promise.all([
+        client.expire(streamKey(runId), EVENT_TTL_SECONDS),
+        client.expire(terminalEventKey(runId), EVENT_TTL_SECONDS),
+        client.expire(eventFenceKey(runId), EVENT_TTL_SECONDS),
+      ]).then(() => undefined)
+    )
   } catch (err) {
     logger.warn({ msg: 'Failed to cleanup run events stream', runId, err })
   }

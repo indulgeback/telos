@@ -17,9 +17,11 @@ const MIME_BY_EXT: Record<string, string> = {
   '.xlsm': 'application/vnd.ms-excel.sheet.macroEnabled.12',
   '.xls': 'application/vnd.ms-excel',
   '.csv': 'text/csv; charset=utf-8',
-  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  '.docx':
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   '.doc': 'application/msword',
-  '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  '.pptx':
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   '.ppt': 'application/vnd.ms-powerpoint',
   '.pdf': 'application/pdf',
   '.png': 'image/png',
@@ -63,7 +65,12 @@ export class CosStorageProvider implements StorageProvider {
   private bucket: string
   private region: string
 
-  constructor(secretId: string, secretKey: string, bucket: string, region: string) {
+  constructor(
+    secretId: string,
+    secretKey: string,
+    bucket: string,
+    region: string
+  ) {
     this.cos = new COS({
       SecretId: secretId,
       SecretKey: secretKey,
@@ -73,7 +80,7 @@ export class CosStorageProvider implements StorageProvider {
   }
 
   async downloadFile(key: string, localFilePath: string): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const dir = path.dirname(localFilePath)
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true })
@@ -86,7 +93,7 @@ export class CosStorageProvider implements StorageProvider {
           Key: key,
           Output: fs.createWriteStream(localFilePath),
         },
-        (err) => {
+        err => {
           if (err) {
             logger.error({ msg: 'Failed to download file from COS', key, err })
             resolve(false)
@@ -99,7 +106,7 @@ export class CosStorageProvider implements StorageProvider {
   }
 
   async uploadFile(key: string, localFilePath: string): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const fileName = path.basename(localFilePath)
       const contentType = getContentType(localFilePath)
       const inline = isInlineType(localFilePath)
@@ -115,6 +122,7 @@ export class CosStorageProvider implements StorageProvider {
           Bucket: this.bucket,
           Region: this.region,
           Key: key,
+          ACL: 'private',
           Body: fs.createReadStream(localFilePath),
           ContentLength: fs.statSync(localFilePath).size,
           Headers: {
@@ -122,7 +130,7 @@ export class CosStorageProvider implements StorageProvider {
             'Content-Disposition': dispositionValue,
           },
         },
-        (err) => {
+        err => {
           if (err) {
             logger.error({ msg: 'Failed to upload file to COS', key, err })
             resolve(false)
@@ -135,7 +143,7 @@ export class CosStorageProvider implements StorageProvider {
   }
 
   async listFiles(prefix: string): Promise<string[]> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.cos.getBucket(
         {
           Bucket: this.bucket,
@@ -208,7 +216,7 @@ export class LocalStorageProvider implements StorageProvider {
         }
       }
     }
-    
+
     // 如果 targetDir 也是一个文件，直接返回它
     const stat = fs.statSync(targetDir)
     if (stat.isFile()) {
@@ -217,7 +225,7 @@ export class LocalStorageProvider implements StorageProvider {
       scan(targetDir)
     }
 
-    return results.filter((k) => k.startsWith(prefix))
+    return results.filter(k => k.startsWith(prefix))
   }
 }
 
@@ -228,9 +236,16 @@ export class WorkspaceManager {
     if (this.provider) return this.provider
 
     // 如果处于测试模式，强制使用 LocalStorageProvider
-    if (process.env.NODE_ENV === 'test' || process.env.TAP === '1' || process.env.NODE_TEST_CONTEXT) {
+    if (
+      process.env.NODE_ENV === 'test' ||
+      process.env.TAP === '1' ||
+      process.env.NODE_TEST_CONTEXT
+    ) {
       const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
-      logger.info({ msg: 'Test environment detected. Forcing LocalStorageProvider', path: persistedDir })
+      logger.info({
+        msg: 'Test environment detected. Forcing LocalStorageProvider',
+        path: persistedDir,
+      })
       this.provider = new LocalStorageProvider(persistedDir)
       return this.provider
     }
@@ -242,10 +257,18 @@ export class WorkspaceManager {
 
     if (secretId && secretKey && bucket && region) {
       logger.info('Initializing CosStorageProvider for WorkspaceManager')
-      this.provider = new CosStorageProvider(secretId, secretKey, bucket, region)
+      this.provider = new CosStorageProvider(
+        secretId,
+        secretKey,
+        bucket,
+        region
+      )
     } else {
       const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
-      logger.info({ msg: 'Initializing LocalStorageProvider for WorkspaceManager', path: persistedDir })
+      logger.info({
+        msg: 'Initializing LocalStorageProvider for WorkspaceManager',
+        path: persistedDir,
+      })
       this.provider = new LocalStorageProvider(persistedDir)
     }
     return this.provider
@@ -263,9 +286,11 @@ export class WorkspaceManager {
     return localDir
   }
 
-  static async ensureFileCached(threadId: string, relativePath: string): Promise<string | null> {
-    const localDir = this.ensureWorkspaceDir(threadId)
-    const localFilePath = path.join(localDir, relativePath)
+  static async ensureFileCached(
+    threadId: string,
+    relativePath: string
+  ): Promise<string | null> {
+    const localFilePath = this.resolvePath(threadId, relativePath)
 
     const release = await FileMutex.acquire(localFilePath)
     try {
@@ -277,7 +302,9 @@ export class WorkspaceManager {
       const cloudKey = `workspaces/${threadId}/${relativePath}`
       const ok = await provider.downloadFile(cloudKey, localFilePath)
       if (ok) {
-        return localFilePath
+        // Revalidate after the provider created the file. This rejects a
+        // symlink inserted while the download was in flight.
+        return this.resolvePath(threadId, relativePath)
       }
       return null
     } finally {
@@ -285,9 +312,11 @@ export class WorkspaceManager {
     }
   }
 
-  static async syncFileToCloud(threadId: string, relativePath: string): Promise<boolean> {
-    const localDir = this.ensureWorkspaceDir(threadId)
-    const localFilePath = path.join(localDir, relativePath)
+  static async syncFileToCloud(
+    threadId: string,
+    relativePath: string
+  ): Promise<boolean> {
+    const localFilePath = this.resolvePath(threadId, relativePath)
 
     const release = await FileMutex.acquire(localFilePath)
     try {
@@ -303,12 +332,15 @@ export class WorkspaceManager {
     }
   }
 
-  static async listFiles(threadId: string, relativePrefix: string = ''): Promise<string[]> {
+  static async listFiles(
+    threadId: string,
+    relativePrefix: string = ''
+  ): Promise<string[]> {
     const provider = this.getProvider()
     const cloudPrefix = `workspaces/${threadId}/${relativePrefix}`
     const keys = await provider.listFiles(cloudPrefix)
     const prefixToRemove = `workspaces/${threadId}/`
-    return keys.map((key) => {
+    return keys.map(key => {
       if (key.startsWith(prefixToRemove)) {
         return key.slice(prefixToRemove.length)
       }
@@ -332,7 +364,7 @@ export class WorkspaceManager {
       )
     }
 
-    const codeFiles = files.filter((f) => !filterOut(f))
+    const codeFiles = files.filter(f => !filterOut(f))
     for (const file of codeFiles) {
       await this.ensureFileCached(threadId, file)
     }
@@ -343,43 +375,66 @@ export class WorkspaceManager {
     if (fs.existsSync(localDir)) {
       try {
         fs.rmSync(localDir, { recursive: true, force: true })
-        logger.info({ msg: 'Cleaned up local workspace for thread', threadId, path: localDir })
+        logger.info({
+          msg: 'Cleaned up local workspace for thread',
+          threadId,
+          path: localDir,
+        })
       } catch (err) {
-        logger.error({ msg: 'Failed to cleanup workspace', threadId, path: localDir, err })
+        logger.error({
+          msg: 'Failed to cleanup workspace',
+          threadId,
+          path: localDir,
+          err,
+        })
       }
     }
   }
 
   static resolvePath(threadId: string, inputPath: string): string {
+    if (inputPath.includes('\0')) {
+      throw new Error('Access denied: workspace paths cannot contain NUL bytes')
+    }
+
     const wsRoot = path.resolve(this.ensureWorkspaceDir(threadId))
+    const realWsRoot = fs.realpathSync(wsRoot)
     const resolved = path.resolve(wsRoot, inputPath)
 
-    // 1. 获取工作空间的物理真实路径
-    let realWsRoot = fs.realpathSync(wsRoot)
-    try {
-      if (fs.existsSync(wsRoot)) {
-        realWsRoot = fs.realpathSync(wsRoot)
-      }
-    } catch {}
+    const relative = path.relative(wsRoot, resolved)
+    if (
+      relative === '..' ||
+      relative.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relative)
+    ) {
+      throw new Error(
+        `Access denied: path '${inputPath}' is outside the workspace root '${wsRoot}'`
+      )
+    }
 
-    // 2. 获取目标路径的物理真实路径，如果不存在则校验其父目录的物理真实路径
-    let realPath = resolved
-    try {
-      if (fs.existsSync(resolved)) {
-        realPath = fs.realpathSync(resolved)
-      } else {
-        const parentDir = path.dirname(resolved)
-        if (fs.existsSync(parentDir)) {
-          const realParent = fs.realpathSync(parentDir)
-          realPath = path.join(realParent, path.basename(resolved))
+    // Reject every existing symlink component, not only the final target. A
+    // sandbox can create `link/new/file` where `link` points outside the host
+    // workspace; checking only the nearest parent misses that escape.
+    let current = realWsRoot
+    for (const segment of relative.split(path.sep).filter(Boolean)) {
+      current = path.join(current, segment)
+      try {
+        const stat = fs.lstatSync(current)
+        if (stat.isSymbolicLink()) {
+          throw new Error(
+            `Access denied: symbolic links are not allowed in workspace paths ('${inputPath}')`
+          )
         }
+      } catch (error) {
+        if (
+          error &&
+          typeof error === 'object' &&
+          'code' in error &&
+          error.code === 'ENOENT'
+        ) {
+          break
+        }
+        throw error
       }
-    } catch {}
-
-    // 3. 执行物理真实路径的 relative 比对，彻底杜绝软链接穿越
-    const relative = path.relative(realWsRoot, realPath)
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
-      throw new Error(`Access denied: path '${inputPath}' is outside the workspace root '${wsRoot}'`)
     }
     return resolved
   }
@@ -395,13 +450,23 @@ export class WorkspaceManager {
     // 导致部分客户端解析失败或显示成 %E4%B8%80... 乱码
     const encodedPath = normalizedRelPath
       .split('/')
-      .map((seg) => encodeURIComponent(seg))
+      .map(seg => encodeURIComponent(seg))
       .join('/')
 
     if (secretId && secretKey && bucket && region) {
-      return `https://${bucket}.cos.${region}.myqcloud.com/workspaces/${threadId}/${encodedPath}`
+      const cos = new COS({ SecretId: secretId, SecretKey: secretKey })
+      return cos.getObjectUrl({
+        Bucket: bucket,
+        Region: region,
+        Key: `workspaces/${threadId}/${normalizedRelPath}`,
+        Method: 'GET',
+        Sign: true,
+        Expires: config.workspaceShareUrlTtlSeconds,
+        Protocol: 'https:',
+      })
     } else {
-      return `http://localhost:${config.port}/workspaces/shares/${threadId}/${encodedPath}`
+      const shareBaseUrl = config.workspaceShareBaseUrl.replace(/\/$/, '')
+      return `${shareBaseUrl}/workspaces/shares/${threadId}/${encodedPath}`
     }
   }
 }
@@ -454,18 +519,19 @@ class FileMutex {
     const activeLock = this.locks.get(filePath) || Promise.resolve()
     let releaseLock: () => void = () => {}
 
-    const newLock = new Promise<void>((resolve) => {
+    const newLock = new Promise<void>(resolve => {
       releaseLock = () => {
         resolve()
       }
     })
 
-    this.locks.set(filePath, activeLock.then(() => newLock))
+    const queuedLock = activeLock.then(() => newLock)
+    this.locks.set(filePath, queuedLock)
 
     await activeLock
     return () => {
       releaseLock()
-      if (this.locks.get(filePath) === newLock) {
+      if (this.locks.get(filePath) === queuedLock) {
         this.locks.delete(filePath)
       }
     }

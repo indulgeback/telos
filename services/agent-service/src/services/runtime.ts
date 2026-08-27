@@ -3,13 +3,16 @@ import {
   MCPServerSSE,
   MCPServerStdio,
   MCPServerStreamableHttp,
+  RunState,
   Runner,
   createMCPToolStaticFilter,
+  mcpToFunctionTool,
   tool,
   type Model,
   type AgentInputItem,
   type MCPServer,
   type Tool,
+  type FunctionTool,
 } from '@openai/agents'
 import { OpenAIProvider } from '@openai/agents-openai'
 import { z } from 'zod'
@@ -22,20 +25,56 @@ import {
   isReadOnlyTool,
   type StructuredPlan,
 } from './plan-tools.js'
-import { buildClarifyQuestionTool, type ClarifyQuestion } from './clarify-tools.js'
+import {
+  buildClarifyQuestionTool,
+  type ClarifyQuestion,
+} from './clarify-tools.js'
 import { PendingRunCache } from './pending-cache.js'
 import { PlanStore } from './plan-store.js'
 import { asRecord, asStringArray, safeJsonStringify } from '../utils/json.js'
-import { buildBuiltinTool } from './builtin-tools.js'
+import {
+  buildBuiltinTool,
+  isBuiltinRunCommandTool,
+  isBuiltinToolAllowed,
+} from './builtin-tools.js'
 import {
   buildSkillLoaderTool,
   buildSkillIndexBlock,
   buildSkillActivatedBlock,
 } from './skill-loader.js'
-import { WorkspaceManager } from './workspace.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 import { DeepSeekReasoningModel } from './deepseek-reasoning-model.js'
 import { normalizeChatModelKey } from './chat-model-catalog.js'
+import { findEnabledChatModel } from './chat.js'
+import { isConfiguredAdminUser } from '../middleware/gatewayIdentity.js'
+import { isMcpUserAssignable } from './mcp-access.js'
+import {
+  createSafeDispatcher,
+  decodeImageDataUrl,
+  safeFetchImage,
+  validateSafeUrl,
+} from './safe-fetch.js'
+import { isToolUserAssignable } from './tool-access.js'
+import {
+  mcpToolRequiresApproval,
+  toolRequiresApproval,
+} from './tool-approval-policy.js'
+import {
+  assertEstimatedCostBudget,
+  loadRunBudgetLimits,
+  parseModelPricing,
+} from './run-budget.js'
+import type { RunLease } from './run-lease.js'
+import { loadApprovalDecisionsForRun } from './approval-persistence.js'
+import { verifySdkState } from './sdk-state.js'
+import { hashToolArguments } from './tool-checkpoint.js'
+import {
+  assertEndpointBodySize,
+  normalizeEndpointHeaders,
+  normalizeEndpointMethod,
+  readBoundedEndpointResponse,
+  resolveEndpointToolUrl,
+} from './endpoint-tool-security.js'
 import {
   Prisma,
   Tool as DbTool,
@@ -72,6 +111,17 @@ export interface RuntimeBuildResult {
   provider: RuntimeProvider
   /** 当前模型是否支持多模态视觉 */
   supportVision: boolean
+  /** MCP instances owned by this agent and recursively built subagents. */
+  mcpServers: MCPServer[]
+  /** MCP servers whose tools are converted manually to attach approval policy. */
+  mcpApprovalBindings: RuntimeMcpApprovalBinding[]
+}
+
+interface RuntimeMcpApprovalBinding {
+  server: MCPServer
+  agent: Agent
+  policy: 'none' | 'all' | 'sensitive'
+  sensitiveTools: string[]
 }
 
 export type PlanMode = 'plan' | 'execute'
@@ -86,6 +136,25 @@ export interface RuntimeRunOptions {
   signal?: AbortSignal
   modelOverride?: string | null
   reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
+  /**
+   * Server-owned output token budget for each model request.
+   *
+   * This is deliberately named after the Agents SDK's `ModelSettings.maxTokens`
+   * field. Callers must derive it from trusted server budget policy; the HTTP
+   * request must never be allowed to set this value directly.
+   */
+  maxOutputTokens?: number | null
+  /**
+   * Server-owned serialized Agents SDK 0.17 RunState to resume an interrupted
+   * run (for example after a durable tool approval). This must come from the
+   * run persistence layer, never directly from an HTTP request.
+   */
+  resumeState?: string | null
+  /** HMAC bound to run + agent + snapshot version; required on resume. */
+  resumeStateHash?: string | null
+  stateVersion?: number | null
+  /** Current DB lease/fence. Required whenever resumeState is present. */
+  lease?: RunLease
   memoryInstructions?: string
   /**
    * 计划模式：
@@ -130,12 +199,7 @@ const PLAN_MODE_INSTRUCTIONS = `你正处于「计划模式」（Plan Mode）。
 - 调用 create_plan 前不需要额外的文本输出（可以简短说一句"我来制定计划"）。`
 
 type RuntimeProvider =
-  | 'openai'
-  | 'deepseek'
-  | 'seed'
-  | 'bailian'
-  | 'gcloud'
-  | 'shortapi'
+  'openai' | 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'shortapi'
 
 interface RuntimeModelResolution {
   model: Model
@@ -208,24 +272,99 @@ export function extractPromptFromBody(body: Record<string, unknown>): string {
   return extractText(lastUser).trim()
 }
 
+/**
+ * Sensitive OpenAI tracing payloads are opt-in and remain disabled in
+ * production even if an environment is accidentally copied there. To enable
+ * them for local debugging, set ALLOW_SENSITIVE_TRACING=true with a non-
+ * production NODE_ENV.
+ */
+export function isSensitiveTracingEnabled(
+  env: Record<string, string | undefined> = process.env
+): boolean {
+  return env.NODE_ENV !== 'production' && env.ALLOW_SENSITIVE_TRACING === 'true'
+}
+
 export { parseExplicitSkillTrigger } from './skill-loader.js'
 
-function buildEndpointTool(raw: LoadedTool, persistence?: AgentRunPersistence) {
+function parseInvocationArguments(input: string): unknown {
+  if (!input.trim()) return {}
+  try {
+    return JSON.parse(input)
+  } catch {
+    return input
+  }
+}
+
+function approvalItemCallId(item: any): string {
+  const raw = item?.rawItem
+  const callId = raw?.callId ?? raw?.call_id ?? raw?.id
+  return typeof callId === 'string' ? callId : ''
+}
+
+function approvalItemArguments(item: any): unknown {
+  const raw = item?.arguments ?? item?.rawItem?.arguments
+  return typeof raw === 'string' ? parseInvocationArguments(raw) : (raw ?? {})
+}
+
+/**
+ * Put SDK function tools behind the durable tool-call ledger. The SDK call id
+ * is the stable logical identity across RunState suspend/resume attempts.
+ */
+export function checkpointFunctionTool(
+  rawTool: Tool,
+  persistence: AgentRunPersistence | undefined,
+  sideEffect: boolean
+): Tool {
+  if (!persistence || rawTool.type !== 'function') return rawTool
+  const functionTool = rawTool as FunctionTool<any, any, any>
+  const invoke = functionTool.invoke.bind(functionTool)
+  functionTool.invoke = async (runContext, input, details) => {
+    const callId = details?.toolCall?.callId
+    if (!callId) {
+      throw new Error(
+        `SDK tool call ${functionTool.name} is missing its durable call id`
+      )
+    }
+    return persistence.checkpointToolCall(
+      {
+        callId,
+        toolName: functionTool.name,
+        arguments: parseInvocationArguments(input),
+        sideEffect,
+      },
+      () => invoke(runContext, input, details)
+    )
+  }
+  return functionTool
+}
+
+function buildEndpointTool(
+  raw: LoadedTool,
+  persistence?: AgentRunPersistence,
+  options: { allowPrivateNetwork?: boolean } = {}
+) {
   const builtinTool = buildBuiltinTool(raw, persistence)
-  if (builtinTool) return builtinTool
+  if (builtinTool) {
+    return checkpointFunctionTool(
+      builtinTool,
+      persistence,
+      !isReadOnlyTool(raw as any)
+    )
+  }
 
   const endpoint = asRecord(raw.endpoint)
   const responseTransform = asRecord(raw.responseTransform)
   const parameters = asRecord(raw.parameters)
 
-  return tool({
+  const endpointTool = tool({
     name: toToolName(raw.name || raw.id),
     description: raw.description || raw.displayName || raw.name,
     parameters: Object.keys(parameters).length
       ? (parameters as any)
       : undefined,
     strict: false,
-    async execute(input) {
+    needsApproval: toolRequiresApproval(raw),
+    async execute(input, _context, details) {
       const inputRecord = asRecord(input)
       const urlTemplate =
         typeof endpoint.url_template === 'string'
@@ -237,14 +376,31 @@ function buildEndpointTool(raw: LoadedTool, persistence?: AgentRunPersistence) {
         return 'Tool endpoint is missing url_template.'
       }
 
-      const method =
-        typeof endpoint.method === 'string'
-          ? endpoint.method.toUpperCase()
-          : 'GET'
-      const headers = asRecord(endpoint.headers)
-      const url = fillTemplate(urlTemplate, inputRecord)
-      const timeout =
-        typeof endpoint.timeout === 'number' ? endpoint.timeout : 15000
+      const method = normalizeEndpointMethod(endpoint.method)
+      const headers = normalizeEndpointHeaders(asRecord(endpoint.headers))
+      if (
+        method !== 'GET' &&
+        method !== 'HEAD' &&
+        persistence &&
+        details?.toolCall?.callId &&
+        !Object.keys(headers).some(
+          name => name.toLowerCase() === 'idempotency-key'
+        )
+      ) {
+        headers['Idempotency-Key'] = persistence.idempotencyKeyFor(
+          details.toolCall.callId
+        )
+      }
+      const url = resolveEndpointToolUrl(
+        urlTemplate,
+        fillTemplate(urlTemplate, inputRecord)
+      )
+      const requestedTimeout =
+        typeof endpoint.timeout === 'number' &&
+        Number.isFinite(endpoint.timeout)
+          ? endpoint.timeout
+          : 15000
+      const timeout = Math.max(1_000, Math.min(requestedTimeout, 30_000))
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), timeout)
 
@@ -255,29 +411,48 @@ function buildEndpointTool(raw: LoadedTool, persistence?: AgentRunPersistence) {
             ? endpoint.bodyTemplate
             : undefined
 
+      const requestBody =
+        method === 'GET' || method === 'HEAD'
+          ? undefined
+          : bodyTemplate
+            ? fillTemplate(bodyTemplate, inputRecord)
+            : JSON.stringify(inputRecord)
+      assertEndpointBodySize(requestBody)
+
       await persistence?.event('tool_http_request', {
         toolId: raw.id,
         toolName: raw.name,
         method,
-        url,
+        // Query strings commonly contain user input or credentials. The
+        // origin/path is enough for an execution trace.
+        url: `${url.origin}${url.pathname}`,
       })
 
+      const dispatcher = options.allowPrivateNetwork
+        ? null
+        : createSafeDispatcher(5_000)
       try {
+        if (!options.allowPrivateNetwork) {
+          await validateSafeUrl(url.href)
+        }
         const response = await fetch(url, {
           method,
-          headers: headers as Record<string, string>,
-          body:
-            method === 'GET' || method === 'HEAD'
-              ? undefined
-              : bodyTemplate
-                ? fillTemplate(bodyTemplate, inputRecord)
-                : JSON.stringify(inputRecord),
+          headers,
+          body: requestBody,
           signal: controller.signal,
-        })
+          // Redirects are a separate network capability and could escape the
+          // configured origin. Endpoint tools must declare the final origin.
+          redirect: 'error',
+          ...(dispatcher ? { dispatcher: dispatcher as any } : {}),
+        } as any)
         const contentType = response.headers.get('content-type') || ''
+        const rawOutput = await readBoundedEndpointResponse(
+          response,
+          controller.signal
+        )
         const output = contentType.includes('application/json')
-          ? await response.json()
-          : await response.text()
+          ? JSON.parse(rawOutput)
+          : rawOutput
         const formatted =
           responseTransform.format === 'json'
             ? safeJsonStringify(output)
@@ -298,9 +473,15 @@ function buildEndpointTool(raw: LoadedTool, persistence?: AgentRunPersistence) {
           : formatted
       } finally {
         clearTimeout(timeoutId)
+        await dispatcher?.close().catch(() => undefined)
       }
     },
   })
+  return checkpointFunctionTool(
+    endpointTool,
+    persistence,
+    !isReadOnlyTool(raw as any)
+  )
 }
 
 function buildMcpServer(
@@ -351,6 +532,11 @@ function buildMcpServer(
   return null
 }
 
+async function closeMcpServers(servers: MCPServer[]) {
+  const unique = [...new Set(servers)]
+  await Promise.allSettled([...unique].reverse().map(server => server.close()))
+}
+
 function normalizeRuntimeProvider(value: unknown): RuntimeProvider {
   if (
     value === 'deepseek' ||
@@ -361,17 +547,6 @@ function normalizeRuntimeProvider(value: unknown): RuntimeProvider {
   ) {
     return value
   }
-  return 'openai'
-}
-
-function inferProviderFromModel(modelKey: string): RuntimeProvider {
-  if (modelKey.startsWith('deepseek-')) return 'deepseek'
-  if (modelKey.startsWith('doubao-') || modelKey.startsWith('glm-'))
-    return 'seed'
-  if (modelKey.startsWith('qwen')) return 'bailian'
-  if (modelKey.startsWith('gemini-') || modelKey.startsWith('google/gemini-'))
-    return 'gcloud'
-  if (modelKey.startsWith('openai/')) return 'shortapi'
   return 'openai'
 }
 
@@ -423,7 +598,6 @@ async function providerConfig(provider: RuntimeProvider) {
   }
 }
 
-
 /**
  * 从运行时输入中剥离所有图片 content part,保留文本。
  * 仅在 provider 不支持视觉时调用。
@@ -455,8 +629,8 @@ function stripImageContent(
           content:
             filtered.length > 0
               ? filtered
-              : (msg.content.find((p: any) => p.type === 'input_text') as any)
-                  ?.text ?? '',
+              : ((msg.content.find((p: any) => p.type === 'input_text') as any)
+                  ?.text ?? ''),
         } as AgentInputItem
       }
 
@@ -505,14 +679,18 @@ export class AgentRuntimeService {
    * chat.ts 在流式 run 结束后取出，用于持久化和 SSE 推送。
    * key = runId, value = StructuredPlan
    */
-  private readonly pendingPlanCache = new PendingRunCache<StructuredPlan>('plan')
+  private readonly pendingPlanCache = new PendingRunCache<StructuredPlan>(
+    'plan'
+  )
 
   /**
    * 模型调用 clarify_question 工具时，缓存提问及可选项。
    * run 结束后由调用方取出，用于持久化和 SSE 推送。
    * 存 Redis（带 TTL）：多实例可读 + run 异常终止时自动过期，修内存泄漏。
    */
-  private readonly pendingClarifyCache = new PendingRunCache<ClarifyQuestion>('clarify')
+  private readonly pendingClarifyCache = new PendingRunCache<ClarifyQuestion>(
+    'clarify'
+  )
 
   /** 取出并移除缓存的计划（run 结束后调用方取走） */
   async consumePendingPlan(runId: string): Promise<StructuredPlan | undefined> {
@@ -520,7 +698,9 @@ export class AgentRuntimeService {
   }
 
   /** 取出并移除缓存的澄清问题（run 结束后调用方取走） */
-  async consumePendingClarify(runId: string): Promise<ClarifyQuestion | undefined> {
+  async consumePendingClarify(
+    runId: string
+  ): Promise<ClarifyQuestion | undefined> {
     return this.pendingClarifyCache.consume(runId)
   }
 
@@ -566,6 +746,7 @@ export class AgentRuntimeService {
       persistence?: AgentRunPersistence
       modelOverride?: string | null
       reasoningEffort?: RuntimeRunOptions['reasoningEffort']
+      maxOutputTokens?: RuntimeRunOptions['maxOutputTokens']
       memoryInstructions?: string
       query?: string
       planMode?: PlanMode
@@ -602,11 +783,11 @@ export class AgentRuntimeService {
     const agentBoundSkills = source.skillsAsAgent
       .filter((link: any) => link.skill?.enabled)
       .map((link: any) => link.skill) as {
-        id: string
-        name: string
-        description: string
-        content: string
-      }[]
+      id: string
+      name: string
+      description: string
+      content: string
+    }[]
 
     let userInstalledSkills: typeof agentBoundSkills = []
     if (source.type === 'system' && options?.userId) {
@@ -619,7 +800,10 @@ export class AgentRuntimeService {
 
     // 合并: agent 绑定的 skill + 用户安装的 skill (按 name 去重, agent 绑定优先)
     const seenNames = new Set(agentBoundSkills.map(s => s.name))
-    const enabledSkills = [...agentBoundSkills, ...userInstalledSkills.filter(s => !seenNames.has(s.name))]
+    const enabledSkills = [
+      ...agentBoundSkills,
+      ...userInstalledSkills.filter(s => !seenNames.has(s.name)),
+    ]
 
     // L1：元数据索引（始终注入）
     const skillIndexBlock = enabledSkills.length
@@ -645,9 +829,10 @@ export class AgentRuntimeService {
     )
 
     const threadId = options?.threadId || ''
-    const shareUrlRule = (threadId && planMode !== 'plan')
-      ? `\n# Cloud Share Link Guidelines\nWhen you create, modify, or output files in the workspace (via write_file, run_command, or other commands), they are automatically uploaded/synced to the cloud storage.\nYou MUST provide the user with the direct cloud sharing link (URL) for download and sharing.\nThe format of the sharing link is: ${WorkspaceManager.getFileUrl(threadId, '{FILE_RELATIVE_PATH}')}\nPlease replace \`{FILE_RELATIVE_PATH}\` with the actual relative path of the file from the workspace root (e.g., 'test_created.txt' or 'images/output.png'). Always use forward slashes in URLs.\nFor example, if you created 'test_created.txt', the URL you share is: ${WorkspaceManager.getFileUrl(threadId, 'test_created.txt')}\n`
-      : ''
+    const shareUrlRule =
+      threadId && planMode !== 'plan'
+        ? `\n# Cloud Share Link Guidelines\nWhen a workspace tool returns a ready-to-use cloud sharing URL, copy that exact URL into your response. Do not construct, rewrite, or guess a URL from a file path. If no ready-to-use URL was returned, do not invent one.\n`
+        : ''
 
     const instructions = [
       source.instructions || source.description,
@@ -675,10 +860,14 @@ export class AgentRuntimeService {
           .filter((link: any) => link.tool?.enabled)
           .map((link: any) => link.tool)
 
+    const runtimeIsAdmin = isConfiguredAdminUser(options?.userId)
     const rawMcpServers = isPlanMode
       ? [] // plan 模式不加载 MCP（难以判定单个工具读写性，保守禁用）
       : source.mcpServersAsAgent
           .filter((link: any) => link.mcpServer?.enabled)
+          .filter(
+            (link: any) => runtimeIsAdmin || isMcpUserAssignable(link.mcpServer)
+          )
           .map((link: any) => {
             const serverAllowed = asStringArray(link.mcpServer.allowedTools)
             const linkAllowed = asStringArray(link.allowedTools)
@@ -689,14 +878,29 @@ export class AgentRuntimeService {
           })
 
     // 直接全量注入所有启用的工具，去除过度设计的动态过滤与二次召回机制。
-    const selectedTools = rawTools
+    // Apply the builtin capability policy again at runtime. This protects
+    // agents loaded from databases that predate the default-binding change.
+    const selectedTools = rawTools.filter(
+      (tool: any) =>
+        isBuiltinToolAllowed(tool) &&
+        (runtimeIsAdmin ||
+          (!isBuiltinRunCommandTool(tool) && isToolUserAssignable(tool)))
+    )
     const selectedMcp = rawMcpServers
 
-    const tools: Tool[] = selectedTools.map((t: any) =>
-      buildEndpointTool(t, options?.persistence)
-    )
+    const tools: Tool[] = selectedTools.map((t: any) => {
+      const tags = new Set(asStringArray(t.tags).map(tag => tag.toLowerCase()))
+      return buildEndpointTool(t, options?.persistence, {
+        allowPrivateNetwork:
+          runtimeIsAdmin &&
+          (tags.has('allow-private-network') ||
+            tags.has('allow_private_network')),
+      })
+    })
 
     const handoffs: Agent[] = []
+    const lifecycleMcpServers: MCPServer[] = []
+    const lifecycleMcpApprovalBindings: RuntimeMcpApprovalBinding[] = []
 
     // 计划模式下不构建任何 subagent（既不 handoff 也不 as_tool）
     if (!isPlanMode) {
@@ -707,8 +911,12 @@ export class AgentRuntimeService {
           persistence: options?.persistence,
           modelOverride: null,
           reasoningEffort: options?.reasoningEffort,
+          maxOutputTokens: options?.maxOutputTokens,
           memoryInstructions: '',
+          userId: options?.userId,
         })
+        lifecycleMcpServers.push(...built.mcpServers)
+        lifecycleMcpApprovalBindings.push(...built.mcpApprovalBindings)
         if (relation.mode === 'handoff') {
           handoffs.push(built.agent)
         } else {
@@ -722,28 +930,54 @@ export class AgentRuntimeService {
       }
     }
 
-    const mcpServers = selectedMcp
+    const localMcpServers = selectedMcp
       .map((link: any) => {
-        return buildMcpServer(link, link.allowedTools)
+        const server = buildMcpServer(link, link.allowedTools)
+        if (!server) return null
+        const metadata = asRecord(link.metadata)
+        const sensitiveTools = asStringArray(
+          link.sensitiveTools ??
+            link.sensitive_tools ??
+            metadata.sensitiveTools ??
+            metadata.sensitive_tools
+        )
+        const policy =
+          link.approvalPolicy === 'all' || link.approvalPolicy === 'sensitive'
+            ? link.approvalPolicy
+            : 'none'
+        return { server, policy, sensitiveTools }
       })
-      .filter((server: MCPServer | null): server is MCPServer =>
-        Boolean(server)
+      .filter(
+        (
+          binding: {
+            server: MCPServer
+            policy: 'none' | 'all' | 'sensitive'
+            sensitiveTools: string[]
+          } | null
+        ): binding is {
+          server: MCPServer
+          policy: 'none' | 'all' | 'sensitive'
+          sensitiveTools: string[]
+        } => Boolean(binding)
       )
+
+    lifecycleMcpServers.push(...localMcpServers.map(binding => binding.server))
 
     // Plan 模式专用工具注入
     if (isPlanMode) {
       // plan 阶段：注入 create_plan 工具，模型产出结构化计划后 run 停止
       tools.push(
-        buildCreatePlanTool(plan =>
-          void this.pendingPlanCache.set(options?.runId ?? '', plan).catch(
-            err => {
-              logger.warn({
-                msg: 'Failed to persist pending plan (run will finish without plan part)',
-                runId: options?.runId,
-                err,
+        buildCreatePlanTool(
+          plan =>
+            void this.pendingPlanCache
+              .set(options?.runId ?? '', plan)
+              .catch(err => {
+                logger.warn({
+                  msg: 'Failed to persist pending plan (run will finish without plan part)',
+                  runId: options?.runId,
+                  err,
+                })
               })
-            }
-          )
         )
       )
     } else if (planMode === 'execute' && options?.planStore) {
@@ -764,7 +998,10 @@ export class AgentRuntimeService {
     if (!isPlanMode && enabledSkills.length > 0) {
       tools.push(
         buildSkillLoaderTool(
-          enabledSkills.map(s => ({ name: s.name, description: s.description })),
+          enabledSkills.map(s => ({
+            name: s.name,
+            description: s.description,
+          })),
           options?.persistence,
           options?.userId
         )
@@ -773,16 +1010,17 @@ export class AgentRuntimeService {
 
     // 注入澄清提问工具
     tools.push(
-      buildClarifyQuestionTool(clarify =>
-        void this.pendingClarifyCache.set(options?.runId ?? '', clarify).catch(
-          err => {
-            logger.warn({
-              msg: 'Failed to persist pending clarify (run will finish without clarify part)',
-              runId: options?.runId,
-              err,
+      buildClarifyQuestionTool(
+        clarify =>
+          void this.pendingClarifyCache
+            .set(options?.runId ?? '', clarify)
+            .catch(err => {
+              logger.warn({
+                msg: 'Failed to persist pending clarify (run will finish without clarify part)',
+                runId: options?.runId,
+                err,
+              })
             })
-          }
-        )
       )
     )
 
@@ -798,11 +1036,20 @@ export class AgentRuntimeService {
       model: resolvedModel.model,
       modelSettings: {
         temperature: source.temperature,
+        // Agents SDK 0.17 uses `maxTokens` and maps it to
+        // `max_output_tokens` (Responses) or `max_tokens` (Chat Completions).
+        ...(typeof options?.maxOutputTokens === 'number' &&
+        Number.isFinite(options.maxOutputTokens) &&
+        options.maxOutputTokens > 0
+          ? { maxTokens: Math.floor(options.maxOutputTokens) }
+          : {}),
         providerData: resolvedModel.providerData,
       },
       tools,
       handoffs,
-      mcpServers,
+      // MCP tools are converted after connect so every invocation receives a
+      // durable checkpoint; approval policy remains server-owned per binding.
+      mcpServers: [],
       mcpConfig: {
         convertSchemasToStrict: false,
       },
@@ -812,9 +1059,13 @@ export class AgentRuntimeService {
       toolUseBehavior: {
         stopAtToolNames: isPlanMode
           ? ['create_plan', 'clarify_question']
-          : ['clarify_question']
+          : ['clarify_question'],
       },
     } as any)
+
+    lifecycleMcpApprovalBindings.push(
+      ...localMcpServers.map(binding => ({ ...binding, agent }))
+    )
 
     return {
       agent,
@@ -822,6 +1073,8 @@ export class AgentRuntimeService {
       modelKey: resolvedModel.modelKey,
       provider: resolvedModel.provider,
       supportVision: resolvedModel.supportVision,
+      mcpServers: lifecycleMcpServers,
+      mcpApprovalBindings: lifecycleMcpApprovalBindings,
     }
   }
 
@@ -830,13 +1083,11 @@ export class AgentRuntimeService {
     reasoningEffort?: RuntimeRunOptions['reasoningEffort']
   ): Promise<RuntimeModelResolution> {
     const normalizedModelKey = normalizeChatModelKey(modelKey)
-    const configuredModel = await prisma.chatModel.findUnique({
-      where: { modelKey: normalizedModelKey },
-      select: { provider: true, supportVision: true },
-    })
-    const provider = configuredModel
-      ? normalizeRuntimeProvider(configuredModel.provider)
-      : inferProviderFromModel(normalizedModelKey)
+    const configuredModel = await findEnabledChatModel(normalizedModelKey)
+    if (!configuredModel) {
+      throw new Error(`Model is not enabled in the chat catalog: ${modelKey}`)
+    }
+    const provider = normalizeRuntimeProvider(configuredModel.provider)
     const providerOptions = await providerConfig(provider)
     if (!providerOptions.apiKey) {
       throw new Error(providerOptions.missingMessage)
@@ -849,14 +1100,13 @@ export class AgentRuntimeService {
       strictFeatureValidation: false,
     })
 
-    const supportVision = configuredModel
-      ? configuredModel.supportVision
-      : provider === 'openai' || provider === 'gcloud'
+    const supportVision = configuredModel.supportVision
 
     const model = await modelProvider.getModel(normalizedModelKey)
 
     return {
-      model: provider === 'deepseek' ? new DeepSeekReasoningModel(model) : model,
+      model:
+        provider === 'deepseek' ? new DeepSeekReasoningModel(model) : model,
       modelKey: normalizedModelKey,
       provider,
       providerData: buildProviderData(provider, reasoningEffort),
@@ -865,7 +1115,7 @@ export class AgentRuntimeService {
   }
 
   async run(agentId: string, options: RuntimeRunOptions) {
-    const persistence = new AgentRunPersistence(options.runId)
+    const persistence = new AgentRunPersistence(options.runId, options.lease)
 
     // 计算当前会话的最新用户输入 query
     const query =
@@ -873,12 +1123,21 @@ export class AgentRuntimeService {
         ? options.input
         : extractPromptFromBody({ messages: options.input as any })
 
-    const { agent, source, modelKey, provider, supportVision } = await this.buildAgent(agentId, {
+    const {
+      agent,
+      source,
+      modelKey,
+      provider,
+      supportVision,
+      mcpServers,
+      mcpApprovalBindings,
+    } = await this.buildAgent(agentId, {
       persistence,
       modelOverride: options.modelOverride,
       reasoningEffort: options.reasoningEffort,
       memoryInstructions: options.memoryInstructions,
       query,
+      maxOutputTokens: options.maxOutputTokens,
       planMode: options.planMode,
       runId: options.runId,
       planStore: options.planStore,
@@ -888,7 +1147,7 @@ export class AgentRuntimeService {
     })
     const runner = new Runner({
       tracingDisabled: !config.openaiApiKey,
-      traceIncludeSensitiveData: true,
+      traceIncludeSensitiveData: isSensitiveTracingEnabled(),
       workflowName: `Telos Agent: ${source.name}`,
       groupId: options.threadId ?? options.runId,
       traceMetadata: {
@@ -897,17 +1156,43 @@ export class AgentRuntimeService {
       },
     } as any)
 
+    const persistTraceBestEffort = (
+      operation: Promise<unknown>,
+      eventType: string
+    ) => {
+      void operation.catch(error => {
+        logger.warn({
+          msg: 'Unable to persist non-terminal agent trace',
+          runId: options.runId,
+          eventType,
+          error,
+        })
+      })
+    }
+
     runner.on('agent_start', (_context, startedAgent, turnInput) => {
-      void persistence.step('agent_start', startedAgent.name, turnInput)
-      void persistence.event(
-        'agent_start',
-        { input: turnInput },
-        startedAgent.name
+      persistTraceBestEffort(
+        persistence.step('agent_start', startedAgent.name, turnInput),
+        'agent_start_step'
+      )
+      persistTraceBestEffort(
+        persistence.event(
+          'agent_start',
+          { input: turnInput },
+          startedAgent.name
+        ),
+        'agent_start'
       )
     })
     runner.on('agent_end', (_context, endedAgent, output) => {
-      void persistence.step('agent_end', endedAgent.name, undefined, output)
-      void persistence.event('agent_end', { output }, endedAgent.name)
+      persistTraceBestEffort(
+        persistence.step('agent_end', endedAgent.name, undefined, output),
+        'agent_end_step'
+      )
+      persistTraceBestEffort(
+        persistence.event('agent_end', { output }, endedAgent.name),
+        'agent_end'
+      )
     })
     runner.on('agent_handoff', (_context, fromAgent, toAgent) => {
       options.onEvent?.({
@@ -917,10 +1202,13 @@ export class AgentRuntimeService {
           toAgent: toAgent.name,
         },
       })
-      void persistence.event('handoff', {
-        fromAgent: fromAgent.name,
-        toAgent: toAgent.name,
-      })
+      persistTraceBestEffort(
+        persistence.event('handoff', {
+          fromAgent: fromAgent.name,
+          toAgent: toAgent.name,
+        }),
+        'handoff'
+      )
     })
     runner.on(
       'agent_tool_start',
@@ -934,7 +1222,10 @@ export class AgentRuntimeService {
           agentName: activeAgent.name,
           payload,
         })
-        void persistence.event('tool_start', payload, activeAgent.name)
+        persistTraceBestEffort(
+          persistence.event('tool_start', payload, activeAgent.name),
+          'tool_start'
+        )
       }
     )
     runner.on('agent_tool_end', (_context, activeAgent, activeTool, result) => {
@@ -947,7 +1238,10 @@ export class AgentRuntimeService {
         agentName: activeAgent.name,
         payload,
       })
-      void persistence.event('tool_end', payload, activeAgent.name)
+      persistTraceBestEffort(
+        persistence.event('tool_end', payload, activeAgent.name),
+        'tool_end'
+      )
     })
 
     // 计划模式相关运行参数：
@@ -982,25 +1276,154 @@ export class AgentRuntimeService {
     } else if (provider === 'bailian' || provider === 'seed') {
       // 针对国内百炼、火山方舟平台，由于服务端拉取公网图片常因防火墙、私有云鉴权或404而报错超时，
       // 将图片 URL 自动转成 Base64 内嵌发送，实现 100% 稳定识别。
-      runInput = await convertImagesToBase64(runInput)
+      runInput = await convertImagesToBase64(runInput, options.signal)
     }
 
-    if (options.stream) {
-      const result = await runner.run(agent, runInput, {
+    const costLimits = {
+      ...loadRunBudgetLimits(),
+      ...(typeof options.maxOutputTokens === 'number'
+        ? { maxOutputTokens: options.maxOutputTokens }
+        : {}),
+    }
+    if (costLimits.maxEstimatedCostUsd !== null) {
+      assertEstimatedCostBudget({
+        modelKey,
+        input: options.resumeState ?? runInput,
+        limits: costLimits,
+        pricing: parseModelPricing(process.env.AGENT_MODEL_PRICING_JSON),
+      })
+    }
+
+    const connectedMcpServers: MCPServer[] = []
+    const closeConnectedMcpServers = () => closeMcpServers(connectedMcpServers)
+
+    try {
+      // Connect explicitly before handing the graph to Runner. This keeps
+      // stdio subprocess ownership deterministic on SDK 0.17.x.
+      for (const server of mcpServers) {
+        // Include a server before connect: a failed handshake may still have
+        // spawned a child process that needs close() during cleanup.
+        connectedMcpServers.push(server)
+        await server.connect()
+      }
+
+      for (const binding of mcpApprovalBindings) {
+        const existingNames = new Set(
+          binding.agent.tools.map(existingTool => existingTool.name)
+        )
+        const mcpTools = await binding.server.listTools()
+        for (const mcpTool of mcpTools) {
+          const converted = mcpToFunctionTool(mcpTool, binding.server, false)
+          if (existingNames.has(converted.name)) {
+            throw new Error(
+              `MCP tool name collides with another agent tool: ${converted.name}`
+            )
+          }
+          converted.needsApproval = async () =>
+            mcpToolRequiresApproval({
+              policy: binding.policy,
+              toolName: mcpTool.name,
+              sensitiveTools: binding.sensitiveTools,
+            })
+          binding.agent.tools.push(
+            checkpointFunctionTool(converted, persistence, true)
+          )
+          existingNames.add(converted.name)
+        }
+      }
+
+      // SDK 0.17 can resume the complete run graph—including pending input,
+      // tool approvals, usage, and provider response state—from a serialized
+      // RunState. Keep this opt-in so existing runs retain their current input
+      // behavior until the durable run kernel starts persisting this snapshot.
+      let runnerInput: string | AgentInputItem[] | RunState<any, any> = runInput
+      if (options.resumeState) {
+        if (!options.lease) {
+          throw new Error('A durable run lease is required to resume SDK state')
+        }
+        if (
+          !Number.isSafeInteger(options.stateVersion) ||
+          !verifySdkState(
+            {
+              runId: options.runId,
+              agentId,
+              stateVersion: options.stateVersion as number,
+              sdkState: options.resumeState,
+            },
+            options.resumeStateHash
+          )
+        ) {
+          throw new Error('Serialized SDK state failed integrity verification')
+        }
+        const state = await RunState.fromString(agent, options.resumeState)
+        const interruptions = [...state.getInterruptions()]
+        if (!interruptions.length) {
+          throw new Error('Serialized SDK state has no pending tool approvals')
+        }
+        const decisions = await loadApprovalDecisionsForRun(options.lease)
+        const decisionsByCallId = new Map(
+          decisions.map(decision => [decision.callId, decision])
+        )
+        for (const interruption of interruptions) {
+          const callId = approvalItemCallId(interruption)
+          const toolName = interruption.name || interruption.toolName || ''
+          const args = approvalItemArguments(interruption)
+          const decision = decisionsByCallId.get(callId)
+          if (
+            !callId ||
+            !toolName ||
+            !decision ||
+            decision.toolName !== toolName ||
+            decision.argumentsHash !== hashToolArguments(args)
+          ) {
+            throw new Error(
+              'Durable approval does not match the suspended SDK tool call'
+            )
+          }
+          if (decision.status === 'approved') {
+            state.approve(interruption)
+          } else {
+            state.reject(interruption, {
+              message:
+                decision.status === 'expired'
+                  ? 'Tool call approval expired.'
+                  : 'Tool call was denied by the user.',
+            })
+          }
+        }
+        // Decisions remain replayable while this exact signed SDK snapshot is
+        // authoritative. If the worker crashes after this point, replaying the
+        // snapshot is safe because every tool invocation is checkpointed.
+        runnerInput = state
+      }
+
+      if (options.stream) {
+        const result = await runner.run(agent, runnerInput, {
+          maxTurns,
+          stream: true,
+          signal: options.signal,
+          toolNotFoundBehavior: 'return_error_to_model',
+        })
+        // completed settles only after the stream has really finished. Attach
+        // both branches so rejected runs do not create an unhandled promise.
+        void result.completed.then(
+          closeConnectedMcpServers,
+          closeConnectedMcpServers
+        )
+        return { result, persistence, modelKey }
+      }
+
+      const result = await runner.run(agent, runnerInput, {
         maxTurns,
-        stream: true,
         signal: options.signal,
         toolNotFoundBehavior: 'return_error_to_model',
       })
+      await closeConnectedMcpServers()
       return { result, persistence, modelKey }
+    } catch (error) {
+      await closeConnectedMcpServers()
+      throw error
     }
-
-    const result = await runner.run(agent, runInput, {
-      maxTurns,
-      signal: options.signal,
-      toolNotFoundBehavior: 'return_error_to_model',
-    })
-    return { result, persistence, modelKey }
   }
 }
 
@@ -1009,60 +1432,60 @@ export class AgentRuntimeService {
  * 避免阿里百炼或火山方舟服务端拉取公网图片资源时由于跨网、防火墙或防盗链等原因下载失败。
  */
 async function convertImagesToBase64(
-  input: string | AgentInputItem[]
+  input: string | AgentInputItem[],
+  signal?: AbortSignal
 ): Promise<string | AgentInputItem[]> {
   if (typeof input === 'string') return input
   if (!Array.isArray(input)) return input
 
-  try {
-    const converted = await Promise.all(
-      input.map(async item => {
-        if (!item || typeof item !== 'object') return item
-        const msg = item as { type?: string; role?: string; content?: unknown }
-        if (msg.type !== 'message' || !Array.isArray(msg.content)) return item
+  return Promise.all(
+    input.map(async item => {
+      if (!item || typeof item !== 'object') return item
+      const msg = item as { type?: string; role?: string; content?: unknown }
+      if (msg.type !== 'message' || !Array.isArray(msg.content)) return item
 
-        const contentConverted = await Promise.all(
-          msg.content.map(async (part: any) => {
-            if (part && part.type === 'input_image' && typeof part.image === 'string') {
-              const url = part.image.trim()
-              if (/^data:image\/[a-zA-Z\-+]+;base64,/i.test(url)) {
-                return part
-              }
-              if (/^https?:\/\//i.test(url)) {
-                try {
-                  logger.info(`[Vision Optimizer] Downloading image for Base64 injection: ${url}`)
-                  const res = await fetch(url)
-                  if (res.ok) {
-                    const contentType = res.headers.get('content-type') || 'image/jpeg'
-                    const buffer = await res.arrayBuffer()
-                    const base64Data = Buffer.from(buffer).toString('base64')
-                    return {
-                      ...part,
-                      image: `data:${contentType};base64,${base64Data}`
-                    }
-                  } else {
-                    logger.warn(`[Vision Optimizer] Failed to fetch image ${url}, status: ${res.status}. Fallback to original URL.`)
-                  }
-                } catch (e: any) {
-                  logger.error(`[Vision Optimizer] Error fetching image ${url}: ${e.message}`)
-                }
-              }
-            }
+      const contentConverted = await Promise.all(
+        msg.content.map(async (part: any) => {
+          if (
+            !part ||
+            part.type !== 'input_image' ||
+            typeof part.image !== 'string'
+          ) {
             return part
-          })
-        )
+          }
 
-        return {
-          ...msg,
-          content: contentConverted
-        } as AgentInputItem
-      })
-    )
-    return converted
-  } catch (e: any) {
-    logger.error(`[Vision Optimizer] Error converting images to Base64: ${e.message}`)
-    return input
-  }
+          const value = part.image.trim()
+          if (value.toLowerCase().startsWith('data:')) {
+            const image = decodeImageDataUrl(value)
+            return {
+              ...part,
+              image: `data:${image.mimeType};base64,${Buffer.from(image.bytes).toString('base64')}`,
+            }
+          }
+
+          if (/^https?:\/\//i.test(value)) {
+            logger.info(
+              '[Vision Optimizer] Downloading an external image for Base64 injection'
+            )
+            const image = await safeFetchImage(value, { signal })
+            return {
+              ...part,
+              image: `data:${image.mimeType};base64,${Buffer.from(image.bytes).toString('base64')}`,
+            }
+          }
+
+          throw new Error(
+            'Vision input image must use a validated http(s) URL or image data URL'
+          )
+        })
+      )
+
+      return {
+        ...msg,
+        content: contentConverted,
+      } as AgentInputItem
+    })
+  )
 }
 
 export const agentRuntimeService = new AgentRuntimeService()

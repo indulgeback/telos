@@ -35,7 +35,7 @@ services:
     command: agent -dev -client=0.0.0.0 -ui
     ports:
       # UI 和 API: 8500 (默认不对外,调试可设 CONSUL_UI_PORT=8500)
-      - "${CONSUL_UI_PORT:-}:8500"
+      - '${CONSUL_UI_PORT:-}:8500'
     volumes:
       - consul_data:/consul/data
     networks:
@@ -59,7 +59,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-telos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须在 .env 中设置}
     ports:
-      - "${EXPOSE_DB_PORT:-}:5432"
+      - '${EXPOSE_DB_PORT:-}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -109,7 +109,15 @@ services:
     networks:
       - telos-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8891/api/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8891/api/health',
+        ]
       interval: 15s
       timeout: 5s
       retries: 6
@@ -123,7 +131,7 @@ services:
     container_name: telos-api-gateway
     restart: unless-stopped
     ports:
-      - "${API_GATEWAY_PORT:-8890}:8890"
+      - '${API_GATEWAY_PORT:-8890}:8890'
     environment:
       - GATEWAY_PORT=8890
       # 发现服务时访问 registry 的 HTTP API
@@ -134,6 +142,7 @@ services:
       - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:?GATEWAY_INTERNAL_SECRET 必须在 .env 中设置}
       - AUTH_CACHE_TTL_SECONDS=${AUTH_CACHE_TTL_SECONDS:-60}
       - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
+      - GATEWAY_SIGNATURE_BODY_MAX_BYTES=${GATEWAY_SIGNATURE_BODY_MAX_BYTES:-10485760}
       - LOG_LEVEL=info
     depends_on:
       registry:
@@ -141,7 +150,15 @@ services:
     networks:
       - telos-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8890/ping']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8890/ping',
+        ]
       interval: 15s
       timeout: 5s
       retries: 6
@@ -154,8 +171,8 @@ services:
     image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-agent-service:${IMAGE_TAG:-latest}
     container_name: telos-agent-service
     restart: unless-stopped
-    ports:
-      - "${AGENT_SERVICE_PORT:-8895}:8895"
+    expose:
+      - '8895'
     environment:
       - NODE_ENV=production
       - PORT=8895
@@ -167,10 +184,29 @@ services:
       - REDIS_URL=redis://redis:6379
       # 网关内部通信密钥
       - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET}
+      - AGENT_STATE_SIGNING_SECRET=${AGENT_STATE_SIGNING_SECRET:-}
       - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
+      - GATEWAY_NONCE_TTL_SECONDS=${GATEWAY_NONCE_TTL_SECONDS:-600}
+      - GATEWAY_NONCE_KEY_PREFIX=${GATEWAY_NONCE_KEY_PREFIX:-telos:gateway:nonce}
+      - GATEWAY_SIGNATURE_BODY_MAX_BYTES=${GATEWAY_SIGNATURE_BODY_MAX_BYTES:-10485760}
       - ALLOW_ANONYMOUS_OWNER=${ALLOW_ANONYMOUS_OWNER:-false}
+      - AGENT_ADMIN_USER_IDS=${AGENT_ADMIN_USER_IDS:-}
+      - WORKSPACE_SHARE_BASE_URL=${WORKSPACE_SHARE_BASE_URL:?WORKSPACE_SHARE_BASE_URL 必须设置}
+      - WORKSPACE_SHARE_URL_TTL_SECONDS=${WORKSPACE_SHARE_URL_TTL_SECONDS:-900}
+      - ENABLE_BUILTIN_RUN_COMMAND=${ENABLE_BUILTIN_RUN_COMMAND:-false}
+      - SANDBOX_ENABLED=${SANDBOX_ENABLED:-false}
+      - ALLOW_SENSITIVE_TRACING=${ALLOW_SENSITIVE_TRACING:-false}
       - LOG_LEVEL=info
       - AGENT_RUN_WORKER_CONCURRENCY=${AGENT_RUN_WORKER_CONCURRENCY:-2}
+      - AGENT_RUN_LEASE_MS=${AGENT_RUN_LEASE_MS:-30000}
+      - AGENT_RUN_TIMEOUT_MS=${AGENT_RUN_TIMEOUT_MS:-900000}
+      - AGENT_RUN_MAX_INPUT_BYTES=${AGENT_RUN_MAX_INPUT_BYTES:-524288}
+      - AGENT_RUN_MAX_OUTPUT_CHARACTERS=${AGENT_RUN_MAX_OUTPUT_CHARACTERS:-262144}
+      - AGENT_RUN_MAX_TOOL_CALLS=${AGENT_RUN_MAX_TOOL_CALLS:-64}
+      - AGENT_RUN_MAX_OUTPUT_TOKENS=${AGENT_RUN_MAX_OUTPUT_TOKENS:-16384}
+      - AGENT_RUN_MAX_ESTIMATED_COST_USD=${AGENT_RUN_MAX_ESTIMATED_COST_USD:-}
+      - AGENT_MODEL_PRICING_JSON=${AGENT_MODEL_PRICING_JSON:-}
+      - AGENT_TOOL_APPROVAL_TTL_MS=${AGENT_TOOL_APPROVAL_TTL_MS:-900000}
       # 默认 Agent 模型
       - DEFAULT_AGENT_MODEL=${DEFAULT_AGENT_MODEL:-google/gemini-3.1-pro-preview}
       # ===== LLM 提供商 (按需配置) =====
@@ -234,7 +270,15 @@ services:
     networks:
       - telos-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8895/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8895/ready',
+        ]
       interval: 15s
       timeout: 5s
       retries: 6
@@ -248,7 +292,7 @@ services:
     container_name: telos-web
     restart: unless-stopped
     ports:
-      - "${WEB_PORT:-8800}:8800"
+      - '${WEB_PORT:-8800}:8800'
     environment:
       - PORT=8800
       - NODE_ENV=production
@@ -296,7 +340,15 @@ services:
     networks:
       - telos-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:8800']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://127.0.0.1:8800',
+        ]
       interval: 15s
       timeout: 5s
       retries: 6
@@ -328,7 +380,15 @@ services:
     networks:
       - telos-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3002/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3002/health',
+        ]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -336,8 +396,8 @@ services:
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # ---------------------------------------------------------------------------
   # Admin 前端 (Vue3 + nginx, 反代 /api 到 admin-service)
@@ -347,7 +407,7 @@ services:
     container_name: telos-admin
     restart: unless-stopped
     ports:
-      - "${ADMIN_PORT:-8082}:8080"
+      - '${ADMIN_PORT:-8082}:8080'
     environment:
       # nginx 模板用: 反代 /api 到 admin-service
       - BFF_UPSTREAM=http://admin-service:3002

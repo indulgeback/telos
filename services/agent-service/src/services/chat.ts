@@ -149,6 +149,15 @@ export async function listChatModels(): Promise<ChatModelOption[]> {
   return models.map(toChatModelOption)
 }
 
+/** Resolve only an explicitly enabled catalog entry; never infer providers. */
+export async function findEnabledChatModel(
+  modelKey: string
+): Promise<ChatModelOption | null> {
+  const normalizedModel = normalizeChatModelKey(modelKey)
+  const availableModels = await listChatModels()
+  return availableModels.find(item => item.model === normalizedModel) ?? null
+}
+
 async function resolveSelectedModel(
   selectedModel: string
 ): Promise<ChatModelOption> {
@@ -470,7 +479,6 @@ function extractReasoningFromRawResponse(raw: unknown): string {
   return values.join('')
 }
 
-
 export async function generateAgentInstructions(
   description: string,
   modelKey?: string
@@ -511,13 +519,17 @@ JSON 的键值结构严格定义如下：
       new HumanMessage(`以下是该 Agent 的功能与角色描述：\n${description}`),
     ])
 
-    const content = typeof response.content === 'string' ? response.content.trim() : ''
-    
+    const content =
+      typeof response.content === 'string' ? response.content.trim() : ''
+
     let cleanJson = content
     if (cleanJson.startsWith('```')) {
-      cleanJson = cleanJson.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '').trim()
+      cleanJson = cleanJson
+        .replace(/^```[a-zA-Z]*\n/, '')
+        .replace(/\n```$/, '')
+        .trim()
     }
-    
+
     const parsed = JSON.parse(cleanJson) as {
       instructions?: string
       voice?: Record<string, unknown>
@@ -526,13 +538,16 @@ JSON 的键值结构严格定义如下：
     if (parsed.instructions && typeof parsed.instructions === 'string') {
       return {
         instructions: parsed.instructions.trim(),
-        voice: parsed.voice && typeof parsed.voice === 'object' ? parsed.voice : undefined
+        voice:
+          parsed.voice && typeof parsed.voice === 'object'
+            ? parsed.voice
+            : undefined,
       }
     }
   } catch (error) {
     logger.warn({
       msg: 'Failed to parse AI structured prompt JSON, falling back to raw text prompt',
-      err: error instanceof Error ? error.message : String(error)
+      err: error instanceof Error ? error.message : String(error),
     })
   }
 
@@ -544,32 +559,40 @@ JSON 的键值结构严格定义如下：
       ),
       new HumanMessage(`以下是该 Agent 的功能与角色描述：\n${description}`),
     ])
-    
-    const instructions = typeof response.content === 'string' ? response.content.trim() : description
+
+    const instructions =
+      typeof response.content === 'string'
+        ? response.content.trim()
+        : description
     return {
       instructions,
       voice: {
         speakingStyle: '自然、清晰、可靠',
-        characterDetails: '扮演一个自然、专业的语音助手，回答简洁明了，适合语音播报。',
+        characterDetails:
+          '扮演一个自然、专业的语音助手，回答简洁明了，适合语音播报。',
         webSearchEnabled: false,
         singingEnabled: false,
-        speaker: 'zh_female_vv_jupiter_bigtts'
-      }
+        speaker: 'zh_female_vv_jupiter_bigtts',
+      },
     }
   } catch (fallbackError) {
     logger.error({
       msg: 'Fallback prompt generation failed',
-      err: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+      err:
+        fallbackError instanceof Error
+          ? fallbackError.message
+          : String(fallbackError),
     })
     return {
       instructions: description,
       voice: {
         speakingStyle: '自然、清晰、可靠',
-        characterDetails: '扮演一个自然、专业的语音助手，回答简洁明了，适合语音播报。',
+        characterDetails:
+          '扮演一个自然、专业的语音助手，回答简洁明了，适合语音播报。',
         webSearchEnabled: false,
         singingEnabled: false,
-        speaker: 'zh_female_vv_jupiter_bigtts'
-      }
+        speaker: 'zh_female_vv_jupiter_bigtts',
+      },
     }
   }
 }
@@ -595,14 +618,17 @@ export async function generateAgentInstructionsAsync(
 
   const generatePromise = generateAgentInstructions(description, modelKey)
   const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('Prompt generation timeout (30s)')), 30000)
+    setTimeout(
+      () => reject(new Error('Prompt generation timeout (30s)')),
+      30000
+    )
   )
 
   Promise.race([generatePromise, timeoutPromise])
-    .then(async (result) => {
+    .then(async result => {
       const agent = await prisma.agent.findUnique({
         where: { id: agentId },
-        select: { metadata: true }
+        select: { metadata: true },
       })
       const currentMetadata = (agent?.metadata || {}) as Record<string, any>
       const updatedMetadata = {
@@ -610,7 +636,7 @@ export async function generateAgentInstructionsAsync(
         voice: {
           enabled: true,
           ...result.voice,
-        }
+        },
       }
 
       await prisma.agent.update({
@@ -621,9 +647,12 @@ export async function generateAgentInstructionsAsync(
           metadata: updatedMetadata,
         },
       })
-      logger.info({ msg: 'Agent instructions and voice config generated successfully', agentId })
+      logger.info({
+        msg: 'Agent instructions and voice config generated successfully',
+        agentId,
+      })
     })
-    .catch(async (err) => {
+    .catch(async err => {
       logger.error({
         msg: 'Failed to generate agent instructions asynchronously',
         agentId,

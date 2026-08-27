@@ -123,6 +123,22 @@
       "executing": "計画を実行する",
       "executeTrigger": "上記の承認された計画に従って実行してください"
     },
+    "approval": {
+      "title": "ツールの承認が必要です",
+      "description": "エージェントが続行する前に、各ツール呼び出しを確認してください。",
+      "tool": "ツール",
+      "arguments": "引数",
+      "expires": "有効期限：{time}",
+      "approve": "承認",
+      "deny": "拒否",
+      "waiting": "判断待ち",
+      "approved": "承認済み",
+      "denied": "拒否済み",
+      "expired": "期限切れ",
+      "empty": "処理できる承認リクエストはありません。",
+      "decideFailed": "判断を保存できませんでした。もう一度お試しください。",
+      "refreshFailed": "承認状態を更新できませんでした。もう一度お試しください。"
+    },
     "voice": {
       "title": "リアルタイム音声",
       "shortLabel": "音声",

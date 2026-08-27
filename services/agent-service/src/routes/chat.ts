@@ -4,35 +4,15 @@ import { fail, ok, parseJson } from '../http/response.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
 import { PlanStore } from '../services/plan-store.js'
-import type { StructuredPlan } from '../services/plan-tools.js'
-
-/**
- * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
- */
-function parseApprovedPlan(raw: unknown): StructuredPlan | null {
-  if (!raw) return null
-  try {
-    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
-    if (
-      obj &&
-      typeof obj === 'object' &&
-      typeof (obj as any).summary === 'string' &&
-      Array.isArray((obj as any).steps)
-    ) {
-      return obj as StructuredPlan
-    }
-  } catch {
-    // 解析失败返回 null
-  }
-  return null
-}
+import { parseApprovedPlan } from '../services/plan-tools.js'
+import { normalizeUserImageParts } from '../services/image-input.js'
 import {
   agentRuntimeService,
   extractPromptFromBody,
   parseExplicitSkillTrigger,
 } from '../services/runtime.js'
 import { prisma } from '../services/db.js'
-import { listChatModels } from '../services/chat.js'
+import { findEnabledChatModel, listChatModels } from '../services/chat.js'
 import { toSnakeCase } from '../utils/serializer.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
 import {
@@ -48,6 +28,62 @@ async function handleChat(c: Context) {
   const body = await parseJson(c)
   const input = extractPromptFromBody(body)
   if (!input) return fail(c, 400, '消息不能为空')
+
+  // A run id is an opaque server-owned execution identity.  Reusing one from
+  // the request used to let a caller enqueue an existing run with a new
+  // payload (and, before the ownership checks below, another user's run).
+  // Retries have their own owner-checked retryRunId flow; normal chat always
+  // creates a fresh run.
+  if (typeof body.runId === 'string' && body.runId.trim()) {
+    return fail(c, 400, 'Client-supplied runId is not supported')
+  }
+
+  // Validate all request-owned execution controls before creating a thread or
+  // appending a user message, so a rejected request leaves no orphan state.
+  const requestedModelOverride =
+    typeof body.model === 'string' && body.model.trim()
+      ? body.model.trim()
+      : null
+  let modelOverride: string | null = null
+  if (requestedModelOverride) {
+    const enabledModel = await findEnabledChatModel(requestedModelOverride)
+    if (!enabledModel) return fail(c, 400, 'Requested model is not enabled')
+    modelOverride = enabledModel.model
+  }
+  const reasoningEffort =
+    body.reasoningEffort === 'minimal' ||
+    body.reasoningEffort === 'low' ||
+    body.reasoningEffort === 'medium' ||
+    body.reasoningEffort === 'high'
+      ? body.reasoningEffort
+      : null
+  const planMode =
+    body.planMode === 'plan' || body.planMode === 'execute'
+      ? body.planMode
+      : undefined
+  let approvedPlan: ReturnType<typeof parseApprovedPlan>
+  try {
+    approvedPlan = parseApprovedPlan(body.approvedPlan)
+  } catch (error) {
+    return fail(
+      c,
+      400,
+      error instanceof Error ? error.message : 'approvedPlan 无效'
+    )
+  }
+  if (planMode === 'execute' && !approvedPlan) {
+    return fail(c, 400, 'execute plan mode requires an approvedPlan')
+  }
+  let normalizedImages: ReturnType<typeof normalizeUserImageParts>
+  try {
+    normalizedImages = normalizeUserImageParts(body.images)
+  } catch (error) {
+    return fail(
+      c,
+      400,
+      error instanceof Error ? error.message : 'Image attachments are invalid'
+    )
+  }
 
   // 解析显式 skill 触发（对标 Codex 的 $skill-name 语法）。
   // 若触发，剥离前缀，用户看到 / 落库的是纯净消息，skill 全文由 runtime 注入。
@@ -97,7 +133,11 @@ async function handleChat(c: Context) {
       },
     })
     if (!retryRun) return fail(c, 404, 'Retry run not found')
-    if (retryRun.status === 'queued' || retryRun.status === 'running') {
+    if (
+      retryRun.status === 'queued' ||
+      retryRun.status === 'running' ||
+      retryRun.status === 'awaiting_approval'
+    ) {
       return fail(c, 409, 'Run is still in progress')
     }
 
@@ -169,47 +209,27 @@ async function handleChat(c: Context) {
     userMessage = await agentSessionService.appendUserMessage(
       thread.id,
       effectiveInput,
-      Array.isArray(body.images) ? body.images : []
+      normalizedImages
     )
   }
-  const modelOverride =
-    typeof body.model === 'string' && body.model.trim()
-      ? body.model.trim()
-      : null
-  const reasoningEffort =
-    body.reasoningEffort === 'minimal' ||
-    body.reasoningEffort === 'low' ||
-    body.reasoningEffort === 'medium' ||
-    body.reasoningEffort === 'high'
-      ? body.reasoningEffort
-      : null
-  const planMode =
-    body.planMode === 'plan' || body.planMode === 'execute'
-      ? body.planMode
-      : undefined
-  const approvedPlan = parseApprovedPlan(body.approvedPlan)
-
-  const run = body.runId
-    ? await prisma.agentRun.findUnique({ where: { id: String(body.runId) } })
-    : await createAgentRun({
-        agentId,
-        threadId: thread.id,
-        input: {
-          ...body,
-          effectiveInput,
-          model: modelOverride,
-          reasoningEffort,
-          planMode,
-        },
-        metadata: {
-          source: 'chat',
-          userMessageId: userMessage.id,
-          approvedPlan,
-          forceSkillName: forceSkillName || null,
-          retryOfRunId: retryRunId,
-          replaceAssistantMessageId,
-        },
-      })
+  const run = await createAgentRun({
+    agentId,
+    threadId: thread.id,
+    input: {
+      effectiveInput,
+      model: modelOverride,
+      reasoningEffort,
+      planMode,
+    },
+    metadata: {
+      source: 'chat',
+      userMessageId: userMessage.id,
+      approvedPlan,
+      forceSkillName: forceSkillName || null,
+      retryOfRunId: retryRunId,
+      replaceAssistantMessageId,
+    },
+  })
 
   if (!run) return fail(c, 404, 'Run not found')
 
@@ -305,6 +325,8 @@ chatRouter.get('/threads/:id/runs', async c => {
       status: true,
       startedAt: true,
       completedAt: true,
+      partialOutput: true,
+      partialParts: true,
     },
   })
   return ok(c, toSnakeCase(runs))
@@ -360,8 +382,11 @@ chatRouter.patch('/messages/:messageId/clarify', async c => {
   const body = await parseJson(c)
   const selectedOption = String(body.selectedOption || '')
 
-  const message = await prisma.agentMessage.findUnique({
-    where: { id: messageId },
+  const message = await prisma.agentMessage.findFirst({
+    where: {
+      id: messageId,
+      thread: { ownerId: getCurrentUserId(c) },
+    },
   })
   if (!message) return fail(c, 404, 'Message not found')
 

@@ -123,6 +123,22 @@
       "executing": "Executing Plan",
       "executeTrigger": "Please execute according to the approved plan above"
     },
+    "approval": {
+      "title": "Tool approval required",
+      "description": "Review each requested tool call before the agent continues.",
+      "tool": "Tool",
+      "arguments": "Arguments",
+      "expires": "Expires: {time}",
+      "approve": "Approve",
+      "deny": "Deny",
+      "waiting": "Waiting for decision",
+      "approved": "Approved",
+      "denied": "Denied",
+      "expired": "Expired",
+      "empty": "No approval requests are available.",
+      "decideFailed": "Could not save this decision. Please try again.",
+      "refreshFailed": "Could not refresh the approval status. Please try again."
+    },
     "voice": {
       "title": "Real-time voice",
       "shortLabel": "Voice",

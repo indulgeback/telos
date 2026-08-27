@@ -10,35 +10,16 @@ import {
 import { asStringArray } from '../utils/json.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
-import type { StructuredPlan } from '../services/plan-tools.js'
-import { normalizeChatModelKey } from '../services/chat-model-catalog.js'
-
-/**
- * 解析请求体中的 approvedPlan（可能是 JSON 字符串或对象）为 StructuredPlan。
- */
-function parseApprovedPlan(raw: unknown): StructuredPlan | null {
-  if (!raw) return null
-  try {
-    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw
-    if (
-      obj &&
-      typeof obj === 'object' &&
-      typeof (obj as any).summary === 'string' &&
-      Array.isArray((obj as any).steps)
-    ) {
-      return obj as StructuredPlan
-    }
-  } catch {
-    // 解析失败返回 null
-  }
-  return null
-}
+import { parseApprovedPlan } from '../services/plan-tools.js'
 import {
   DEFAULT_AGENT_TURNS,
   MAX_AGENT_TURNS,
   parseExplicitSkillTrigger,
 } from '../services/runtime.js'
-import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
+import {
+  getCurrentUserId,
+  isAuthenticatedAdmin,
+} from '../middleware/gatewayIdentity.js'
 import {
   agentAccessWhere,
   findAccessibleAgent,
@@ -50,8 +31,21 @@ import {
   attachBuiltinToolsToAgent,
   ensureBuiltinTools,
 } from '../services/builtin-tools.js'
-import { generateAgentInstructions, generateAgentInstructionsAsync } from '../services/chat.js'
+import {
+  findEnabledChatModel,
+  generateAgentInstructions,
+  generateAgentInstructionsAsync,
+} from '../services/chat.js'
 import { enqueueAgentRun } from '../services/run-queue.js'
+import {
+  canBindMcpServer,
+  isMcpUserAssignable,
+  safeMcpBinding,
+} from '../services/mcp-access.js'
+import {
+  isToolUserAssignable,
+  safeAgentToolBinding,
+} from '../services/tool-access.js'
 
 export const agentsRouter = new Hono()
 
@@ -83,7 +77,9 @@ function normalizeReasoningEffort(value: unknown) {
 function normalizeMaxTurns(value: unknown, fallback?: number) {
   if (value === undefined || value === null) return fallback
   if (!Number.isInteger(value) || (value as number) < 1) {
-    throw new Error(`maxTurns must be an integer between 1 and ${MAX_AGENT_TURNS}`)
+    throw new Error(
+      `maxTurns must be an integer between 1 and ${MAX_AGENT_TURNS}`
+    )
   }
   if ((value as number) > MAX_AGENT_TURNS) {
     throw new Error(`maxTurns cannot exceed ${MAX_AGENT_TURNS}`)
@@ -116,6 +112,62 @@ async function replaceBindings(
   ])
 }
 
+function serializeAgentDetails(agent: any, admin: boolean) {
+  const serialized = toSnakeCase(agent) as any
+  if (admin) return serialized
+
+  if (Array.isArray(agent.toolsAsAgent)) {
+    serialized.tools_as_agent = toSnakeCase(
+      agent.toolsAsAgent
+        .filter((binding: any) => isToolUserAssignable(binding.tool))
+        .map((binding: any) => safeAgentToolBinding(binding))
+    )
+  }
+  if (Array.isArray(agent.mcpServersAsAgent)) {
+    serialized.mcp_servers_as_agent = toSnakeCase(
+      agent.mcpServersAsAgent
+        .filter((binding: any) => isMcpUserAssignable(binding.mcpServer))
+        .map((binding: any) => safeMcpBinding(binding))
+    )
+  }
+  return serialized
+}
+
+async function validateSkillBindings(ids: string[], userId: string) {
+  const uniqueIds = [...new Set(ids)]
+  if (!uniqueIds.length) return { ids: uniqueIds, invalid: [] as string[] }
+  const skills = await prisma.skill.findMany({
+    where: { id: { in: uniqueIds } },
+    select: { id: true, ownerId: true },
+  })
+  const valid = new Set(
+    skills
+      .filter(skill => skill.ownerId === null || skill.ownerId === userId)
+      .map(skill => skill.id)
+  )
+  return {
+    ids: uniqueIds,
+    invalid: uniqueIds.filter(id => !valid.has(id)),
+  }
+}
+
+async function validateToolBindings(ids: string[], admin: boolean) {
+  const uniqueIds = [...new Set(ids)]
+  if (!uniqueIds.length) return { ids: uniqueIds, invalid: [] as string[] }
+  const tools = await prisma.tool.findMany({
+    where: { id: { in: uniqueIds } },
+  })
+  const valid = new Set(
+    tools
+      .filter(tool => (admin ? tool.enabled : isToolUserAssignable(tool)))
+      .map(tool => tool.id)
+  )
+  return {
+    ids: uniqueIds,
+    invalid: uniqueIds.filter(id => !valid.has(id)),
+  }
+}
+
 agentsRouter.get('/', async c => {
   const userId = getCurrentUserId(c)
   const agents = await prisma.agent.findMany({
@@ -132,7 +184,9 @@ agentsRouter.get('/', async c => {
   const serialized = serializeAgents(agents)
   const result = serialized.map((agent: any) => ({
     ...agent,
-    is_user_default: userDefaultAgentId ? agent.id === userDefaultAgentId : agent.is_default,
+    is_user_default: userDefaultAgentId
+      ? agent.id === userDefaultAgentId
+      : agent.is_default,
   }))
 
   return ok(c, result)
@@ -141,7 +195,10 @@ agentsRouter.get('/', async c => {
 agentsRouter.post('/default', async c => {
   const body = await parseJson(c)
   const userId = getCurrentUserId(c)
-  const agentId = typeof body.agentId === 'string' && body.agentId.trim() ? body.agentId.trim() : null
+  const agentId =
+    typeof body.agentId === 'string' && body.agentId.trim()
+      ? body.agentId.trim()
+      : null
 
   if (agentId) {
     const agent = await findAccessibleAgent(agentId, userId)
@@ -175,6 +232,15 @@ agentsRouter.post('/', async c => {
     return fail(c, 400, 'Agent name and description are required')
   }
 
+  const requestedType = normalizeAgentType(body.type)
+  const requestedDefault = body.isDefault === true
+  if (
+    (requestedType === 'system' || requestedDefault) &&
+    !isAuthenticatedAdmin(c)
+  ) {
+    return fail(c, 403, 'Administrator access is required for system agents')
+  }
+
   let maxTurns: number
   try {
     maxTurns =
@@ -188,7 +254,9 @@ agentsRouter.post('/', async c => {
     typeof body.modelKey === 'string' && body.modelKey.trim()
       ? body.modelKey.trim()
       : config.defaultModel
-  const modelKey = normalizeChatModelKey(requestedModelKey)
+  const enabledModel = await findEnabledChatModel(requestedModelKey)
+  if (!enabledModel) return fail(c, 400, 'Requested model is not enabled')
+  const modelKey = enabledModel.model
 
   const agent = await prisma.agent.create({
     data: {
@@ -196,7 +264,7 @@ agentsRouter.post('/', async c => {
       description,
       instructions: description,
       instructionStatus: 'generating',
-      type: normalizeAgentType(body.type),
+      type: requestedType,
       modelKey,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : 0.7,
@@ -205,14 +273,16 @@ agentsRouter.post('/', async c => {
       status: normalizeStatus(body.status),
       ownerId: userId,
       metadata: (body.metadata ?? {}) as any,
-      isDefault: Boolean(body.isDefault),
+      // Only the boolean form is meaningful. Do not let truthy untyped input
+      // bypass the administrator check above and create a default agent.
+      isDefault: requestedDefault,
     },
   })
   await ensureBuiltinTools()
   await attachBuiltinToolsToAgent(agent.id)
   await attachBuiltinSkillsToAgent(agent.id)
 
-  generateAgentInstructionsAsync(agent.id, description, modelKey).catch((err) => {
+  generateAgentInstructionsAsync(agent.id, description, modelKey).catch(err => {
     logger.error({
       msg: 'Unhandled error in generateAgentInstructionsAsync background task',
       agentId: agent.id,
@@ -243,22 +313,49 @@ agentsRouter.get('/:id', async c => {
     }
   )
   if (!agent) return fail(c, 404, 'Agent 不存在')
-  return ok(c, toSnakeCase(agent))
+  return ok(c, serializeAgentDetails(agent, isAuthenticatedAdmin(c)))
 })
 
 agentsRouter.put('/:id', async c => {
   const body = await parseJson(c)
-  const editableAgent = await findEditableAgent(
-    c.req.param('id'),
-    getCurrentUserId(c)
-  )
-  if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+  const userId = getCurrentUserId(c)
+  const admin = isAuthenticatedAdmin(c)
+  let existingAgent = await findEditableAgent(c.req.param('id'), userId)
+  if (!existingAgent && admin) {
+    existingAgent = await prisma.agent.findFirst({
+      where: {
+        id: c.req.param('id'),
+        OR: [{ type: 'system' }, { isDefault: true }],
+      },
+    })
+  }
+  if (!existingAgent) return fail(c, 403, 'Agent 不可编辑')
+
+  const requestedType =
+    typeof body.type === 'string' ? normalizeAgentType(body.type) : undefined
+  const requestedDefault =
+    typeof body.isDefault === 'boolean' ? body.isDefault : undefined
+  const touchesSystemBoundary =
+    existingAgent.type === 'system' ||
+    existingAgent.isDefault ||
+    requestedType === 'system' ||
+    requestedDefault === true
+  if (touchesSystemBoundary && !admin) {
+    return fail(c, 403, 'Administrator access is required for system agents')
+  }
 
   let maxTurns: number | undefined
   try {
     maxTurns = normalizeMaxTurns(body.maxTurns)
   } catch (error) {
     return fail(c, 400, error instanceof Error ? error.message : String(error))
+  }
+
+  let modelKey: string | undefined
+  if (typeof body.modelKey === 'string' && body.modelKey.trim()) {
+    const enabledModel = await findEnabledChatModel(body.modelKey.trim())
+    if (!enabledModel) return fail(c, 400, 'Requested model is not enabled')
+    modelKey = enabledModel.model
   }
 
   const agent = await prisma.agent.update({
@@ -271,14 +368,8 @@ agentsRouter.put('/:id', async c => {
           : undefined,
       instructions:
         typeof body.instructions === 'string' ? body.instructions : undefined,
-      type:
-        typeof body.type === 'string'
-          ? normalizeAgentType(body.type)
-          : undefined,
-      modelKey:
-        typeof body.modelKey === 'string' && body.modelKey.trim()
-          ? normalizeChatModelKey(body.modelKey.trim())
-          : undefined,
+      type: requestedType,
+      modelKey,
       temperature:
         typeof body.temperature === 'number' ? body.temperature : undefined,
       maxTurns,
@@ -327,15 +418,21 @@ agentsRouter.get('/:id/skills', async c => {
 
 agentsRouter.put('/:id/skills', async c => {
   const body = await parseJson(c)
-  const editableAgent = await findEditableAgent(
-    c.req.param('id'),
-    getCurrentUserId(c)
-  )
+  const userId = getCurrentUserId(c)
+  const editableAgent = await findEditableAgent(c.req.param('id'), userId)
   if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
+
+  const validation = await validateSkillBindings(
+    asStringArray(body.skill_ids ?? body.skillIds),
+    userId
+  )
+  if (validation.invalid.length) {
+    return fail(c, 403, '只能绑定自己的或系统级 Skill')
+  }
 
   await replaceBindings(
     c.req.param('id'),
-    asStringArray(body.skill_ids ?? body.skillIds),
+    validation.ids,
     'agentSkill',
     'skillId'
   )
@@ -343,6 +440,7 @@ agentsRouter.put('/:id/skills', async c => {
 })
 
 agentsRouter.get('/:id/tools', async c => {
+  const admin = isAuthenticatedAdmin(c)
   const agent = await findAccessibleAgent(
     c.req.param('id'),
     getCurrentUserId(c)
@@ -353,20 +451,34 @@ agentsRouter.get('/:id/tools', async c => {
     where: { agentId: c.req.param('id') },
     include: { tool: true },
   })
-  return ok(c, { tools: toSnakeCase(rows) })
+  const visible = admin
+    ? rows
+    : rows
+        .filter(row => isToolUserAssignable(row.tool))
+        .map(row => safeAgentToolBinding(row))
+  return ok(c, { tools: toSnakeCase(visible) })
 })
 
 agentsRouter.put('/:id/tools', async c => {
   const body = await parseJson(c)
+  const admin = isAuthenticatedAdmin(c)
   const editableAgent = await findEditableAgent(
     c.req.param('id'),
     getCurrentUserId(c)
   )
   if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
 
+  const validation = await validateToolBindings(
+    asStringArray(body.tool_ids ?? body.toolIds),
+    admin
+  )
+  if (validation.invalid.length) {
+    return fail(c, 403, '只能绑定已启用且允许用户分配的 Tool')
+  }
+
   await replaceBindings(
     c.req.param('id'),
-    asStringArray(body.tool_ids ?? body.toolIds),
+    validation.ids,
     'agentTool',
     'toolId'
   )
@@ -375,6 +487,19 @@ agentsRouter.put('/:id/tools', async c => {
 
 agentsRouter.patch('/:id/tools/:toolId/toggle', async c => {
   const body = await parseJson(c)
+  if (typeof body.enabled !== 'boolean') {
+    return fail(c, 400, 'enabled must be a boolean')
+  }
+  const admin = isAuthenticatedAdmin(c)
+  const targetTool = await prisma.tool.findUnique({
+    where: { id: c.req.param('toolId') },
+  })
+  if (!targetTool || !targetTool.enabled) {
+    return fail(c, 404, 'Tool 不存在或已禁用')
+  }
+  if (!admin && !isToolUserAssignable(targetTool)) {
+    return fail(c, 403, '该 Tool 不允许用户分配')
+  }
   const editableAgent = await findEditableAgent(
     c.req.param('id'),
     getCurrentUserId(c)
@@ -383,12 +508,13 @@ agentsRouter.patch('/:id/tools/:toolId/toggle', async c => {
 
   await prisma.agentTool.updateMany({
     where: { agentId: c.req.param('id'), toolId: c.req.param('toolId') },
-    data: { enabled: Boolean(body.enabled) },
+    data: { enabled: body.enabled },
   })
   return ok(c, { message: 'tool toggled' })
 })
 
 agentsRouter.get('/:id/mcp-servers', async c => {
+  const admin = isAuthenticatedAdmin(c)
   const agent = await findAccessibleAgent(
     c.req.param('id'),
     getCurrentUserId(c)
@@ -399,23 +525,47 @@ agentsRouter.get('/:id/mcp-servers', async c => {
     where: { agentId: c.req.param('id') },
     include: { mcpServer: true },
   })
-  return ok(c, { mcp_servers: toSnakeCase(rows) })
+  const visibleRows = admin
+    ? rows
+    : rows
+        .filter(row => isMcpUserAssignable(row.mcpServer))
+        .map(row => safeMcpBinding(row))
+  return ok(c, { mcp_servers: toSnakeCase(visibleRows) })
 })
 
 agentsRouter.put('/:id/mcp-servers', async c => {
   const body = await parseJson(c)
-  const editableAgent = await findEditableAgent(
-    c.req.param('id'),
-    getCurrentUserId(c)
-  )
+  const userId = getCurrentUserId(c)
+  const admin = isAuthenticatedAdmin(c)
+  let editableAgent = await findEditableAgent(c.req.param('id'), userId)
+  if (!editableAgent && admin) {
+    editableAgent = await prisma.agent.findFirst({
+      where: {
+        id: c.req.param('id'),
+        OR: [{ type: 'system' }, { isDefault: true }],
+      },
+    })
+  }
   if (!editableAgent) return fail(c, 403, 'Agent 不可编辑')
 
-  await replaceBindings(
-    c.req.param('id'),
-    asStringArray(body.mcp_server_ids ?? body.mcpServerIds),
-    'agentMcpServer',
-    'mcpServerId'
-  )
+  const ids = [
+    ...new Set(asStringArray(body.mcp_server_ids ?? body.mcpServerIds)),
+  ]
+  const servers = ids.length
+    ? await prisma.mcpServer.findMany({
+        where: { id: { in: ids } },
+      })
+    : []
+  const found = new Set(servers.map(server => server.id))
+  const invalid = ids.filter(id => {
+    const server = servers.find(candidate => candidate.id === id)
+    return !found.has(id) || !server || !canBindMcpServer(server, admin)
+  })
+  if (invalid.length) {
+    return fail(c, admin ? 400 : 403, 'MCP server 不存在、未启用或无权绑定')
+  }
+
+  await replaceBindings(c.req.param('id'), ids, 'agentMcpServer', 'mcpServerId')
   return ok(c, { message: 'mcp servers configured' })
 })
 
@@ -481,6 +631,36 @@ agentsRouter.post('/:id/runs', async c => {
   const input = typeof body.input === 'string' ? body.input.trim() : ''
   if (!input) return fail(c, 400, 'input is required')
 
+  // Validate execution controls before any thread/message mutation.
+  const requestedModelOverride =
+    typeof body.model === 'string' && body.model.trim()
+      ? body.model.trim()
+      : null
+  let modelOverride: string | null = null
+  if (requestedModelOverride) {
+    const enabledModel = await findEnabledChatModel(requestedModelOverride)
+    if (!enabledModel) return fail(c, 400, 'Requested model is not enabled')
+    modelOverride = enabledModel.model
+  }
+  const reasoningEffort = normalizeReasoningEffort(body.reasoningEffort)
+  const planMode =
+    body.planMode === 'plan' || body.planMode === 'execute'
+      ? body.planMode
+      : undefined
+  let approvedPlan: ReturnType<typeof parseApprovedPlan>
+  try {
+    approvedPlan = parseApprovedPlan(body.approvedPlan)
+  } catch (error) {
+    return fail(
+      c,
+      400,
+      error instanceof Error ? error.message : 'approvedPlan 无效'
+    )
+  }
+  if (planMode === 'execute' && !approvedPlan) {
+    return fail(c, 400, 'execute plan mode requires an approvedPlan')
+  }
+
   // 解析显式 skill 触发（对标 Codex 的 $skill-name 语法），与 chat 路由保持一致。
   const { skillName: forceSkillName, message: skillMessage } =
     parseExplicitSkillTrigger(input)
@@ -502,17 +682,6 @@ agentsRouter.post('/:id/runs', async c => {
     thread.id,
     effectiveInput
   )
-  const modelOverride =
-    typeof body.model === 'string' && body.model.trim()
-      ? body.model.trim()
-      : null
-  const reasoningEffort = normalizeReasoningEffort(body.reasoningEffort)
-  const planMode =
-    body.planMode === 'plan' || body.planMode === 'execute'
-      ? body.planMode
-      : undefined
-  const approvedPlan = parseApprovedPlan(body.approvedPlan)
-
   const run = await createAgentRun({
     agentId,
     threadId: thread.id,
@@ -553,10 +722,18 @@ agentsRouter.post('/:id/regenerate-instructions', async c => {
   const userId = getCurrentUserId(c)
   const agent = await findEditableAgent(agentId, userId)
   if (!agent) {
-    return fail(c, 404, 'Agent not found or you do not have permission to edit it')
+    return fail(
+      c,
+      404,
+      'Agent not found or you do not have permission to edit it'
+    )
   }
 
-  generateAgentInstructionsAsync(agent.id, agent.description, agent.modelKey).catch((err) => {
+  generateAgentInstructionsAsync(
+    agent.id,
+    agent.description,
+    agent.modelKey
+  ).catch(err => {
     logger.error({
       msg: 'Unhandled error in manual regenerate-instructions background task',
       agentId: agent.id,

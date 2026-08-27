@@ -123,6 +123,22 @@
       "executing": "執行計畫",
       "executeTrigger": "請依照上述核准的計畫執行"
     },
+    "approval": {
+      "title": "需要批准工具呼叫",
+      "description": "請逐項檢查工具呼叫，批准後代理人才能繼續執行。",
+      "tool": "工具",
+      "arguments": "參數",
+      "expires": "到期時間：{time}",
+      "approve": "批准",
+      "deny": "拒絕",
+      "waiting": "等待決定",
+      "approved": "已批准",
+      "denied": "已拒絕",
+      "expired": "已過期",
+      "empty": "目前沒有可處理的批准請求。",
+      "decideFailed": "無法儲存此決定，請重試。",
+      "refreshFailed": "無法重新整理審批狀態，請重試。"
+    },
     "voice": {
       "title": "即時語音",
       "shortLabel": "語音",

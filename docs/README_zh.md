@@ -1,344 +1,263 @@
-# Telos：智能工作流编排代理平台
+# Telos：AI Agent 编排平台
 
 [English Version](../README.md)
 
 ## 1. 项目简介
 
-Telos 是一个智能工作流编排代理平台，专为企业级自动化场景设计。该系统通过现代微服务架构实现自动化任务调度、管理和执行。
+Telos 是一个基于现代微服务单体仓库架构的 AI Agent 编排平台。用户可以创建 Agent，为其配置技能、工具和 MCP 服务器并进行对话；平台以异步方式执行每一次 Agent Run，提供流式事件、工具调用审批、预算限制与完整的审计链路。
 
 **项目亮点：**
 
-- **Next.js 15** 前端，采用 App Router 和 React 19 并发特性
-- **Go 微服务** 后端，高性能且易于扩展
-- **服务发现** 内置注册中心和健康检查
-- **多语言支持** 国际化前端支持 18 种语言
-- **可视化工作流构建器** 基于 React Flow 组件
-- **单体仓库管理** 统一依赖，简化开发流程
-- **统一日志系统** 自定义 tlog 包，为所有服务提供结构化日志
+- **Agent 工作台**：Agent 管理、技能/工具/MCP 绑定、多智能体关系
+- **流式对话**：对接多家大模型服务商（DeepSeek、火山方舟 Seed、阿里百炼、OpenAI、Google Gemini、ShortAPI）
+- **异步 Run 引擎**：队列 + 租约型 Worker、可断点续读的事件流、预算护栏、工具调用审批流、Outbox 模式持久化
+- **实时语音**：基于 WebSocket 的火山实时语音
+- **安全优先的网关**：边缘完成 Better Auth 会话校验，内部请求以 HMAC 签名 + Nonce 防重放转发
+- **服务发现**：基于 Consul 的注册中心与健康检查，服务启动自动注册
+- **Monorepo**：pnpm workspace 统一管理 TS 应用、Go 服务与共享包
+- **统一日志**：自研 `tlog` 包为所有 Go 服务提供结构化日志
 
 ---
 
-## 2. 目录结构
+## 2. 架构总览
+
+```plaintext
+┌──────────────┐   ┌────────────────┐   ┌─────────────────┐
+│  Web (Next)  │   │ Mobile (RN)    │   │ Admin (Vue+Vite)│
+│    :8800     │   │ Metro :8081    │   │     :5174       │
+└──────┬───────┘   └────────────────┘   └────────┬────────┘
+       │                                         │
+       ▼                                         ▼
+┌────────────────────────────────┐   ┌──────────────────────────┐
+│  API Gateway (Go Echo) :8890   │   │ admin-service (TS) :3002 │
+│  - Better Auth 会话校验         │   └──────────────────────────┘
+│  - 限流 / CORS                  │
+│  - HMAC 签名转发                │
+└──────────────┬─────────────────┘
+               │ 签名请求
+               ▼
+┌────────────────────────────────────────────────┐
+│  agent-service (TypeScript Hono) :8895          │
+│  agents · chat · runs · tools · skills · mcp ·  │
+│  realtime                                       │
+└──────┬───────────────┬────────────────┬────────┘
+       ▼               ▼                ▼
+┌────────────┐  ┌───────────┐  ┌───────────────────────┐
+│ PostgreSQL │  │   Redis   │  │ Registry (Go)         │
+│  (Prisma)  │  │ 缓存/队列  │  │ REGISTRY_PORT (Consul)│
+└────────────┘  └───────────┘  └───────────────────────┘
+```
+
+所有业务 API 均经由网关路由。网关校验用户 Better Auth 会话（会话由 Web 应用托管），再携带 HMAC 签名、时间戳与一次性 Nonce 转发到下游服务；下游服务拒绝任何不携带合法网关身份的请求。
+
+---
+
+## 3. 目录结构
 
 ```plaintext
 telos/
-├── apps/                   # 应用层
-│   ├── web/               # Next.js 前端应用
-│   ├── mobile/            # React Native 移动应用
-│   ├── api-gateway/       # API 网关 (Go Echo)
-│   └── registry/          # 服务注册中心 (Go Echo)
-├── services/              # 微服务层
-│   └── agent-service/     # AI 智能代理服务 (TypeScript Express)
-├── docs/                  # 文档
-├── pkg/                   # 共享 Go 包
-├── node_modules/          # 根依赖
-└── package.json           # 单体仓库配置
+├── apps/                        # 客户端与边缘应用
+│   ├── web/                    # Next.js 15 前端（dashboard：agents/chat/skills/profile）
+│   ├── mobile/                 # React Native 移动端
+│   ├── admin/                  # Vue 3 + Vite 管理控制台 (:5174)
+│   ├── api-gateway/            # API 网关 (Go Echo, :8890)
+│   └── registry/               # 服务注册中心 (Go Echo, 基于 Consul)
+├── services/                    # 后端微服务 (TypeScript)
+│   ├── agent-service/          # AI Agent 编排服务 (:8895)
+│   └── admin-service/          # 管理后台 API (:3002)
+├── pkg/                         # 共享 Go 包（tlog）
+├── prisma/                      # Prisma schema 与迁移（根级共享）
+├── deploy/                      # 部署脚本（deploy.sh）
+├── docs/                        # 文档
+└── package.json                 # pnpm workspace 根配置
 ```
 
 ---
 
-## 3. 技术选型
+## 4. 技术选型
 
-### 3.1 前端技术栈
+### 4.1 前端
 
-#### Web 应用 (Next.js)
+- **Web (apps/web)**：Next.js 15 App Router、React 19、TypeScript 严格模式、Tailwind CSS、shadcn/ui（Radix）、next-intl（7 种语言：en / zh / tw / ko / ja / de / ru）、Zustand、React Hook Form + Zod、Better Auth SDK、Vitest
+- **移动端 (apps/mobile)**：React Native、Metro 打包器、Jest
+- **管理控制台 (apps/admin)**：Vue 3、Vite、Tailwind CSS v4
 
-- **Next.js 15**：使用 App Router 的服务端组件和 SSR
-- **React 19**：最新的 React 并发特性
-- **TypeScript**：全应用严格类型检查
-- **Tailwind CSS 4**：实用优先的 CSS 框架
-- **Shadcn UI**：基于 Radix UI 原语构建的组件库
-- **Next-intl**：支持 18 种语言的国际化
-- **React Flow**：可视化工作流构建器组件
-- **Zustand**：轻量级状态管理
-- **React Hook Form + Zod**：表单处理与验证
+### 4.2 后端
 
-#### 移动应用 (React Native)
+- **Go 服务（Go ≥ 1.22）**：
+  - 网关与注册中心均使用 Echo 框架
+  - Viper 配置管理，`pkg/tlog` 结构化日志
+  - 基于 Consul 的服务发现与健康检查
+- **agent-service / admin-service（Node.js ≥ 22）**：
+  - Hono HTTP 框架（`@hono/node-server`）
+  - OpenAI Agents SDK + LangChain 做 Agent 编排
+  - BullMQ（Redis）做异步 Run 排队
+  - Prisma 7 + PostgreSQL 持久化（schema 位于仓库根目录统一管理）
+  - Pino 结构化日志；`ws` 提供 WebSocket 实时语音
 
-- **React Native 0.80.2**：跨平台移动开发
-- **React 19**：最新的 React 并发特性
-- **TypeScript**：全应用严格类型检查
-- **Metro**：React Native 的 JavaScript 打包工具
-- **Jest**：测试框架，集成 React Native 测试工具
-- **ESLint + Prettier**：代码格式化和检查
+### 4.3 基础设施与工具
 
-### 3.2 后端技术栈
-
-- **Go 1.24.4**：高性能后端服务
-- **Gin**：微服务业务逻辑的 Web 框架
-- **Echo**：API 网关和注册中心的轻量级框架
-- **GORM**：数据库 ORM 操作
-- **Viper**：支持 .env 的配置管理
-- **JWT**：身份验证和授权
-- **PostgreSQL**：主数据库
-- **Redis**：缓存和会话存储
-
-### 3.3 基础设施与工具
-
-- **Docker**：所有服务的容器化
-- **Air**：Go 开发热重载
-- **Husky**：代码质量的 Git 钩子
-- **Commitlint**：约定式提交规范
-- **ESLint + Prettier**：代码格式化和检查
-- **golangci-lint**：Go 代码质量检查
+- Docker Compose（PostgreSQL 15、Redis 7）
+- Husky git hooks + commitlint（约定式提交）
+- ESLint + Prettier（TS），golangci-lint（Go）
+- `.github/workflows/` 下的 GitHub Actions（basic-checks、docker-build、deploy）
 
 ---
 
-## 4. 快速开始
+## 5. 服务与端口
 
-### 4.1 前端开发
+| 服务          | 默认端口              | 说明                                              |
+| ------------- | --------------------- | ------------------------------------------------- |
+| Web (Next.js) | `8800`                | 开发服务器；`next start` 使用 8802                |
+| API Gateway   | `8890`                | 所有 `/api/*` 路由的入口                          |
+| Agent Service | `8895`                | Hono 服务，健康检查为 `/ready`                    |
+| Registry      | `REGISTRY_PORT`       | `env.example` 默认 `8081`；生产 compose 为 `8891` |
+| Admin Console | `5174`                | Vite 开发服务器                                   |
+| Admin Service | `ADMIN_PORT` = `3002` | 管理后台 API                                      |
+| Mobile Metro  | `8081`                | 仅开发使用                                        |
+| PostgreSQL    | `5432`                | 主数据库（Prisma）                                |
+| Redis         | `6379`                | 缓存、队列、鉴权缓存、Nonce                       |
+
+网关路由表（均需有效会话）：`/api/agents`、`/api/tools`、`/api/skills`、`/api/mcp-servers`、`/api/runs`、`/api/agent`（聊天/SSE）、`/workspaces/shares`。
+
+---
+
+## 6. 核心能力
+
+### 6.1 对话与 Agent（agent-service）
+
+- SSE 流式聊天，支持逐条消息选择模型与重试
+- 多服务商模型目录（DeepSeek、Seed/Ark、百炼、OpenAI、Gemini、ShortAPI）；Gemini 走 ADC 认证
+- Agent 增删改查，支持绑定技能、内置/自定义工具与 MCP 服务器；包含图像生成工具
+- 会话线程/消息/记忆持久化，支持受限的匿名 owner 模式
+
+### 6.2 异步 Run 引擎
+
+- Redis/BullMQ Run 队列，租约型 Worker（`AGENT_RUN_LEASE_MS`，Worker 并发数可配）
+- 单次 Run 多维预算：输入字节、输出字符/token、工具调用次数、超时、预估成本上限
+- 工具调用审批工作流，待审批项带 TTL
+- Run 事件持久化用于追踪回放（`/api/runs`），事件游标可断点续读
+- Outbox 模式（`AgentOutboxEvent`）保证领域事件可靠发布
+
+### 6.3 安全模型
+
+- Web 应用通过 [Better Auth](https://www.better-auth.com/) 承担认证（user/session/account 表位于同一 Prisma schema）
+- 网关在代理转发前校验会话（带 TTL 缓存）
+- 内部调用携带 HMAC 签名 + 时间戳 + Nonce；下游校验身份并拒绝重放（`GATEWAY_INTERNAL_SECRET`、`GATEWAY_NONCE_TTL_SECONDS`）
+- 沙箱执行与内置命令执行均为显式开关（`SANDBOX_ENABLED`、`ENABLE_BUILTIN_RUN_COMMAND`）
+
+---
+
+## 7. 快速开始
+
+### 7.1 环境要求
+
+- Node.js ≥ 22 与 pnpm ≥ 10
+- Go ≥ 1.22（网关与注册中心）
+- Docker + Docker Compose（Postgres/Redis 或全栈）
+
+### 7.2 本地开发
 
 ```bash
-# Web 开发
-pnpm web:dev                    # 在 8800 端口启动开发服务器
-pnpm --filter ./apps/web dev    # 替代开发命令
+# 1. 安装依赖（Node + Go）
+pnpm install:all
 
-# 构建与部署
-pnpm --filter ./apps/web build  # 生产构建
-pnpm --filter ./apps/web start  # 启动生产服务器
+# 2. 启动基础设施
+docker-compose up -d postgres redis
 
-# 代码质量
-pnpm --filter ./apps/web lint      # ESLint 检查
-pnpm --filter ./apps/web lint:fix  # 自动修复检查问题
-pnpm --filter ./apps/web format    # Prettier 格式化
+# 3. 准备环境文件（将各 *.env.example 复制为 .env）
+cp services/agent-service/.env.example services/agent-service/.env
+cp apps/web/.env.example apps/web/.env   # 如无示例文件则手动配置
 
-# 移动开发
-pnpm --filter ./apps/mobile start    # 启动 Metro 打包器
-pnpm --filter ./apps/mobile android  # 在 Android 上运行
-pnpm --filter ./apps/mobile ios      # 在 iOS 上运行
-pnpm --filter ./apps/mobile test     # 运行移动端测试
-pnpm --filter ./apps/mobile lint     # 移动端 ESLint 检查
+# 4. 应用数据库 schema 并初始化技能数据
+pnpm db:push                             # 或: npx prisma migrate deploy
+pnpm --filter ./services/agent-service db:seed-skills
+
+# 5. 启动服务（各自终端运行，或直接 docker compose）
+pnpm agent-service:dev                   # agent service 监听 :8895
+pnpm api-gateway:dev                     # API gateway 监听 :8890
+pnpm registry:dev                        # registry 监听 $REGISTRY_PORT
+pnpm web:dev                             # web 监听 :8800
 ```
 
-### 4.2 后端服务
+开始对话前必须配置的环境变量：agent-service 中至少一个大模型密钥（如 `DEEPSEEK_API_KEY`），以及网关与下游共享的 `GATEWAY_INTERNAL_SECRET`。
 
-每个 Go 服务都支持这些 Makefile 命令：
+### 7.3 测试与代码质量
 
 ```bash
-# 开发
-make dev        # 使用 Air 热重载
-make run        # 标准 go run
-make build      # 构建二进制文件到 bin/
+# Web
+pnpm --filter ./apps/web test            # Vitest 单次运行
+pnpm --filter ./apps/web lint
+pnpm --filter ./apps/web format:check
 
-# 代码质量
-make fmt        # 使用 go fmt 格式化代码
-make lint       # 运行 golangci-lint
-make test       # 运行所有测试
+# Agent service
+pnpm --filter ./services/agent-service test   # 先构建再跑 node:test 用例
 
-# 依赖管理
-make deps       # go mod tidy + download
-
-# Docker
-make docker-build  # 构建 Docker 镜像
-make docker-run    # 使用 docker-compose 运行
-make docker-stop   # 停止容器
-
-# 清理
-make clean      # 删除构建产物
+# Go 服务（在 apps/api-gateway 或 apps/registry 目录下）
+make test                                # go test ./...
+make lint                                # golangci-lint
+make fmt                                 # go fmt
 ```
 
-### 4.3 单体仓库命令（从根目录）
+---
 
-```bash
-# 特定服务开发
-pnpm agent-service:dev     # 智能代理服务热重载
-pnpm api-gateway:dev       # 启动 API 网关热重载
-pnpm registry:dev          # 启动服务注册中心热重载
+## 8. 部署
 
-# 移动开发
-pnpm mobile:start          # 启动 Metro 打包器
-pnpm mobile:android        # 在 Android 上运行
-pnpm mobile:ios            # 在 iOS 上运行
+- 生产全栈部署：`docker-compose.prod.yml`（web、gateway、registry、agent-service、Postgres、Redis），拓扑见文件头部注释。
+- 脚本化部署：`deploy/deploy.sh`
+- CI/CD：GitHub Actions 负责基础检查、镜像构建与部署。
+- 生产部署会先停止旧 Agent worker、备份 PostgreSQL，再执行已审查的
+  `prisma migrate deploy`；迁移账本核验通过后才启动新服务。
 
-# Git 钩子
-pnpm prepare              # 安装 Husky 钩子
+---
+
+## 9. 配置管理
+
+各服务均提供 `env.example` 说明所需变量。主要分组：
+
+- **网关**：`PORT`、`REGISTRY_SERVICE_URL`、`BETTER_AUTH_BASE_URL`（会话校验地址）、`GATEWAY_INTERNAL_SECRET`、限流窗口/次数、鉴权缓存 TTL
+- **Agent 服务**：各家模型密钥/Base URL（`DEEPSEEK_*`、`SEED_*`、`BAILIAN_*`、`OPENAI_*`、`SHORTAPI_*`）、`DATABASE_URL`、`REDIS_URL`、Run 引擎限额（`AGENT_RUN_*`）、功能开关（`SANDBOX_ENABLED`、`ENABLE_BUILTIN_RUN_COMMAND`、`ALLOW_SENSITIVE_TRACING`）
+- **注册中心**：`REGISTRY_PORT`、Consul 连接配置
+- **Web**：`NEXT_PUBLIC_API_URL`、Better Auth 密钥/OAuth 客户端凭证
+
+严禁提交真实密钥或 `.env` 文件。
+
+---
+
+## 10. 贡献指南
+
+1. Fork 并新建分支（如 `feature/xxx`、`fix/xxx`）
+2. 保持风格一致：TS 使用 ESLint/Prettier，Go 使用 golangci-lint；pre-commit hooks 会强制检查
+3. 新功能需附带测试，并保证现有用例通过
+4. 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/v1.0.0/) 规范（commitlint 强制执行）：
+
+```text
+feat: add streaming retry for chat messages
+fix: resume run event cursor after reconnect
 ```
 
-### 4.4 开发工作流
-
-1. **环境设置**：每个服务都有 `.env` 文件进行配置
-2. **热重载**：Go 服务使用 `make dev`，前端使用 `pnpm web:dev`
-3. **代码质量**：预提交钩子强制执行检查和约定式提交
-4. **测试**：在服务目录中运行 `make test`
-5. **Docker**：使用 `docker-compose up -d` 进行全栈开发
-
 ---
 
-## 5. 模块设计
+## 11. 故障排查
 
-### 5.1 前端模块
+### 服务注册失败
 
-#### Web 应用（apps/web）
+1. 确认注册中心已在 `$REGISTRY_PORT` 运行（本地默认 `8081`；`docker-compose.prod.yml` 为 `8891`）
+2. 注册路径是 `POST /api/register`（不是 `/register`）
+3. 检查注册服务的 `REGISTRY_URL` 与网关的 `REGISTRY_SERVICE_URL` 配置
 
-- App Router：按页面路由组织代码，支持动态路由与服务器端渲染
-- 组件库：遵循原子设计原则，分为原子、分子、组织三级组件
-- API 服务：通过 tRPC 或 REST 调用后端接口，集成 React Query 管理数据缓存
+### 数据库连接失败
 
-#### 移动应用（apps/mobile）
+1. 确保 Postgres 已启动（`docker-compose up -d postgres`）且 `DATABASE_URL` 指向它
+2. 本地开发可用 `pnpm db:push`；生产环境只使用已审查的
+   `prisma migrate deploy` 发布路径
+3. 确认数据库/用户存在且权限充足
 
-- 跨平台移动应用，支持 iOS 和 Android
-- 原生导航和平台特定的 UI 组件
-- 与 Web 应用共享业务逻辑
-- 离线优先架构，支持本地数据同步
+### 网关返回 401
 
-### 5.2 后端模块
-
-- **API 网关（apps/api-gateway）**：统一处理前端请求，转发至对应微服务，实现鉴权、限流、CORS、服务发现
-- **注册中心（apps/registry）**：服务注册、注销、发现、健康检查，提供 RESTful API
-- **微服务（services/\*）**：
-  - **智能代理服务**：AI 代理编排、会话管理以及提示词生成
-
-### 5.3 共享模块（pkg）
-
-- **tlog**：统一的结构化日志包，支持：
-  - 多种输出格式（JSON、文本、彩色控制台）
-  - 日志级别和过滤
-  - Gin 中间件集成
-  - 请求 ID 追踪
-  - 生产和开发环境预设
-  - 文件轮转和远程日志功能
-
----
-
-## 6. 开发与部署流程
-
-### 6.1 开发环境
-
-- Web 前端：
-
-  ```bash
-  cd apps/web
-  pnpm install
-  pnpm dev
-  ```
-
-- 移动前端：
-
-  ```bash
-  cd apps/mobile
-  pnpm install
-  pnpm start    # 启动 Metro 打包器
-  pnpm android  # 在 Android 上运行（另开终端）
-  pnpm ios      # 在 iOS 上运行（另开终端）
-  ```
-
-- 后端：
-
-  ```bash
-  cd services/agent-service
-  pnpm install
-  pnpm dev
-  ```
-
-- 调试工具：使用 Docker Compose 快速启动依赖服务（如数据库、Redis）
-
-### 6.2 生产部署
-
-- 容器化：为每个服务编写 Dockerfile，构建镜像
-- Kubernetes 部署：通过 Helm Chart 定义资源清单，部署至 K8s 集群
-- CI/CD：使用 GitHub Actions 实现自动化构建、测试与发布
-
----
-
-## 7. 配置管理
-
-### 7.1 环境变量
-
-- **后端**：每个微服务根目录下的 `.env` 文件定义服务专属配置：
-
-  - `PORT`：服务端口号
-  - `SERVICE_NAME`：服务标识符，用于日志和注册
-  - `REGISTRY_URL`：服务注册中心端点（如 `http://localhost:8891`）
-  - `DB_*`：数据库连接参数
-  - `JWT_SECRET`：身份验证密钥
-  - `LOG_*`：日志配置（级别、格式、输出）
-
-- **前端**：在 `next.config.js` 中通过 `process.env` 引用环境变量
-
-### 7.2 配置加载
-
-- **Go 微服务**：使用 Viper 库，支持 .env、环境变量、配置文件多级加载
-- **Next.js**：通过 `next.config.js` 与 `.env.local` 管理敏感信息
-
-### 7.3 服务注册
-
-所有微服务在启动时自动向服务注册中心注册：
-
-- **注册端点**：`/api/register`（不是 `/register`）
-- **服务信息**：包含名称、地址、端口、标签和元数据
-- **健康检查**：内置健康检查端点 `/health`
-
----
-
-## 8. 贡献指南
-
-1. Fork 本仓库并创建新分支（如 feature/xxx、fix/xxx）
-2. 保持代码风格统一，前端遵循 ESLint/Prettier，后端遵循 golangci-lint
-3. 提交 PR 前请确保所有测试通过
-4. PR 描述需清晰说明变更内容及影响范围
-
----
-
-## 9. 提交规范
-
-本项目使用 [Commitlint](https://commitlint.js.org/) 和 [Husky](https://typicode.github.io/husky/) 对提交信息进行校验，强制遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/v1.0.0/) 规范：
-
-- feat: 新功能
-- fix: 修复 bug
-- docs: 文档变更
-- style: 代码格式（不影响功能，例如空格、分号等）
-- refactor: 代码重构（既不是修复 bug 也不是添加功能）
-- perf: 性能优化
-- test: 添加或修改测试
-- chore: 构建过程或辅助工具的变动
-
-**示例：**
-
-```textplain
-feat: 新增用户登录接口
-fix: 修正 README 拼写错误
-```
-
-不符合规范的提交信息将被拒绝。
-
----
-
-## 10. 故障排除
-
-### 10.1 服务注册问题
-
-如果微服务无法注册到注册中心，检查以下几点：
-
-1. **注册中心是否启动**：确保注册中心在 `8891` 端口运行
-2. **注册路径是否正确**：微服务应该向 `/api/register` 发送请求，而不是 `/register`
-3. **网络连接**：检查 `REGISTRY_URL` 配置是否正确
-4. **日志输出**：查看服务启动日志中的注册状态信息
-
-### 10.2 数据库连接问题
-
-1. **检查数据库服务**：确保 PostgreSQL 在指定端口运行
-2. **验证连接参数**：检查 `.env` 文件中的 `DB_*` 配置
-3. **权限问题**：确保数据库用户有足够的权限
-
-### 10.3 端口冲突
-
-各服务的默认端口：
-
-- 前端 (web): `8800`
-- API 网关 (api-gateway): `8890`
-- 注册中心 (registry): `8891`
-- 智能代理服务 (agent-service): `3001`
-
-## 11. 常见问题（FAQ）
-
-- **Q:** 智能代理服务如何启动？
-  **A:** 请确保复制 services/agent-service/.env.example 为 .env 并配置好相应的大模型与语音 key，然后在根目录执行 `pnpm agent-service:dev`。
-- **Q:** 前端如何调用后端接口？
-  **A:** 推荐使用 tRPC 或 REST，统一在 apps/web/services 目录下管理。
-- **Q:** 如何本地调试数据库/Redis？
-  **A:** 推荐使用 Docker Compose 启动依赖服务，配置见 infrastructure/docker。
-- **Q:** 服务注册失败怎么办？
-  **A:** 检查注册中心是否启动，确认注册路径为 `/api/register`，查看服务日志获取详细错误信息。
+1. Web 应用必须在线，网关才能校验 Better Auth 会话（`BETTER_AUTH_BASE_URL`）
+2. 网关与下游服务的 `GATEWAY_INTERNAL_SECRET` 必须一致
+3. 主机间时钟偏差过大会导致签名校验失败（`AUTH_CLOCK_SKEW_SECONDS`）
 
 ---
 
@@ -346,29 +265,16 @@ fix: 修正 README 拼写错误
 
 - **作者/维护者：** LeviLiu
 - **邮箱：** <liuwenyu1937@outlook.com>
-- **Issues：** 欢迎通过 GitHub Issues 反馈问题与建议
+- **反馈：** 请使用 GitHub Issues
 
 ---
 
-## 13. 开源许可证
+## 13. 许可证
 
-本项目采用 **MIT 许可证** - 查看 [LICENSE](../LICENSE) 文件了解详情。
+本项目基于 **MIT License** 开源，详见 [LICENSE](../LICENSE) 文件。
 
-### 许可证概述
-
-MIT 许可证是一个宽松的许可证，允许您：
-
-- ✅ 将软件用于任何目的
-- ✅ 修改和分发软件
-- ✅ 用于商业项目
-- ✅ 集成到专有软件中
-
-唯一的要求是包含原始的版权和许可证声明。
-
-详细的许可证信息和使用指南，请参阅 [LICENSE_zh.md](LICENSE_zh.md)。
+详细许可说明见 [LICENSE_zh.md](./LICENSE_zh.md)。
 
 ---
 
-**Telos 项目贡献者** - 版权所有 (c) 2024
-
----
+**Telos Project Contributors** - Copyright (c) 2024

@@ -27,11 +27,11 @@
 
 ### 流水线一览
 
-| Workflow | 触发 | 作用 |
-|----------|------|------|
+| Workflow           | 触发                             | 作用                               |
+| ------------------ | -------------------------------- | ---------------------------------- |
 | `docker-build.yml` | push `main` / 打 `v*` tag / 手动 | matrix 并发构建 4 个镜像,推送 GHCR |
-| `deploy.yml` | 构建完成后自动 / 手动 | SSH 到服务器执行 `deploy.sh` |
-| `basic-checks.yml` | push / PR | lint + 单元构建 (原有,未改动) |
+| `deploy.yml`       | 构建完成后自动 / 手动            | SSH 到服务器执行 `deploy.sh`       |
+| `basic-checks.yml` | push / PR                        | lint + 单元构建 (原有,未改动)      |
 
 ### 镜像与 Tag 策略
 
@@ -48,12 +48,12 @@
 
 进入 **Settings → Secrets and variables → Actions → New repository secret**:
 
-| Secret 名 | 说明 | 示例 |
-|-----------|------|------|
-| `SSH_HOST` | 服务器 IP 或域名 | `1.2.3.4` 或 `telos.example.com` |
-| `SSH_USER` | SSH 登录用户名 | `root` 或 `deploy` |
-| `SSH_PRIVATE_KEY` | SSH 私钥完整内容 | `-----BEGIN OPENSSH PRIVATE KEY-----\n...` |
-| `SSH_HOST_KEY` *(可选)* | 服务器主机公钥指纹 | `telos.example.com ssh-ed25519 AAAA...` |
+| Secret 名               | 说明               | 示例                                       |
+| ----------------------- | ------------------ | ------------------------------------------ |
+| `SSH_HOST`              | 服务器 IP 或域名   | `1.2.3.4` 或 `telos.example.com`           |
+| `SSH_USER`              | SSH 登录用户名     | `root` 或 `deploy`                         |
+| `SSH_PRIVATE_KEY`       | SSH 私钥完整内容   | `-----BEGIN OPENSSH PRIVATE KEY-----\n...` |
+| `SSH_HOST_KEY` _(可选)_ | 服务器主机公钥指纹 | `telos.example.com ssh-ed25519 AAAA...`    |
 
 #### 生成 SSH 密钥对
 
@@ -86,8 +86,8 @@ ssh-keyscan -H your-server-ip
 
 **Settings → Secrets and variables → Actions → Variables tab**:
 
-| Variable | 默认值 | 说明 |
-|----------|--------|------|
+| Variable     | 默认值       | 说明                 |
+| ------------ | ------------ | -------------------- |
 | `DEPLOY_DIR` | `/opt/telos` | 服务器上部署目录路径 |
 
 ### 3. 服务器初始化
@@ -194,9 +194,11 @@ docker system df
 
 ---
 
-## 五、首次部署后:数据库初始化
+## 五、数据库迁移
 
-镜像首次启动时,需要执行 Prisma migration 把表结构建出来。
+正式部署脚本会在启动新版本前自动执行以下顺序：停止旧 Agent worker、创建
+PostgreSQL custom-format 备份、执行 Prisma migration、核对迁移账本和关键结构，
+然后再启动全部服务。备份保存在 `/opt/telos/deploy/backups/database/`。
 
 ### 正确方式:用 agent-service 容器(web 容器是 standalone 不含 prisma CLI)
 
@@ -210,19 +212,14 @@ cd /opt/telos
 docker compose -f docker-compose.prod.yml exec -T postgres \
   psql -U telos -d telos -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-# 2. 从 .env 读数据库密码构造连接串
-PG_PWD=$(grep "^POSTGRES_PASSWORD=" .env | cut -d= -f2)
-DB_URL="postgresql://telos:${PG_PWD}@postgres:5432/telos?schema=public"
-
-# 3. 跑 prisma db push (必须显式传 --url, prisma 7 需要)
-docker compose -f docker-compose.prod.yml exec -T agent-service \
-  npx prisma db push \
-  --schema /app/prisma/schema.prisma \
-  --url "$DB_URL" \
-  --accept-data-loss
+# 2. 使用镜像内锁定版本的 Prisma CLI 执行已审查的 migration
+docker compose -f docker-compose.prod.yml run --rm --no-deps agent-service \
+  sh -lc 'cd /app/services/agent-service && \
+    pnpm exec prisma migrate deploy --schema /app/prisma/schema.prisma'
 ```
 
-成功输出:`🚀 Your database is now in sync with your Prisma schema.`
+不要在生产环境使用 `prisma db push` 或 `--accept-data-loss`，它们会绕过 migration
+账本与发布审查。
 
 ### 验证表已建好
 
@@ -231,7 +228,7 @@ docker compose -f docker-compose.prod.yml exec postgres \
   psql -U telos -d telos -c "\dt"
 ```
 
-应看到 19 张表(user, session, account, agents, skills, agent_runs 等)。
+应看到认证、Agent、run attempt、tool checkpoint、approval 与 outbox 等表。
 
 ---
 
@@ -258,6 +255,7 @@ telos/
 ### 构建失败
 
 进入 Actions 页面查看具体 job 日志。常见原因:
+
 - Dockerfile 本身有问题 → 在本地 `docker build` 复现
 - pnpm lockfile 不匹配 → 本地 `pnpm install` 后提交 lockfile
 
@@ -278,13 +276,15 @@ docker compose -f docker-compose.prod.yml logs web     # 看日志
 ```
 
 常见原因:
+
 - `.env` 必填项没填 → 容器启动后立即 crash
-- 数据库还没初始化 → 跑一次 prisma db push
+- 数据库 migration 未完成 → 查看部署日志并运行 `prisma migrate status`，不要使用 `db push`
 - 端口被占用 → 改 `.env` 里的 `WEB_PORT` 等
 
 ### 拉镜像失败:401
 
 仓库/镜像是私有时需要 `GHCR_TOKEN`。生成 Classic Token:
+
 1. https://github.com/settings/tokens/new
 2. 勾选 `read:packages`
 3. 把 token 粘贴到服务器 `/opt/telos/.env` 的 `GHCR_TOKEN=`

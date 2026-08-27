@@ -9,8 +9,15 @@ import { prisma } from '../services/db.js'
 import { created, fail, ok, parseJson } from '../http/response.js'
 import { toSnakeCase } from '../utils/serializer.js'
 import { asRecord, asStringArray } from '../utils/json.js'
+import { isAuthenticatedAdmin } from '../middleware/gatewayIdentity.js'
+import { isMcpUserAssignable, safeMcpServer } from '../services/mcp-access.js'
 
 export const mcpRouter = new Hono()
+
+function requireAdmin(c: Parameters<typeof isAuthenticatedAdmin>[0]) {
+  if (isAuthenticatedAdmin(c)) return null
+  return fail(c, 403, 'Administrator access is required')
+}
 
 function resolveEnv(envConfig: unknown): Record<string, string> {
   const env = asRecord(envConfig)
@@ -55,13 +62,20 @@ function buildServer(raw: any) {
 }
 
 mcpRouter.get('/', async c => {
+  const admin = isAuthenticatedAdmin(c)
   const servers = await prisma.mcpServer.findMany({
     orderBy: { createdAt: 'desc' },
   })
-  return ok(c, toSnakeCase(servers))
+  const visible = admin
+    ? servers
+    : servers.filter(server => isMcpUserAssignable(server)).map(safeMcpServer)
+  return ok(c, toSnakeCase(visible))
 })
 
 mcpRouter.post('/', async c => {
+  const denied = requireAdmin(c)
+  if (denied) return denied
+
   const body = await parseJson(c)
   const name = typeof body.name === 'string' ? body.name.trim() : ''
   const description =
@@ -83,6 +97,9 @@ mcpRouter.post('/', async c => {
       url: typeof body.url === 'string' ? body.url : null,
       env: (body.env ?? {}) as any,
       allowedTools: (body.allowed_tools ?? body.allowedTools ?? []) as any,
+      sensitiveTools: (body.sensitive_tools ??
+        body.sensitiveTools ??
+        []) as any,
       approvalPolicy:
         body.approval_policy === 'all' || body.approvalPolicy === 'all'
           ? 'all'
@@ -98,14 +115,21 @@ mcpRouter.post('/', async c => {
 })
 
 mcpRouter.get('/:id', async c => {
+  const admin = isAuthenticatedAdmin(c)
   const server = await prisma.mcpServer.findUnique({
     where: { id: c.req.param('id') },
   })
   if (!server) return fail(c, 404, 'MCP server not found')
-  return ok(c, toSnakeCase(server))
+  if (!admin && !isMcpUserAssignable(server)) {
+    return fail(c, 404, 'MCP server not found')
+  }
+  return ok(c, toSnakeCase(admin ? server : safeMcpServer(server)))
 })
 
 mcpRouter.put('/:id', async c => {
+  const denied = requireAdmin(c)
+  if (denied) return denied
+
   const body = await parseJson(c)
   const server = await prisma.mcpServer.update({
     where: { id: c.req.param('id') },
@@ -129,32 +153,62 @@ mcpRouter.put('/:id', async c => {
         body.allowed_tools === undefined && body.allowedTools === undefined
           ? undefined
           : ((body.allowed_tools ?? body.allowedTools) as any),
+      sensitiveTools:
+        body.sensitive_tools === undefined && body.sensitiveTools === undefined
+          ? undefined
+          : ((body.sensitive_tools ?? body.sensitiveTools) as any),
+      approvalPolicy:
+        body.approval_policy === undefined && body.approvalPolicy === undefined
+          ? undefined
+          : body.approval_policy === 'all' || body.approvalPolicy === 'all'
+            ? 'all'
+            : body.approval_policy === 'sensitive' ||
+                body.approvalPolicy === 'sensitive'
+              ? 'sensitive'
+              : 'none',
       enabled: typeof body.enabled === 'boolean' ? body.enabled : undefined,
-      metadata: body.metadata === undefined ? undefined : (body.metadata as any),
+      metadata:
+        body.metadata === undefined ? undefined : (body.metadata as any),
     },
   })
   return ok(c, toSnakeCase(server))
 })
 
 mcpRouter.delete('/:id', async c => {
+  const denied = requireAdmin(c)
+  if (denied) return denied
+
   await prisma.mcpServer.delete({ where: { id: c.req.param('id') } })
   return ok(c, { deleted: true })
 })
 
 mcpRouter.post('/:id/test', async c => {
+  const denied = requireAdmin(c)
+  if (denied) return denied
+
   const server = await prisma.mcpServer.findUnique({
     where: { id: c.req.param('id') },
   })
   if (!server) return fail(c, 404, 'MCP server not found')
 
   const runtimeServer = buildServer(server)
-  const tools = await runtimeServer.listTools()
-  await prisma.mcpServer.update({
-    where: { id: server.id },
-    data: {
-      lastToolsSnapshot: tools as any,
-      lastConnectedAt: new Date(),
-    },
-  })
-  return ok(c, { tools })
+  if (!runtimeServer)
+    return fail(c, 400, 'MCP server configuration is incomplete')
+
+  try {
+    await runtimeServer.connect()
+    const tools = await runtimeServer.listTools()
+    await prisma.mcpServer.update({
+      where: { id: server.id },
+      data: {
+        lastToolsSnapshot: tools as any,
+        lastConnectedAt: new Date(),
+      },
+    })
+    return ok(c, { tools })
+  } finally {
+    // close() is intentionally attempted even when connect/listTools fails:
+    // stdio may have spawned a child before the handshake rejected.
+    await runtimeServer.close().catch(() => undefined)
+  }
 })

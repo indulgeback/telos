@@ -31,12 +31,23 @@ pnpm --filter ./apps/mobile start               # Start Metro bundler
 pnpm --filter ./apps/mobile lint               # ESLint checks
 ```
 
-### Backend (Go Microservices)
-
-All Go services have consistent Makefiles in their root directory:
+### Backend (Agent Service - TypeScript)
 
 ```bash
-# From service directory (e.g., services/auth-service)
+pnpm --filter ./services/agent-service dev      # Start with tsx watch (port 8895)
+pnpm --filter ./services/agent-service build    # Compile TypeScript (tsc)
+pnpm --filter ./services/agent-service test     # Build + run node:test suites in test/
+pnpm --filter ./services/agent-service lint     # ESLint over src/
+```
+
+Tests use Node's built-in test runner (`node --test`) and require a build first (`pnpm test` handles this).
+
+### Backend (Go Microservices)
+
+Both Go services (`apps/api-gateway`, `apps/registry`) have consistent Makefiles in their root directory:
+
+```bash
+# From service directory (e.g., apps/api-gateway or apps/registry)
 make dev                                        # Hot reload with Air
 make run                                        # Standard go run
 make build                                      # Build binary to bin/
@@ -188,33 +199,24 @@ export default function MyPage() {
 
 ## Service Architecture
 
-```typescript
-import { useTranslations } from 'next-intl'
-
-export default function MyPage() {
-  const t = useTranslations('MyPage')
-  return <h1>{t('hero.title')}</h1>
-}
+```
+apps/web :8800 ──► api-gateway :8890 ──► agent-service :8895
+                        │                     │    │    │
+                        ▼                     ▼    │    ▼
+                 registry ($REGISTRY_PORT)  Redis │ PostgreSQL (Prisma)
+                 (Consul-backed, default          │
+                  8081 locally / 8891 in prod)    ▼
+                                             BullMQ queues
+admin console :5174 ──► admin-service :3002 ─────────┘
 ```
 
-```json
-// apps/web/src/lang/en.json
-{
-  "MyPage": {
-    "hero": {
-      "title": "我的页面标题"
-    }
-  }
-}
-```
-
-## Service Architecture
-
-- **API Gateway** (port 8890) - Routes requests to microservices, handles auth/rate limiting
-- **Registry** (port 8891) - Service discovery and health checks (POST to `/api/register`)
-- **Agent Service** (port 3001) - AI agent orchestration, session management, and prompt generation
-- All services register with Registry on startup
-- Health check endpoints at `/health` on all services
+- **Web** (`apps/web`, port 8800) - Next.js frontend; hosts Better Auth sessions and proxies all API calls through the gateway (`NEXT_PUBLIC_API_URL`)
+- **API Gateway** (`apps/api-gateway`, port 8890) - Echo server. Validates Better Auth sessions, applies rate limiting/CORS, then forwards requests to downstream services with HMAC-signed identity headers (+ timestamp + nonce for replay protection). Route table lives in `cmd/main.go`
+- **Registry** (`apps/registry`, port from `REGISTRY_PORT`: `8081` default per env.example, `8891` in docker-compose.prod.yml) - Consul-backed service discovery and health checks. Services self-register via `POST /api/register`
+- **Agent Service** (`services/agent-service`, port 8895) - Hono + OpenAI Agents SDK/LangChain. Owns agents/chat/runs/tools/skills/mcp/realtime routes, the async run engine (BullMQ queue + lease workers + budgets + approvals), SSE event streams, and workspace file sharing. Health endpoint: `/ready`. Verifies gateway identity signatures (middleware `gatewayIdentity.ts`)
+- **Admin Console + Admin Service** (`apps/admin` :5174, `services/admin-service` :ADMIN_PORT 3002) - Vue admin dashboard backed by its own TS service (auth/dashboard/models/skills routes)
+- **Shared data**: root-level Prisma schema/migrations cover auth tables (Better Auth) and all agent domain models; Redis holds caches, queues, nonces and leases
+- All services register with Registry on startup; gateway discovers them through `REGISTRY_SERVICE_URL`
 
 ---
 
@@ -237,15 +239,15 @@ Currently, when creating an Agent, the system prompt is generated synchronously 
                       ▼
                ┌─────────────┐
                │ Background  │ ───> LLM API ───> 更新 DB
-               │ Goroutine   │
+               │ Task        │
                └─────────────┘
 ```
 
 **Implementation Plan:**
 
-1. **Backend Changes** (`services/agent-service/internal/service/agent.go`):
+1. **Backend Changes** (`services/agent-service/src/routes/agents.ts` + a new service under `src/services/`):
    - Create Agent with template-based prompt (immediate return)
-   - Spawn background goroutine for LLM-based generation
+   - Kick off a background task for LLM-based generation (in-process worker or BullMQ job; restart may drop in-flight work - see notes below)
    - Add new API endpoint: `PUT /api/agents/:id/regenerate-prompt`
 
 2. **Frontend Enhancements**:
@@ -266,6 +268,7 @@ Currently, when creating an Agent, the system prompt is generated synchronously 
 **Files to Modify:**
 
 
-- `services/agent-service/internal/service/agent.go` - Add async generation
+- `services/agent-service/src/routes/agents.ts` - Add regenerate endpoint & async kickoff
+- `services/agent-service/src/services/default-agent.ts` (or new generation service) - Add async generation
 - `apps/web/src/app/[locale]/(dashboard)/agents/components/` - Add enhance button
 - `apps/web/src/service/agent.ts` - Add regenerate API call

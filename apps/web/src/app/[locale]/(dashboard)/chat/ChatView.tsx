@@ -42,6 +42,8 @@ import {
   agentService,
   type Agent,
   type AgentMessage,
+  type AgentRun,
+  type AgentRunApproval,
   type AgentThread,
   type ClarifyPart,
 } from '@/service/agent'
@@ -135,7 +137,17 @@ type AgentStreamChunk = {
   clarify_message_id?: string
   clarify_question?: string
   clarify_options?: string[]
+  approvals?: unknown
+  approval?: unknown
+  approval_id?: string
+  tool_call_id?: string
+  tool_name?: string
+  arguments?: unknown
+  expires_at?: string
 }
+
+type RunStreamEnd = 'terminal' | 'awaiting_approval'
+type RunStreamResult = { end: RunStreamEnd; cursor: string }
 
 type RealtimeConfig = {
   configured: boolean
@@ -283,6 +295,172 @@ const parseUiMessageStreamChunk = (raw: string): AgentStreamChunk | null => {
   } catch {
     return null
   }
+}
+
+const normalizeRunApproval = (raw: unknown): AgentRunApproval | null => {
+  if (!raw || typeof raw !== 'object') return null
+  const value = raw as Record<string, unknown>
+  const id = typeof value.id === 'string' ? value.id : ''
+  const toolCallId =
+    typeof value.tool_call_id === 'string' ? value.tool_call_id : ''
+  const toolName = typeof value.tool_name === 'string' ? value.tool_name : ''
+  const expiresAt = typeof value.expires_at === 'string' ? value.expires_at : ''
+  if (!id || !toolCallId || !toolName || !expiresAt) return null
+  return {
+    id,
+    tool_call_id: toolCallId,
+    tool_name: toolName,
+    arguments: value.arguments,
+    expires_at: expiresAt,
+    status:
+      value.status === 'approved' ||
+      value.status === 'denied' ||
+      value.status === 'expired' ||
+      value.status === 'consumed'
+        ? value.status
+        : 'pending',
+    decided_at: typeof value.decided_at === 'string' ? value.decided_at : null,
+  }
+}
+
+const extractRunApprovals = (chunk: AgentStreamChunk): AgentRunApproval[] => {
+  const rawApprovals = Array.isArray(chunk.approvals)
+    ? chunk.approvals
+    : chunk.approvals
+      ? [chunk.approvals]
+      : chunk.approval
+        ? [chunk.approval]
+        : chunk.approval_id &&
+            chunk.tool_call_id &&
+            (chunk.tool_name || chunk.toolName)
+          ? [
+              {
+                id: chunk.approval_id,
+                tool_call_id: chunk.tool_call_id,
+                tool_name: chunk.tool_name || chunk.toolName,
+                arguments: chunk.arguments ?? chunk.input,
+                expires_at: chunk.expires_at,
+              },
+            ]
+          : []
+  return rawApprovals
+    .map(normalizeRunApproval)
+    .filter((approval): approval is AgentRunApproval => approval !== null)
+}
+
+const formatApprovalArguments = (value: unknown) => {
+  const text =
+    typeof value === 'string' ? value : JSON.stringify(value, null, 2) || ''
+  return text.length > 8_000 ? `${text.slice(0, 8_000)}\n…` : text
+}
+
+const formatApprovalExpiry = (value: string) => {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+}
+
+const waitForRunStreamRetry = (delayMs: number, signal: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'))
+      return
+    }
+    const onAbort = () => {
+      window.clearTimeout(timer)
+      reject(new DOMException('Aborted', 'AbortError'))
+    }
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, delayMs)
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+
+/**
+ * Consume a durable run stream with cursor-based reconnects. The server may
+ * deliberately close a slow SSE consumer once its bounded buffer fills; the
+ * Redis sequence lets the browser resume without losing or duplicating UI
+ * events.
+ */
+async function consumeAgentRunStream(
+  runId: string,
+  signal: AbortSignal,
+  onChunk: (chunk: AgentStreamChunk) => void,
+  initialCursor = ''
+): Promise<RunStreamResult> {
+  let cursor = initialCursor
+  let consecutiveFailures = 0
+
+  while (!signal.aborted) {
+    const query = cursor ? `?after=${encodeURIComponent(cursor)}` : ''
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/runs/${runId}/stream${query}`,
+        { credentials: 'include', signal }
+      )
+      if (!response.ok) {
+        throw new Error(`Run stream failed: ${response.status}`)
+      }
+      if (!response.body) throw new Error('Run stream response is empty')
+
+      consecutiveFailures = 0
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let end: RunStreamEnd | null = null
+
+      const consumeLine = (line: string) => {
+        if (!line.startsWith('data:')) return
+        const chunk = parseUiMessageStreamChunk(line.slice(5))
+        if (!chunk) return
+        if (typeof chunk.sequence === 'string' && chunk.sequence) {
+          cursor = chunk.sequence
+        }
+        onChunk(chunk)
+        if (
+          chunk.type === 'response.completed' ||
+          chunk.type === 'response.failed'
+        ) {
+          end = 'terminal'
+        } else if (chunk.type === 'response.tool_approval.required') {
+          end = 'awaiting_approval'
+        }
+      }
+
+      while (!end) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const frames = buffer.split(/\n\n/)
+        buffer = frames.pop() ?? ''
+        frames.forEach(frame => frame.split(/\n/).forEach(consumeLine))
+      }
+      if (!end && buffer.trim()) buffer.split(/\n/).forEach(consumeLine)
+      if (end) return { end, cursor }
+
+      const run = await agentService.getRun(runId)
+      if (
+        run.status === 'completed' ||
+        run.status === 'failed' ||
+        run.status === 'cancelled'
+      ) {
+        return { end: 'terminal', cursor }
+      }
+      if (run.status === 'awaiting_approval') {
+        return { end: 'awaiting_approval', cursor }
+      }
+      await waitForRunStreamRetry(250, signal)
+    } catch (error) {
+      if (signal.aborted) throw error
+      consecutiveFailures += 1
+      if (consecutiveFailures > 5) throw error
+      await waitForRunStreamRetry(
+        Math.min(2_000, 200 * 2 ** (consecutiveFailures - 1)),
+        signal
+      )
+    }
+  }
+  throw new DOMException('Aborted', 'AbortError')
 }
 
 /**
@@ -950,10 +1128,24 @@ export function ChatView() {
   }, [pendingPlan])
   // pendingClarify 的 ref：clarify 命中时保持 submitted（loading）状态，等待用户选择
   const pendingClarifyRef = useRef<{ messageId: string } | null>(null)
+  // Tool approval pauses are durable; keep the run id in a ref so stream
+  // cleanup cannot briefly switch the UI back to ready before React commits.
+  const [pendingApprovalRunId, setPendingApprovalRunId] = useState<
+    string | null
+  >(null)
+  const pendingApprovalRunIdRef = useRef<string | null>(null)
+  const approvalAssistantIdRef = useRef<string | null>(null)
+  const approvalResumeCursorRef = useRef('')
+  const approvalExpiryTimerRef = useRef<number | null>(null)
+  const [pendingApprovals, setPendingApprovals] = useState<AgentRunApproval[]>(
+    []
+  )
+  const [approvalBusyId, setApprovalBusyId] = useState<string | null>(null)
   const isLoading =
     status === 'submitted' ||
     status === 'streaming' ||
-    activeAssistantId !== null
+    activeAssistantId !== null ||
+    pendingApprovalRunId !== null
   const realtimeAvailable = Boolean(realtimeConfig?.configured)
   // ?prompt= 自动发送:支持从其他页面跳转时预填并自动发送一条消息
   // (例如「创建技能」按钮跳转 /chat?prompt=$skill-creator ...)。
@@ -1207,6 +1399,36 @@ export function ChatView() {
     []
   )
 
+  const restoreAssistantSnapshot = useCallback(
+    (
+      assistantId: string,
+      run: Pick<AgentRun, 'partial_output' | 'partial_parts'>
+    ) => {
+      const storedParts = Array.isArray(run.partial_parts)
+        ? run.partial_parts
+        : []
+      const partialOutput =
+        typeof run.partial_output === 'string' ? run.partial_output : ''
+      if (storedParts.length === 0 && !partialOutput) return
+      const parts = storedParts.length
+        ? storedParts
+        : [createTextPart(partialOutput)]
+      setMessages(prev =>
+        prev.map(message => {
+          if (message.id !== assistantId || message.role !== 'assistant') {
+            return message
+          }
+          return {
+            ...message,
+            parts,
+            content: getTextFromParts(parts) || partialOutput,
+          }
+        })
+      )
+    },
+    [setMessages]
+  )
+
   const ensureRealtimeTurnMessages = useCallback(() => {
     if (realtimeUserIdRef.current && realtimeAssistantIdRef.current) {
       return {
@@ -1304,6 +1526,23 @@ export function ChatView() {
         setCurrentThreadId(chunk.data.threadId)
         if (shouldRefreshThreads) {
           void loadThreads()
+        }
+        return
+      }
+
+      if (chunk.type === 'response.tool_approval.required') {
+        const approvals = extractRunApprovals(chunk)
+        if (approvals.length > 0) {
+          approvalAssistantIdRef.current = assistantId
+          setPendingApprovals(prev => {
+            const next = [...prev]
+            approvals.forEach(approval => {
+              const index = next.findIndex(item => item.id === approval.id)
+              if (index === -1) next.push(approval)
+              else next[index] = { ...next[index], ...approval }
+            })
+            return next
+          })
         }
         return
       }
@@ -1572,7 +1811,7 @@ export function ChatView() {
         })
       }
     },
-    [loadThreads, updateAssistantParts]
+    [loadThreads, t, updateAssistantParts]
   )
 
   const streamAgentMessage = useCallback(
@@ -1621,49 +1860,21 @@ export function ChatView() {
           }
         }
 
-        const streamResponse = await fetch(
-          `${API_BASE_URL}/api/runs/${runId}/stream`,
-          {
-            credentials: 'include',
-            signal: controller.signal,
-          }
-        )
-        if (!streamResponse.ok) {
-          throw new Error(`Run stream failed: ${streamResponse.status}`)
-        }
-        if (!streamResponse.body) {
-          throw new Error('Run stream response is empty')
-        }
         setStatus('streaming')
-        const reader = streamResponse.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-
-        while (true) {
-          const { value, done } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const frames = buffer.split(/\n\n/)
-          buffer = frames.pop() ?? ''
-
-          frames.forEach(frame => {
-            frame.split(/\n/).forEach(line => {
-              if (!line.startsWith('data:')) return
-              const chunk = parseUiMessageStreamChunk(line.slice(5))
-              if (chunk) {
-                applyAgentStreamChunk(assistantId, chunk)
-              }
-            })
-          })
+        const streamEnd = await consumeAgentRunStream(
+          runId,
+          controller.signal,
+          chunk => applyAgentStreamChunk(assistantId, chunk)
+        )
+        if (streamEnd.end === 'awaiting_approval') {
+          pendingApprovalRunIdRef.current = runId
+          approvalAssistantIdRef.current = assistantId
+          approvalResumeCursorRef.current = streamEnd.cursor
+          setPendingApprovalRunId(runId)
+          setStatus('submitted')
         }
-
-        if (buffer.trim()) {
-          buffer.split(/\n/).forEach(line => {
-            if (!line.startsWith('data:')) return
-            const chunk = parseUiMessageStreamChunk(line.slice(5))
-            if (chunk) applyAgentStreamChunk(assistantId, chunk)
-          })
+        if (streamEnd.end === 'terminal') {
+          approvalResumeCursorRef.current = ''
         }
       } catch (error) {
         console.error('Chat stream error:', error)
@@ -1680,14 +1891,18 @@ export function ChatView() {
         setActiveAssistantId(null)
         // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
         // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
-        if (pendingPlanRef.current || pendingClarifyRef.current) {
+        if (
+          pendingPlanRef.current ||
+          pendingClarifyRef.current ||
+          pendingApprovalRunIdRef.current
+        ) {
           setStatus('submitted')
         } else {
           setStatus('ready')
         }
       }
     },
-    [applyAgentStreamChunk, loadThreads, updateAssistantParts]
+    [applyAgentStreamChunk, loadThreads, t, updateAssistantParts]
   )
 
   const subscribeExistingRun = useCallback(
@@ -1703,47 +1918,21 @@ export function ChatView() {
       setActiveAssistantId(assistantId)
 
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/runs/${runId}/stream`,
-          {
-            credentials: 'include',
-            signal: controller.signal,
-          }
+        const streamEnd = await consumeAgentRunStream(
+          runId,
+          controller.signal,
+          chunk => applyAgentStreamChunk(assistantId, chunk),
+          approvalResumeCursorRef.current
         )
-        if (!response.ok) {
-          throw new Error(`Run stream failed: ${response.status}`)
+        if (streamEnd.end === 'awaiting_approval') {
+          pendingApprovalRunIdRef.current = runId
+          approvalAssistantIdRef.current = assistantId
+          approvalResumeCursorRef.current = streamEnd.cursor
+          setPendingApprovalRunId(runId)
+          setStatus('submitted')
         }
-        if (!response.body) {
-          throw new Error('Run stream response is empty')
-        }
-
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-
-        while (true) {
-          const { value, done } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const frames = buffer.split(/\n\n/)
-          buffer = frames.pop() ?? ''
-
-          frames.forEach(frame => {
-            frame.split(/\n/).forEach(line => {
-              if (!line.startsWith('data:')) return
-              const chunk = parseUiMessageStreamChunk(line.slice(5))
-              if (chunk) applyAgentStreamChunk(assistantId, chunk)
-            })
-          })
-        }
-
-        if (buffer.trim()) {
-          buffer.split(/\n/).forEach(line => {
-            if (!line.startsWith('data:')) return
-            const chunk = parseUiMessageStreamChunk(line.slice(5))
-            if (chunk) applyAgentStreamChunk(assistantId, chunk)
-          })
+        if (streamEnd.end === 'terminal') {
+          approvalResumeCursorRef.current = ''
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') return
@@ -1758,13 +1947,133 @@ export function ChatView() {
         }
         setActiveAssistantId(null)
         setStatus(
-          pendingPlanRef.current || pendingClarifyRef.current
+          pendingPlanRef.current ||
+            pendingClarifyRef.current ||
+            pendingApprovalRunIdRef.current
             ? 'submitted'
             : 'ready'
         )
       }
     },
     [applyAgentStreamChunk, t, updateAssistantParts]
+  )
+
+  const resumeApprovalRun = useCallback(
+    async (runId: string, assistantId: string | null) => {
+      if (!approvalResumeCursorRef.current) {
+        const eventData = await agentService.getRunEvents(runId)
+        approvalResumeCursorRef.current =
+          eventData.events.at(-1)?.sequence ?? ''
+      }
+      pendingApprovalRunIdRef.current = null
+      approvalAssistantIdRef.current = null
+      setPendingApprovalRunId(null)
+      setPendingApprovals([])
+      if (assistantId) {
+        await subscribeExistingRun(runId, assistantId)
+      } else {
+        setStatus('ready')
+      }
+    },
+    [subscribeExistingRun]
+  )
+
+  const refreshApprovalState = useCallback(
+    async (runId: string, assistantId: string | null) => {
+      const [run, approvals] = await Promise.all([
+        agentService.getRun(runId),
+        agentService.getRunApprovals(runId),
+      ])
+      if (run.status === 'awaiting_approval' && approvals.length > 0) {
+        setPendingApprovals(
+          approvals.map(approval => ({
+            ...approval,
+            status: approval.status ?? 'pending',
+          }))
+        )
+        pendingApprovalRunIdRef.current = runId
+        approvalAssistantIdRef.current = assistantId
+        setPendingApprovalRunId(runId)
+        setStatus('submitted')
+        return
+      }
+      await resumeApprovalRun(runId, assistantId)
+    },
+    [resumeApprovalRun]
+  )
+
+  // The backend expires approvals independently. Refresh at the earliest
+  // deadline so an open dialog cannot remain stuck after automatic resume.
+  useEffect(() => {
+    if (approvalExpiryTimerRef.current !== null) {
+      window.clearTimeout(approvalExpiryTimerRef.current)
+      approvalExpiryTimerRef.current = null
+    }
+    if (!pendingApprovalRunId || pendingApprovals.length === 0) return
+    const deadlines = pendingApprovals
+      .filter(item => !item.status || item.status === 'pending')
+      .map(item => new Date(item.expires_at).getTime())
+      .filter(Number.isFinite)
+    if (deadlines.length === 0) return
+    // Give the server-side expiry scanner time to commit before retrying; a
+    // stale awaiting_approval read must not turn into a tight browser loop.
+    const delay = Math.max(1_000, Math.min(...deadlines) - Date.now() + 100)
+    const refreshAfterExpiry = () => {
+      approvalExpiryTimerRef.current = null
+      const runId = pendingApprovalRunIdRef.current
+      const assistantId = approvalAssistantIdRef.current
+      if (!runId) return
+      void refreshApprovalState(runId, assistantId).catch(error => {
+        console.warn('Failed to refresh expired approval', error)
+        toast.error(t('approval.refreshFailed'))
+        if (pendingApprovalRunIdRef.current === runId) {
+          approvalExpiryTimerRef.current = window.setTimeout(
+            refreshAfterExpiry,
+            5_000
+          )
+        }
+      })
+    }
+    approvalExpiryTimerRef.current = window.setTimeout(
+      refreshAfterExpiry,
+      delay
+    )
+    return () => {
+      if (approvalExpiryTimerRef.current !== null) {
+        window.clearTimeout(approvalExpiryTimerRef.current)
+        approvalExpiryTimerRef.current = null
+      }
+    }
+  }, [pendingApprovalRunId, pendingApprovals, refreshApprovalState, t])
+
+  const handleApprovalDecision = useCallback(
+    async (approval: AgentRunApproval, decision: 'approved' | 'denied') => {
+      const runId = pendingApprovalRunIdRef.current
+      if (!runId || approvalBusyId) return
+
+      setApprovalBusyId(approval.id)
+      try {
+        await agentService.decideRunApproval(runId, approval.id, decision)
+        await refreshApprovalState(runId, approvalAssistantIdRef.current)
+      } catch (error) {
+        console.error('Failed to decide run approval', error)
+        const errorStatus =
+          error && typeof error === 'object' && 'status' in error
+            ? (error as { status?: unknown }).status
+            : undefined
+        if (errorStatus === 409) {
+          try {
+            await refreshApprovalState(runId, approvalAssistantIdRef.current)
+          } catch (refreshError) {
+            console.warn('Failed to refresh approval conflict', refreshError)
+          }
+        }
+        toast.error(t('approval.decideFailed'))
+      } finally {
+        setApprovalBusyId(null)
+      }
+    },
+    [approvalBusyId, refreshApprovalState, t]
   )
 
   // restore-run：进入会话时恢复尚未结束的 run。
@@ -1779,14 +2088,17 @@ export function ChatView() {
       try {
         const runs = await agentService.listThreadRuns(currentThreadId)
         if (disposed || activeRunIdRef.current) return
-        const runningRun = runs.find(
-          run => run.status === 'queued' || run.status === 'running'
+        const resumableRun = runs.find(
+          run =>
+            run.status === 'queued' ||
+            run.status === 'running' ||
+            run.status === 'awaiting_approval'
         )
-        if (!runningRun) return
+        if (!resumableRun) return
         // 本会话（按 threadId 隔离）已订阅过该 run，不再重复订阅；
         // 但切回旧会话时该会话的桶独立存在，仍可恢复其仍在跑的 run
         if (
-          processedRunIdsRef.current.get(currentThreadId)?.has(runningRun.id)
+          processedRunIdsRef.current.get(currentThreadId)?.has(resumableRun.id)
         ) {
           return
         }
@@ -1794,7 +2106,7 @@ export function ChatView() {
         let assistantId =
           messagesRef.current.find(
             message =>
-              message.role === 'assistant' && message.runId === runningRun.id
+              message.role === 'assistant' && message.runId === resumableRun.id
           )?.id || ''
         if (!assistantId) {
           assistantId = createClientMessageId('assistant')
@@ -1803,13 +2115,44 @@ export function ChatView() {
             {
               id: assistantId,
               role: 'assistant',
-              runId: runningRun.id,
+              runId: resumableRun.id,
               content: '',
               parts: [],
             },
           ])
         }
-        void subscribeExistingRun(runningRun.id, assistantId)
+        restoreAssistantSnapshot(assistantId, resumableRun)
+        if (resumableRun.status === 'awaiting_approval') {
+          const approvals = await agentService.getRunApprovals(resumableRun.id)
+          if (disposed) return
+          if (approvals.length === 0) {
+            void subscribeExistingRun(resumableRun.id, assistantId)
+            return
+          }
+          try {
+            const eventData = await agentService.getRunEvents(resumableRun.id)
+            approvalResumeCursorRef.current =
+              eventData.events.at(-1)?.sequence ?? ''
+          } catch (error) {
+            // The approval list is authoritative for this view. A diagnostic
+            // cursor is best effort; a later stream reconnect can still
+            // deliver the durable approval event if the event read failed.
+            console.warn('Failed to load approval stream cursor', error)
+            approvalResumeCursorRef.current = ''
+          }
+          setPendingApprovals(
+            approvals.map(approval => ({
+              ...approval,
+              status: approval.status ?? 'pending',
+            }))
+          )
+          pendingApprovalRunIdRef.current = resumableRun.id
+          approvalAssistantIdRef.current = assistantId
+          setPendingApprovalRunId(resumableRun.id)
+          setStatus('submitted')
+          return
+        }
+        void subscribeExistingRun(resumableRun.id, assistantId)
       } catch (error) {
         console.error('Failed to restore running run', error)
       }
@@ -1819,7 +2162,7 @@ export function ChatView() {
     return () => {
       disposed = true
     }
-  }, [currentThreadId, subscribeExistingRun])
+  }, [currentThreadId, restoreAssistantSnapshot, subscribeExistingRun])
 
   const streamRealtimeTextMessage = useCallback(
     async (input: string, assistantId: string) => {
@@ -1896,7 +2239,7 @@ export function ChatView() {
         }
       }
     },
-    [applyAgentStreamChunk, updateAssistantParts]
+    [applyAgentStreamChunk, t, updateAssistantParts]
   )
 
   const stopRealtimeAudioResources = useCallback(() => {
@@ -2330,6 +2673,11 @@ export function ChatView() {
     // 切换 agent 时清空 pending 状态，避免遗留的 plan/clarify 阻塞新会话 loading
     pendingPlanRef.current = null
     pendingClarifyRef.current = null
+    pendingApprovalRunIdRef.current = null
+    approvalAssistantIdRef.current = null
+    approvalResumeCursorRef.current = ''
+    setPendingApprovalRunId(null)
+    setPendingApprovals([])
   }, [])
 
   useEffect(() => {
@@ -2473,7 +2821,7 @@ export function ChatView() {
             : undefined,
       }
     })
-  }, [messages, imagesByMessageId, assistantModelById, modelOptions])
+  }, [messages, imagesByMessageId, assistantModelById, modelOptions, t])
 
   useEffect(() => {
     const fallbackLabel =
@@ -2941,10 +3289,15 @@ export function ChatView() {
     setAssistantModelById({})
     setCurrentThreadId(null)
     setMessages([])
+    pendingApprovalRunIdRef.current = null
+    approvalAssistantIdRef.current = null
+    approvalResumeCursorRef.current = ''
+    setPendingApprovalRunId(null)
+    setPendingApprovals([])
   }
 
   const handleStop = () => {
-    const runId = activeRunIdRef.current
+    const runId = activeRunIdRef.current ?? pendingApprovalRunIdRef.current
     if (runId) {
       void agentService.cancelRun(runId).catch(error => {
         console.error('Failed to cancel run', error)
@@ -2953,6 +3306,11 @@ export function ChatView() {
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
     activeRunIdRef.current = null
+    pendingApprovalRunIdRef.current = null
+    approvalAssistantIdRef.current = null
+    approvalResumeCursorRef.current = ''
+    setPendingApprovalRunId(null)
+    setPendingApprovals([])
     setStatus('ready')
     setActiveAssistantId(null)
     shouldAutoScrollRef.current = false
@@ -2964,6 +3322,11 @@ export function ChatView() {
     setImagesByMessageId({})
     setAssistantModelById({})
     pendingImageBatchesRef.current = []
+    pendingApprovalRunIdRef.current = null
+    approvalAssistantIdRef.current = null
+    approvalResumeCursorRef.current = ''
+    setPendingApprovalRunId(null)
+    setPendingApprovals([])
     shouldAutoScrollRef.current = true
   }
 
@@ -3419,6 +3782,102 @@ export function ChatView() {
           />
         </div>
       </div>
+
+      <Dialog
+        open={Boolean(pendingApprovalRunId)}
+        onOpenChange={open => {
+          if (
+            !open &&
+            !pendingApprovals.some(item => item.status === 'pending')
+          ) {
+            pendingApprovalRunIdRef.current = null
+            approvalAssistantIdRef.current = null
+            setPendingApprovalRunId(null)
+            setPendingApprovals([])
+            setStatus('ready')
+          }
+        }}
+      >
+        <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-lg'>
+          <DialogHeader>
+            <DialogTitle>{t('approval.title')}</DialogTitle>
+            <DialogDescription>{t('approval.description')}</DialogDescription>
+          </DialogHeader>
+          <div className='space-y-3'>
+            {pendingApprovals.length === 0 ? (
+              <p className='rounded-md border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground'>
+                {t('approval.empty')}
+              </p>
+            ) : (
+              pendingApprovals.map(approval => {
+                const isPending =
+                  !approval.status || approval.status === 'pending'
+                const statusLabel = isPending
+                  ? t('approval.waiting')
+                  : approval.status === 'approved'
+                    ? t('approval.approved')
+                    : approval.status === 'denied'
+                      ? t('approval.denied')
+                      : t('approval.expired')
+                return (
+                  <div
+                    key={approval.id}
+                    className='rounded-lg border border-border/70 bg-muted/15 p-3'
+                  >
+                    <div className='flex items-start justify-between gap-3'>
+                      <div className='min-w-0'>
+                        <p className='text-xs text-muted-foreground'>
+                          {t('approval.tool')}
+                        </p>
+                        <p className='break-all font-mono text-sm font-medium text-foreground'>
+                          {approval.tool_name}
+                        </p>
+                      </div>
+                      <span className='shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground'>
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <p className='mt-3 text-xs text-muted-foreground'>
+                      {t('approval.arguments')}
+                    </p>
+                    <pre className='mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-md bg-background/80 p-2 text-xs text-foreground'>
+                      {formatApprovalArguments(approval.arguments)}
+                    </pre>
+                    <p className='mt-2 text-xs text-muted-foreground'>
+                      {t('approval.expires', {
+                        time: formatApprovalExpiry(approval.expires_at),
+                      })}
+                    </p>
+                    {isPending && (
+                      <div className='mt-3 flex justify-end gap-2'>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          disabled={approvalBusyId !== null}
+                          onClick={() =>
+                            void handleApprovalDecision(approval, 'denied')
+                          }
+                        >
+                          {t('approval.deny')}
+                        </Button>
+                        <Button
+                          type='button'
+                          disabled={approvalBusyId !== null}
+                          onClick={() =>
+                            void handleApprovalDecision(approval, 'approved')
+                          }
+                        >
+                          {t('approval.approve')}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={Boolean(threadToRename)}

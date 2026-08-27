@@ -81,6 +81,7 @@ services:
       - BETTER_AUTH_BASE_URL=${BETTER_AUTH_BASE_URL:-http://host.docker.internal:8800}
       - BETTER_AUTH_SESSION_PATH=${BETTER_AUTH_SESSION_PATH:-/api/auth/get-session}
       - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:-dev-gateway-internal-secret-change-me}
+      - GATEWAY_SIGNATURE_BODY_MAX_BYTES=${GATEWAY_SIGNATURE_BODY_MAX_BYTES:-10485760}
       - AUTH_CACHE_TTL_SECONDS=${AUTH_CACHE_TTL_SECONDS:-60}
       - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
     depends_on:
@@ -109,9 +110,9 @@ services:
       dockerfile: services/agent-service/Dockerfile
     container_name: telos-agent-service
     ports:
-      - '8895:8895'
+      - '127.0.0.1:8895:8895'
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=8895
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
@@ -128,8 +129,28 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - REGISTRY_URL=http://registry:8090
       - GATEWAY_INTERNAL_SECRET=${GATEWAY_INTERNAL_SECRET:-dev-gateway-internal-secret-change-me}
+      - AGENT_STATE_SIGNING_SECRET=${AGENT_STATE_SIGNING_SECRET:-}
       - AUTH_CLOCK_SKEW_SECONDS=${AUTH_CLOCK_SKEW_SECONDS:-300}
+      - GATEWAY_NONCE_TTL_SECONDS=${GATEWAY_NONCE_TTL_SECONDS:-600}
+      - GATEWAY_NONCE_KEY_PREFIX=${GATEWAY_NONCE_KEY_PREFIX:-telos:gateway:nonce}
+      - GATEWAY_SIGNATURE_BODY_MAX_BYTES=${GATEWAY_SIGNATURE_BODY_MAX_BYTES:-10485760}
       - ALLOW_ANONYMOUS_OWNER=${ALLOW_ANONYMOUS_OWNER:-false}
+      - AGENT_ADMIN_USER_IDS=${AGENT_ADMIN_USER_IDS:-}
+      - WORKSPACE_SHARE_BASE_URL=${WORKSPACE_SHARE_BASE_URL:-http://localhost:8890}
+      - WORKSPACE_SHARE_URL_TTL_SECONDS=${WORKSPACE_SHARE_URL_TTL_SECONDS:-900}
+      - ENABLE_BUILTIN_RUN_COMMAND=${ENABLE_BUILTIN_RUN_COMMAND:-false}
+      - SANDBOX_ENABLED=${SANDBOX_ENABLED:-false}
+      - ALLOW_SENSITIVE_TRACING=${ALLOW_SENSITIVE_TRACING:-false}
+      - AGENT_RUN_WORKER_CONCURRENCY=${AGENT_RUN_WORKER_CONCURRENCY:-2}
+      - AGENT_RUN_LEASE_MS=${AGENT_RUN_LEASE_MS:-30000}
+      - AGENT_RUN_TIMEOUT_MS=${AGENT_RUN_TIMEOUT_MS:-900000}
+      - AGENT_RUN_MAX_INPUT_BYTES=${AGENT_RUN_MAX_INPUT_BYTES:-524288}
+      - AGENT_RUN_MAX_OUTPUT_CHARACTERS=${AGENT_RUN_MAX_OUTPUT_CHARACTERS:-262144}
+      - AGENT_RUN_MAX_TOOL_CALLS=${AGENT_RUN_MAX_TOOL_CALLS:-64}
+      - AGENT_RUN_MAX_OUTPUT_TOKENS=${AGENT_RUN_MAX_OUTPUT_TOKENS:-16384}
+      - AGENT_RUN_MAX_ESTIMATED_COST_USD=${AGENT_RUN_MAX_ESTIMATED_COST_USD:-}
+      - AGENT_MODEL_PRICING_JSON=${AGENT_MODEL_PRICING_JSON:-}
+      - AGENT_TOOL_APPROVAL_TTL_MS=${AGENT_TOOL_APPROVAL_TTL_MS:-900000}
     depends_on:
       registry:
         condition: service_healthy
@@ -147,7 +168,7 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://localhost:8895/health',
+          'http://localhost:8895/ready',
         ]
       interval: 30s
       timeout: 10s

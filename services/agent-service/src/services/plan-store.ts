@@ -71,9 +71,7 @@ export class PlanStore {
 
     // 3. completed/skipped/failed 只能从 in_progress 转入
     if (
-      (status === 'completed' ||
-        status === 'skipped' ||
-        status === 'failed') &&
+      (status === 'completed' || status === 'skipped' || status === 'failed') &&
       current !== 'in_progress'
     ) {
       return {
@@ -95,9 +93,9 @@ export class PlanStore {
       }
 
       // 新增前序步骤终态强校验
-      const uncompletedBefore = this.statuses.slice(0, stepIndex).findIndex(
-        s => s !== 'completed' && s !== 'skipped' && s !== 'failed'
-      )
+      const uncompletedBefore = this.statuses
+        .slice(0, stepIndex)
+        .findIndex(s => s !== 'completed' && s !== 'skipped' && s !== 'failed')
       if (uncompletedBefore !== -1) {
         return {
           ok: false,
@@ -115,21 +113,29 @@ export class PlanStore {
   }
 
   /**
-   * 兜底收尾：run 结束时调用。
-   * 把残留的 in_progress 标记为 completed，pending 标记为 skipped。
-   * 防止模型忘记标记最后一步或 run 异常中断导致状态不完整。
+   * 真实性收尾：run 结束时调用。
+   * 未显式完成的步骤不能被伪装成 completed：残留的 in_progress
+   * 标记为 failed，尚未开始的 pending 标记为 skipped，并附带原因。
    */
   finalize(): void {
     this.statuses.forEach((s, i) => {
       if (s === 'in_progress') {
-        this.statuses[i] = 'completed'
-        this.onStepUpdate({ step_index: i, status: 'completed' })
+        this.statuses[i] = 'failed'
+        this.onStepUpdate({
+          step_index: i,
+          status: 'failed',
+          note: 'Run ended before the step was explicitly completed',
+        })
       }
     })
     this.statuses.forEach((s, i) => {
       if (s === 'pending') {
         this.statuses[i] = 'skipped'
-        this.onStepUpdate({ step_index: i, status: 'skipped' })
+        this.onStepUpdate({
+          step_index: i,
+          status: 'skipped',
+          note: 'Run ended before the step started',
+        })
       }
     })
   }

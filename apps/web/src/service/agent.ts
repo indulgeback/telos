@@ -132,11 +132,19 @@ export interface AgentRun {
   agent_id: string
   current_agent_id?: string | null
   thread_id?: string | null
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
+  status:
+    | 'queued'
+    | 'running'
+    | 'awaiting_approval'
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
   input?: unknown
   final_output?: string | null
   error?: string | null
   metadata?: Record<string, unknown>
+  partial_output?: string | null
+  partial_parts?: unknown
   started_at: string
   completed_at?: string | null
 }
@@ -152,6 +160,20 @@ export interface AgentRunEvent {
   /** Redis Stream ID（如 "1690000000000-3"） */
   sequence: string
   created_at?: string
+}
+
+export type AgentRunApprovalStatus =
+  'pending' | 'approved' | 'denied' | 'expired' | 'consumed'
+
+export interface AgentRunApproval {
+  id: string
+  run_id?: string
+  tool_call_id: string
+  tool_name: string
+  arguments: unknown
+  expires_at: string
+  status?: AgentRunApprovalStatus
+  decided_at?: string | null
 }
 
 export interface AgentThread {
@@ -228,7 +250,13 @@ export class AgentService {
     })
 
     if (!response.ok) {
-      throw new Error(`Request failed: ${response.statusText}`)
+      const error = new Error(
+        `Request failed: ${response.statusText}`
+      ) as Error & {
+        status?: number
+      }
+      error.status = response.status
+      throw error
     }
 
     const result = (await response.json()) as AgentApiResponse<T>
@@ -299,10 +327,29 @@ export class AgentService {
     return this.request<AgentRun>(`/api/runs/${runId}`)
   }
 
-  getRunEvents(runId: string): Promise<{ events: AgentRunEvent[] }> {
-    return this.request<{ events: AgentRunEvent[] }>(
-      `/api/runs/${runId}/events`
-    )
+  async getRunApprovals(runId: string): Promise<AgentRunApproval[]> {
+    const data = await this.request<
+      AgentRunApproval[] | { approvals?: AgentRunApproval[] }
+    >(`/api/runs/${runId}/approvals`)
+    return Array.isArray(data) ? data : (data.approvals ?? [])
+  }
+
+  decideRunApproval(
+    runId: string,
+    approvalId: string,
+    decision: 'approved' | 'denied'
+  ): Promise<unknown> {
+    return this.request<unknown>(`/api/runs/${runId}/approvals/${approvalId}`, {
+      method: 'POST',
+      body: JSON.stringify({ decision }),
+    })
+  }
+
+  async getRunEvents(runId: string): Promise<{ events: AgentRunEvent[] }> {
+    const data = await this.request<
+      AgentRunEvent[] | { events: AgentRunEvent[] }
+    >(`/api/runs/${runId}/events`)
+    return Array.isArray(data) ? { events: data } : data
   }
 
   cancelRun(runId: string): Promise<{ status: AgentRun['status'] }> {
@@ -315,10 +362,30 @@ export class AgentService {
   listThreadRuns(
     threadId: string
   ): Promise<
-    Array<Pick<AgentRun, 'id' | 'status' | 'thread_id' | 'started_at'>>
+    Array<
+      Pick<
+        AgentRun,
+        | 'id'
+        | 'status'
+        | 'thread_id'
+        | 'started_at'
+        | 'partial_output'
+        | 'partial_parts'
+      >
+    >
   > {
     return this.request<
-      Array<Pick<AgentRun, 'id' | 'status' | 'thread_id' | 'started_at'>>
+      Array<
+        Pick<
+          AgentRun,
+          | 'id'
+          | 'status'
+          | 'thread_id'
+          | 'started_at'
+          | 'partial_output'
+          | 'partial_parts'
+        >
+      >
     >(`/api/agent/threads/${threadId}/runs`)
   }
 

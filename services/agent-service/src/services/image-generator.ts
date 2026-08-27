@@ -6,15 +6,21 @@ import { WorkspaceManager } from './workspace.js'
 import { logger } from '../config/logger.js'
 import { getGcloudProjectId } from './gcloud.js'
 import { config } from '../config/index.js'
+import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
 
 const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview'
 
 const STYLE_SUFFIX_MAP: Record<string, string> = {
-  photo_realistic: 'photorealistic, high-quality fashion photography, soft natural lighting, editorial style',
-  illustration: 'digital illustration, clean lines, fashion sketch aesthetic, vibrant colors',
-  vibe_card: 'aesthetic mood board, dreamy soft colors, Gen Z aesthetic, Pinterest-worthy, ethereal',
-  moodboard: 'collage style, layered textures, color palette chips, minimalist typography',
-  sketch: 'fashion design sketch, pencil and ink, clean white background, detailed garment lines'
+  photo_realistic:
+    'photorealistic, high-quality fashion photography, soft natural lighting, editorial style',
+  illustration:
+    'digital illustration, clean lines, fashion sketch aesthetic, vibrant colors',
+  vibe_card:
+    'aesthetic mood board, dreamy soft colors, Gen Z aesthetic, Pinterest-worthy, ethereal',
+  moodboard:
+    'collage style, layered textures, color palette chips, minimalist typography',
+  sketch:
+    'fashion design sketch, pencil and ink, clean white background, detailed garment lines',
 }
 
 export function enhancePrompt(
@@ -22,10 +28,12 @@ export function enhancePrompt(
   stylePreset: string,
   negativePrompt?: string
 ): { prompt: string; negativePrompt: string } {
-  const styleSuffix = STYLE_SUFFIX_MAP[stylePreset] || STYLE_SUFFIX_MAP.photo_realistic
+  const styleSuffix =
+    STYLE_SUFFIX_MAP[stylePreset] || STYLE_SUFFIX_MAP.photo_realistic
   const enhancedPrompt = `${rawPrompt}, ${styleSuffix}`
-  
-  const baseNegative = 'ugly, distorted, blurry, watermark, text overlay, duplicate, low quality, nsfw'
+
+  const baseNegative =
+    'ugly, distorted, blurry, watermark, text overlay, duplicate, low quality, nsfw'
   const finalNegative = negativePrompt
     ? `${baseNegative}, ${negativePrompt}`
     : baseNegative
@@ -33,13 +41,16 @@ export function enhancePrompt(
   return { prompt: enhancedPrompt, negativePrompt: finalNegative }
 }
 
-async function fetchImageAsBase64(url: string): Promise<string> {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch reference image from URL: ${url}`)
+async function fetchImageAsBase64(
+  url: string
+): Promise<{ base64Data: string; mimeType: string }> {
+  const image = url.trim().toLowerCase().startsWith('data:')
+    ? decodeImageDataUrl(url)
+    : await safeFetchImage(url)
+  return {
+    base64Data: Buffer.from(image.bytes).toString('base64'),
+    mimeType: image.mimeType,
   }
-  const arrayBuffer = await response.arrayBuffer()
-  return Buffer.from(arrayBuffer).toString('base64')
 }
 
 async function uploadToCDN(
@@ -106,15 +117,17 @@ async function executeShortApiGenerate(
   const createRes = await fetch('https://api.shortapi.ai/api/v1/job/create', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ model: modelPath, args })
+    body: JSON.stringify({ model: modelPath, args }),
   })
 
   if (!createRes.ok) {
     const errText = await createRes.text()
-    throw new Error(`ShortAPI job creation failed: ${createRes.status} - ${errText}`)
+    throw new Error(
+      `ShortAPI job creation failed: ${createRes.status} - ${errText}`
+    )
   }
 
   const createData = (await createRes.json()) as any
@@ -135,12 +148,14 @@ async function executeShortApiGenerate(
 
     const queryRes = await fetch(queryUrl, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`
-      }
+        Authorization: `Bearer ${apiKey}`,
+      },
     })
 
     if (!queryRes.ok) {
-      logger.warn(`ShortAPI query attempt ${attempts} failed: ${queryRes.status}`)
+      logger.warn(
+        `ShortAPI query attempt ${attempts} failed: ${queryRes.status}`
+      )
       continue
     }
 
@@ -152,9 +167,14 @@ async function executeShortApiGenerate(
       const images = dataBlock.result?.images
       if (images?.length && images[0].url) {
         const imgUrl = images[0].url
-        const base64Data = await fetchImageAsBase64(imgUrl)
-        const imageUrl = await uploadToCDN(base64Data, 'image/png', threadId)
-        return { imageUrl, modelUsed: isImg2Img ? 'openai/gpt-image-2/edit' : 'openai/gpt-image-2' }
+        const { base64Data, mimeType } = await fetchImageAsBase64(imgUrl)
+        const imageUrl = await uploadToCDN(base64Data, mimeType, threadId)
+        return {
+          imageUrl,
+          modelUsed: isImg2Img
+            ? 'openai/gpt-image-2/edit'
+            : 'openai/gpt-image-2',
+        }
       }
       throw new Error('No images found in successful ShortAPI result.')
     }
@@ -178,15 +198,16 @@ async function executeGeminiApiGenerate(
 
   // 图生图模式：输入图片作为首要编辑对象放在 prompt 之前
   if (inputImageUrl) {
-    const inputBase64 = await fetchImageAsBase64(inputImageUrl)
+    const { base64Data: inputBase64, mimeType: inputMimeType } =
+      await fetchImageAsBase64(inputImageUrl)
     contentParts.push({
       inlineData: {
-        mimeType: 'image/jpeg',
-        data: inputBase64
-      }
+        mimeType: inputMimeType,
+        data: inputBase64,
+      },
     })
     contentParts.push({
-      text: `Edit or transform this image based on the following instructions: ${prompt}`
+      text: `Edit or transform this image based on the following instructions: ${prompt}`,
     })
   } else {
     contentParts.push({ text: prompt })
@@ -195,12 +216,12 @@ async function executeGeminiApiGenerate(
   // 风格参考图（无论文生图还是图生图均可附加）
   if (referenceImageUrls?.length) {
     for (const url of referenceImageUrls.slice(0, 4)) {
-      const base64Data = await fetchImageAsBase64(url)
+      const { base64Data, mimeType } = await fetchImageAsBase64(url)
       contentParts.push({
         inlineData: {
-          mimeType: 'image/jpeg',
-          data: base64Data
-        }
+          mimeType,
+          data: base64Data,
+        },
       })
     }
     // 找到 text part 并追加风格参考提示
@@ -214,12 +235,13 @@ async function executeGeminiApiGenerate(
     model,
     contents: [{ role: 'user', parts: contentParts }],
     config: {
-      responseModalities: ['IMAGE', 'TEXT']
-    }
+      responseModalities: ['IMAGE', 'TEXT'],
+    },
   })
 
-  const imagePart = response.candidates?.[0]?.content?.parts
-    ?.find(p => p.inlineData?.mimeType?.startsWith('image/'))
+  const imagePart = response.candidates?.[0]?.content?.parts?.find(p =>
+    p.inlineData?.mimeType?.startsWith('image/')
+  )
 
   if (!imagePart?.inlineData?.data) {
     throw new Error('No image data returned from Gemini API.')
@@ -242,8 +264,8 @@ async function executeVertexAiGenerate(
       numberOfImages: 1,
       aspectRatio: (aspectRatio || '1:1') as any,
       negativePrompt,
-      outputMimeType: 'image/jpeg'
-    }
+      outputMimeType: 'image/jpeg',
+    },
   })
 
   const imagePart = response.generatedImages?.[0]
@@ -293,7 +315,10 @@ export async function executeGenerateImage(
         input.negative_prompt
       )
       const { imageUrl, modelUsed } = await executeShortApiGenerate(
-        enhancedPrompt, input.aspect_ratio, threadId, input.input_image_url
+        enhancedPrompt,
+        input.aspect_ratio,
+        threadId,
+        input.input_image_url
       )
       return {
         success: true,
@@ -302,8 +327,8 @@ export async function executeGenerateImage(
           model: modelUsed,
           prompt_used: enhancedPrompt,
           aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime
-        }
+          latency_ms: Date.now() - startTime,
+        },
       }
     } catch (err: any) {
       return {
@@ -313,15 +338,15 @@ export async function executeGenerateImage(
           model: 'openai/gpt-image-2',
           prompt_used: input.prompt,
           aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime
-        }
+          latency_ms: Date.now() - startTime,
+        },
       }
     }
   }
 
   // 2. Default Strategy: "Prefer Gemini, Fallback GPT-Image-2"
   const errors: string[] = []
-  
+
   const { prompt: enhancedPrompt, negativePrompt } = enhancePrompt(
     input.prompt,
     input.style_preset || 'photo_realistic',
@@ -334,7 +359,11 @@ export async function executeGenerateImage(
     try {
       const client = new GoogleGenAI({ apiKey: geminiApiKey })
       const base64Data = await executeGeminiApiGenerate(
-        client, MODEL, enhancedPrompt, input.reference_image_urls, input.input_image_url
+        client,
+        MODEL,
+        enhancedPrompt,
+        input.reference_image_urls,
+        input.input_image_url
       )
       const imageUrl = await uploadToCDN(base64Data, 'image/png', threadId)
       return {
@@ -344,8 +373,8 @@ export async function executeGenerateImage(
           model: MODEL,
           prompt_used: enhancedPrompt,
           aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime
-        }
+          latency_ms: Date.now() - startTime,
+        },
       }
     } catch (err: any) {
       errors.push(`Gemini API error: ${err.message}`)
@@ -360,10 +389,17 @@ export async function executeGenerateImage(
     const client = new GoogleGenAI({
       vertexai: true,
       project: projectId,
-      location: config.gcloudLocation || 'us-central1'
+      location: config.gcloudLocation || 'us-central1',
     })
-    const vertexModel = process.env.VERTEX_IMAGE_MODEL || 'imagen-3.0-generate-002'
-    const base64Data = await executeVertexAiGenerate(client, vertexModel, enhancedPrompt, input.aspect_ratio, negativePrompt)
+    const vertexModel =
+      process.env.VERTEX_IMAGE_MODEL || 'imagen-3.0-generate-002'
+    const base64Data = await executeVertexAiGenerate(
+      client,
+      vertexModel,
+      enhancedPrompt,
+      input.aspect_ratio,
+      negativePrompt
+    )
     const imageUrl = await uploadToCDN(base64Data, 'image/jpeg', threadId)
     return {
       success: true,
@@ -372,8 +408,8 @@ export async function executeGenerateImage(
         model: vertexModel,
         prompt_used: enhancedPrompt,
         aspect_ratio: input.aspect_ratio || '1:1',
-        latency_ms: Date.now() - startTime
-      }
+        latency_ms: Date.now() - startTime,
+      },
     }
   } catch (err: any) {
     errors.push(`Vertex AI error: ${err.message}`)
@@ -383,7 +419,10 @@ export async function executeGenerateImage(
   if (config.shortapiApiKey) {
     try {
       const { imageUrl, modelUsed } = await executeShortApiGenerate(
-        enhancedPrompt, input.aspect_ratio, threadId, input.input_image_url
+        enhancedPrompt,
+        input.aspect_ratio,
+        threadId,
+        input.input_image_url
       )
       return {
         success: true,
@@ -392,8 +431,8 @@ export async function executeGenerateImage(
           model: modelUsed,
           prompt_used: enhancedPrompt,
           aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime
-        }
+          latency_ms: Date.now() - startTime,
+        },
       }
     } catch (err: any) {
       errors.push(`ShortAPI error: ${err.message}`)
@@ -410,7 +449,7 @@ export async function executeGenerateImage(
       model: 'unknown',
       prompt_used: enhancedPrompt,
       aspect_ratio: input.aspect_ratio || '1:1',
-      latency_ms: Date.now() - startTime
-    }
+      latency_ms: Date.now() - startTime,
+    },
   }
 }

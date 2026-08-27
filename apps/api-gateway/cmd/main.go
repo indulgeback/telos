@@ -53,6 +53,7 @@ func main() {
 		GatewayInternalSecret: cfg.GatewayInternalSecret,
 		CacheTTL:              time.Duration(cfg.AuthCacheTTLSeconds) * time.Second,
 		ClockSkew:             time.Duration(cfg.AuthClockSkewSeconds) * time.Second,
+		BodyMaxBytes:          cfg.GatewaySignatureBodyMaxBytes,
 	})
 
 	// 初始化代理管理器
@@ -61,6 +62,14 @@ func main() {
 	// 加载路由配置
 	// 注意：更具体的路由应该放在前面，避免前缀匹配冲突
 	routes := []proxy.RouteConfig{
+		{
+			// Workspace 文件分享必须经过网关认证，再由 agent-service 校验 thread owner。
+			Path:        "/workspaces/shares",
+			ServiceName: "agent-service",
+			StripPrefix: false,
+			Timeout:     30,
+			AuthMode:    proxy.AuthModeRequired,
+		},
 		{
 			// 工具管理 API - 必须在 /api/agent 之前，避免前缀匹配冲突
 			Path:        "/api/tools",
@@ -137,6 +146,11 @@ func main() {
 	// 所有API请求由代理管理器处理
 	// 使用自定义 EchoHandler 来支持流式响应（SSE）
 	apiGroup.Any("/*", proxyManager.EchoHandler)
+
+	// Workspace share URLs intentionally live outside /api. They still pass
+	// through ProxyManager, whose route requires an authenticated Gateway
+	// identity before agent-service performs the thread-owner check.
+	e.Any("/workspaces/shares/*", proxyManager.EchoHandler)
 
 	// 启动服务器
 	port := cfg.Port

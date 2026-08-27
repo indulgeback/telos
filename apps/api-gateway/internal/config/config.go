@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -8,17 +9,19 @@ import (
 
 // Config 结构体用于存储配置信息
 type Config struct {
-	Port                  string
-	RegistryServiceURL    string
-	CORSOrigins           []string
-	LogLevel              string
-	RateLimitRequests     int
-	RateLimitWindow       int
-	BetterAuthBaseURL     string
-	BetterAuthSessionPath string
-	GatewayInternalSecret string
-	AuthCacheTTLSeconds   int
-	AuthClockSkewSeconds  int
+	NodeEnv                      string
+	Port                         string
+	RegistryServiceURL           string
+	CORSOrigins                  []string
+	LogLevel                     string
+	RateLimitRequests            int
+	RateLimitWindow              int
+	BetterAuthBaseURL            string
+	BetterAuthSessionPath        string
+	GatewayInternalSecret        string
+	AuthCacheTTLSeconds          int
+	AuthClockSkewSeconds         int
+	GatewaySignatureBodyMaxBytes int64
 
 	// 日志配置
 	LogFormat string
@@ -33,22 +36,27 @@ func LoadConfig() *Config {
 	viper.AutomaticEnv()
 
 	cfg := &Config{
-		Port:                  viper.GetString("GATEWAY_PORT"),
-		RegistryServiceURL:    viper.GetString("REGISTRY_SERVICE_URL"),
-		LogLevel:              viper.GetString("LOG_LEVEL"),
-		LogFormat:             viper.GetString("LOG_FORMAT"),
-		LogOutput:             viper.GetString("LOG_OUTPUT"),
-		RateLimitRequests:     viper.GetInt("RATE_LIMIT_REQUESTS"),
-		RateLimitWindow:       viper.GetInt("RATE_LIMIT_WINDOW"),
-		BetterAuthBaseURL:     viper.GetString("BETTER_AUTH_BASE_URL"),
-		BetterAuthSessionPath: viper.GetString("BETTER_AUTH_SESSION_PATH"),
-		GatewayInternalSecret: viper.GetString("GATEWAY_INTERNAL_SECRET"),
-		AuthCacheTTLSeconds:   viper.GetInt("AUTH_CACHE_TTL_SECONDS"),
-		AuthClockSkewSeconds:  viper.GetInt("AUTH_CLOCK_SKEW_SECONDS"),
+		NodeEnv:                      viper.GetString("NODE_ENV"),
+		Port:                         viper.GetString("GATEWAY_PORT"),
+		RegistryServiceURL:           viper.GetString("REGISTRY_SERVICE_URL"),
+		LogLevel:                     viper.GetString("LOG_LEVEL"),
+		LogFormat:                    viper.GetString("LOG_FORMAT"),
+		LogOutput:                    viper.GetString("LOG_OUTPUT"),
+		RateLimitRequests:            viper.GetInt("RATE_LIMIT_REQUESTS"),
+		RateLimitWindow:              viper.GetInt("RATE_LIMIT_WINDOW"),
+		BetterAuthBaseURL:            viper.GetString("BETTER_AUTH_BASE_URL"),
+		BetterAuthSessionPath:        viper.GetString("BETTER_AUTH_SESSION_PATH"),
+		GatewayInternalSecret:        viper.GetString("GATEWAY_INTERNAL_SECRET"),
+		AuthCacheTTLSeconds:          viper.GetInt("AUTH_CACHE_TTL_SECONDS"),
+		AuthClockSkewSeconds:         viper.GetInt("AUTH_CLOCK_SKEW_SECONDS"),
+		GatewaySignatureBodyMaxBytes: viper.GetInt64("GATEWAY_SIGNATURE_BODY_MAX_BYTES"),
 	}
 
 	if cfg.Port == "" {
 		cfg.Port = "8890"
+	}
+	if cfg.NodeEnv == "" {
+		cfg.NodeEnv = "development"
 	}
 	if cfg.RegistryServiceURL == "" {
 		cfg.RegistryServiceURL = "http://localhost:8080"
@@ -82,6 +90,12 @@ func LoadConfig() *Config {
 	}
 	if cfg.AuthClockSkewSeconds == 0 {
 		cfg.AuthClockSkewSeconds = 300
+	}
+	if cfg.GatewaySignatureBodyMaxBytes <= 0 {
+		cfg.GatewaySignatureBodyMaxBytes = 10 << 20
+	}
+	if cfg.NodeEnv == "production" && cfg.GatewayInternalSecret == "dev-gateway-internal-secret-change-me" {
+		panic(fmt.Sprintf("GATEWAY_INTERNAL_SECRET must be configured for %s", cfg.NodeEnv))
 	}
 
 	corsOrigins := viper.GetString("CORS_ORIGINS")

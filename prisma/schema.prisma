@@ -83,18 +83,18 @@ model verification {
 // ============================================================
 
 model Agent {
-  id           String        @id @default(uuid())
-  name         String        @unique
-  description  String
-  instructions String        @default("")
-  type         AgentType     @default(public)
-  modelKey     String        @default("deepseek-v4-flash") @map("model_key")
-  temperature  Float         @default(0.7)
-  maxTurns     Int           @default(50) @map("max_turns")
-  loopMode     AgentLoopMode @default(auto) @map("loop_mode")
-  status       AgentStatus   @default(active)
-  ownerId      String?       @map("owner_id")
-  metadata     Json          @default("{}")
+  id                String        @id @default(uuid())
+  name              String        @unique
+  description       String
+  instructions      String        @default("")
+  type              AgentType     @default(public)
+  modelKey          String        @default("deepseek-v4-flash") @map("model_key")
+  temperature       Float         @default(0.7)
+  maxTurns          Int           @default(50) @map("max_turns")
+  loopMode          AgentLoopMode @default(auto) @map("loop_mode")
+  status            AgentStatus   @default(active)
+  ownerId           String?       @map("owner_id")
+  metadata          Json          @default("{}")
   isDefault         Boolean       @default(false) @map("is_default")
   instructionStatus String        @default("pending") @map("instruction_status")
   createdAt         DateTime      @default(now()) @map("created_at")
@@ -108,7 +108,7 @@ model Agent {
   memories          AgentMemory[]
   threads           AgentThread[]
   runs              AgentRun[]
-  defaultUsers      user[]        @relation("UserDefaultAgent")
+  defaultUsers      user[]           @relation("UserDefaultAgent")
 
   @@map("agents")
 }
@@ -196,6 +196,7 @@ model McpServer {
   url               String?
   env               Json              @default("{}")
   allowedTools      Json              @default("[]") @map("allowed_tools")
+  sensitiveTools    Json              @default("[]") @map("sensitive_tools")
   approvalPolicy    McpApprovalPolicy @default(none) @map("approval_policy")
   enabled           Boolean           @default(true)
   metadata          Json              @default("{}")
@@ -288,15 +289,15 @@ model AgentMessage {
 }
 
 model AgentMemory {
-  id        String                      @id @default(uuid())
-  agentId   String                      @map("agent_id")
-  ownerId   String                      @map("owner_id")
-  content   String                      @default("")
-  category  String                      @default("general") // "user_preference" | "task_history" | "domain_fact"
+  id        String                       @id @default(uuid())
+  agentId   String                       @map("agent_id")
+  ownerId   String                       @map("owner_id")
+  content   String                       @default("")
+  category  String                       @default("general") // "user_preference" | "task_history" | "domain_fact"
   embedding Unsupported("vector(1536)")?
-  metadata  Json                        @default("{}")
-  createdAt DateTime                    @default(now()) @map("created_at")
-  updatedAt DateTime                    @updatedAt @map("updated_at")
+  metadata  Json                         @default("{}")
+  createdAt DateTime                     @default(now()) @map("created_at")
+  updatedAt DateTime                     @updatedAt @map("updated_at")
 
   agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
@@ -315,16 +316,24 @@ model AgentRun {
   lastResponseId String?        @map("last_response_id")
   error          String?
   metadata       Json           @default("{}")
+  sdkState       String?        @map("sdk_state") @db.Text
+  sdkStateHash   String?        @map("sdk_state_hash")
+  stateVersion   Int            @default(0) @map("state_version")
+  partialOutput  String?        @map("partial_output") @db.Text
+  partialParts   Json           @default("[]") @map("partial_parts")
   startedAt      DateTime       @default(now()) @map("started_at")
   completedAt    DateTime?      @map("completed_at")
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
 
-  agent    Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  thread   AgentThread?    @relation(fields: [threadId], references: [id], onDelete: SetNull)
-  messages AgentMessage[]
-  steps    AgentRunStep[]
-  events   AgentRunEvent[]
+  agent     Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  thread    AgentThread?        @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  messages  AgentMessage[]
+  steps     AgentRunStep[]
+  events    AgentRunEvent[]
+  attempts  AgentRunAttempt[]
+  toolCalls AgentToolCall[]
+  approvals AgentToolApproval[]
 
   @@index([agentId, createdAt])
   @@index([threadId])
@@ -334,6 +343,7 @@ model AgentRun {
 model AgentRunStep {
   id        String   @id @default(uuid())
   runId     String   @map("run_id")
+  attemptId String?  @map("attempt_id")
   index     Int
   agentName String   @map("agent_name")
   type      String
@@ -342,9 +352,11 @@ model AgentRunStep {
   metadata  Json     @default("{}")
   createdAt DateTime @default(now()) @map("created_at")
 
-  run AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  run     AgentRun         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  attempt AgentRunAttempt? @relation(fields: [attemptId], references: [id], onDelete: SetNull)
 
   @@index([runId, index])
+  @@index([attemptId])
   @@map("agent_run_steps")
 }
 
@@ -361,6 +373,111 @@ model AgentRunEvent {
 
   @@index([runId, sequence])
   @@map("agent_run_events")
+}
+
+// Durable execution ownership. A run may have multiple attempts, but only
+// the attempt holding the current lease/fence may write execution results.
+model AgentRunAttempt {
+  id             String    @id @default(uuid())
+  runId          String    @map("run_id")
+  attempt        Int
+  workerId       String    @map("worker_id")
+  leaseToken     String    @unique @map("lease_token")
+  fenceToken     Int       @map("fence_token")
+  status         String    @default("running")
+  leaseExpiresAt DateTime  @map("lease_expires_at")
+  heartbeatAt    DateTime  @default(now()) @map("heartbeat_at")
+  startedAt      DateTime  @default(now()) @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  run       AgentRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+  steps     AgentRunStep[]
+  toolCalls AgentToolCall[]
+
+  @@unique([runId, attempt])
+  @@index([runId, status])
+  @@index([status, leaseExpiresAt])
+  @@map("agent_run_attempts")
+}
+
+// A durable tool execution ledger. idempotencyKey is stable for one logical
+// tool invocation and prevents replayed workers from repeating side effects.
+model AgentToolCall {
+  id             String    @id @default(uuid())
+  runId          String    @map("run_id")
+  attemptId      String    @map("attempt_id")
+  callId         String    @map("call_id")
+  toolName       String    @map("tool_name")
+  argumentsHash  String    @map("arguments_hash")
+  arguments      Json
+  idempotencyKey String    @unique @map("idempotency_key")
+  status         String    @default("prepared")
+  sideEffect     Boolean   @default(false) @map("side_effect")
+  result         Json?
+  error          String?
+  startedAt      DateTime? @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  run      AgentRun           @relation(fields: [runId], references: [id], onDelete: Cascade)
+  attempt  AgentRunAttempt    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  approval AgentToolApproval?
+
+  @@unique([runId, callId])
+  @@index([runId, status])
+  @@index([attemptId, status])
+  @@map("agent_tool_calls")
+}
+
+// Human approval is durable and owner-bound. The SDK may suspend/resume a
+// run, but approval authority remains in this database record.
+model AgentToolApproval {
+  id            String    @id @default(uuid())
+  runId         String    @map("run_id")
+  toolCallId    String    @unique @map("tool_call_id")
+  ownerId       String    @map("owner_id")
+  toolName      String    @map("tool_name")
+  argumentsHash String    @map("arguments_hash")
+  status        String    @default("pending")
+  expiresAt     DateTime  @map("expires_at")
+  decidedAt     DateTime? @map("decided_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  run      AgentRun      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  toolCall AgentToolCall @relation(fields: [toolCallId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, status])
+  @@index([runId, status])
+  @@index([status, expiresAt])
+  @@map("agent_tool_approvals")
+}
+
+// Transactional outbox for durable wakeups/projections. Consumers must claim
+// by status + availableAt and acknowledge with the event id.
+model AgentOutboxEvent {
+  id            String    @id @default(uuid())
+  aggregateType String    @map("aggregate_type")
+  aggregateId   String    @map("aggregate_id")
+  eventType     String    @map("event_type")
+  dedupeKey     String    @unique @map("dedupe_key")
+  payload       Json
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  availableAt   DateTime  @default(now()) @map("available_at")
+  lockedAt      DateTime? @map("locked_at")
+  lockToken     String?   @map("lock_token")
+  publishedAt   DateTime? @map("published_at")
+  lastError     String?   @map("last_error")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([status, availableAt, createdAt])
+  @@index([aggregateType, aggregateId, createdAt])
+  @@map("agent_outbox_events")
 }
 
 model ChatModel {
@@ -421,6 +538,7 @@ enum AgentRelationMode {
 enum AgentRunStatus {
   queued
   running
+  awaiting_approval
   completed
   failed
   cancelled

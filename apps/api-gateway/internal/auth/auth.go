@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/rand"
@@ -9,8 +10,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +27,7 @@ type Config struct {
 	GatewayInternalSecret string
 	CacheTTL              time.Duration
 	ClockSkew             time.Duration
+	BodyMaxBytes          int64
 }
 
 type Identity struct {
@@ -35,6 +39,13 @@ type Authenticator struct {
 	client *http.Client
 	cache  map[string]cacheEntry
 	mu     sync.RWMutex
+}
+
+func (a *Authenticator) BodyMaxBytes() int64 {
+	if a.cfg.BodyMaxBytes > 0 {
+		return a.cfg.BodyMaxBytes
+	}
+	return 10 << 20
 }
 
 type cacheEntry struct {
@@ -133,21 +144,129 @@ func (a *Authenticator) Authenticate(ctx context.Context, cookieHeader string) (
 	return identity, nil
 }
 
-func (a *Authenticator) Sign(method string, path string, userID string) (timestamp string, nonce string, signature string, err error) {
+func (a *Authenticator) Sign(method string, path string, rawQuery string, body []byte, userID string) (timestamp string, nonce string, signature string, bodyDigest string, err error) {
 	timestamp = fmt.Sprintf("%d", time.Now().Unix())
 	nonce, err = randomNonce()
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", "", err
 	}
-	signature = Sign(a.cfg.GatewayInternalSecret, method, path, userID, timestamp, nonce)
-	return timestamp, nonce, signature, nil
+	bodyDigest = DigestBody(body)
+	signature, err = Sign(a.cfg.GatewayInternalSecret, method, path, rawQuery, bodyDigest, userID, timestamp, nonce)
+	return timestamp, nonce, signature, bodyDigest, err
 }
 
-func Sign(secret string, method string, path string, userID string, timestamp string, nonce string) string {
-	payload := strings.Join([]string{method, path, userID, timestamp, nonce}, "\n")
+// Sign computes the canonical gateway request signature. The canonical request
+// binds every value that can alter the downstream request, including the
+// normalized query string and raw request body digest.
+func Sign(secret string, method string, path string, rawQuery string, bodyDigest string, userID string, timestamp string, nonce string) (string, error) {
+	canonical, err := CanonicalRequest(method, path, rawQuery, bodyDigest, userID, timestamp, nonce)
+	if err != nil {
+		return "", err
+	}
 	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte(payload))
-	return hex.EncodeToString(mac.Sum(nil))
+	_, _ = mac.Write([]byte(canonical))
+	return hex.EncodeToString(mac.Sum(nil)), nil
+}
+
+// DigestBody returns the lowercase SHA-256 digest used in the signing
+// protocol. The digest is over the exact bytes sent through the gateway.
+func DigestBody(body []byte) string {
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:])
+}
+
+// BodyDigest reads and restores an incoming request body so signing does not
+// consume it before ReverseProxy or the streaming client sees it.
+func BodyDigest(r *http.Request, maxBytes int64) (string, error) {
+	if r.Body == nil {
+		return DigestBody(nil), nil
+	}
+	if maxBytes <= 0 {
+		maxBytes = 10 << 20
+	}
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxBytes+1))
+	if err != nil {
+		return "", err
+	}
+	r.Body = io.NopCloser(bytes.NewReader(body))
+	if int64(len(body)) > maxBytes {
+		return "", fmt.Errorf("request body exceeds signing limit")
+	}
+	return DigestBody(body), nil
+}
+
+// CanonicalRequest is intentionally implemented without url.Values so the Go
+// gateway and Node service agree on RFC3986 encoding, including spaces and
+// repeated query parameters.
+func CanonicalRequest(method string, path string, rawQuery string, bodyDigest string, userID string, timestamp string, nonce string) (string, error) {
+	canonicalPath, err := CanonicalPath(path)
+	if err != nil {
+		return "", err
+	}
+	canonicalQuery, err := CanonicalQuery(rawQuery)
+	if err != nil {
+		return "", err
+	}
+	return strings.Join([]string{
+		strings.ToUpper(strings.TrimSpace(method)),
+		canonicalPath,
+		canonicalQuery,
+		strings.ToLower(strings.TrimSpace(bodyDigest)),
+		strings.TrimSpace(userID),
+		strings.TrimSpace(timestamp),
+		strings.TrimSpace(nonce),
+	}, "\n"), nil
+}
+
+func CanonicalPath(path string) (string, error) {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		path = "/"
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	segments := strings.Split(path, "/")
+	for i, segment := range segments {
+		decoded, err := url.PathUnescape(segment)
+		if err != nil {
+			return "", err
+		}
+		segments[i] = rfc3986Encode(decoded)
+	}
+	return strings.Join(segments, "/"), nil
+}
+
+func CanonicalQuery(rawQuery string) (string, error) {
+	if rawQuery == "" {
+		return "", nil
+	}
+	pairs := make([]string, 0)
+	for _, rawPair := range strings.Split(rawQuery, "&") {
+		if rawPair == "" {
+			continue
+		}
+		parts := strings.SplitN(rawPair, "=", 2)
+		key, err := url.QueryUnescape(parts[0])
+		if err != nil {
+			return "", err
+		}
+		value := ""
+		if len(parts) == 2 {
+			value, err = url.QueryUnescape(parts[1])
+			if err != nil {
+				return "", err
+			}
+		}
+		pairs = append(pairs, rfc3986Encode(key)+"="+rfc3986Encode(value))
+	}
+	sort.Strings(pairs)
+	return strings.Join(pairs, "&"), nil
+}
+
+func rfc3986Encode(value string) string {
+	encoded := url.QueryEscape(value)
+	return strings.ReplaceAll(encoded, "+", "%20")
 }
 
 func (a *Authenticator) sessionURL() (string, error) {
