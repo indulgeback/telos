@@ -1,8 +1,8 @@
 # Web 应用 Dockerfile
 FROM node:20-alpine AS base
 
-# 安装 pnpm
-RUN npm install -g pnpm
+# 与根 package.json 的 packageManager 保持一致，避免 latest 主版本漂移。
+RUN npm install -g pnpm@10.31.0
 
 # 设置工作目录
 WORKDIR /app

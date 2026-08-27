@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Keep the image toolchain aligned with the root packageManager pin.
+RUN npm install -g pnpm@10.31.0
 
 # Copy package files (monorepo 共用根 pnpm-lock.yaml)
 COPY services/admin-service/package.json ./services/admin-service/
@@ -29,7 +29,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.31.0
 
 # Copy package files
 COPY services/admin-service/package.json ./services/admin-service/

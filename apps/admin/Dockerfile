@@ -3,7 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN npm install -g pnpm
+# 与根 package.json 的 packageManager 保持一致，避免 latest 主版本漂移。
+RUN npm install -g pnpm@10.31.0
 
 # Copy monorepo workspace files
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
