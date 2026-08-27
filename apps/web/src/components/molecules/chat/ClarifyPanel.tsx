@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { HelpCircle, Check, HelpCircle as HelpIcon } from 'lucide-react'
-import { Button } from '@/components/atoms'
+import { HelpCircle, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ClarifyPanelProps {
@@ -48,36 +47,32 @@ export function ClarifyPanel({
   return (
     <div
       className={cn(
-        'my-3 rounded-xl border p-4 transition-all duration-300 shadow-xs',
-        isPending
-          ? 'border-blue-500/20 bg-blue-500/5 dark:bg-blue-500/10'
-          : 'border-border bg-card/50'
+        'agent-surface-shadow my-3 overflow-hidden rounded-2xl border bg-card transition-all duration-300',
+        isPending ? 'border-primary/35' : 'border-border'
       )}
     >
-      {/* 头部区域：图标 + 问题文本 */}
-      <div className='flex gap-2.5'>
+      <div className='flex gap-3 p-4'>
         <div
           className={cn(
-            'flex size-8 shrink-0 items-center justify-center rounded-lg border transition-all duration-300',
+            'flex size-8 shrink-0 items-center justify-center rounded-lg transition-all duration-300',
             isPending
-              ? 'border-blue-500/30 bg-blue-500/10 text-blue-500 animate-pulse'
-              : 'border-border bg-muted text-muted-foreground'
+              ? 'bg-accent text-accent-foreground'
+              : 'bg-muted text-muted-foreground'
           )}
         >
           <HelpCircle className='size-4' />
         </div>
         <div className='flex-1 space-y-1.5'>
-          <h4 className='text-xs font-semibold uppercase tracking-wider text-muted-foreground/80'>
+          <h4 className='font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground'>
             澄清请求 (Clarification Needed)
           </h4>
-          <p className='text-sm font-medium text-foreground leading-relaxed'>
+          <p className='text-[14px] font-medium leading-relaxed text-foreground'>
             {question}
           </p>
         </div>
       </div>
 
-      {/* 选项区：按钮列表 */}
-      <div className='mt-4 flex flex-wrap gap-2'>
+      <div className='flex flex-wrap gap-2 border-t border-border bg-muted/35 px-4 py-3'>
         {options.map((option, index) => {
           const isSelected = selected === option
           const hasSelected = !!selected
@@ -89,17 +84,14 @@ export function ClarifyPanel({
               disabled={hasSelected || isSubmitting}
               onClick={() => handleSelect(option)}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-medium border transition-all duration-300',
-                // 未回答且悬停状态
+                'inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-medium transition-all duration-200 active:scale-[0.98]',
                 isPending &&
-                  'bg-background hover:bg-blue-500/10 hover:border-blue-500/30 hover:text-blue-600 border-border active:scale-[0.98] cursor-pointer shadow-xs',
-                // 被选中的选项高亮
+                  'border-border bg-card text-foreground hover:border-primary/45 hover:bg-accent hover:text-accent-foreground',
                 isSelected &&
-                  'bg-blue-500 text-white border-blue-500 font-semibold shadow-md shadow-blue-500/10 scale-[1.01]',
-                // 未被选中但已被回答的选项置灰弱化
+                  'border-primary bg-primary font-semibold text-primary-foreground',
                 hasSelected &&
                   !isSelected &&
-                  'opacity-40 bg-muted/30 border-muted text-muted-foreground/60 cursor-not-allowed'
+                  'cursor-not-allowed border-border bg-muted/30 text-muted-foreground/60 opacity-45'
               )}
             >
               {isSelected && <Check className='size-3 shrink-0 stroke-[3]' />}

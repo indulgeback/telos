@@ -76,13 +76,16 @@ const MARKDOWN_COMPONENTS: Components = {
       <img
         src={src}
         alt={alt}
-        className='max-w-[320px] sm:max-w-[380px] w-full h-auto rounded-lg border border-border/40 shadow-sm my-3 transition-all hover:shadow-md cursor-zoom-in'
+        className='my-3 h-auto w-full max-w-[320px] cursor-zoom-in rounded-2xl border border-border/70 shadow-sm transition-all hover:shadow-md sm:max-w-[420px]'
         {...props}
       />
     </Zoom>
   ),
   pre: ({ children, className, ...props }) => (
-    <pre className='bg-muted rounded-lg p-4 overflow-x-auto text-sm' {...props}>
+    <pre
+      className='my-4 overflow-x-auto rounded-xl border border-white/10 bg-[#17181a] p-4 font-mono text-[12px] leading-6 text-[#e7e8ea] shadow-sm'
+      {...props}
+    >
       {children}
     </pre>
   ),
@@ -94,7 +97,7 @@ const MARKDOWN_COMPONENTS: Components = {
       </code>
     ) : (
       <code
-        className='bg-muted px-1.5 py-0.5 rounded text-sm font-mono'
+        className='rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.9em] text-accent-foreground'
         {...props}
       >
         {children}
@@ -179,30 +182,33 @@ const MARKDOWN_COMPONENTS: Components = {
     </ArtifactPreviewLink>
   ),
   table: ({ children, ...props }) => (
-    <div className='overflow-x-auto mb-4'>
-      <table className='min-w-full border-collapse' {...props}>
+    <div className='mb-4 overflow-x-auto rounded-xl border border-border bg-card'>
+      <table className='min-w-full border-collapse text-[13px]' {...props}>
         {children}
       </table>
     </div>
   ),
   thead: ({ children, ...props }) => (
-    <thead className='bg-muted' {...props}>
+    <thead
+      className='bg-muted font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground'
+      {...props}
+    >
       {children}
     </thead>
   ),
   tbody: ({ children, ...props }) => <tbody {...props}>{children}</tbody>,
   tr: ({ children, ...props }) => (
-    <tr className='border-b border-border' {...props}>
+    <tr className='border-b border-border last:border-b-0' {...props}>
       {children}
     </tr>
   ),
   th: ({ children, ...props }) => (
-    <th className='px-4 py-2 text-left font-semibold' {...props}>
+    <th className='px-4 py-2.5 text-left font-medium' {...props}>
       {children}
     </th>
   ),
   td: ({ children, ...props }) => (
-    <td className='px-4 py-2' {...props}>
+    <td className='px-4 py-2.5' {...props}>
       {children}
     </td>
   ),

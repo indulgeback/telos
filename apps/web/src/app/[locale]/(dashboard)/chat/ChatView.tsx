@@ -4,7 +4,7 @@ import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
-  AgentSelector,
+  AgentThreadSidebar,
   ChatContainer,
   type ChatModelOption,
   type Message,
@@ -25,11 +25,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
   Input,
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
   type SuggestionPrompt,
 } from '@/components/atoms'
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
@@ -53,13 +53,8 @@ import {
   Mic2,
   MicOff,
   PhoneOff,
-  Pencil,
-  Plus,
-  Search,
   Square,
-  Trash2,
   Volume2,
-  MoreHorizontal,
 } from 'lucide-react'
 import { VoiceAuraOrb } from '@/components/molecules/chat/VoiceAuraOrb'
 import { toast } from 'sonner'
@@ -995,6 +990,8 @@ export function ChatView() {
   const [selectedModel, setSelectedModel] = useState('')
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
   const [threads, setThreads] = useState<AgentThread[]>([])
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileThreadsOpen, setMobileThreadsOpen] = useState(false)
   const [threadSearch, setThreadSearch] = useState('')
   const [threadToRename, setThreadToRename] = useState<AgentThread | null>(null)
   const [renameThreadTitle, setRenameThreadTitle] = useState('')
@@ -3408,10 +3405,10 @@ export function ChatView() {
       type='button'
       onClick={() => setRealtimeEnabled(prev => !prev)}
       disabled={isLoading || realtimeConfigLoading}
-      className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors ${
+      className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[10px] transition-all duration-200 active:scale-[0.98] ${
         realtimeEnabled
-          ? 'border-primary/50 bg-primary/10 text-primary'
-          : 'border-border/70 bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+          ? 'bg-accent text-accent-foreground ring-1 ring-primary/25'
+          : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
       } ${isLoading || realtimeConfigLoading ? 'opacity-60' : ''}`}
       aria-pressed={realtimeEnabled}
       aria-label={t('voice.toggle')}
@@ -3443,7 +3440,7 @@ export function ChatView() {
   }
 
   const realtimeStatusPanel = realtimeEnabled ? (
-    <div className='overflow-hidden rounded-xl border border-border/70 bg-background/95 p-3 text-xs shadow-sm backdrop-blur-xl'>
+    <div className='agent-surface-shadow overflow-hidden rounded-2xl border border-border bg-card p-3 text-xs'>
       <div className='flex min-w-0 items-center gap-3'>
         <div className='flex min-w-0 items-center gap-2'>
           <span
@@ -3467,7 +3464,7 @@ export function ChatView() {
         </div>
 
         {/* SiriWave 经典彩虹流光声纹条 */}
-        <div className='flex h-8 min-w-[200px] flex-1 items-center justify-center gap-1 rounded-lg border border-border/60 bg-muted/20 px-2 overflow-hidden relative'>
+        <div className='relative flex h-8 min-w-[200px] flex-1 items-center justify-center gap-1 overflow-hidden rounded-lg bg-muted px-2'>
           <VoiceAuraOrb
             state={getAuraState()}
             amplitude={realtimeVolumeAmplitude}
@@ -3505,7 +3502,7 @@ export function ChatView() {
           type='button'
           onClick={() => setRealtimeMuted(prev => !prev)}
           className={cn(
-            'inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+            'inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
             realtimeMuted &&
               'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
           )}
@@ -3521,7 +3518,7 @@ export function ChatView() {
           type='button'
           onClick={handleStop}
           disabled={!isLoading || realtimeMicState !== 'speaking'}
-          className='inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-border/70 bg-background px-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-45'
+          className='inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-muted px-2 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-45'
         >
           <Square className='size-3' />
           {t('actions.stop') || 'Interrupt'}
@@ -3546,115 +3543,92 @@ export function ChatView() {
 
   return (
     <>
-      <div className='flex h-full min-h-0 w-full bg-background'>
-        <aside className='hidden w-[292px] shrink-0 border-r border-border/60 bg-muted/25 md:flex md:flex-col'>
-          <div className='p-3'>
-            <div className='flex items-center justify-between gap-2'>
-              <div>
-                <p className='text-sm font-medium text-foreground'>
-                  {t('threads.title')}
-                </p>
-              </div>
+      <div className='agent-workbench flex h-full min-h-0 w-full overflow-hidden text-foreground'>
+        <aside
+          className={cn(
+            'hidden shrink-0 border-r border-border transition-[width] duration-300 ease-out md:block',
+            sidebarCollapsed ? 'w-[62px]' : 'w-[280px]'
+          )}
+        >
+          <AgentThreadSidebar
+            threads={threads}
+            filteredThreads={filteredThreads}
+            currentThreadId={currentThreadId}
+            threadsLoading={threadsLoading}
+            threadSearch={threadSearch}
+            selectedAgentId={selectedAgent?.id ?? null}
+            collapsed={sidebarCollapsed}
+            onCollapsedChange={setSidebarCollapsed}
+            onSearchChange={setThreadSearch}
+            onAgentChange={handleAgentChange}
+            onNewThread={handleNewThread}
+            onSelectThread={threadId => void handleSelectThread(threadId)}
+            onRenameThread={handleRenameThread}
+            onDeleteThread={handleDeleteThread}
+            getThreadTitle={thread =>
+              getDisplayThreadTitle(thread.title, t('voiceChat'))
+            }
+            labels={{
+              title: t('threads.title'),
+              newThread: t('threads.new'),
+              search: t('threads.search'),
+              empty: t('threads.empty'),
+              noResults: t('threads.noResults'),
+              rename: t('threads.rename'),
+              delete: t('threads.delete'),
+            }}
+          />
+        </aside>
+        <div className='relative min-w-0 flex-1 bg-background/82'>
+          <Sheet open={mobileThreadsOpen} onOpenChange={setMobileThreadsOpen}>
+            <SheetTrigger asChild>
               <button
                 type='button'
-                onClick={handleNewThread}
-                className='inline-flex size-8 items-center justify-center rounded-md bg-background/80 text-muted-foreground shadow-sm ring-1 ring-border/60 transition-colors hover:bg-background hover:text-foreground'
-                aria-label={t('threads.new')}
+                className='agent-surface-shadow absolute left-3 top-3 z-40 grid size-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:text-foreground md:hidden'
+                aria-label={t('threads.title')}
               >
-                <Plus className='size-4' />
+                <MessageSquare className='size-4' />
               </button>
-            </div>
-            <div className='mt-3'>
-              <AgentSelector
+            </SheetTrigger>
+            <SheetContent
+              side='left'
+              className='agent-workbench w-[min(88vw,320px)] gap-0 border-r border-border bg-card p-0 [&_[data-slot=sheet-close]]:top-3 [&_[data-slot=sheet-close]]:right-3'
+            >
+              <SheetTitle className='sr-only'>{t('threads.title')}</SheetTitle>
+              <AgentThreadSidebar
+                threads={threads}
+                filteredThreads={filteredThreads}
+                currentThreadId={currentThreadId}
+                threadsLoading={threadsLoading}
+                threadSearch={threadSearch}
                 selectedAgentId={selectedAgent?.id ?? null}
+                onSearchChange={setThreadSearch}
                 onAgentChange={handleAgentChange}
+                onNewThread={() => {
+                  handleNewThread()
+                  setMobileThreadsOpen(false)
+                }}
+                onSelectThread={threadId => {
+                  void handleSelectThread(threadId)
+                  setMobileThreadsOpen(false)
+                }}
+                onRenameThread={handleRenameThread}
+                onDeleteThread={handleDeleteThread}
+                getThreadTitle={thread =>
+                  getDisplayThreadTitle(thread.title, t('voiceChat'))
+                }
+                labels={{
+                  title: t('threads.title'),
+                  newThread: t('threads.new'),
+                  search: t('threads.search'),
+                  empty: t('threads.empty'),
+                  noResults: t('threads.noResults'),
+                  rename: t('threads.rename'),
+                  delete: t('threads.delete'),
+                }}
               />
-            </div>
-            <label className='mt-3 flex h-8 items-center gap-2 rounded-md bg-background/70 px-2 text-xs text-muted-foreground shadow-sm ring-1 ring-border/50'>
-              <Search className='size-3.5 shrink-0' />
-              <input
-                value={threadSearch}
-                onChange={event => setThreadSearch(event.target.value)}
-                placeholder={t('threads.search')}
-                className='min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground/70'
-              />
-            </label>
-          </div>
-          <div className='min-h-0 flex-1 overflow-y-auto p-2'>
-            {threadsLoading && threads.length === 0 ? (
-              <div className='space-y-2.5 px-2 py-3 animate-pulse'>
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className='h-9 w-full rounded-md bg-muted/40' />
-                ))}
-              </div>
-            ) : filteredThreads.length === 0 ? (
-              <div className='px-2 py-6 text-center text-sm text-muted-foreground'>
-                {threads.length === 0
-                  ? t('threads.empty')
-                  : t('threads.noResults')}
-              </div>
-            ) : (
-              <div className='space-y-1'>
-                {filteredThreads.map(thread => (
-                  <div
-                    key={thread.id}
-                    className={`group flex h-10 items-center gap-2 rounded-md px-3 text-sm transition-colors ${
-                      thread.id === currentThreadId
-                        ? 'bg-background text-foreground shadow-sm ring-1 ring-border/60'
-                        : 'bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                    }`}
-                  >
-                    <button
-                      type='button'
-                      className='flex h-full min-w-0 flex-1 items-center text-left'
-                      onClick={() => void handleSelectThread(thread.id)}
-                    >
-                      <span className='truncate'>
-                        {getDisplayThreadTitle(thread.title, t('voiceChat'))}
-                      </span>
-                    </button>
-                    <div className='flex shrink-0 justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100'>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type='button'
-                            onClick={e => e.stopPropagation()}
-                            className='inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background/90 hover:text-foreground'
-                            aria-label='More actions'
-                          >
-                            <MoreHorizontal className='size-4' />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end' className='w-28'>
-                          <DropdownMenuItem
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleRenameThread(thread)
-                            }}
-                          >
-                            <Pencil className='mr-2 size-3.5' />
-                            <span>{t('threads.rename')}</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleDeleteThread(thread)
-                            }}
-                            className='text-destructive focus:bg-destructive/10 focus:text-destructive'
-                          >
-                            <Trash2 className='mr-2 size-3.5' />
-                            <span>{t('threads.delete')}</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </aside>
-        <div className='relative min-w-0 flex-1'>
+            </SheetContent>
+          </Sheet>
           <SkillTrigger
             input={input}
             agentId={selectedAgent?.id ?? null}
@@ -3798,14 +3772,18 @@ export function ChatView() {
           }
         }}
       >
-        <DialogContent className='max-h-[85vh] overflow-y-auto sm:max-w-lg'>
-          <DialogHeader>
-            <DialogTitle>{t('approval.title')}</DialogTitle>
-            <DialogDescription>{t('approval.description')}</DialogDescription>
+        <DialogContent className='agent-workbench max-h-[85vh] gap-0 overflow-y-auto rounded-2xl border-border bg-card p-0 sm:max-w-lg'>
+          <DialogHeader className='border-b border-border px-5 py-4 text-left'>
+            <DialogTitle className='text-[17px] tracking-[-0.02em]'>
+              {t('approval.title')}
+            </DialogTitle>
+            <DialogDescription className='text-[13px] leading-5'>
+              {t('approval.description')}
+            </DialogDescription>
           </DialogHeader>
-          <div className='space-y-3'>
+          <div className='space-y-3 p-4'>
             {pendingApprovals.length === 0 ? (
-              <p className='rounded-md border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground'>
+              <p className='rounded-xl bg-muted p-4 text-sm text-muted-foreground'>
                 {t('approval.empty')}
               </p>
             ) : (
@@ -3822,37 +3800,43 @@ export function ChatView() {
                 return (
                   <div
                     key={approval.id}
-                    className='rounded-lg border border-border/70 bg-muted/15 p-3'
+                    className={cn(
+                      'overflow-hidden rounded-2xl border bg-card transition-colors',
+                      isPending ? 'border-primary/30' : 'border-border'
+                    )}
                   >
-                    <div className='flex items-start justify-between gap-3'>
+                    <div className='flex items-start justify-between gap-3 p-4'>
                       <div className='min-w-0'>
-                        <p className='text-xs text-muted-foreground'>
+                        <p className='font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground'>
                           {t('approval.tool')}
                         </p>
-                        <p className='break-all font-mono text-sm font-medium text-foreground'>
+                        <p className='mt-1 break-all font-mono text-[13px] font-medium text-foreground'>
                           {approval.tool_name}
                         </p>
                       </div>
-                      <span className='shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground'>
+                      <span className='shrink-0 rounded-full bg-accent px-2 py-1 font-mono text-[9px] text-accent-foreground'>
                         {statusLabel}
                       </span>
                     </div>
-                    <p className='mt-3 text-xs text-muted-foreground'>
-                      {t('approval.arguments')}
-                    </p>
-                    <pre className='mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-md bg-background/80 p-2 text-xs text-foreground'>
-                      {formatApprovalArguments(approval.arguments)}
-                    </pre>
-                    <p className='mt-2 text-xs text-muted-foreground'>
+                    <div className='border-y border-border bg-muted/45 px-4 py-3'>
+                      <p className='font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground'>
+                        {t('approval.arguments')}
+                      </p>
+                      <pre className='mt-1.5 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-5 text-foreground/80'>
+                        {formatApprovalArguments(approval.arguments)}
+                      </pre>
+                    </div>
+                    <p className='px-4 pt-3 font-mono text-[9px] text-muted-foreground'>
                       {t('approval.expires', {
                         time: formatApprovalExpiry(approval.expires_at),
                       })}
                     </p>
                     {isPending && (
-                      <div className='mt-3 flex justify-end gap-2'>
+                      <div className='flex gap-2 px-4 py-3'>
                         <Button
                           type='button'
                           variant='outline'
+                          className='min-w-24 flex-1 rounded-lg bg-card'
                           disabled={approvalBusyId !== null}
                           onClick={() =>
                             void handleApprovalDecision(approval, 'denied')
@@ -3862,6 +3846,7 @@ export function ChatView() {
                         </Button>
                         <Button
                           type='button'
+                          className='min-w-28 flex-1 rounded-lg'
                           disabled={approvalBusyId !== null}
                           onClick={() =>
                             void handleApprovalDecision(approval, 'approved')

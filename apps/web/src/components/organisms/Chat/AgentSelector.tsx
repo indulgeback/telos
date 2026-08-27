@@ -77,7 +77,7 @@ export function AgentSelector({
       <SelectTrigger
         size='sm'
         className={cn(
-          'h-8 w-full min-w-0 overflow-hidden rounded-md border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50',
+          'h-9 w-full min-w-0 overflow-hidden rounded-lg border-0 bg-muted px-2.5 text-xs font-normal shadow-none transition-colors hover:bg-accent hover:text-accent-foreground',
           className
         )}
       >
@@ -97,14 +97,14 @@ export function AgentSelector({
           />
         )}
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className='rounded-xl border-border shadow-xl'>
         {agents.length === 0 ? (
           <SelectItem value='__empty_agent__' disabled>
             {loading ? t('selector.loading') : t('selector.noAgents')}
           </SelectItem>
         ) : (
           agents.map(agent => (
-            <SelectItem key={agent.id} value={agent.id}>
+            <SelectItem key={agent.id} value={agent.id} className='rounded-lg'>
               <div className='flex w-full items-center justify-between gap-2'>
                 <span className='flex min-w-0 items-center gap-1.5'>
                   {getTypeIcon(agent.type)}

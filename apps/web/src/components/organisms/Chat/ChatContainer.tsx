@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  type ReactNode,
-  type RefObject,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import Image from 'next/image'
 import {
   LiquidOrbIcon,
@@ -44,19 +37,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const CARD_TILTS = ['-5deg', '3.5deg', '0deg', '-3deg', '5deg', '2deg'] as const
-const GRADIENT_POOL = [
-  ['#4285F4', '#FFFFFF'],
-  ['#9B51E0', '#FFFFFF'],
-  ['#34A853', '#FFFFFF'],
-  ['#C8B27C', '#FFFFFF'],
-  ['#4285F4', '#9B51E0', '#FFFFFF'],
-  ['#9B51E0', '#34A853', '#FFFFFF'],
-] as const
-
 const SUGGESTION_BATCH_SIZE = 4
-const SHUFFLE_COLLAPSE_MS = 180
-const SHUFFLE_END_MS = 300
 
 function getVisibleSuggestions<T>(items: T[], seed: number, batchSize: number) {
   if (items.length <= batchSize) return items
@@ -64,34 +45,6 @@ function getVisibleSuggestions<T>(items: T[], seed: number, batchSize: number) {
   return Array.from({ length: batchSize }).map((_, index) => {
     return items[(start + index) % items.length]
   })
-}
-
-function getCardGradient(index: number, isDark: boolean) {
-  const colors = GRADIENT_POOL[index % GRADIENT_POOL.length]
-  const whiteStop = isDark ? '#323546' : '#FFFFFF'
-  const alphaStrong = isDark ? '3d' : '26'
-  const alphaSoft = isDark ? '2c' : '22'
-  const alphaMid = isDark ? '34' : '24'
-
-  if (colors.length === 2) {
-    return `linear-gradient(135deg, ${colors[0]}${alphaStrong} 0%, ${whiteStop} 100%)`
-  }
-
-  return `linear-gradient(135deg, ${colors[0]}${alphaSoft} 0%, ${colors[1]}${alphaMid} 45%, ${whiteStop} 100%)`
-}
-
-function getCardTransform(
-  index: number,
-  isShuffling: boolean,
-  isHovered: boolean
-) {
-  const spreadX = (index - 1.5) * 180
-  const spreadY = index % 2 === 0 ? -10 : 10
-  const tilt = CARD_TILTS[index % CARD_TILTS.length]
-  const offset = isShuffling ? { x: 0, y: 0 } : { x: spreadX, y: spreadY }
-  const rotation = isHovered ? '0deg' : tilt
-
-  return `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) rotate(${rotation})`
 }
 
 function getModelIconName(modelKey: string) {
@@ -348,12 +301,6 @@ export function ChatContainer({
       onPickImages?.(imageFiles)
     }
   }
-  const [isShuffling, setIsShuffling] = useState(false)
-  const [hoveredSuggestion, setHoveredSuggestion] = useState<string | null>(
-    null
-  )
-  const shuffleTimeoutRef = useRef<number | null>(null)
-  const shuffleEndRef = useRef<number | null>(null)
   const visibleSuggestions = useMemo(
     () =>
       getVisibleSuggestions(
@@ -363,18 +310,6 @@ export function ChatContainer({
       ),
     [suggestionPrompts, suggestionSeed]
   )
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    const update = () => {
-      setIsDark(document.documentElement.classList.contains('dark'))
-    }
-    update()
-    const observer = new MutationObserver(update)
-    observer.observe(document.documentElement, { attributes: true })
-    return () => observer.disconnect()
-  }, [])
-
   const safeInput = input ?? ''
   const selectedModelOption = useMemo(
     () => modelOptions.find(option => option.model === selectedModel),
@@ -392,26 +327,8 @@ export function ChatContainer({
     [modelOptions]
   )
 
-  useEffect(() => {
-    return () => {
-      if (shuffleTimeoutRef.current) {
-        window.clearTimeout(shuffleTimeoutRef.current)
-      }
-      if (shuffleEndRef.current) {
-        window.clearTimeout(shuffleEndRef.current)
-      }
-    }
-  }, [])
-
   const handleShuffle = () => {
-    if (isShuffling) return
-    setIsShuffling(true)
-    shuffleTimeoutRef.current = window.setTimeout(() => {
-      setSuggestionSeed(prev => prev + 1)
-    }, SHUFFLE_COLLAPSE_MS)
-    shuffleEndRef.current = window.setTimeout(() => {
-      setIsShuffling(false)
-    }, SHUFFLE_END_MS)
+    setSuggestionSeed(prev => prev + 1)
   }
 
   // 当前模型对应的推理级别标签（仅在推理开启时用于 trigger）
@@ -479,14 +396,14 @@ export function ChatContainer({
           type='button'
           disabled={disableModelSelect}
           aria-label={modelLabel}
-          className='inline-flex h-8 max-w-[240px] shrink-0 items-center gap-1.5 rounded-md border border-border/70 bg-background px-2.5 text-xs font-normal shadow-xs transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50'
+          className='inline-flex h-8 max-w-[240px] shrink-0 items-center gap-1.5 rounded-lg bg-transparent px-2.5 font-mono text-[10px] font-normal text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
         >
           {selectedModelOption ? (
             <>
               <ModelIcon modelKey={selectedModelOption.model} />
               <span className='truncate'>{selectedModelOption.label}</span>
               {showReasoningEffort && reasoningEffort !== 'minimal' && (
-                <span className='inline-flex shrink-0 items-center gap-1 rounded bg-primary/10 px-1 py-0.5 text-[10px] leading-none text-primary'>
+                <span className='inline-flex shrink-0 items-center gap-1 rounded-md bg-accent px-1.5 py-0.5 text-[9px] leading-none text-accent-foreground'>
                   <BrainCircuit className='size-2.5' />
                   {reasoningEffortLabelMap[reasoningEffort]}
                 </span>
@@ -503,7 +420,7 @@ export function ChatContainer({
       <DropdownMenuContent
         align='start'
         side='top'
-        className='w-[260px] max-w-[calc(100vw-2rem)] p-1.5'
+        className='w-[280px] max-w-[calc(100vw-2rem)] rounded-xl border-border p-1.5 shadow-xl'
       >
         <div className='max-h-[280px] overflow-y-auto p-0.5'>
           {providerGroups.map(
@@ -511,7 +428,7 @@ export function ChatContainer({
               group.options.length > 0 && (
                 <DropdownMenuGroup key={group.key}>
                   {group.label && (
-                    <DropdownMenuLabel className='px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground'>
+                    <DropdownMenuLabel className='px-2 py-1 font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-muted-foreground'>
                       {group.label}
                     </DropdownMenuLabel>
                   )}
@@ -521,7 +438,7 @@ export function ChatContainer({
                       <DropdownMenuItem
                         key={option.model}
                         onSelect={() => onModelChange(option.model)}
-                        className='gap-2 px-2 py-1.5 text-xs'
+                        className='gap-2 rounded-lg px-2 py-2 text-xs'
                       >
                         <span className='flex min-w-0 flex-1 items-center gap-1.5'>
                           <ModelIcon modelKey={option.model} />
@@ -591,68 +508,43 @@ export function ChatContainer({
   )
 
   return (
-    <div className='relative flex h-full w-full flex-col overflow-hidden bg-background'>
+    <div className='relative flex h-full w-full flex-col overflow-hidden bg-transparent'>
       {/* Messages Area */}
       <div className='relative z-20 flex-1 min-h-0'>
         <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
-          <div className='mx-auto max-w-5xl px-4 py-10'>
+          <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10'>
             {messages.length === 0 ? (
-              <div className='flex min-h-[50vh] flex-col items-center justify-center py-10'>
-                <div className='mb-8 text-center'>
-                  <div className='mb-4 inline-flex items-center justify-center'>
-                    <LiquidOrbIcon className='size-20' />
+              <div className='mx-auto flex min-h-[58vh] max-w-2xl flex-col justify-center py-10'>
+                <div className='mb-8'>
+                  <div className='mb-5 inline-flex items-center justify-center rounded-2xl border border-border bg-card p-2 agent-surface-shadow'>
+                    <LiquidOrbIcon className='size-12' />
                   </div>
-                  <h2 className='mb-2 text-xl font-semibold'>
+                  <h2 className='text-balance text-3xl font-semibold leading-tight tracking-[-0.035em] text-foreground sm:text-4xl'>
                     {emptyStateTitle}
                   </h2>
-                  <p className='text-sm text-muted-foreground'>
+                  <p className='mt-3 max-w-xl text-pretty text-[14px] leading-6 text-muted-foreground'>
                     {emptyStateDescription}
                   </p>
                 </div>
 
-                <div className='mt-6 w-[min(1200px,95vw)]'>
-                  <div
-                    className={cn('relative flex justify-center', 'h-[200px]')}
-                  >
-                    {visibleSuggestions.map((suggestion, index) => {
-                      const hoverKey = `${suggestion.label}-${index}`
-                      const isHovered = hoveredSuggestion === hoverKey
-                      const gradient = getCardGradient(index, isDark)
-                      const transform = getCardTransform(
-                        index,
-                        isShuffling,
-                        isHovered
-                      )
-
-                      return (
-                        <SuggestionPromptButton
-                          key={`${suggestion.label}-${suggestionSeed}`}
-                          suggestion={suggestion}
-                          onClick={onSend}
-                          onMouseEnter={() => setHoveredSuggestion(hoverKey)}
-                          onMouseLeave={() => setHoveredSuggestion(null)}
-                          className={cn(
-                            'absolute left-1/2 top-1/2 will-change-transform transition-all duration-300 ease-out',
-                            isShuffling
-                              ? 'scale-[0.5] opacity-10'
-                              : 'opacity-100'
-                          )}
-                          style={{
-                            transform,
-                            backgroundImage: gradient,
-                            zIndex: isHovered ? 50 : index,
-                          }}
-                        />
-                      )
-                    })}
+                <div>
+                  <div className='grid gap-2 sm:grid-cols-2'>
+                    {visibleSuggestions.map(suggestion => (
+                      <SuggestionPromptButton
+                        key={`${suggestion.label}-${suggestionSeed}`}
+                        suggestion={suggestion}
+                        onClick={onSend}
+                        className='animate-in fade-in slide-in-from-bottom-1 duration-300'
+                      />
+                    ))}
                   </div>
                   {suggestionPrompts.length > SUGGESTION_BATCH_SIZE && (
-                    <div className='mt-6 flex justify-center'>
+                    <div className='mt-3 flex justify-start'>
                       <Button
                         variant='ghost'
                         size='sm'
                         onClick={handleShuffle}
-                        className='text-[11px] text-muted-foreground hover:text-foreground'
+                        className='h-8 gap-1.5 rounded-lg px-2 font-mono text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground'
                       >
                         <RefreshCw className='mr-1 size-3' />
                         {refreshSuggestionsLabel}
@@ -662,7 +554,7 @@ export function ChatContainer({
                 </div>
               </div>
             ) : (
-              <div className='space-y-8'>
+              <div className='space-y-10 pb-4'>
                 {messages.map(message => {
                   const lastAssistantMessage = [...messages]
                     .reverse()
@@ -768,8 +660,8 @@ export function ChatContainer({
       </div>
 
       {/* Input Area */}
-      <div className='shrink-0 bg-transparent backdrop-blur-lg relative z-30'>
-        <div className='mx-auto max-w-5xl px-4 py-4'>
+      <div className='relative z-30 shrink-0 bg-gradient-to-t from-background via-background/95 to-transparent pt-5 backdrop-blur-[2px]'>
+        <div className='mx-auto max-w-4xl px-4 pb-4 sm:px-6'>
           {realtimeStatusPanel && (
             <div className='mb-2'>{realtimeStatusPanel}</div>
           )}
@@ -873,7 +765,7 @@ export function ChatContainer({
               </div>
             }
           />
-          <p className='mt-2 text-center text-[11px] text-muted-foreground'>
+          <p className='mt-2.5 text-center font-mono text-[9px] text-muted-foreground/75'>
             {disclaimer}
           </p>
         </div>

@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { Button } from '@/components/atoms'
-import { ArrowUp, Square } from 'lucide-react'
+import { ArrowUp, Sparkles, Square } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ChatInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -137,10 +137,10 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'relative flex flex-col overflow-hidden rounded-2xl border bg-background/95 p-2 shadow-sm transition-[border-color,box-shadow,background-color]',
-          isFocused ? 'border-ring/60 shadow-xl' : 'ring-0',
+          'agent-surface-shadow relative flex flex-col overflow-hidden rounded-2xl border bg-card/95 p-2.5 transition-[border-color,box-shadow,background-color] duration-200',
+          isFocused ? 'border-primary/55' : 'border-border',
           isImageDragActive &&
-            'border-primary/60 bg-primary/[0.035] shadow-lg ring-2 ring-primary/10'
+            'border-primary/60 bg-accent ring-2 ring-primary/10'
         )}
       >
         {attachments && <div className='px-2 pt-1.5'>{attachments}</div>}
@@ -152,7 +152,8 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
         )}
 
         {/* 输入区域 */}
-        <div className='flex items-end'>
+        <div className='flex items-start gap-1'>
+          <Sparkles className='ml-2 mt-3 size-4 shrink-0 text-primary' />
           <textarea
             ref={ref}
             value={value}
@@ -162,7 +163,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
-              'max-h-40 min-h-10 w-full resize-none border-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground/70',
+              'max-h-40 min-h-11 w-full resize-none border-none bg-transparent px-2 py-2.5 text-[15px] leading-6 outline-none placeholder:text-muted-foreground/70',
               className
             )}
             rows={1}
@@ -171,7 +172,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
         </div>
 
         {/* 操作区域 - 在边框内 */}
-        <div className='mt-1 flex items-center justify-between gap-2 px-1 pt-1'>
+        <div className='mt-1.5 flex items-center justify-between gap-2 border-t border-border/70 px-1 pt-2'>
           <div className='min-w-0 flex-1'>{actions}</div>
           <div className='shrink-0'>
             <Button
@@ -181,7 +182,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
               }
               size='icon'
               className={cn(
-                'size-9 rounded-xl shadow-sm',
+                'size-9 rounded-lg bg-primary text-primary-foreground shadow-none transition-all duration-200 hover:bg-primary/90 active:scale-[0.96]',
                 isLoading && isStopCooldown && 'opacity-60'
               )}
               aria-label={isLoading ? stopAriaLabel : sendAriaLabel}

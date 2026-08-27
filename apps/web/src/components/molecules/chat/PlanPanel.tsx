@@ -74,21 +74,22 @@ export function PlanPanel({
   const isExecuting = status === 'approved' && hasStepStatuses
 
   return (
-    <div className='rounded-xl border border-border/60 bg-background/80 shadow-sm backdrop-blur-md'>
-      {/* 头部：标题 + 进度/badge */}
-      <div className='flex items-center gap-2 border-b border-border/40 px-3 py-2'>
-        <ClipboardList className='size-4 shrink-0 text-primary' />
-        <span className='text-sm font-medium text-foreground'>
+    <section className='agent-surface-shadow overflow-hidden rounded-2xl border border-border bg-card'>
+      <div className='flex items-center gap-2.5 border-b border-border px-4 py-3'>
+        <span className='grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground'>
+          <ClipboardList className='size-3.5' />
+        </span>
+        <span className='text-[13px] font-medium text-foreground'>
           {isExecuting ? executingLabel || titleLabel : titleLabel}
         </span>
         {summary && (
-          <span className='truncate text-xs text-muted-foreground'>
+          <span className='min-w-0 truncate text-[12px] text-muted-foreground'>
             {summary}
           </span>
         )}
-        <span className='ml-auto flex items-center gap-2 text-xs'>
+        <span className='ml-auto flex shrink-0 items-center gap-2 font-mono text-[10px]'>
           {isExecuting && (
-            <span className='text-muted-foreground'>
+            <span className='rounded-full bg-accent px-2 py-0.5 text-accent-foreground'>
               {completedCount}/{steps.length}
             </span>
           )}
@@ -113,8 +114,7 @@ export function PlanPanel({
         </span>
       </div>
 
-      {/* 步骤列表 */}
-      <ol className='space-y-0.5 px-3 py-2'>
+      <ol className='divide-y divide-border'>
         {steps.map((step, i) => {
           const sStatus = stepStatuses?.[i] ?? 'pending'
           const isDone = sStatus === 'completed'
@@ -122,30 +122,32 @@ export function PlanPanel({
           return (
             <li
               key={i}
-              className='flex items-start gap-2 rounded-md px-1.5 py-1 text-sm transition-colors'
+              className={`flex items-start gap-3 px-4 py-3 text-sm transition-colors duration-300 ${
+                isActive ? 'bg-accent/55' : ''
+              }`}
             >
-              <span className='mt-0.5'>
+              <span className='mt-0.5 grid size-4 shrink-0 place-items-center'>
                 {hasStepStatuses ? (
                   <StepIcon status={sStatus} />
                 ) : (
-                  <span className='text-xs font-medium text-muted-foreground'>
-                    {i + 1}.
+                  <span className='font-mono text-[10px] text-muted-foreground'>
+                    {String(i + 1).padStart(2, '0')}
                   </span>
                 )}
               </span>
               <span
                 className={`flex-1 leading-relaxed ${
                   isDone
-                    ? 'text-muted-foreground line-through/0'
+                    ? 'text-muted-foreground'
                     : isActive
-                      ? 'text-foreground'
-                      : 'text-foreground/70'
+                      ? 'font-medium text-foreground'
+                      : 'text-foreground/65'
                 }`}
               >
                 {step.description}
                 {step.tool_hint && (
-                  <span className='ml-1.5 text-[11px] text-muted-foreground/70'>
-                    ({step.tool_hint})
+                  <span className='ml-2 font-mono text-[10px] text-muted-foreground'>
+                    {step.tool_hint}
                   </span>
                 )}
               </span>
@@ -154,10 +156,15 @@ export function PlanPanel({
         })}
       </ol>
 
-      {/* 操作按钮（仅 pending 状态）*/}
       {status === 'pending' && onApprove && onReject && (
-        <div className='flex items-center gap-2 border-t border-border/40 px-3 py-2'>
-          <Button type='button' size='sm' radius='md' onClick={onApprove}>
+        <div className='flex items-center gap-2 border-t border-border px-4 py-3'>
+          <Button
+            type='button'
+            size='sm'
+            radius='md'
+            onClick={onApprove}
+            className='min-w-28'
+          >
             <CheckCircle2 className='size-3.5' />
             {approveLabel}
           </Button>
@@ -167,12 +174,13 @@ export function PlanPanel({
             radius='md'
             variant='outline'
             onClick={onReject}
+            className='min-w-24 bg-card'
           >
             <XCircle className='size-3.5' />
             {rejectLabel}
           </Button>
         </div>
       )}
-    </div>
+    </section>
   )
 }

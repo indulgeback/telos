@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronRight,
-  Loader2,
-  Wrench,
-} from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Wrench } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
@@ -68,92 +62,91 @@ export function ToolCallStatus({ tool }: { tool: ToolCallPreview }) {
   const hasDetail = Boolean(input || output || errorText)
 
   return (
-    <details
-      className='chat-tool-details text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'
-      onToggle={event => setOpen(event.currentTarget.open)}
-    >
-      <summary className='inline-flex cursor-pointer list-none items-center gap-2 rounded-md py-0.5 pr-2 transition-colors hover:text-foreground'>
-        <ChevronRight
+    <section className='w-full'>
+      <button
+        type='button'
+        onClick={() => setOpen(value => !value)}
+        aria-expanded={open}
+        className={cn(
+          'inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] transition-all duration-200 active:scale-[0.98]',
+          open
+            ? 'border-primary/45 bg-accent text-accent-foreground'
+            : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/45 hover:text-foreground'
+        )}
+      >
+        <Icon
           className={cn(
-            'chat-tool-chevron size-3.5 transition-transform duration-200 ease-out',
-            open && 'rotate-90'
-          )}
-        />
-        <span className='inline-flex items-center gap-1.5 font-medium text-foreground/85'>
-          <Wrench className='size-3.5 text-muted-foreground' />
-          {formatToolName(tool.toolName)}
-        </span>
-        <span className='h-1 w-1 rounded-full bg-current opacity-35' />
-        <span
-          className={cn(
-            'inline-flex items-center gap-1 text-[11px]',
+            'size-3.5 shrink-0',
+            tool.state === 'running' && 'animate-spin',
             meta.textClass
           )}
-        >
-          <Icon
-            className={cn(
-              'size-3.5',
-              tool.state === 'running' && 'animate-spin'
-            )}
-          />
+        />
+        <span className='truncate font-medium'>
+          {formatToolName(tool.toolName)}
+        </span>
+        <span className='font-mono text-[10px] text-muted-foreground/75'>
           {meta.label}
         </span>
-      </summary>
+      </button>
 
-      {(summaryInput || summaryOutput || summaryError) && (
-        <div className='ml-[7px] mt-1 border-l border-border/70 pl-4 text-[11px] leading-relaxed'>
-          {summaryInput && (
-            <p className='line-clamp-1 text-muted-foreground'>
-              {t('toolCall.input')}: {summaryInput}
-            </p>
-          )}
-          {tool.state === 'success' && summaryOutput && (
-            <p className='line-clamp-2 text-foreground/75'>
-              {t('toolCall.output')}: {summaryOutput}
-            </p>
-          )}
-          {tool.state === 'error' && summaryError && (
-            <p className='line-clamp-2 text-destructive'>
-              {t('toolCall.error')}: {summaryError}
-            </p>
-          )}
+      {open && hasDetail && (
+        <div className='agent-surface-shadow mt-2 overflow-hidden rounded-xl border border-border bg-card text-xs'>
+          <div className='flex items-center justify-between gap-3 border-b border-border px-3.5 py-2.5'>
+            <span className='inline-flex min-w-0 items-center gap-2 font-mono text-[11px] text-foreground'>
+              <Wrench className='size-3.5 shrink-0 text-muted-foreground' />
+              <span className='truncate'>{tool.toolName}</span>
+            </span>
+            <span
+              className={cn('shrink-0 font-mono text-[10px]', meta.textClass)}
+            >
+              {meta.label}
+            </span>
+          </div>
+          <div className='space-y-3 px-3.5 py-3'>
+            {input && (
+              <div>
+                <p className='font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground'>
+                  {t('toolCall.input')}
+                </p>
+                <pre className='mt-1.5 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-muted px-3 py-2 font-mono text-[11px] leading-5 text-foreground/80'>
+                  {input}
+                </pre>
+              </div>
+            )}
+            {tool.state === 'success' && output && (
+              <div>
+                <p className='font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground'>
+                  {t('toolCall.output')}
+                </p>
+                <p className='mt-1.5 whitespace-pre-wrap break-words text-[12px] leading-5 text-foreground/80'>
+                  {output}
+                </p>
+              </div>
+            )}
+            {tool.state === 'error' && errorText && (
+              <div>
+                <p className='font-mono text-[10px] uppercase tracking-[0.12em] text-destructive'>
+                  {t('toolCall.error')}
+                </p>
+                <p className='mt-1.5 whitespace-pre-wrap break-words rounded-lg bg-destructive/8 px-3 py-2 text-[12px] leading-5 text-destructive'>
+                  {errorText}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {hasDetail && (
-        <div className='ml-[7px] mt-2 space-y-2 border-l border-border/70 pl-4'>
-          {input && (
-            <div>
-              <p className='text-[11px] text-muted-foreground'>
-                {t('toolCall.input')}
-              </p>
-              <pre className='mt-1 whitespace-pre-wrap break-words rounded-md bg-muted/60 p-2 text-[11px] text-foreground'>
-                {input}
-              </pre>
-            </div>
+      {!open && (summaryInput || summaryOutput || summaryError) && (
+        <p
+          className={cn(
+            'mt-1.5 line-clamp-1 pl-2 text-[11px] leading-relaxed text-muted-foreground',
+            tool.state === 'error' && 'text-destructive'
           )}
-          {tool.state === 'success' && output && (
-            <div>
-              <p className='text-[11px] text-muted-foreground'>
-                {t('toolCall.output')}
-              </p>
-              <pre className='mt-1 whitespace-pre-wrap break-words rounded-md bg-muted/60 p-2 text-[11px] text-foreground'>
-                {output}
-              </pre>
-            </div>
-          )}
-          {tool.state === 'error' && errorText && (
-            <div>
-              <p className='text-[11px] text-muted-foreground'>
-                {t('toolCall.error')}
-              </p>
-              <pre className='mt-1 whitespace-pre-wrap break-words rounded-md bg-destructive/10 p-2 text-[11px] text-destructive'>
-                {errorText}
-              </pre>
-            </div>
-          )}
-        </div>
+        >
+          {summaryError || summaryOutput || summaryInput}
+        </p>
       )}
-    </details>
+    </section>
   )
 }

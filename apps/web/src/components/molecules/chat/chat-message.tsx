@@ -16,6 +16,8 @@ import { MarkdownContent } from './markdown-content'
 import { SkillSaver } from './SkillSaver'
 import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
 import { ClarifyPanel } from './ClarifyPanel'
+import { ThinkingTrace } from './thinking-trace'
+import { AgentLoadingState } from './agent-loading-state'
 import {
   Copy,
   Check,
@@ -279,7 +281,7 @@ function ChatMessageInner({
   return (
     <div
       className={cn(
-        'flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300',
+        'flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 sm:gap-4',
         isAssistant ? 'justify-start' : 'justify-end'
       )}
     >
@@ -289,18 +291,18 @@ function ChatMessageInner({
           onClick={handleAssistantAvatarClick}
           aria-label='Animate liquid orb avatar'
           className={cn(
-            'flex size-14 shrink-0 items-center justify-center outline-none',
+            'mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card outline-none transition-transform duration-200 hover:scale-105',
             isAvatarBouncing && 'chat-assistant-avatar-jelly'
           )}
         >
-          <LiquidOrbIcon className='size-14' play={isLoading} />
+          <LiquidOrbIcon className='size-9' play={isLoading} />
         </button>
       )}
 
       <div
         className={cn(
-          'flex w-full max-w-[85%] flex-col gap-2',
-          isAssistant ? 'items-start pr-4' : 'items-end'
+          'flex max-w-[88%] flex-col gap-2 sm:max-w-[82%]',
+          isAssistant ? 'w-full items-start pr-1 sm:pr-4' : 'items-end'
         )}
       >
         {isAssistant ? (
@@ -319,26 +321,14 @@ function ChatMessageInner({
 
                   if (part.type === 'reasoning') {
                     return (
-                      <details
+                      <ThinkingTrace
                         key={`reasoning-${id}-${index}`}
-                        className='chat-reasoning-details text-xs text-muted-foreground [&_summary::-webkit-details-marker]:hidden'
-                      >
-                        <summary className='inline-flex cursor-pointer list-none items-center gap-2 rounded-md py-0.5 pr-2 transition-colors hover:text-foreground'>
-                          <span className='inline-flex items-center gap-1.5 font-medium'>
-                            <ChevronRight className='chat-reasoning-chevron size-3.5' />
-                            {reasoningTitle}
-                          </span>
-                          <span className='h-1 w-1 rounded-full bg-current opacity-35' />
-                          <span className='text-[11px] text-muted-foreground/80'>
-                            {part.reasoning.state === 'streaming'
-                              ? reasoningThinkingLabel
-                              : reasoningDoneLabel}
-                          </span>
-                        </summary>
-                        <div className='ml-[7px] mt-2 border-l border-border/70 pl-4 whitespace-pre-wrap text-xs leading-relaxed text-foreground/75'>
-                          {part.reasoning.text}
-                        </div>
-                      </details>
+                        text={part.reasoning.text}
+                        state={part.reasoning.state}
+                        title={reasoningTitle}
+                        thinkingLabel={reasoningThinkingLabel}
+                        doneLabel={reasoningDoneLabel}
+                      />
                     )
                   }
 
@@ -378,12 +368,14 @@ function ChatMessageInner({
                     return (
                       <div
                         key={`plan-${id}-${index}`}
-                        className='rounded-lg border border-primary/30 bg-primary/5 p-3'
+                        className='agent-surface-shadow overflow-hidden rounded-2xl border border-border bg-card'
                       >
-                        <div className='mb-2 flex items-center gap-1.5 text-sm font-medium text-primary'>
-                          <ClipboardList className='size-4 shrink-0' />
+                        <div className='flex items-center gap-2.5 border-b border-border px-4 py-3 text-sm font-medium text-foreground'>
+                          <span className='grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground'>
+                            <ClipboardList className='size-3.5' />
+                          </span>
                           <span>{planTitle}</span>
-                          <span className='ml-auto inline-flex items-center gap-1 text-[11px] font-normal'>
+                          <span className='ml-auto inline-flex items-center gap-1 font-mono text-[10px] font-normal'>
                             {status === 'approved' && (
                               <>
                                 <CheckCircle2 className='size-3 text-emerald-500' />
@@ -405,11 +397,11 @@ function ChatMessageInner({
                           </span>
                         </div>
                         {summary && (
-                          <p className='mb-2 text-xs text-foreground/70'>
+                          <p className='border-b border-border px-4 py-3 text-xs leading-5 text-foreground/70'>
                             {summary}
                           </p>
                         )}
-                        <ol className='ml-1 space-y-1.5 text-xs leading-relaxed text-foreground/80'>
+                        <ol className='divide-y divide-border text-xs leading-relaxed text-foreground/80'>
                           {normalizedSteps.map((step, stepIndex) => {
                             const sStatus = stepStatuses?.[stepIndex]
                             return (
@@ -417,20 +409,23 @@ function ChatMessageInner({
                                 key={stepIndex}
                                 data-step={stepIndex}
                                 data-status={sStatus ?? 'pending'}
-                                className='flex items-start gap-2'
+                                className={cn(
+                                  'flex items-start gap-3 px-4 py-3 transition-colors',
+                                  sStatus === 'in_progress' && 'bg-accent/55'
+                                )}
                               >
                                 {stepStatuses ? (
                                   stepStatusIcon(sStatus)
                                 ) : (
-                                  <span className='font-medium text-primary/70'>
-                                    {stepIndex + 1}.
+                                  <span className='font-mono text-[10px] text-muted-foreground'>
+                                    {String(stepIndex + 1).padStart(2, '0')}
                                   </span>
                                 )}
                                 <span className='flex-1'>
                                   {step.description}
                                   {step.tool_hint && (
-                                    <span className='ml-1 text-[10px] text-muted-foreground'>
-                                      ({step.tool_hint})
+                                    <span className='ml-2 font-mono text-[10px] text-muted-foreground'>
+                                      {step.tool_hint}
                                     </span>
                                   )}
                                 </span>
@@ -439,7 +434,7 @@ function ChatMessageInner({
                           })}
                         </ol>
                         {showActions && (
-                          <div className='mt-3 flex items-center gap-2'>
+                          <div className='flex items-center gap-2 border-t border-border px-4 py-3'>
                             <Button
                               type='button'
                               size='sm'
@@ -488,7 +483,7 @@ function ChatMessageInner({
                   return (
                     <div
                       key={`text-${id}-${index}`}
-                      className='max-w-none text-sm leading-relaxed'
+                      className='max-w-none text-[14px] leading-7'
                     >
                       <div
                         className={cn(
@@ -496,6 +491,16 @@ function ChatMessageInner({
                         )}
                       >
                         <MarkdownContent content={part.text} />
+                        {isLoading && index === safeContentParts.length - 1 && (
+                          <span
+                            className='ml-0.5 inline-block h-[1.05em] w-0.5 translate-y-[0.18em] rounded-full bg-primary align-baseline'
+                            style={{
+                              animation:
+                                'agent-stream-caret 1s steps(1,end) infinite',
+                            }}
+                            aria-hidden='true'
+                          />
+                        )}
                       </div>
                       {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
                       <SkillSaver text={part.text} />
@@ -506,7 +511,7 @@ function ChatMessageInner({
             ) : hasContent ? (
               <div
                 key={`${id}-content`}
-                className='max-w-none text-sm leading-relaxed'
+                className='max-w-none text-[14px] leading-7'
               >
                 <div
                   className={cn(
@@ -514,15 +519,27 @@ function ChatMessageInner({
                   )}
                 >
                   <MarkdownContent content={safeContent} />
+                  {isLoading && (
+                    <span
+                      className='ml-0.5 inline-block h-[1.05em] w-0.5 translate-y-[0.18em] rounded-full bg-primary align-baseline'
+                      style={{
+                        animation:
+                          'agent-stream-caret 1s steps(1,end) infinite',
+                      }}
+                      aria-hidden='true'
+                    />
+                  )}
                 </div>
                 {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
                 <SkillSaver text={safeContent} />
               </div>
+            ) : isLoading ? (
+              <AgentLoadingState label={reasoningThinkingLabel} />
             ) : null}
           </div>
         ) : (
           <div className='flex max-w-full flex-col items-end gap-1.5'>
-            <Card className='relative px-4 py-3 shadow-sm bg-primary text-primary-foreground'>
+            <Card className='relative rounded-2xl rounded-tr-md border-0 bg-primary px-4 py-3 text-primary-foreground shadow-none'>
               {hasImages && (
                 <div className='mb-2 flex flex-col gap-2 max-w-[400px] w-full'>
                   {safeImages.map((src, index) => (
@@ -563,17 +580,18 @@ function ChatMessageInner({
         )}
 
         {isAssistant && (
-          <div className='flex items-center gap-1'>
-            {isLoading ? (
-              <div className='flex items-center gap-1 text-xs text-muted-foreground'>
-                <TypingIndicator />
-              </div>
-            ) : hasContent ? (
+          <div className='flex items-center gap-1.5'>
+            {isLoading && (hasContent || safeContentParts.length > 0) ? (
+              <span className='inline-flex items-center gap-1.5 px-1 font-mono text-[10px] text-primary'>
+                <span className='size-1.5 animate-pulse rounded-full bg-primary' />
+                {reasoningThinkingLabel}
+              </span>
+            ) : !isLoading && hasContent ? (
               <>
                 <Button
                   variant='ghost'
                   size='sm'
-                  className='h-7 gap-1 px-2 text-xs text-muted-foreground'
+                  className='h-7 gap-1 rounded-lg px-2 font-mono text-[10px] text-muted-foreground hover:bg-muted'
                   onClick={() => onCopy(safeContent, id)}
                 >
                   {copiedId === id ? (
@@ -592,7 +610,7 @@ function ChatMessageInner({
                   <Button
                     variant='ghost'
                     size='sm'
-                    className='h-7 gap-1 px-2 text-xs text-muted-foreground'
+                    className='h-7 gap-1 rounded-lg px-2 font-mono text-[10px] text-muted-foreground hover:bg-muted'
                     onClick={onRetry}
                   >
                     <RotateCcw className='size-3' />
@@ -600,7 +618,7 @@ function ChatMessageInner({
                   </Button>
                 )}
                 {assistantModelLabel ? (
-                  <span className='ml-1 inline-flex h-7 items-center rounded-md px-2 text-xs text-muted-foreground ring-1 ring-border/60'>
+                  <span className='ml-1 inline-flex h-7 items-center rounded-lg bg-muted px-2 font-mono text-[9px] text-muted-foreground'>
                     {usedModelLabel}: {assistantModelLabel}
                   </span>
                 ) : null}

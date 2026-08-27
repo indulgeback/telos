@@ -92,10 +92,10 @@ export function ChatInputActions({
               )
             }
             disabled={disableReasoningEffort}
-            className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors ${
+            className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[10px] transition-all duration-200 active:scale-[0.98] ${
               reasoningEffort !== 'minimal'
-                ? 'border-primary/50 bg-primary/10 text-primary'
-                : 'border-border/70 bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                ? 'bg-accent text-accent-foreground ring-1 ring-primary/25'
+                : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
             } ${disableReasoningEffort ? 'opacity-60' : ''}`}
             aria-pressed={reasoningEffort !== 'minimal'}
             title='Thinking Mode'
@@ -104,7 +104,7 @@ export function ChatInputActions({
             <span className='truncate'>Thinking</span>
           </button>
           {reasoningEffort !== 'minimal' && showReasoningControl && (
-            <div className='flex items-center rounded-md border border-border/70 bg-background h-8 px-2 text-xs shadow-xs'>
+            <div className='flex h-8 items-center rounded-lg bg-muted px-2 font-mono text-[10px]'>
               <Select
                 value={reasoningEffort}
                 onValueChange={value =>
@@ -140,10 +140,10 @@ export function ChatInputActions({
             onPlanModeChange(planMode === 'plan' ? 'auto' : 'plan')
           }
           disabled={disablePlanMode}
-          className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs transition-colors ${
+          className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[10px] transition-all duration-200 active:scale-[0.98] ${
             planMode === 'plan'
-              ? 'border-primary/50 bg-primary/10 text-primary'
-              : 'border-border/70 bg-background text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+              ? 'bg-accent text-accent-foreground ring-1 ring-primary/25'
+              : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
           } ${disablePlanMode ? 'opacity-60' : ''}`}
           aria-pressed={planMode === 'plan'}
           title={planLabel}
@@ -176,7 +176,7 @@ export function ChatInputActions({
                   radius='md'
                   disabled={disableImageUpload}
                   onClick={() => fileInputRef.current?.click()}
-                  className='h-8 gap-1.5 border-border/70 bg-background px-2.5 text-xs font-normal shadow-none hover:bg-accent/50 disabled:cursor-not-allowed disabled:bg-muted/35 disabled:text-muted-foreground/55 disabled:opacity-100'
+                  className='h-8 gap-1.5 rounded-lg border-0 bg-transparent px-2.5 font-mono text-[10px] font-normal shadow-none hover:bg-muted disabled:cursor-not-allowed disabled:bg-muted/35 disabled:text-muted-foreground/55 disabled:opacity-100'
                   aria-label={imageUploadLabel}
                   aria-describedby={
                     !imageUploadSupported ? imageUploadHintId : undefined
