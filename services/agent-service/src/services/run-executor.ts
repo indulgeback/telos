@@ -21,6 +21,12 @@ import type { RunLease } from './run-lease.js'
 import { suspendRunForApproval } from './approval-persistence.js'
 import { prisma } from './db.js'
 import { isTerminalUiEventType } from './run-terminal.js'
+import {
+  extractGeminiThoughtSignatureFromStreamEvent,
+  GEMINI_THOUGHT_SIGNATURE_METADATA_KEY,
+  GeminiThoughtStreamParser,
+  stripGeminiThoughtTags,
+} from './gemini-thought-signature-model.js'
 
 export interface ExecuteAgentRunOptions {
   agentId: string
@@ -164,6 +170,19 @@ function extractTextDeltaFromStreamEvent(event: unknown) {
     return data.delta
   }
   return ''
+}
+
+function isModelResponseDoneStreamEvent(event: unknown) {
+  if (!event || typeof event !== 'object') return false
+  const rawEvent = event as Record<string, unknown>
+  if (rawEvent.type === 'response_done') return true
+  if (rawEvent.type !== 'raw_model_stream_event') return false
+  const data = rawEvent.data
+  return Boolean(
+    data &&
+    typeof data === 'object' &&
+    (data as Record<string, unknown>).type === 'response_done'
+  )
 }
 
 function collectReasoningValues(value: unknown, target: string[]) {
@@ -362,9 +381,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       })
     }
 
-    const { result, persistence, modelKey } = await agentRuntimeService.run(
-      options.agentId,
-      {
+    const { result, persistence, modelKey, provider } =
+      await agentRuntimeService.run(options.agentId, {
         runId: options.runId,
         input: options.runtimeInput ?? options.input,
         threadId: options.threadId,
@@ -467,35 +485,36 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
             })
           }
         },
-      }
-    )
+      })
     const streamedResult = result as any
 
-    let finalText = options.partialOutput ?? ''
+    const usesGeminiThoughtTags = provider === 'gcloud'
+    const resumedOutput = usesGeminiThoughtTags
+      ? stripGeminiThoughtTags(options.partialOutput ?? '')
+      : (options.partialOutput ?? '')
+    let finalText = resumedOutput
     let textStarted = false
     const reasoningId = `reasoning-${options.runId}`
     let reasoningStarted = false
     let reasoningSnapshot = ''
+    let geminiThoughtSignature: string | null = null
+    const thoughtParser = usesGeminiThoughtTags
+      ? new GeminiThoughtStreamParser()
+      : null
 
-    for await (const event of streamedResult) {
-      const reasoningRaw = extractReasoningDeltaFromStreamEvent(event)
-      const reasoningDeltaResult = getReasoningDelta(
-        reasoningRaw,
-        reasoningSnapshot
-      )
-      reasoningSnapshot = reasoningDeltaResult.snapshot
-      if (reasoningDeltaResult.delta) {
-        reasoningStarted = true
-        emit('response.reasoning.delta', {
-          response_id: options.runId,
-          id: reasoningId,
-          delta: reasoningDeltaResult.delta,
-        })
-        appendReasoningPart(assistantParts, reasoningDeltaResult.delta)
-      }
+    const appendReasoning = (value: string) => {
+      if (!value) return
+      reasoningStarted = true
+      emit('response.reasoning.delta', {
+        response_id: options.runId,
+        id: reasoningId,
+        delta: value,
+      })
+      appendReasoningPart(assistantParts, value)
+    }
 
-      const value = extractTextDeltaFromStreamEvent(event)
-      if (!value) continue
+    const appendVisibleText = (value: string) => {
+      if (!value) return
       budget.recordOutput(value)
       finalText += value
       if (!textStarted) {
@@ -511,6 +530,50 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         delta: value,
       })
       appendTextPart(assistantParts, value)
+    }
+
+    for await (const event of streamedResult) {
+      if (usesGeminiThoughtTags) {
+        geminiThoughtSignature =
+          extractGeminiThoughtSignatureFromStreamEvent(event) ??
+          geminiThoughtSignature
+      }
+      const reasoningRaw = extractReasoningDeltaFromStreamEvent(event)
+      const reasoningDeltaResult = getReasoningDelta(
+        reasoningRaw,
+        reasoningSnapshot
+      )
+      reasoningSnapshot = reasoningDeltaResult.snapshot
+      appendReasoning(reasoningDeltaResult.delta)
+
+      const value = extractTextDeltaFromStreamEvent(event)
+      if (value) {
+        if (thoughtParser) {
+          const parsed = thoughtParser.push(value)
+          appendReasoning(parsed.reasoning)
+          appendVisibleText(parsed.text)
+        } else {
+          appendVisibleText(value)
+        }
+      }
+
+      // A run can contain multiple model responses separated by tool turns.
+      // Do not let a cumulative reasoning snapshot or a partial marker from
+      // one response leak into the next response.
+      if (isModelResponseDoneStreamEvent(event)) {
+        if (thoughtParser) {
+          const tail = thoughtParser.finish()
+          appendReasoning(tail.reasoning)
+          appendVisibleText(tail.text)
+        }
+        reasoningSnapshot = ''
+      }
+    }
+
+    if (thoughtParser) {
+      const tail = thoughtParser.finish()
+      appendReasoning(tail.reasoning)
+      appendVisibleText(tail.text)
     }
 
     await streamedResult.completed
@@ -582,9 +645,12 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       })
     }
 
-    const sdkFinalOutput = String(streamedResult.finalOutput ?? '')
+    const rawSdkFinalOutput = String(streamedResult.finalOutput ?? '')
+    const sdkFinalOutput = usesGeminiThoughtTags
+      ? stripGeminiThoughtTags(rawSdkFinalOutput)
+      : rawSdkFinalOutput
     const finalOutput = mergeResumedOutput(
-      options.partialOutput,
+      resumedOutput,
       sdkFinalOutput,
       finalText
     )
@@ -654,6 +720,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         parts: assistantParts,
         metadata: {
           modelKey,
+          [GEMINI_THOUGHT_SIGNATURE_METADATA_KEY]: geminiThoughtSignature,
           ...(usage ? { usage } : {}),
           ...(usageCostUsd !== null ? { usageCostUsd } : {}),
         },

@@ -2,18 +2,36 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import OpenAI from 'openai'
 import { OpenAIChatCompletionsModel } from '@openai/agents-openai'
-import { GeminiThoughtSignatureModel } from '../dist/services/gemini-thought-signature-model.js'
+import {
+  buildGeminiProviderData,
+  GEMINI_THOUGHT_TAG_MARKER,
+  GeminiThoughtSignatureModel,
+} from '../dist/services/gemini-thought-signature-model.js'
 
-function request(input) {
+function request(input, modelSettings = {}) {
   return {
     input,
-    modelSettings: {},
+    modelSettings,
     tools: [],
     outputType: { type: 'text' },
     handoffs: [],
     tracing: false,
   }
 }
+
+test('builds a Vertex Gemini thought request without conflicting reasoning_effort', () => {
+  const providerData = buildGeminiProviderData('high')
+  assert.equal(providerData.reasoning_effort, undefined)
+  assert.deepEqual(providerData.extra_body.google.thinking_config, {
+    thinking_level: 'high',
+    include_thoughts: true,
+  })
+  assert.equal(
+    providerData.extra_body.google.thought_tag_marker,
+    GEMINI_THOUGHT_TAG_MARKER
+  )
+  assert.deepEqual(buildGeminiProviderData('minimal'), {})
+})
 
 function streamResponse(chunks) {
   const body = `${chunks.map(chunk => `data: ${JSON.stringify(chunk)}\n\n`).join('')}data: [DONE]\n\n`
@@ -143,4 +161,128 @@ test('preserves Gemini signatures through a streamed parallel tool turn', async 
     google: { thought_signature: 'signature-A' },
   })
   assert.equal(assistant.tool_calls[1].extra_content, undefined)
+})
+
+test('preserves a Gemini signature on the final empty text part', async () => {
+  const requestBodies = []
+  const client = new OpenAI({
+    apiKey: 'test-key',
+    baseURL: 'https://gemini.invalid/v1',
+    fetch: async (_url, init) => {
+      requestBodies.push(JSON.parse(String(init?.body)))
+      if (requestBodies.length === 1) {
+        return streamResponse([
+          {
+            id: 'chatcmpl-text-first',
+            choices: [
+              {
+                index: 0,
+                delta: { content: '第一轮回答' },
+                finish_reason: null,
+              },
+            ],
+          },
+          {
+            id: 'chatcmpl-text-first',
+            choices: [
+              {
+                index: 0,
+                delta: {
+                  content: '',
+                  extra_content: {
+                    google: { thought_signature: 'text-signature' },
+                  },
+                },
+                finish_reason: 'stop',
+              },
+            ],
+          },
+        ])
+      }
+
+      return streamResponse([
+        {
+          id: 'chatcmpl-text-second',
+          choices: [
+            {
+              index: 0,
+              delta: { content: '第二轮回答' },
+              finish_reason: 'stop',
+            },
+          ],
+        },
+      ])
+    },
+  })
+  const model = new GeminiThoughtSignatureModel(
+    new OpenAIChatCompletionsModel(client, 'gemini-3.7-flash')
+  )
+
+  let firstResponse
+  for await (const event of model.getStreamedResponse(request('第一轮'))) {
+    if (event.type === 'response_done') firstResponse = event.response
+  }
+
+  assert.ok(firstResponse)
+  const signaturePart = firstResponse.output[0].content.at(-1)
+  assert.equal(signaturePart.type, 'output_text')
+  assert.equal(signaturePart.text, '')
+  assert.equal(
+    signaturePart.providerData.extra_content.google.thought_signature,
+    'text-signature'
+  )
+
+  for await (const _event of model.getStreamedResponse(
+    request([
+      ...firstResponse.output,
+      { type: 'message', role: 'user', content: '继续' },
+    ])
+  )) {
+    // Drain the follow-up so the replayed assistant message is captured.
+  }
+
+  const assistant = requestBodies[1].messages.find(
+    message => message.role === 'assistant'
+  )
+  assert.equal(assistant.content.at(-1).text, '')
+  assert.deepEqual(assistant.content.at(-1).extra_content, {
+    google: { thought_signature: 'text-signature' },
+  })
+})
+
+test('sends Gemini thought settings in the OpenAI-compatible request body', async () => {
+  const requestBodies = []
+  const client = new OpenAI({
+    apiKey: 'test-key',
+    baseURL: 'https://gemini.invalid/v1',
+    fetch: async (_url, init) => {
+      requestBodies.push(JSON.parse(String(init?.body)))
+      return streamResponse([
+        {
+          id: 'chatcmpl-thought-settings',
+          choices: [
+            { index: 0, delta: { content: 'ok' }, finish_reason: 'stop' },
+          ],
+        },
+      ])
+    },
+  })
+  const model = new OpenAIChatCompletionsModel(client, 'gemini-3.7-flash')
+
+  for await (const _event of model.getStreamedResponse(
+    request('显示思考', { providerData: buildGeminiProviderData('low') })
+  )) {
+    // Drain the response so the fake fetch is invoked.
+  }
+
+  assert.equal(requestBodies.length, 1)
+  assert.equal(requestBodies[0].reasoning_effort, undefined)
+  assert.deepEqual(requestBodies[0].extra_body.google.thinking_config, {
+    thinking_level: 'low',
+    include_thoughts: true,
+  })
+  assert.equal(
+    requestBodies[0].extra_body.google.thought_tag_marker,
+    GEMINI_THOUGHT_TAG_MARKER
+  )
 })

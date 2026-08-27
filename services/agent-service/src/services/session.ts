@@ -4,6 +4,10 @@ import { safeJsonStringify } from '../utils/json.js'
 import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
 import { resolveMessageModelKey } from './message-model.js'
 import { normalizeUserImageParts } from './image-input.js'
+import {
+  buildPersistedGeminiSignatureProviderData,
+  GEMINI_THOUGHT_SIGNATURE_METADATA_KEY,
+} from './gemini-thought-signature-model.js'
 
 const RECENT_MESSAGE_LIMIT = 12
 const SUMMARY_THRESHOLD = 20
@@ -43,6 +47,16 @@ function titleFromInput(input?: string) {
 function toContent(value: unknown) {
   if (typeof value === 'string') return value
   return safeJsonStringify(value)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function stripInternalMessageMetadata(value: unknown) {
+  if (!isRecord(value)) return value
+  const { [GEMINI_THOUGHT_SIGNATURE_METADATA_KEY]: _, ...metadata } = value
+  return metadata
 }
 
 function toStringList(value: unknown): string[] {
@@ -110,10 +124,11 @@ function findApprovedPlan(
   return null
 }
 
-function messageToAgentInput(message: {
+export function messageToAgentInput(message: {
   role: MessageRole
   content: string
   parts?: any
+  metadata?: unknown
 }): AgentInputItem {
   const role =
     message.role === 'assistant' || message.role === 'system'
@@ -163,6 +178,19 @@ function messageToAgentInput(message: {
         content: content as any,
       } as any
     }
+  }
+
+  if (role === 'assistant') {
+    const signature = isRecord(message.metadata)
+      ? message.metadata[GEMINI_THOUGHT_SIGNATURE_METADATA_KEY]
+      : undefined
+    const providerData = buildPersistedGeminiSignatureProviderData(signature)
+    return {
+      type: 'message',
+      role,
+      content: message.content,
+      ...(providerData ? { providerData } : {}),
+    } as unknown as AgentInputItem
   }
 
   return {
@@ -355,7 +383,7 @@ export class AgentSessionService {
       },
       orderBy: { sequence: 'desc' },
       take: RECENT_MESSAGE_LIMIT,
-      select: { role: true, content: true, parts: true },
+      select: { role: true, content: true, parts: true, metadata: true },
     })
 
     // 获取最近一条用户消息作为长期记忆检索 query
@@ -471,13 +499,17 @@ export class AgentSessionService {
         },
       },
     })
-    return messages.map(({ run, ...message }) => ({
-      ...message,
-      modelKey: resolveMessageModelKey({
-        messageMetadata: message.metadata,
-        runInput: run?.input,
-      }),
-    }))
+    return messages.map(({ run, ...message }) => {
+      const messageMetadata = message.metadata
+      return {
+        ...message,
+        metadata: stripInternalMessageMetadata(messageMetadata),
+        modelKey: resolveMessageModelKey({
+          messageMetadata,
+          runInput: run?.input,
+        }),
+      }
+    })
   }
 
   async listMessagesForOwner(threadId: string, ownerId: string) {
@@ -501,13 +533,17 @@ export class AgentSessionService {
         },
       },
     })
-    return messages.map(({ run, ...message }) => ({
-      ...message,
-      modelKey: resolveMessageModelKey({
-        messageMetadata: message.metadata,
-        runInput: run?.input,
-      }),
-    }))
+    return messages.map(({ run, ...message }) => {
+      const messageMetadata = message.metadata
+      return {
+        ...message,
+        metadata: stripInternalMessageMetadata(messageMetadata),
+        modelKey: resolveMessageModelKey({
+          messageMetadata,
+          runInput: run?.input,
+        }),
+      }
+    })
   }
 
   async updateThread(

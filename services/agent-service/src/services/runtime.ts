@@ -44,7 +44,11 @@ import {
 } from './skill-loader.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 import { DeepSeekReasoningModel } from './deepseek-reasoning-model.js'
-import { GeminiThoughtSignatureModel } from './gemini-thought-signature-model.js'
+import {
+  buildGeminiProviderData,
+  GeminiThoughtSignatureModel,
+  prepareGeminiSignatureHistory,
+} from './gemini-thought-signature-model.js'
 import { normalizeChatModelKey } from './chat-model-catalog.js'
 import { findEnabledChatModel } from './chat.js'
 import { isConfiguredAdminUser } from '../middleware/gatewayIdentity.js'
@@ -658,7 +662,7 @@ function buildProviderData(
     }
   }
   if (provider === 'gcloud') {
-    return isMinimal ? {} : { reasoning_effort: effort }
+    return buildGeminiProviderData(effort)
   }
   // OpenAI 兼容系（openai / shortapi）：o 系列等推理模型通过 reasoning_effort 控制强度，
   // minimal 表示尽量关闭（SDK 会映射为最弱档；非推理模型会忽略该参数）。
@@ -1275,6 +1279,11 @@ export class AgentRuntimeService {
       runInput = planContext
     }
 
+    // Persisted Gemini signatures are replayed only to Gemini. This preserves
+    // multi-turn reasoning context without leaking Google-only fields to other
+    // OpenAI-compatible providers when the user switches models.
+    runInput = prepareGeminiSignatureHistory(runInput, provider === 'gcloud')
+
     // 根据具体模型是否支持 Vision 来剥离历史消息中的图片部分
     if (!supportVision) {
       runInput = stripImageContent(runInput)
@@ -1415,7 +1424,7 @@ export class AgentRuntimeService {
           closeConnectedMcpServers,
           closeConnectedMcpServers
         )
-        return { result, persistence, modelKey }
+        return { result, persistence, modelKey, provider }
       }
 
       const result = await runner.run(agent, runnerInput, {
@@ -1424,7 +1433,7 @@ export class AgentRuntimeService {
         toolNotFoundBehavior: 'return_error_to_model',
       })
       await closeConnectedMcpServers()
-      return { result, persistence, modelKey }
+      return { result, persistence, modelKey, provider }
     } catch (error) {
       await closeConnectedMcpServers()
       throw error
