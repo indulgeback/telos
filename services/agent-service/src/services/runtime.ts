@@ -44,6 +44,7 @@ import {
 } from './skill-loader.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 import { DeepSeekReasoningModel } from './deepseek-reasoning-model.js'
+import { GeminiThoughtSignatureModel } from './gemini-thought-signature-model.js'
 import { normalizeChatModelKey } from './chat-model-catalog.js'
 import { findEnabledChatModel } from './chat.js'
 import { isConfiguredAdminUser } from '../middleware/gatewayIdentity.js'
@@ -1106,7 +1107,11 @@ export class AgentRuntimeService {
 
     return {
       model:
-        provider === 'deepseek' ? new DeepSeekReasoningModel(model) : model,
+        provider === 'deepseek'
+          ? new DeepSeekReasoningModel(model)
+          : provider === 'gcloud'
+            ? new GeminiThoughtSignatureModel(model)
+            : model,
       modelKey: normalizedModelKey,
       provider,
       providerData: buildProviderData(provider, reasoningEffort),

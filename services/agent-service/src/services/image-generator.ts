@@ -9,6 +9,9 @@ import { config } from '../config/index.js'
 import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
 
 const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview'
+const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-2.5-flash-image'
+const SHORTAPI_MAX_QUERY_ATTEMPTS = 2
+const SHORTAPI_RETRY_DELAY_MS = 250
 
 const STYLE_SUFFIX_MAP: Record<string, string> = {
   photo_realistic:
@@ -84,6 +87,71 @@ function mapAspectRatioToShortApiSize(ratio?: string): string {
   return '1024x1024'
 }
 
+export function isGeminiImageModel(model: string): boolean {
+  return /^gemini-.+-image(?:-preview)?$/.test(model)
+}
+
+export function resolveShortApiJobBaseUrl(baseUrl: string): string {
+  const normalized = baseUrl.trim().replace(/\/+$/, '')
+  if (!normalized) return 'https://api.shortapi.ai/api/v1'
+  if (normalized.endsWith('/api/v1')) return normalized
+  return normalized.endsWith('/v1')
+    ? `${normalized.slice(0, -3)}/api/v1`
+    : `${normalized}/api/v1`
+}
+
+function describeProviderError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error)
+  const cause = error.cause
+  if (cause instanceof Error && cause.message) {
+    return `${error.message}; cause: ${cause.message}`
+  }
+  if (cause && typeof cause === 'object' && 'code' in cause) {
+    return `${error.message}; cause code: ${String((cause as { code: unknown }).code)}`
+  }
+  return error.message
+}
+
+async function fetchShortApi(
+  url: string,
+  init: RequestInit,
+  options: { retryable?: boolean } = {}
+): Promise<Response> {
+  const maxAttempts = options.retryable ? SHORTAPI_MAX_QUERY_ATTEMPTS : 1
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, init)
+      if (
+        options.retryable &&
+        attempt < maxAttempts &&
+        [408, 425, 429, 500, 502, 503, 504].includes(response.status)
+      ) {
+        await response.body?.cancel().catch(() => undefined)
+        await new Promise(resolve =>
+          setTimeout(resolve, SHORTAPI_RETRY_DELAY_MS)
+        )
+        continue
+      }
+      return response
+    } catch (error) {
+      lastError = error
+      if (attempt < maxAttempts) {
+        await new Promise(resolve =>
+          setTimeout(resolve, SHORTAPI_RETRY_DELAY_MS)
+        )
+        continue
+      }
+    }
+  }
+
+  throw new Error(
+    `ShortAPI request failed after ${maxAttempts} attempt${maxAttempts === 1 ? '' : 's'}: ${describeProviderError(lastError)}`,
+    { cause: lastError }
+  )
+}
+
 async function executeShortApiGenerate(
   prompt: string,
   aspectRatio: string | undefined,
@@ -113,8 +181,11 @@ async function executeShortApiGenerate(
     args.image = inputImageUrl
   }
 
+  const jobBaseUrl = resolveShortApiJobBaseUrl(config.shortapiBaseUrl)
+
   // 1. Create Job
-  const createRes = await fetch('https://api.shortapi.ai/api/v1/job/create', {
+  // Do not retry this POST: a lost response may still have created a billable job.
+  const createRes = await fetchShortApi(`${jobBaseUrl}/job/create`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -137,7 +208,7 @@ async function executeShortApiGenerate(
   }
 
   // 2. Poll Status
-  const queryUrl = `https://api.shortapi.ai/api/v1/job/query?id=${jobId}`
+  const queryUrl = `${jobBaseUrl}/job/query?id=${encodeURIComponent(jobId)}`
   let attempts = 0
   // 复杂 prompt（如封面图）生成耗时较长，90s 常超时；提到 180s（90 次 × 2s）
   const maxAttempts = 90
@@ -146,11 +217,15 @@ async function executeShortApiGenerate(
     attempts++
     await new Promise(resolve => setTimeout(resolve, 2000))
 
-    const queryRes = await fetch(queryUrl, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
+    const queryRes = await fetchShortApi(
+      queryUrl,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
       },
-    })
+      { retryable: true }
+    )
 
     if (!queryRes.ok) {
       logger.warn(
@@ -187,13 +262,14 @@ async function executeShortApiGenerate(
   throw new Error('ShortAPI image generation timed out after 180 seconds.')
 }
 
-async function executeGeminiApiGenerate(
+export async function executeGeminiApiGenerate(
   client: GoogleGenAI,
   model: string,
   prompt: string,
+  aspectRatio?: string,
   referenceImageUrls?: string[],
   inputImageUrl?: string
-): Promise<string> {
+): Promise<{ base64Data: string; mimeType: string }> {
   const contentParts: any[] = []
 
   // 图生图模式：输入图片作为首要编辑对象放在 prompt 之前
@@ -236,6 +312,7 @@ async function executeGeminiApiGenerate(
     contents: [{ role: 'user', parts: contentParts }],
     config: {
       responseModalities: ['IMAGE', 'TEXT'],
+      ...(aspectRatio ? { imageConfig: { aspectRatio } } : {}),
     },
   })
 
@@ -247,16 +324,32 @@ async function executeGeminiApiGenerate(
     throw new Error('No image data returned from Gemini API.')
   }
 
-  return imagePart.inlineData.data
+  return {
+    base64Data: imagePart.inlineData.data,
+    mimeType: imagePart.inlineData.mimeType || 'image/png',
+  }
 }
 
-async function executeVertexAiGenerate(
+export async function executeVertexAiGenerate(
   client: GoogleGenAI,
   model: string,
   prompt: string,
   aspectRatio?: string,
-  negativePrompt?: string
-): Promise<string> {
+  negativePrompt?: string,
+  referenceImageUrls?: string[],
+  inputImageUrl?: string
+): Promise<{ base64Data: string; mimeType: string }> {
+  if (isGeminiImageModel(model)) {
+    return executeGeminiApiGenerate(
+      client,
+      model,
+      prompt,
+      aspectRatio,
+      referenceImageUrls,
+      inputImageUrl
+    )
+  }
+
   const response = await client.models.generateImages({
     model,
     prompt,
@@ -273,7 +366,7 @@ async function executeVertexAiGenerate(
     throw new Error('No image data returned from Vertex AI.')
   }
 
-  return imagePart.image.imageBytes
+  return { base64Data: imagePart.image.imageBytes, mimeType: 'image/jpeg' }
 }
 
 interface GenerateImageInput {
@@ -358,14 +451,19 @@ export async function executeGenerateImage(
   if (geminiApiKey) {
     try {
       const client = new GoogleGenAI({ apiKey: geminiApiKey })
-      const base64Data = await executeGeminiApiGenerate(
+      const generated = await executeGeminiApiGenerate(
         client,
         MODEL,
         enhancedPrompt,
+        input.aspect_ratio,
         input.reference_image_urls,
         input.input_image_url
       )
-      const imageUrl = await uploadToCDN(base64Data, 'image/png', threadId)
+      const imageUrl = await uploadToCDN(
+        generated.base64Data,
+        generated.mimeType,
+        threadId
+      )
       return {
         success: true,
         image_url: imageUrl,
@@ -392,15 +490,21 @@ export async function executeGenerateImage(
       location: config.gcloudLocation || 'us-central1',
     })
     const vertexModel =
-      process.env.VERTEX_IMAGE_MODEL || 'imagen-3.0-generate-002'
-    const base64Data = await executeVertexAiGenerate(
+      process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL
+    const generated = await executeVertexAiGenerate(
       client,
       vertexModel,
       enhancedPrompt,
       input.aspect_ratio,
-      negativePrompt
+      negativePrompt,
+      input.reference_image_urls,
+      input.input_image_url
     )
-    const imageUrl = await uploadToCDN(base64Data, 'image/jpeg', threadId)
+    const imageUrl = await uploadToCDN(
+      generated.base64Data,
+      generated.mimeType,
+      threadId
+    )
     return {
       success: true,
       image_url: imageUrl,
