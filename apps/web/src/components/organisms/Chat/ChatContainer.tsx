@@ -141,15 +141,18 @@ export interface ChatContainerProps {
   planApprovedLabel: string
   planRejectedLabel: string
   planPendingLabel: string
+  planCompletedLabel: string
+  planFailedLabel: string
   executingLabel?: string
   /** 当前待批准计划所在的消息 id（用于决定哪条消息显示批准按钮） */
   pendingPlanMessageId: string | null
   onApprovePlan: () => void
   onRejectPlan: () => void
-  onClarifySelect?: (messageId: string, option: string) => void
   clearConversationLabel: string
   /** 计划面板（贴在输入框上方） */
   planPanel?: ReactNode
+  /** 澄清问题面板（临时悬浮在输入框上方，不进入消息流） */
+  clarificationPanel?: ReactNode
   refreshSuggestionsLabel: string
   scrollToBottomLabel: string
   inputPlaceholder: string
@@ -236,12 +239,14 @@ export function ChatContainer({
   planApprovedLabel,
   planRejectedLabel,
   planPendingLabel,
+  planCompletedLabel,
+  planFailedLabel,
   pendingPlanMessageId,
   onApprovePlan,
   onRejectPlan,
-  onClarifySelect,
   clearConversationLabel,
   planPanel,
+  clarificationPanel,
   refreshSuggestionsLabel,
   scrollToBottomLabel,
   inputPlaceholder,
@@ -516,8 +521,8 @@ export function ChatContainer({
             {messages.length === 0 ? (
               <div className='mx-auto flex min-h-[58vh] max-w-2xl flex-col justify-center py-10'>
                 <div className='mb-8'>
-                  <div className='mb-5 inline-flex items-center justify-center rounded-2xl border border-border bg-card p-2 agent-surface-shadow'>
-                    <LiquidOrbIcon className='size-12' />
+                  <div className='mb-6 flex w-full items-center justify-center'>
+                    <LiquidOrbIcon className='size-16' />
                   </div>
                   <h2 className='text-balance text-3xl font-semibold leading-tight tracking-[-0.035em] text-foreground sm:text-4xl'>
                     {emptyStateTitle}
@@ -609,10 +614,11 @@ export function ChatContainer({
                       planApprovedLabel={planApprovedLabel}
                       planRejectedLabel={planRejectedLabel}
                       planPendingLabel={planPendingLabel}
+                      planCompletedLabel={planCompletedLabel}
+                      planFailedLabel={planFailedLabel}
                       isPendingPlan={message.id === pendingPlanMessageId}
                       onApprovePlan={onApprovePlan}
                       onRejectPlan={onRejectPlan}
-                      onClarifySelect={onClarifySelect}
                     />
                   )
                 })}
@@ -666,6 +672,9 @@ export function ChatContainer({
             <div className='mb-2'>{realtimeStatusPanel}</div>
           )}
           {planPanel && <div className='mb-2'>{planPanel}</div>}
+          {clarificationPanel && (
+            <div className='relative z-40 mb-3'>{clarificationPanel}</div>
+          )}
           <ChatInput
             ref={textareaRef}
             value={safeInput}
@@ -677,8 +686,11 @@ export function ChatContainer({
               safeInput.trim().length > 0 ||
               (showImageUpload && imagePreviews.length > 0)
             }
-            isLoading={isLoading}
-            sendDisabled={isLoading || isUploadingImages}
+            isLoading={isLoading && !clarificationPanel}
+            disabled={Boolean(clarificationPanel)}
+            sendDisabled={
+              isLoading || isUploadingImages || Boolean(clarificationPanel)
+            }
             sendAriaLabel={sendAriaLabel}
             stopAriaLabel={stopAriaLabel}
             onPaste={handlePaste}
@@ -706,7 +718,7 @@ export function ChatContainer({
                       <button
                         type='button'
                         onClick={() => onRemoveImage?.(index)}
-                        className='absolute -right-1.5 -top-1.5 inline-flex size-5 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow-md ring-2 ring-background transition-transform duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40'
+                        className='absolute -right-1.5 -top-1.5 inline-flex size-5 cursor-pointer items-center justify-center rounded-full bg-foreground text-background shadow-md ring-2 ring-background transition-transform duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20'
                         aria-label={imageRemoveLabel}
                         title={imageRemoveLabel}
                       >

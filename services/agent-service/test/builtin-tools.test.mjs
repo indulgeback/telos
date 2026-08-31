@@ -211,10 +211,12 @@ test('Plan Mode Security - isReadOnlyTool Whitelist', () => {
   assert.ok(
     isReadOnlyTool({ endpoint: { kind: 'builtin', builtin: 'file_search' } })
   )
-  assert.ok(
+  assert.equal(
     isReadOnlyTool({
       endpoint: { kind: 'builtin', builtin: 'code_interpreter' },
-    })
+    }),
+    false,
+    'code_interpreter can write files and must not run during planning'
   )
   assert.ok(
     isReadOnlyTool({ endpoint: { kind: 'builtin', builtin: 'web_search' } })

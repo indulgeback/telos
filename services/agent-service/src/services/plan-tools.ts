@@ -36,7 +36,7 @@ export type PlanStepStatus =
 /**
  * 判断一个工具是否为只读工具（plan 模式下允许使用）。
  * 规则：
- * - builtin 工具默认只读安全（get_time, calculator, search_memory, code_interpreter）
+ * - builtin 工具仅允许明确无写入能力的查询工具
  * - HTTP 工具仅允许 GET 方法
  */
 export function isReadOnlyTool(tool: {
@@ -58,7 +58,6 @@ export function isReadOnlyTool(tool: {
       'view_file',
       'grep_search',
       'file_search',
-      'code_interpreter',
       'web_search',
     ]
     const name = String(raw.builtin || tool.name || '')

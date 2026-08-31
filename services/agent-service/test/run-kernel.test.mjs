@@ -40,6 +40,7 @@ describe('run execution state guards', () => {
         planMode: 'execute',
       },
       metadata: {
+        approvedPlanMessageId: 'plan-message',
         approvedPlan: {
           summary: 'approved work',
           steps: [{ description: 'do the work' }],
@@ -63,6 +64,7 @@ describe('run execution state guards', () => {
         summary: 'approved work',
         steps: [{ description: 'do the work' }],
       },
+      approvedPlanMessageId: 'plan-message',
       forceSkillName: 'safe-skill',
       replaceAssistantMessageId: 'assistant-old',
       userId: 'owner-db',
@@ -114,6 +116,7 @@ describe('run execution state guards', () => {
       threadId: 'thread-db',
       status: 'queued',
       input: { effectiveInput: 'execute', planMode: 'execute' },
+      metadata: { approvedPlanMessageId: 'plan-message' },
       thread: { ownerId: 'owner-db' },
     }
     assert.equal(canonicalizeRunExecution({ ...base, metadata: {} }), null)
@@ -121,6 +124,7 @@ describe('run execution state guards', () => {
       canonicalizeRunExecution({
         ...base,
         metadata: {
+          approvedPlanMessageId: 'plan-message',
           approvedPlan: {
             summary: 'too large',
             steps: Array.from({ length: 21 }, (_, index) => ({

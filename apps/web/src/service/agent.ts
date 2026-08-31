@@ -11,7 +11,8 @@ export type McpApprovalPolicy = 'none' | 'all' | 'sensitive'
 export type PlanMode = 'plan' | 'execute'
 
 /** 计划状态：pending=待批准，approved=已批准，rejected=已放弃 */
-export type PlanStatus = 'pending' | 'approved' | 'rejected'
+export type PlanStatus =
+  'pending' | 'approved' | 'rejected' | 'executing' | 'completed' | 'failed'
 
 /** 计划消息 part，嵌入 assistant 消息的 parts 数组中 */
 export interface PlanPart {
@@ -585,6 +586,19 @@ export class AgentService {
       {
         method: 'PATCH',
         body: JSON.stringify({ selectedOption }),
+      }
+    )
+  }
+
+  decidePlan(
+    messageId: string,
+    decision: 'approved' | 'rejected'
+  ): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(
+      `/api/agent/messages/${messageId}/plan`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ decision }),
       }
     )
   }

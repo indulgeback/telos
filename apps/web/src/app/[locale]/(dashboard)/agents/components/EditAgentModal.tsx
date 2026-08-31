@@ -190,7 +190,7 @@ export function EditAgentModal({
                       setType(e.target.value as 'public' | 'private')
                     }
                     disabled={isSaving}
-                    className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring'
+                    className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:border-foreground/35 focus:outline-none focus:ring-1 focus:ring-foreground/10'
                   >
                     <option value='private'>
                       {t('form.typePrivateSelect')}
@@ -307,7 +307,7 @@ export function EditAgentModal({
                     )
                   }
                   disabled={isReadOnly || isSaving}
-                  className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring'
+                  className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:border-foreground/35 focus:outline-none focus:ring-1 focus:ring-foreground/10'
                 >
                   <option value='auto'>{t('form.loopAuto')}</option>
                   <option value='single_turn'>
@@ -367,7 +367,7 @@ export function EditAgentModal({
                       checked={voiceEnabled}
                       onChange={e => setVoiceEnabled(e.target.checked)}
                       disabled={isReadOnly || isSaving}
-                      className='size-4 rounded border-gray-300 text-primary focus:ring-primary'
+                      className='size-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-foreground/20 focus:ring-offset-1'
                     />
                   </div>
 
@@ -384,7 +384,7 @@ export function EditAgentModal({
                             value={voiceSpeaker}
                             onChange={e => setVoiceSpeaker(e.target.value)}
                             disabled={isReadOnly || isSaving}
-                            className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring'
+                            className='h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus:border-foreground/35 focus:outline-none focus:ring-1 focus:ring-foreground/10'
                           >
                             <option value='zh_female_vv_jupiter_bigtts'>
                               {t('speakers.vv')}
@@ -473,7 +473,7 @@ export function EditAgentModal({
                               setVoiceWebSearchEnabled(e.target.checked)
                             }
                             disabled={isReadOnly || isSaving}
-                            className='size-4 rounded border-gray-300 text-primary focus:ring-primary'
+                            className='size-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-foreground/20 focus:ring-offset-1'
                           />
                         </div>
 
@@ -496,7 +496,7 @@ export function EditAgentModal({
                               setVoiceSingingEnabled(e.target.checked)
                             }
                             disabled={isReadOnly || isSaving}
-                            className='size-4 rounded border-gray-300 text-primary focus:ring-primary'
+                            className='size-4 rounded border-gray-300 text-primary focus:ring-1 focus:ring-foreground/20 focus:ring-offset-1'
                           />
                         </div>
                       </div>

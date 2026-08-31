@@ -2,6 +2,7 @@ import { agentSessionService } from './session.js'
 import { agentRuntimeService } from './runtime.js'
 import { PlanStore } from './plan-store.js'
 import type { StructuredPlan } from './plan-tools.js'
+import { loadPlanExecution, persistPlanExecution } from './plan-state.js'
 import { AgentRunPersistence } from './persistence.js'
 import {
   appendRunEventForLease,
@@ -40,6 +41,7 @@ export interface ExecuteAgentRunOptions {
   reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
   planMode?: 'plan' | 'execute'
   approvedPlan?: StructuredPlan | null
+  approvedPlanMessageId?: string
   forceSkillName?: string
   replaceAssistantMessageId?: string | null
   userId?: string
@@ -340,6 +342,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
   const activeToolCalls = new Map<string, string>()
   const assistantParts = restoreAssistantParts(options.partialParts)
   let planStore: PlanStore | undefined
+  let planPersistenceChain = Promise.resolve()
 
   try {
     budget.assertInput({
@@ -371,14 +374,32 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     })
 
     if (options.planMode === 'execute' && options.approvedPlan) {
-      planStore = new PlanStore(options.approvedPlan, update => {
-        emit('response.plan_step_updated', {
-          response_id: options.runId,
-          step_index: update.step_index,
-          plan_step_status: update.status,
-          note: update.note,
-        })
-      })
+      const restoredExecution = options.approvedPlanMessageId
+        ? await loadPlanExecution(options.approvedPlanMessageId, options.runId)
+        : null
+      planStore = new PlanStore(
+        options.approvedPlan,
+        update => {
+          emit('response.plan_step_updated', {
+            response_id: options.runId,
+            plan_message_id: options.approvedPlanMessageId,
+            step_index: update.step_index,
+            plan_step_status: update.status,
+            note: update.note,
+          })
+          if (options.approvedPlanMessageId && planStore) {
+            const snapshot = [...planStore.getStatuses()]
+            planPersistenceChain = planPersistenceChain.then(() =>
+              persistPlanExecution(
+                options.approvedPlanMessageId!,
+                options.runId,
+                snapshot
+              )
+            )
+          }
+        },
+        restoredExecution?.stepStatuses
+      )
     }
 
     const { result, persistence, modelKey, provider } =
@@ -613,6 +634,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       if (!suspended) {
         throw new Error('Run lease was lost while suspending for approval')
       }
+      await planPersistenceChain
       return
     }
     const rawUsage = streamedResult.state?.usage
@@ -660,6 +682,15 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       ? await agentRuntimeService.consumePendingPlan(options.runId)
       : null
     if (isPlanMode && structuredPlan) {
+      for (let index = assistantParts.length - 1; index >= 0; index -= 1) {
+        const part = assistantParts[index]
+        if (
+          part.type === 'text' ||
+          (part.type === 'tool' && part.toolName === 'create_plan')
+        ) {
+          assistantParts.splice(index, 1)
+        }
+      }
       assistantParts.push({
         type: 'plan',
         plan: {
@@ -686,6 +717,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
 
     if (planStore) {
       planStore.finalize()
+      await planPersistenceChain
     }
     for (const part of assistantParts) {
       if (
@@ -715,8 +747,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       const completion = await persistence.completeWithAssistant({
         threadId: options.threadId,
         finalOutput,
-        // clarify 命中时，工具返回的内部信号不作为正文落库。
-        persistedOutput: structuredClarify ? '' : finalOutput,
+        // 结构化交互命中时，工具返回的内部信号不作为正文落库。
+        persistedOutput: structuredClarify || structuredPlan ? '' : finalOutput,
         parts: assistantParts,
         metadata: {
           modelKey,
@@ -748,6 +780,26 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       await flushPendingEmits()
       return
     }
+    if (planStore && options.approvedPlanMessageId) {
+      const statuses = [...planStore.getStatuses()]
+      const planCompleted = statuses.every(status => status === 'completed')
+      await persistPlanExecution(
+        options.approvedPlanMessageId,
+        options.runId,
+        statuses,
+        planCompleted ? 'completed' : 'failed'
+      )
+      emit(
+        'response.plan_state_updated',
+        {
+          response_id: options.runId,
+          plan_message_id: options.approvedPlanMessageId,
+          plan_status: planCompleted ? 'completed' : 'failed',
+          plan_step_statuses: statuses,
+        },
+        false
+      )
+    }
     if (isPlanMode && structuredPlan) {
       emit(
         'response.plan_proposed',
@@ -775,8 +827,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     }
     emit('response.completed', {
       response_id: options.runId,
-      // clarify 命中时不把工具返回的 JSON 当正文下发
-      output_text: structuredClarify ? '' : finalOutput,
+      // 结构化交互命中时不把工具返回的 JSON 当正文下发
+      output_text: structuredClarify || structuredPlan ? '' : finalOutput,
     })
     await flushPendingEmits()
     scheduleEventCleanup(options.runId)
@@ -784,6 +836,18 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     const effectiveError = budget.normalizeError(error)
     const message = enrichAgentRunError(effectiveError)
     const callerCancelled = Boolean(options.signal?.aborted && !budget.exceeded)
+    if (planStore) {
+      planStore.finalize()
+      await planPersistenceChain.catch(() => undefined)
+      if (options.approvedPlanMessageId) {
+        await persistPlanExecution(
+          options.approvedPlanMessageId,
+          options.runId,
+          [...planStore.getStatuses()],
+          'failed'
+        ).catch(() => undefined)
+      }
+    }
     await closeExecutionEventFence()
     const terminalTransitioned = callerCancelled
       ? await new AgentRunPersistence(options.runId, options.lease).cancel(

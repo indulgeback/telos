@@ -43,6 +43,16 @@ describe('isReadOnlyTool', () => {
     )
   })
 
+  it('code_interpreter 可能写入文件，plan 阶段拒绝', () => {
+    assert.strictEqual(
+      isReadOnlyTool({
+        name: 'code_interpreter',
+        endpoint: { kind: 'builtin' },
+      }),
+      false
+    )
+  })
+
   it('HTTP GET 工具判定为只读', () => {
     assert.strictEqual(
       isReadOnlyTool({ endpoint: { kind: 'http', method: 'GET' } }),
@@ -300,6 +310,20 @@ describe('PlanStore', () => {
       ['pending', 'pending', 'pending']
     )
     assert.strictEqual(store.isAllDone(), false)
+  })
+
+  it('从持久化步骤状态恢复，工具审批后不会重置进度', () => {
+    const store = new PlanStore(samplePlan, () => {}, [
+      'completed',
+      'in_progress',
+      'pending',
+    ])
+    assert.deepStrictEqual(
+      [...store.getStatuses()],
+      ['completed', 'in_progress', 'pending']
+    )
+    assert.strictEqual(store.updateStep(1, 'completed').ok, true)
+    assert.strictEqual(store.updateStep(2, 'in_progress').ok, true)
   })
 
   it('updateStep 合法转换触发回调并更新状态', () => {

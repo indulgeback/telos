@@ -94,7 +94,7 @@ export function ChatInputActions({
             disabled={disableReasoningEffort}
             className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[10px] transition-all duration-200 active:scale-[0.98] ${
               reasoningEffort !== 'minimal'
-                ? 'bg-accent text-accent-foreground ring-1 ring-primary/25'
+                ? 'bg-accent text-accent-foreground ring-1 ring-foreground/15'
                 : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
             } ${disableReasoningEffort ? 'opacity-60' : ''}`}
             aria-pressed={reasoningEffort !== 'minimal'}
@@ -142,7 +142,7 @@ export function ChatInputActions({
           disabled={disablePlanMode}
           className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[10px] transition-all duration-200 active:scale-[0.98] ${
             planMode === 'plan'
-              ? 'bg-accent text-accent-foreground ring-1 ring-primary/25'
+              ? 'bg-accent text-accent-foreground ring-1 ring-foreground/15'
               : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
           } ${disablePlanMode ? 'opacity-60' : ''}`}
           aria-pressed={planMode === 'plan'}

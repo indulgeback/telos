@@ -7,6 +7,7 @@
   },
   "Chat": {
     "toolCall": {
+      "group": "{count} 个工具调用",
       "status": {
         "success": "完成",
         "error": "失败",
@@ -120,6 +121,8 @@
       "approved": "已批准",
       "rejected": "被拒绝",
       "pending": "待处理",
+      "completed": "已完成",
+      "failed": "失败",
       "executing": "执行计划",
       "executeTrigger": "请按照上述批准的计划执行"
     },
@@ -158,7 +161,10 @@
       "microphoneError": "无法启动麦克风，请检查浏览器权限。",
       "socketError": "实时语音连接异常，请稍后重试。",
       "mute": "静音麦克风",
-      "unmute": "取消静音麦克风"
+      "unmute": "取消静音麦克风",
+      "muted": "麦克风已静音",
+      "interrupt": "打断播报",
+      "disconnect": "结束语音"
     },
     "reasoning": {
       "title": "推理过程",
@@ -179,8 +185,8 @@
     },
     "disclaimer": "AI 助手可能会产生错误，请核实重要信息",
     "threads": {
-      "title": "会话历史",
-      "new": "新建会话",
+      "title": "会话",
+      "new": "新建对话",
       "search": "搜索会话...",
       "empty": "暂无会话",
       "noResults": "未找到会话",

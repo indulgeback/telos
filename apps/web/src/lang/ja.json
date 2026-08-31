@@ -7,6 +7,7 @@
   },
   "Chat": {
     "toolCall": {
+      "group": "{count} 件のツール呼び出し",
       "status": {
         "success": "完了",
         "error": "失敗",
@@ -120,6 +121,8 @@
       "approved": "承認済み",
       "rejected": "拒否された",
       "pending": "保留中",
+      "completed": "完了",
+      "failed": "失敗",
       "executing": "計画を実行する",
       "executeTrigger": "上記の承認された計画に従って実行してください"
     },
@@ -158,7 +161,10 @@
       "microphoneError": "マイクを起動できません。ブラウザの権限を確認してください。",
       "socketError": "リアルタイム音声接続に異常が発生しました。後でもう一度お試しください。",
       "mute": "マイクをミュート",
-      "unmute": "マイクのミュートを解除"
+      "unmute": "マイクのミュートを解除",
+      "muted": "マイクはミュート中",
+      "interrupt": "応答を中断",
+      "disconnect": "音声セッションを終了"
     },
     "reasoning": {
       "title": "推論過程",
@@ -179,8 +185,8 @@
     },
     "disclaimer": "AIアシスタントは誤りを生じる可能性があるため、重要な情報は確認してください",
     "threads": {
-      "title": "会話履歴",
-      "new": "新しい会話を作成",
+      "title": "チャット",
+      "new": "新しいチャット",
       "search": "会話を検索中...",
       "empty": "会話はありません",
       "noResults": "会話が見つかりません",

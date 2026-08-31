@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './custom-variant.css';
+@import '../app/beautifui/sidebar-nav.css';
 
 /* Remove outline for all elements */
 *,
@@ -58,6 +59,37 @@
   --color-success-foreground: hsl(var(--success-foreground));
   --color-warning: hsl(var(--warning));
   --color-warning-foreground: hsl(var(--warning-foreground));
+  /* Beautiful UI upstream tokens. Components under `.beautiful-ui` provide
+     the scoped values; these declarations expose the official utility names
+     to Tailwind v4 without changing the rest of Telos. */
+  --color-page: var(--page);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-inset: var(--inset);
+  --color-hover: var(--hover);
+  --color-hover-2: var(--hover-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-field: var(--field);
+  --color-green: var(--green);
+  --color-green-tint: var(--green-tint);
+  --color-orange: var(--orange);
+  --color-orange-tint: var(--orange-tint);
+  --color-red: var(--red);
+  --color-red-tint: var(--red-tint);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-tint: var(--accent-tint);
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-chip: 0.375rem;
+  --radius-window: 1rem;
+  --shadow-hairline: 0 0 0 1px var(--line);
+  --shadow-btn: 0 0 0 1px var(--line-strong), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 0 0 1px var(--line), 0 2px 5px rgb(0 0 0 / 0.06);
+  --shadow-overlay: 0 0 0 1px var(--line), 0 12px 28px rgb(0 0 0 / 0.12);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -147,93 +179,205 @@
 }
 
 /* Beautiful UI-inspired agent workspace tokens.
- * Scoped to the chat surface so the rest of Telos keeps its existing theme. */
+ * Scoped to the chat surface so the rest of Telos keeps its existing theme.
+ * The workspace deliberately uses a neutral ink-and-paper palette; color is
+ * reserved for semantic success, warning and error states. */
 .agent-workbench {
   --radius: 0.875rem;
-  --background: 210 8% 95%;
-  --foreground: 220 5% 11%;
+  --background: 0 0% 96.5%;
+  --foreground: 0 0% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 220 5% 11%;
+  --card-foreground: 0 0% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 5% 11%;
-  --primary: 209 100% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 240 4% 95%;
-  --secondary-foreground: 220 5% 11%;
-  --muted: 240 4% 95%;
-  --muted-foreground: 220 4% 43%;
-  --accent: 210 100% 96%;
-  --accent-foreground: 210 99% 44%;
-  --border: 220 5% 89%;
-  --input: 220 5% 89%;
-  --ring: 209 100% 50%;
+  --popover-foreground: 0 0% 10%;
+  --primary: 0 0% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 94.5%;
+  --secondary-foreground: 0 0% 12%;
+  --muted: 0 0% 93.5%;
+  --muted-foreground: 0 0% 42%;
+  --accent: 0 0% 91.5%;
+  --accent-foreground: 0 0% 10%;
+  --border: 0 0% 86.5%;
+  --input: 0 0% 86.5%;
+  --ring: 0 0% 34%;
   --success: 144 73% 35%;
   --warning: 30 91% 37%;
   background:
     radial-gradient(
       circle at 72% -12%,
-      hsl(209 100% 50% / 0.075),
+      hsl(0 0% 100% / 0.92),
       transparent 28rem
     ),
     hsl(var(--background));
 }
 
 .dark .agent-workbench {
-  --background: 220 5% 11%;
-  --foreground: 210 7% 95%;
-  --card: 220 4% 15%;
-  --card-foreground: 210 7% 95%;
-  --popover: 220 4% 15%;
-  --popover-foreground: 210 7% 95%;
-  --primary: 211 100% 62%;
-  --primary-foreground: 220 5% 11%;
-  --secondary: 225 4% 18%;
-  --secondary-foreground: 210 7% 95%;
-  --muted: 225 4% 18%;
-  --muted-foreground: 220 6% 65%;
-  --accent: 213 42% 23%;
-  --accent-foreground: 211 100% 75%;
-  --border: 220 5% 22%;
-  --input: 220 5% 22%;
-  --ring: 211 100% 62%;
+  --background: 0 0% 8.5%;
+  --foreground: 0 0% 92%;
+  --card: 0 0% 11.5%;
+  --card-foreground: 0 0% 92%;
+  --popover: 0 0% 11.5%;
+  --popover-foreground: 0 0% 92%;
+  --primary: 0 0% 94%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 90%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 63%;
+  --accent: 0 0% 19%;
+  --accent-foreground: 0 0% 94%;
+  --border: 0 0% 23%;
+  --input: 0 0% 23%;
+  --ring: 0 0% 68%;
   --success: 145 50% 49%;
   --warning: 37 91% 55%;
   background:
     radial-gradient(
       circle at 72% -12%,
-      hsl(211 100% 62% / 0.11),
+      hsl(0 0% 100% / 0.055),
       transparent 30rem
     ),
     hsl(var(--background));
 }
 
+/* Beautiful UI registry components keep their upstream DOM and motion. This
+ * scoped contract maps only their visual tokens to Telos' neutral palette. */
+.beautiful-ui {
+  --page: oklch(98.5% 0.001 286.376);
+  --canvas: oklch(96.1% 0.002 247.84);
+  --surface: oklch(100% 0 0);
+  --inset: oklch(97.9% 0.002 247.839);
+  --hover: oklch(97% 0.002 247.839);
+  --hover-2: oklch(93.3% 0.003 247.86);
+  --ink: oklch(24.7% 0.006 258.361);
+  --ink-2: oklch(50.6% 0.01 264.477);
+  --ink-3: oklch(69.5% 0.009 264.505);
+  --line: oklch(94.6% 0.003 264.542);
+  --line-strong: oklch(91.2% 0.005 258.326);
+  --field: oklch(96.1% 0.001 286.375);
+  --green: oklch(60.3% 0.155 150.883);
+  --green-tint: oklch(95.8% 0.017 159.118);
+  --orange: oklch(68.9% 0.179 49.902);
+  --orange-tint: oklch(96.2% 0.018 49.902);
+  --red: oklch(62.1% 0.192 23.042);
+  --red-tint: oklch(95.6% 0.017 17.462);
+  --accent-ink: oklch(30% 0.004 258.361);
+  --accent-tint: oklch(94% 0.003 258.361);
+  --tooltip-bg: oklch(27.2% 0.008 264.435);
+  --tooltip-muted: oklch(73.1% 0.008 260.731);
+  --color-accent: oklch(42% 0.006 258.361);
+}
+
+.dark .beautiful-ui {
+  --page: oklch(20.9% 0.004 264.477);
+  --canvas: oklch(23.1% 0.004 264.487);
+  --surface: oklch(26% 0.006 271.191);
+  --inset: oklch(24.3% 0.004 264.492);
+  --hover: oklch(29.1% 0.006 264.49);
+  --hover-2: oklch(33.2% 0.007 264.48);
+  --ink: oklch(94.6% 0.002 247.839);
+  --ink-2: oklch(72.1% 0.008 264.469);
+  --ink-3: oklch(57.1% 0.008 264.469);
+  --line: oklch(30.7% 0.006 264.49);
+  --line-strong: oklch(35.4% 0.008 264.47);
+  --field: oklch(23.8% 0.004 264.49);
+  --green: oklch(72% 0.145 150.883);
+  --green-tint: oklch(31% 0.035 159.118);
+  --orange: oklch(76% 0.15 49.902);
+  --orange-tint: oklch(31% 0.035 49.902);
+  --red: oklch(72% 0.17 23.042);
+  --red-tint: oklch(31% 0.04 17.462);
+  --accent-ink: oklch(92% 0.002 247.839);
+  --accent-tint: oklch(34% 0.006 258.361);
+  --tooltip-bg: oklch(15% 0.006 264.435);
+  --tooltip-muted: oklch(70% 0.008 260.731);
+  --color-accent: oklch(82% 0.005 258.361);
+}
+
+/* Beautiful UI foundation spacing used by the upstream Approval Card. */
+.beautiful-ui .primitive-card-pad {
+  padding: 12px;
+}
+
+.beautiful-ui .primitive-card-footer {
+  padding: 10px;
+}
+
+@keyframes pixel-on {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  18%,
+  42% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes shimmer-text {
+  from {
+    background-position: 150%;
+  }
+  to {
+    background-position: -50%;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .agent-workbench :focus-visible {
-  outline: 2px solid hsl(var(--ring) / 0.75) !important;
+  outline: 1px solid hsl(var(--foreground) / 0.42) !important;
   outline-offset: 2px;
+}
+
+.agent-workbench textarea:focus-visible,
+.agent-workbench input:focus-visible {
+  outline: none !important;
 }
 
 .agent-surface-shadow {
   box-shadow:
     0 1px 0 hsl(var(--foreground) / 0.035),
-    0 18px 50px hsl(215 28% 18% / 0.075);
+    0 18px 50px hsl(0 0% 10% / 0.065);
 }
 
 .dark .agent-surface-shadow {
   box-shadow:
     inset 0 1px 0 hsl(0 0% 100% / 0.035),
     0 20px 60px hsl(220 40% 2% / 0.28);
-}
-
-@keyframes agent-thinking-ring {
-  from {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: scale(2.5);
-  }
 }
 
 @keyframes agent-stream-caret {
@@ -268,6 +412,38 @@
   50% {
     opacity: 1;
     transform: translateY(-3px);
+  }
+}
+
+@keyframes agent-pixel-churn {
+  0%,
+  100% {
+    background-color: hsl(var(--foreground) / 0.28);
+  }
+
+  25% {
+    background-color: hsl(var(--foreground) / 0.92);
+  }
+
+  50% {
+    background-color: hsl(var(--foreground) / 0.52);
+  }
+
+  75% {
+    background-color: hsl(var(--foreground) / 0.18);
+  }
+}
+
+@keyframes agent-voice-bar {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scaleY(0.55);
+  }
+
+  50% {
+    opacity: 0.72;
+    transform: scaleY(1);
   }
 }
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getLatestRetryTarget, replaceLatestAssistant } from './chat-retry'
+import type { RetryMessage } from './chat-retry'
 
 describe('chat retry', () => {
   it('targets the persisted run paired with the latest user turn', () => {
@@ -26,11 +27,11 @@ describe('chat retry', () => {
   })
 
   it('replaces the latest answer without duplicating the user message', () => {
-    const messages = [
-      { id: 'user-1', role: 'user' as const, content: 'hello' },
+    const messages: RetryMessage[] = [
+      { id: 'user-1', role: 'user', content: 'hello' },
       {
         id: 'assistant-1',
-        role: 'assistant' as const,
+        role: 'assistant',
         content: 'old answer',
         runId: 'run-1',
       },

@@ -2,6 +2,15 @@ import { betterAuth } from 'better-auth'
 import { prismaAdapter } from 'better-auth/adapters/prisma'
 import { magicLink } from 'better-auth/plugins/magic-link'
 import { prisma } from './db'
+import { isLocalAuthOrigin, resolveAuthEnvironment } from './auth-environment'
+
+const authBaseURL = process.env.BETTER_AUTH_URL || 'http://localhost:8800'
+const authEnvironment = resolveAuthEnvironment({
+  baseURL: authBaseURL,
+  cookieDomain: process.env.BETTER_AUTH_COOKIE_DOMAIN,
+})
+const localAuthOrigin = isLocalAuthOrigin(authBaseURL)
+const sendEmailFromLocal = process.env.AUTH_SEND_EMAIL_IN_DEV === 'true'
 
 // 1. 动态安全加载 OAuth 提供商，避免空字符串静默失败
 const socialProviders: Record<string, any> = {}
@@ -53,7 +62,7 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
 }
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:8800',
+  baseURL: authBaseURL,
   basePath: '/api/auth',
   secret:
     process.env.BETTER_AUTH_SECRET || 'dev-secret-only-change-in-production',
@@ -76,20 +85,14 @@ export const auth = betterAuth({
   plugins: [
     magicLink({
       sendMagicLink: async ({ email, url }) => {
-        const hasEmailProvider = Boolean(
-          process.env.RESEND_API_KEY || smtpTransporter
-        )
-
-        // 开发环境仍打印链接；配置了邮件通道时继续真实发信。
-        if (process.env.NODE_ENV === 'development') {
+        // 本地默认只打印链接，避免误用生产发信额度；需要联调时显式开启。
+        if (process.env.NODE_ENV === 'development' || localAuthOrigin) {
           console.log(`\n========================================`)
           console.log(`[Better Auth] 登录魔术链接至: ${email}`)
           console.log(`验证 URL (15分钟有效): ${url}`)
           console.log(`========================================\n`)
 
-          if (!hasEmailProvider) {
-            return
-          }
+          if (!sendEmailFromLocal) return
         }
 
         // 2. 选项 A：使用 Resend HTTP API 直发
@@ -156,16 +159,8 @@ export const auth = betterAuth({
     trustedOrigins: process.env.TRUSTED_ORIGINS
       ? process.env.TRUSTED_ORIGINS.split(',')
       : [],
-    // 跨子域共享 cookie (telos.indulgeback.icu ↔ api.telos.indulgeback.icu)
-    // 不配置的话, SameSite=Lax 会让跨子域 XHR 请求不带 cookie → api-gateway 401
-    // domain 设为根域, SameSite=None 必须搭配 Secure
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: 'indulgeback.icu',
-    },
-    defaultCookieAttributes: {
-      sameSite: 'none',
-      secure: true,
-    },
+    // 本地 HTTP 使用 host-only + SameSite=Lax；仅匹配 HTTPS 根域时共享 Cookie。
+    // 由 URL 推导而不是 NODE_ENV，避免本地 production build 误套线上策略。
+    ...authEnvironment,
   },
 })

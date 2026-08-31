@@ -7,6 +7,7 @@
   },
   "Chat": {
     "toolCall": {
+      "group": "{count} Tool-Aufrufe",
       "status": {
         "success": "Vollständig",
         "error": "Fehlgeschlagen",
@@ -120,6 +121,8 @@
       "approved": "Genehmigt",
       "rejected": "Abgelehnt",
       "pending": "Ausstehend",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
       "executing": "Plan ausführen",
       "executeTrigger": "Bitte führen Sie gemäß dem oben genehmigten Plan aus"
     },
@@ -158,7 +161,10 @@
       "microphoneError": "Das Mikrofon kann nicht gestartet werden. Bitte überprüfen Sie die Berechtigungen des Browsers.",
       "socketError": "Echtzeit-Sprachverbindung gestört, bitte versuchen Sie es später erneut.",
       "mute": "Mikrofon stummschalten",
-      "unmute": "Mikrofon einschalten"
+      "unmute": "Mikrofon einschalten",
+      "muted": "Mikrofon stummgeschaltet",
+      "interrupt": "Antwort unterbrechen",
+      "disconnect": "Sprachsitzung beenden"
     },
     "reasoning": {
       "title": "Schlussfolgerungsprozess",
@@ -179,8 +185,8 @@
     },
     "disclaimer": "KI-Assistenten können Fehler machen. Bitte überprüfen Sie wichtige Informationen.",
     "threads": {
-      "title": "Verlauf der Gespräche",
-      "new": "Neue Sitzung erstellen",
+      "title": "Chats",
+      "new": "Neuer Chat",
       "search": "Gespräch suchen...",
       "empty": "Keine Unterhaltung",
       "noResults": "Sitzung nicht gefunden",

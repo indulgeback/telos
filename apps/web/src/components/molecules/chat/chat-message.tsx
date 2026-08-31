@@ -14,10 +14,11 @@ import {
 } from '@/components/atoms'
 import { MarkdownContent } from './markdown-content'
 import { SkillSaver } from './SkillSaver'
-import { ToolCallStatus, type ToolCallPreview } from './tool-call-status'
-import { ClarifyPanel } from './ClarifyPanel'
+import { ToolCallGroup, type ToolCallPreview } from './tool-call-status'
 import { ThinkingTrace } from './thinking-trace'
 import { AgentLoadingState } from './agent-loading-state'
+import { StreamingText } from './streaming-text'
+import { PlanPanel, type PlanStepStatus } from './PlanPanel'
 import {
   Copy,
   Check,
@@ -25,17 +26,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Mic2,
-  ClipboardList,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Loader2,
-  MinusCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-export type PlanStepStatus =
-  'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
 
 export type AssistantContentPart =
   | { type: 'text'; text: string }
@@ -52,7 +44,13 @@ export type AssistantContentPart =
       plan: {
         summary?: string
         steps: Array<{ description: string; tool_hint?: string }>
-        status: 'pending' | 'approved' | 'rejected'
+        status:
+          | 'pending'
+          | 'approved'
+          | 'rejected'
+          | 'executing'
+          | 'completed'
+          | 'failed'
         /** 每步的执行状态（execute 阶段实时更新）。长度与 steps 一致 */
         stepStatuses?: PlanStepStatus[]
         /** 旧格式兼容：纯文本计划 */
@@ -62,12 +60,36 @@ export type AssistantContentPart =
   | {
       type: 'clarify'
       clarify: {
+        messageId?: string
         question: string
         options: string[]
         status: 'pending' | 'answered'
         selectedOption?: string | null
       }
     }
+
+type RenderContentPart =
+  | Exclude<AssistantContentPart, { type: 'tool' }>
+  | { type: 'tool-group'; tools: ToolCallPreview[] }
+
+function groupConsecutiveToolParts(
+  parts: AssistantContentPart[]
+): RenderContentPart[] {
+  return parts.reduce<RenderContentPart[]>((grouped, part) => {
+    if (part.type !== 'tool') {
+      grouped.push(part)
+      return grouped
+    }
+
+    const previous = grouped[grouped.length - 1]
+    if (previous?.type === 'tool-group') {
+      previous.tools.push(part.tool)
+    } else {
+      grouped.push({ type: 'tool-group', tools: [part.tool] })
+    }
+    return grouped
+  }, [])
+}
 
 export interface ChatMessageProps {
   id: string
@@ -102,11 +124,12 @@ export interface ChatMessageProps {
   planApprovedLabel?: string
   planRejectedLabel?: string
   planPendingLabel?: string
+  planCompletedLabel?: string
+  planFailedLabel?: string
   /** 当前消息是否为待批准的计划（用于显示批准/放弃按钮） */
   isPendingPlan?: boolean
   onApprovePlan?: () => void
   onRejectPlan?: () => void
-  onClarifySelect?: (messageId: string, option: string) => void
 }
 
 function compareToolPreview(
@@ -241,14 +264,16 @@ function ChatMessageInner({
   planApprovedLabel = 'Approved',
   planRejectedLabel = 'Rejected',
   planPendingLabel = 'Pending',
+  planCompletedLabel = 'Completed',
+  planFailedLabel = 'Failed',
   isPendingPlan = false,
   onApprovePlan,
   onRejectPlan,
-  onClarifySelect,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
   const safeImages = images ?? []
   const safeContentParts = contentParts ?? []
+  const groupedContentParts = groupConsecutiveToolParts(safeContentParts)
   const isAssistant = role === 'assistant'
   const hasContent = safeContent.length > 0
   const hasImages = safeImages.length > 0
@@ -291,7 +316,7 @@ function ChatMessageInner({
           onClick={handleAssistantAvatarClick}
           aria-label='Animate liquid orb avatar'
           className={cn(
-            'mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card outline-none transition-transform duration-200 hover:scale-105',
+            'mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-transparent outline-none transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:ring-foreground/20',
             isAvatarBouncing && 'chat-assistant-avatar-jelly'
           )}
         >
@@ -301,20 +326,22 @@ function ChatMessageInner({
 
       <div
         className={cn(
-          'flex max-w-[88%] flex-col gap-2 sm:max-w-[82%]',
-          isAssistant ? 'w-full items-start pr-1 sm:pr-4' : 'items-end'
+          'flex flex-col gap-2',
+          isAssistant
+            ? 'w-full max-w-full items-start pr-1 sm:pr-4'
+            : 'max-w-[88%] items-end sm:max-w-[82%]'
         )}
       >
         {isAssistant ? (
           <div className='w-full'>
-            {safeContentParts.length > 0 ? (
+            {groupedContentParts.length > 0 ? (
               <div className='space-y-3'>
-                {safeContentParts.map((part, index) => {
-                  if (part.type === 'tool') {
+                {groupedContentParts.map((part, index) => {
+                  if (part.type === 'tool-group') {
                     return (
-                      <ToolCallStatus
-                        key={`${part.tool.toolCallId}-${index}`}
-                        tool={part.tool}
+                      <ToolCallGroup
+                        key={`${part.tools[0]?.toolCallId ?? 'tools'}-${index}`}
+                        tools={part.tools}
                       />
                     )
                   }
@@ -335,30 +362,6 @@ function ChatMessageInner({
                   if (part.type === 'plan') {
                     const { summary, steps, status, stepStatuses } = part.plan
                     const showActions = isPendingPlan && status === 'pending'
-                    const stepStatusIcon = (sStatus?: PlanStepStatus) => {
-                      switch (sStatus) {
-                        case 'completed':
-                          return (
-                            <CheckCircle2 className='size-3.5 shrink-0 text-emerald-500' />
-                          )
-                        case 'in_progress':
-                          return (
-                            <Loader2 className='size-3.5 shrink-0 animate-spin text-blue-500' />
-                          )
-                        case 'failed':
-                          return (
-                            <XCircle className='size-3.5 shrink-0 text-rose-500' />
-                          )
-                        case 'skipped':
-                          return (
-                            <MinusCircle className='size-3.5 shrink-0 text-muted-foreground' />
-                          )
-                        default:
-                          return (
-                            <Clock className='size-3.5 shrink-0 text-amber-500/60' />
-                          )
-                      }
-                    }
                     // steps 可能是字符串数组（旧格式）或对象数组（新格式）
                     const normalizedSteps = steps.map(s =>
                       typeof s === 'string'
@@ -366,118 +369,31 @@ function ChatMessageInner({
                         : { description: s.description, tool_hint: s.tool_hint }
                     )
                     return (
-                      <div
+                      <PlanPanel
                         key={`plan-${id}-${index}`}
-                        className='agent-surface-shadow overflow-hidden rounded-2xl border border-border bg-card'
-                      >
-                        <div className='flex items-center gap-2.5 border-b border-border px-4 py-3 text-sm font-medium text-foreground'>
-                          <span className='grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground'>
-                            <ClipboardList className='size-3.5' />
-                          </span>
-                          <span>{planTitle}</span>
-                          <span className='ml-auto inline-flex items-center gap-1 font-mono text-[10px] font-normal'>
-                            {status === 'approved' && (
-                              <>
-                                <CheckCircle2 className='size-3 text-emerald-500' />
-                                {planApprovedLabel}
-                              </>
-                            )}
-                            {status === 'rejected' && (
-                              <>
-                                <XCircle className='size-3 text-rose-500' />
-                                {planRejectedLabel}
-                              </>
-                            )}
-                            {status === 'pending' && (
-                              <>
-                                <Clock className='size-3 text-amber-500' />
-                                {planPendingLabel}
-                              </>
-                            )}
-                          </span>
-                        </div>
-                        {summary && (
-                          <p className='border-b border-border px-4 py-3 text-xs leading-5 text-foreground/70'>
-                            {summary}
-                          </p>
-                        )}
-                        <ol className='divide-y divide-border text-xs leading-relaxed text-foreground/80'>
-                          {normalizedSteps.map((step, stepIndex) => {
-                            const sStatus = stepStatuses?.[stepIndex]
-                            return (
-                              <li
-                                key={stepIndex}
-                                data-step={stepIndex}
-                                data-status={sStatus ?? 'pending'}
-                                className={cn(
-                                  'flex items-start gap-3 px-4 py-3 transition-colors',
-                                  sStatus === 'in_progress' && 'bg-accent/55'
-                                )}
-                              >
-                                {stepStatuses ? (
-                                  stepStatusIcon(sStatus)
-                                ) : (
-                                  <span className='font-mono text-[10px] text-muted-foreground'>
-                                    {String(stepIndex + 1).padStart(2, '0')}
-                                  </span>
-                                )}
-                                <span className='flex-1'>
-                                  {step.description}
-                                  {step.tool_hint && (
-                                    <span className='ml-2 font-mono text-[10px] text-muted-foreground'>
-                                      {step.tool_hint}
-                                    </span>
-                                  )}
-                                </span>
-                              </li>
-                            )
-                          })}
-                        </ol>
-                        {showActions && (
-                          <div className='flex items-center gap-2 border-t border-border px-4 py-3'>
-                            <Button
-                              type='button'
-                              size='sm'
-                              radius='md'
-                              onClick={onApprovePlan}
-                            >
-                              <CheckCircle2 className='size-3.5' />
-                              {planApproveLabel}
-                            </Button>
-                            <Button
-                              type='button'
-                              size='sm'
-                              radius='md'
-                              variant='outline'
-                              onClick={onRejectPlan}
-                            >
-                              <XCircle className='size-3.5' />
-                              {planRejectLabel}
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                        summary={summary}
+                        steps={normalizedSteps}
+                        status={status}
+                        stepStatuses={stepStatuses}
+                        titleLabel={planTitle}
+                        approveLabel={planApproveLabel}
+                        rejectLabel={planRejectLabel}
+                        approvedLabel={planApprovedLabel}
+                        rejectedLabel={planRejectedLabel}
+                        pendingLabel={planPendingLabel}
+                        completedLabel={planCompletedLabel}
+                        failedLabel={planFailedLabel}
+                        onApprove={showActions ? onApprovePlan : undefined}
+                        onReject={showActions ? onRejectPlan : undefined}
+                      />
                     )
                   }
 
                   if (part.type === 'clarify') {
-                    const { question, options, status, selectedOption } =
-                      part.clarify
-                    return (
-                      <ClarifyPanel
-                        key={`clarify-${id}-${index}`}
-                        messageId={id}
-                        question={question}
-                        options={options}
-                        status={status}
-                        selectedOption={selectedOption}
-                        onSelect={async option => {
-                          if (onClarifySelect) {
-                            onClarifySelect(id, option)
-                          }
-                        }}
-                      />
-                    )
+                    // Clarification is a composer-level bottom pane. The
+                    // selected answer is already persisted as a user message,
+                    // so rendering this part in history would duplicate state.
+                    return null
                   }
 
                   return (
@@ -485,23 +401,16 @@ function ChatMessageInner({
                       key={`text-${id}-${index}`}
                       className='max-w-none text-[14px] leading-7'
                     >
-                      <div
+                      <StreamingText
                         className={cn(
                           'chat-assistant-markdown prose prose-sm dark:prose-invert'
                         )}
+                        active={
+                          isLoading && index === groupedContentParts.length - 1
+                        }
                       >
                         <MarkdownContent content={part.text} />
-                        {isLoading && index === safeContentParts.length - 1 && (
-                          <span
-                            className='ml-0.5 inline-block h-[1.05em] w-0.5 translate-y-[0.18em] rounded-full bg-primary align-baseline'
-                            style={{
-                              animation:
-                                'agent-stream-caret 1s steps(1,end) infinite',
-                            }}
-                            aria-hidden='true'
-                          />
-                        )}
-                      </div>
+                      </StreamingText>
                       {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
                       <SkillSaver text={part.text} />
                     </div>
@@ -513,23 +422,14 @@ function ChatMessageInner({
                 key={`${id}-content`}
                 className='max-w-none text-[14px] leading-7'
               >
-                <div
+                <StreamingText
                   className={cn(
                     'chat-assistant-markdown prose prose-sm dark:prose-invert'
                   )}
+                  active={isLoading}
                 >
                   <MarkdownContent content={safeContent} />
-                  {isLoading && (
-                    <span
-                      className='ml-0.5 inline-block h-[1.05em] w-0.5 translate-y-[0.18em] rounded-full bg-primary align-baseline'
-                      style={{
-                        animation:
-                          'agent-stream-caret 1s steps(1,end) infinite',
-                      }}
-                      aria-hidden='true'
-                    />
-                  )}
-                </div>
+                </StreamingText>
                 {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
                 <SkillSaver text={safeContent} />
               </div>

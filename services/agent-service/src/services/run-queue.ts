@@ -37,6 +37,7 @@ export interface AgentRunJobData {
   reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
   planMode?: 'plan' | 'execute'
   approvedPlan?: StructuredPlan | null
+  approvedPlanMessageId?: string
   forceSkillName?: string
   replaceAssistantMessageId?: string | null
   userId?: string

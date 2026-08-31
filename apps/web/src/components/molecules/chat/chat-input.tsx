@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { Button } from '@/components/atoms'
-import { ArrowUp, Sparkles, Square } from 'lucide-react'
+import { ArrowUp, Square } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ChatInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -138,38 +138,35 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
         onDrop={handleDrop}
         className={cn(
           'agent-surface-shadow relative flex flex-col overflow-hidden rounded-2xl border bg-card/95 p-2.5 transition-[border-color,box-shadow,background-color] duration-200',
-          isFocused ? 'border-primary/55' : 'border-border',
+          isFocused ? 'border-foreground/35' : 'border-border',
           isImageDragActive &&
-            'border-primary/60 bg-accent ring-2 ring-primary/10'
+            'border-foreground/45 bg-muted shadow-[0_0_0_1px_hsl(var(--foreground)/0.08)]'
         )}
       >
         {attachments && <div className='px-2 pt-1.5'>{attachments}</div>}
 
         {isImageDragActive && (
-          <div className='pointer-events-none absolute inset-2 z-20 flex items-center justify-center rounded-xl border border-dashed border-primary/45 bg-background/90 text-xs font-medium text-foreground backdrop-blur-sm'>
+          <div className='pointer-events-none absolute inset-2 z-20 flex items-center justify-center rounded-xl border border-dashed border-foreground/35 bg-background/90 text-xs font-medium text-foreground backdrop-blur-sm'>
             {imageDropLabel}
           </div>
         )}
 
         {/* 输入区域 */}
-        <div className='flex items-start gap-1'>
-          <Sparkles className='ml-2 mt-3 size-4 shrink-0 text-primary' />
-          <textarea
-            ref={ref}
-            value={value}
-            onKeyDown={handleKeyDown}
-            onCompositionStart={handleCompositionStart}
-            onCompositionEnd={handleCompositionEnd}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
-            className={cn(
-              'max-h-40 min-h-11 w-full resize-none border-none bg-transparent px-2 py-2.5 text-[15px] leading-6 outline-none placeholder:text-muted-foreground/70',
-              className
-            )}
-            rows={1}
-            {...props}
-          />
-        </div>
+        <textarea
+          ref={ref}
+          value={value}
+          onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          className={cn(
+            'max-h-40 min-h-11 w-full resize-none border-none bg-transparent px-2 py-2.5 text-[15px] leading-6 outline-none placeholder:text-muted-foreground/70',
+            className
+          )}
+          rows={1}
+          {...props}
+        />
 
         {/* 操作区域 - 在边框内 */}
         <div className='mt-1.5 flex items-center justify-between gap-2 border-t border-border/70 px-1 pt-2'>

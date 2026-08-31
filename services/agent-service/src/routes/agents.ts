@@ -10,7 +10,12 @@ import {
 import { asStringArray } from '../utils/json.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
-import { parseApprovedPlan } from '../services/plan-tools.js'
+import {
+  markPlanExecutionStarted,
+  persistPlanExecution,
+  PlanStateError,
+  resolveApprovedPlanForExecution,
+} from '../services/plan-state.js'
 import {
   DEFAULT_AGENT_TURNS,
   MAX_AGENT_TURNS,
@@ -647,18 +652,12 @@ agentsRouter.post('/:id/runs', async c => {
     body.planMode === 'plan' || body.planMode === 'execute'
       ? body.planMode
       : undefined
-  let approvedPlan: ReturnType<typeof parseApprovedPlan>
-  try {
-    approvedPlan = parseApprovedPlan(body.approvedPlan)
-  } catch (error) {
-    return fail(
-      c,
-      400,
-      error instanceof Error ? error.message : 'approvedPlan 无效'
-    )
-  }
-  if (planMode === 'execute' && !approvedPlan) {
-    return fail(c, 400, 'execute plan mode requires an approvedPlan')
+  const approvedPlanMessageId =
+    typeof body.approvedPlanMessageId === 'string'
+      ? body.approvedPlanMessageId.trim()
+      : ''
+  if (planMode === 'execute' && !approvedPlanMessageId) {
+    return fail(c, 400, 'execute plan mode requires an approvedPlanMessageId')
   }
 
   // 解析显式 skill 触发（对标 Codex 的 $skill-name 语法），与 chat 路由保持一致。
@@ -671,9 +670,26 @@ agentsRouter.post('/:id/runs', async c => {
   const agent = await findAccessibleAgent(agentId, ownerId)
   if (!agent) return fail(c, 404, 'Agent 不存在')
 
+  let approvedPlan = null
+  if (planMode === 'execute') {
+    try {
+      approvedPlan = await resolveApprovedPlanForExecution(
+        approvedPlanMessageId,
+        ownerId,
+        typeof body.threadId === 'string' ? body.threadId : null
+      )
+    } catch (error) {
+      if (error instanceof PlanStateError) {
+        return fail(c, error.status, error.message)
+      }
+      throw error
+    }
+  }
   const thread = await agentSessionService.ensureThread({
     agentId,
-    threadId: typeof body.threadId === 'string' ? body.threadId : null,
+    threadId:
+      approvedPlan?.threadId ??
+      (typeof body.threadId === 'string' ? body.threadId : null),
     ownerId,
     firstInput: effectiveInput,
     metadata: { source: 'run_api' },
@@ -696,23 +712,61 @@ agentsRouter.post('/:id/runs', async c => {
       source: 'run_api',
       userMessageId: userMessage.id,
       approvedPlan,
+      approvedPlanMessageId: approvedPlan?.messageId ?? null,
       forceSkillName: forceSkillName || null,
     },
   })
 
-  await enqueueAgentRun({
-    runId: run.id,
-    agentId,
-    threadId: thread.id,
-    input: effectiveInput,
-    ownerId,
-    modelOverride,
-    reasoningEffort,
-    planMode,
-    approvedPlan,
-    forceSkillName: forceSkillName || undefined,
-    userId: ownerId,
-  })
+  if (approvedPlan) {
+    try {
+      await markPlanExecutionStarted(approvedPlan.messageId, ownerId, run.id)
+    } catch (error) {
+      await prisma.agentRun.updateMany({
+        where: { id: run.id, status: 'queued' },
+        data: {
+          status: 'failed',
+          error: error instanceof Error ? error.message : String(error),
+          completedAt: new Date(),
+        },
+      })
+      if (error instanceof PlanStateError) {
+        return fail(c, error.status, error.message)
+      }
+      throw error
+    }
+  }
+
+  try {
+    await enqueueAgentRun({
+      runId: run.id,
+      agentId,
+      threadId: thread.id,
+      input: effectiveInput,
+      ownerId,
+      modelOverride,
+      reasoningEffort,
+      planMode,
+      approvedPlan,
+      approvedPlanMessageId: approvedPlan?.messageId,
+      forceSkillName: forceSkillName || undefined,
+      userId: ownerId,
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    await prisma.agentRun.updateMany({
+      where: { id: run.id, status: 'queued' },
+      data: { status: 'failed', error: message, completedAt: new Date() },
+    })
+    if (approvedPlan) {
+      await persistPlanExecution(
+        approvedPlan.messageId,
+        run.id,
+        approvedPlan.stepStatuses,
+        'failed'
+      ).catch(() => undefined)
+    }
+    throw error
+  }
 
   return ok(c, { run_id: run.id, thread_id: thread.id, status: 'queued' }, 202)
 })

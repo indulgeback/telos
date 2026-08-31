@@ -7,6 +7,7 @@
   },
   "Chat": {
     "toolCall": {
+      "group": "도구 호출 {count}개",
       "status": {
         "success": "완료",
         "error": "실패",
@@ -120,6 +121,8 @@
       "approved": "승인됨",
       "rejected": "거부됨",
       "pending": "대기 중",
+      "completed": "완료",
+      "failed": "실패",
       "executing": "계획 실행",
       "executeTrigger": "위에서 승인된 계획에 따라 실행해 주세요"
     },
@@ -158,7 +161,10 @@
       "microphoneError": "마이크를 시작할 수 없습니다. 브라우저 권한을 확인하세요.",
       "socketError": "실시간 음성 연결이 비정상입니다. 잠시 후 다시 시도하세요.",
       "mute": "마이크 음소거",
-      "unmute": "마이크 음소거 해제"
+      "unmute": "마이크 음소거 해제",
+      "muted": "마이크 음소거됨",
+      "interrupt": "응답 중단",
+      "disconnect": "음성 세션 종료"
     },
     "reasoning": {
       "title": "추리 과정",
@@ -179,8 +185,8 @@
     },
     "disclaimer": "AI 도우미는 오류를 발생시킬 수 있으므로 중요한 정보는 확인하세요",
     "threads": {
-      "title": "대화 기록",
-      "new": "새 대화 만들기",
+      "title": "채팅",
+      "new": "새 채팅",
       "search": "대화 검색...",
       "empty": "일시적으로 대화가 없습니다",
       "noResults": "세션을 찾을 수 없습니다",

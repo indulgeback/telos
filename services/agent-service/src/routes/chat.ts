@@ -4,8 +4,14 @@ import { fail, ok, parseJson } from '../http/response.js'
 import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
 import { PlanStore } from '../services/plan-store.js'
-import { parseApprovedPlan } from '../services/plan-tools.js'
 import { normalizeUserImageParts } from '../services/image-input.js'
+import {
+  decidePlan,
+  markPlanExecutionStarted,
+  persistPlanExecution,
+  PlanStateError,
+  resolveApprovedPlanForExecution,
+} from '../services/plan-state.js'
 import {
   agentRuntimeService,
   extractPromptFromBody,
@@ -61,18 +67,12 @@ async function handleChat(c: Context) {
     body.planMode === 'plan' || body.planMode === 'execute'
       ? body.planMode
       : undefined
-  let approvedPlan: ReturnType<typeof parseApprovedPlan>
-  try {
-    approvedPlan = parseApprovedPlan(body.approvedPlan)
-  } catch (error) {
-    return fail(
-      c,
-      400,
-      error instanceof Error ? error.message : 'approvedPlan 无效'
-    )
-  }
-  if (planMode === 'execute' && !approvedPlan) {
-    return fail(c, 400, 'execute plan mode requires an approvedPlan')
+  const approvedPlanMessageId =
+    typeof body.approvedPlanMessageId === 'string'
+      ? body.approvedPlanMessageId.trim()
+      : ''
+  if (planMode === 'execute' && !approvedPlanMessageId) {
+    return fail(c, 400, 'execute plan mode requires an approvedPlanMessageId')
   }
   let normalizedImages: ReturnType<typeof normalizeUserImageParts>
   try {
@@ -106,9 +106,26 @@ async function handleChat(c: Context) {
   const agent = await findAccessibleAgent(agentId, ownerId)
   if (!agent) return fail(c, 404, 'Agent 不存在')
 
+  let approvedPlan = null
+  if (planMode === 'execute') {
+    try {
+      approvedPlan = await resolveApprovedPlanForExecution(
+        approvedPlanMessageId,
+        ownerId,
+        typeof body.threadId === 'string' ? body.threadId : null
+      )
+    } catch (error) {
+      if (error instanceof PlanStateError) {
+        return fail(c, error.status, error.message)
+      }
+      throw error
+    }
+  }
   const thread = await agentSessionService.ensureThread({
     agentId,
-    threadId: typeof body.threadId === 'string' ? body.threadId : null,
+    threadId:
+      approvedPlan?.threadId ??
+      (typeof body.threadId === 'string' ? body.threadId : null),
     ownerId,
     firstInput: effectiveInput,
     metadata: { source: 'chat' },
@@ -205,6 +222,25 @@ async function handleChat(c: Context) {
       typeof retryMetadata.forceSkillName === 'string'
         ? retryMetadata.forceSkillName
         : null
+  } else if (planMode === 'execute' && approvedPlan) {
+    const planMessage = await prisma.agentMessage.findUnique({
+      where: { id: approvedPlan.messageId },
+      select: { sequence: true },
+    })
+    userMessage = planMessage
+      ? await prisma.agentMessage.findFirst({
+          where: {
+            threadId: thread.id,
+            role: 'user',
+            sequence: { lt: planMessage.sequence },
+          },
+          orderBy: { sequence: 'desc' },
+        })
+      : null
+    if (!userMessage) {
+      return fail(c, 409, 'The plan source message is no longer available')
+    }
+    effectiveInput = userMessage.content
   } else {
     userMessage = await agentSessionService.appendUserMessage(
       thread.id,
@@ -225,6 +261,7 @@ async function handleChat(c: Context) {
       source: 'chat',
       userMessageId: userMessage.id,
       approvedPlan,
+      approvedPlanMessageId: approvedPlan?.messageId ?? null,
       forceSkillName: forceSkillName || null,
       retryOfRunId: retryRunId,
       replaceAssistantMessageId,
@@ -233,20 +270,57 @@ async function handleChat(c: Context) {
 
   if (!run) return fail(c, 404, 'Run not found')
 
-  await enqueueAgentRun({
-    runId: run.id,
-    agentId,
-    threadId: thread.id,
-    input: effectiveInput,
-    ownerId,
-    modelOverride,
-    reasoningEffort,
-    planMode,
-    approvedPlan,
-    forceSkillName: forceSkillName || undefined,
-    replaceAssistantMessageId,
-    userId: ownerId,
-  })
+  if (approvedPlan) {
+    try {
+      await markPlanExecutionStarted(approvedPlan.messageId, ownerId, run.id)
+    } catch (error) {
+      await prisma.agentRun.updateMany({
+        where: { id: run.id, status: 'queued' },
+        data: {
+          status: 'failed',
+          error: error instanceof Error ? error.message : String(error),
+          completedAt: new Date(),
+        },
+      })
+      if (error instanceof PlanStateError) {
+        return fail(c, error.status, error.message)
+      }
+      throw error
+    }
+  }
+
+  try {
+    await enqueueAgentRun({
+      runId: run.id,
+      agentId,
+      threadId: thread.id,
+      input: effectiveInput,
+      ownerId,
+      modelOverride,
+      reasoningEffort,
+      planMode,
+      approvedPlan,
+      approvedPlanMessageId: approvedPlan?.messageId,
+      forceSkillName: forceSkillName || undefined,
+      replaceAssistantMessageId,
+      userId: ownerId,
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    await prisma.agentRun.updateMany({
+      where: { id: run.id, status: 'queued' },
+      data: { status: 'failed', error: message, completedAt: new Date() },
+    })
+    if (approvedPlan) {
+      await persistPlanExecution(
+        approvedPlan.messageId,
+        run.id,
+        approvedPlan.stepStatuses,
+        'failed'
+      ).catch(() => undefined)
+    }
+    throw error
+  }
 
   return ok(c, { run_id: run.id, thread_id: thread.id, status: 'queued' }, 202)
 }
@@ -411,4 +485,23 @@ chatRouter.patch('/messages/:messageId/clarify', async c => {
   })
 
   return ok(c, { success: true })
+})
+
+chatRouter.patch('/messages/:messageId/plan', async c => {
+  const messageId = c.req.param('messageId')
+  const body = await parseJson(c)
+  const decision = body.decision
+  if (decision !== 'approved' && decision !== 'rejected') {
+    return fail(c, 400, 'decision must be approved or rejected')
+  }
+
+  try {
+    const plan = await decidePlan(messageId, getCurrentUserId(c), decision)
+    return ok(c, { success: true, plan: toSnakeCase(plan) })
+  } catch (error) {
+    if (error instanceof PlanStateError) {
+      return fail(c, error.status, error.message)
+    }
+    throw error
+  }
 })

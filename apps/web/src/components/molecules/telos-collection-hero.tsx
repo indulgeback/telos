@@ -62,7 +62,7 @@ export function TelosCollectionHero({
           <button
             type='button'
             onClick={onAction}
-            className='mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#18243b] px-5 py-2.5 text-sm font-medium text-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:translate-x-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#18243b] focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transition-none'
+            className='mt-7 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#18243b] px-5 py-2.5 text-sm font-medium text-white transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:translate-x-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20 focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transition-none'
           >
             {ctaLabel}
             <ArrowRight className='size-4' />

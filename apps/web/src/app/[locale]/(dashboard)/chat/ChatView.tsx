@@ -33,6 +33,7 @@ import {
   type SuggestionPrompt,
 } from '@/components/atoms'
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
+import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
@@ -47,16 +48,9 @@ import {
   type AgentThread,
   type ClarifyPart,
 } from '@/service/agent'
-import {
-  MessageSquare,
-  Mic,
-  Mic2,
-  MicOff,
-  PhoneOff,
-  Square,
-  Volume2,
-} from 'lucide-react'
-import { VoiceAuraOrb } from '@/components/molecules/chat/VoiceAuraOrb'
+import { MessageSquare, Mic2 } from 'lucide-react'
+import { RealtimeVoiceControl } from '@/components/molecules/chat/realtime-voice-control'
+import type { VoiceAuraState } from '@/components/molecules/chat/VoiceAuraOrb'
 import { toast } from 'sonner'
 import { getLatestRetryTarget, replaceLatestAssistant } from './chat-retry'
 import { resolveMessageModelLabel } from './chat-model-label'
@@ -124,7 +118,12 @@ type AgentStreamChunk = {
   plan_summary?: string
   plan_steps?: Array<{ description: string; tool_hint?: string }>
   step_index?: number
-  plan_step_status?: 'in_progress' | 'completed' | 'skipped' | 'failed'
+  plan_step_status?:
+    'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
+  plan_status?: 'executing' | 'completed' | 'failed'
+  plan_step_statuses?: Array<
+    'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
+  >
   note?: string
   // Redis Stream ID（如 "1690000000000-3"），前端只透传不运算
   sequence?: string
@@ -725,7 +724,8 @@ const parsePlanPart = (
 ): {
   summary?: string
   steps: Array<{ description: string; tool_hint?: string }>
-  status: 'pending' | 'approved' | 'rejected'
+  status:
+    'pending' | 'approved' | 'rejected' | 'executing' | 'completed' | 'failed'
   stepStatuses?: Array<
     'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
   >
@@ -744,8 +744,17 @@ const parsePlanPart = (
   const status =
     planObj.status === 'approved' ||
     planObj.status === 'rejected' ||
-    planObj.status === 'pending'
-      ? (planObj.status as 'pending' | 'approved' | 'rejected')
+    planObj.status === 'pending' ||
+    planObj.status === 'executing' ||
+    planObj.status === 'completed' ||
+    planObj.status === 'failed'
+      ? (planObj.status as
+          | 'pending'
+          | 'approved'
+          | 'rejected'
+          | 'executing'
+          | 'completed'
+          | 'failed')
       : 'pending'
 
   const summary =
@@ -810,6 +819,7 @@ const parsePlanPart = (
 const parseClarifyPart = (
   part: unknown
 ): {
+  messageId?: string
   question: string
   options: string[]
   status: 'pending' | 'answered'
@@ -834,8 +844,15 @@ const parseClarifyPart = (
     typeof clarifyObj.selectedOption === 'string'
       ? clarifyObj.selectedOption
       : null
+  const messageId =
+    typeof clarifyObj.messageId === 'string'
+      ? clarifyObj.messageId
+      : typeof clarifyObj.message_id === 'string'
+        ? clarifyObj.message_id
+        : undefined
 
   return {
+    messageId,
     question,
     options,
     status,
@@ -1010,12 +1027,19 @@ export function ChatView() {
   // 待批准/执行中的计划：驱动输入框上方的 PlanPanel
   const [pendingPlan, setPendingPlan] = useState<{
     messageId: string
+    uiMessageId: string
     summary: string
     steps: Array<{ description: string; tool_hint?: string }>
   } | null>(null)
+  // 澄清问题属于 composer bottom pane，不属于聊天记录。
+  const [pendingClarify, setPendingClarify] = useState<{
+    messageId: string
+    question: string
+    options: string[]
+  } | null>(null)
   // 计划的整体状态：pending(待批准) / approved(已批准执行中) / rejected(已放弃)
   const [planPanelStatus, setPlanPanelStatus] = useState<
-    'pending' | 'approved' | 'rejected'
+    'pending' | 'approved' | 'rejected' | 'executing' | 'completed' | 'failed'
   >('pending')
   // SkillTrigger：选中技能后回填输入框为 $skill-name(带空格让用户继续输入指令)
   const handleSkillPick = useCallback(
@@ -1118,13 +1142,17 @@ export function ChatView() {
   const realtimePlaybackTimeRef = useRef(0)
   // 当前正在执行的计划所在的消息 id（execute 阶段的 plan_step_updated 需要它来定位计划气泡）
   const activePlanMessageIdRef = useRef<string | null>(null)
+  const planActionBusyRef = useRef(false)
   // pendingPlan 的 ref（streamAgentMessage 的 finally 闭包需要同步读取最新值）
   const pendingPlanRef = useRef(pendingPlan)
   useEffect(() => {
     pendingPlanRef.current = pendingPlan
   }, [pendingPlan])
-  // pendingClarify 的 ref：clarify 命中时保持 submitted（loading）状态，等待用户选择
-  const pendingClarifyRef = useRef<{ messageId: string } | null>(null)
+  // pendingClarify 的 ref：stream finally 需要同步读取最新等待态。
+  const pendingClarifyRef = useRef(pendingClarify)
+  useEffect(() => {
+    pendingClarifyRef.current = pendingClarify
+  }, [pendingClarify])
   // Tool approval pauses are durable; keep the run id in a ref so stream
   // cleanup cannot briefly switch the UI back to ready before React commits.
   const [pendingApprovalRunId, setPendingApprovalRunId] = useState<
@@ -1305,13 +1333,68 @@ export function ChatView() {
       ) {
         return
       }
-      setMessages(
-        storedMessages
-          .filter(
-            message => message.role === 'user' || message.role === 'assistant'
-          )
-          .map(messageToUiMessage) as any
+      const visibleMessages = storedMessages.filter(
+        message => message.role === 'user' || message.role === 'assistant'
       )
+      setMessages(visibleMessages.map(messageToUiMessage) as any)
+      const restoredPlan = [...visibleMessages]
+        .reverse()
+        .flatMap(message => {
+          if (message.role !== 'assistant' || !Array.isArray(message.parts)) {
+            return []
+          }
+          const plan = message.parts
+            .map(parsePlanPart)
+            .find((value): value is NonNullable<typeof value> => Boolean(value))
+          return plan ? [{ message, plan }] : []
+        })
+        .find(({ plan }) =>
+          ['pending', 'approved', 'executing'].includes(plan.status)
+        )
+      if (restoredPlan) {
+        const restored = {
+          messageId: restoredPlan.message.id,
+          uiMessageId: restoredPlan.message.id,
+          summary: restoredPlan.plan.summary ?? '',
+          steps: restoredPlan.plan.steps,
+        }
+        pendingPlanRef.current = restored
+        setPendingPlan(restored)
+        setPlanPanelStatus(restoredPlan.plan.status)
+        setPlanStatuses(restoredPlan.plan.stepStatuses ?? [])
+      } else {
+        pendingPlanRef.current = null
+        setPendingPlan(null)
+        setPlanPanelStatus('pending')
+        setPlanStatuses([])
+      }
+      const restoredClarification = [...visibleMessages]
+        .reverse()
+        .flatMap(message => {
+          if (message.role !== 'assistant' || !Array.isArray(message.parts)) {
+            return []
+          }
+          const clarify = message.parts
+            .map(parseClarifyPart)
+            .find((value): value is NonNullable<typeof value> =>
+              Boolean(value && value.status === 'pending')
+            )
+          return clarify ? [{ message, clarify }] : []
+        })[0]
+      if (restoredClarification) {
+        const restored = {
+          messageId:
+            restoredClarification.clarify.messageId ||
+            restoredClarification.message.id,
+          question: restoredClarification.clarify.question,
+          options: restoredClarification.clarify.options,
+        }
+        pendingClarifyRef.current = restored
+        setPendingClarify(restored)
+      } else {
+        pendingClarifyRef.current = null
+        setPendingClarify(null)
+      }
       setCurrentThreadId(threadId)
       pendingImageBatchesRef.current = []
       setImagesByMessageId({})
@@ -1330,6 +1413,8 @@ export function ChatView() {
         setThreads([])
         setCurrentThreadId(null)
         setMessages([])
+        pendingClarifyRef.current = null
+        setPendingClarify(null)
         setThreadsLoading(false)
         return
       }
@@ -1348,6 +1433,8 @@ export function ChatView() {
           } else {
             setCurrentThreadId(null)
             setMessages([])
+            pendingClarifyRef.current = null
+            setPendingClarify(null)
           }
         }
       } catch (error) {
@@ -1559,11 +1646,32 @@ export function ChatView() {
         if (planSteps.length > 0) {
           // 同步设 ref，确保 streamAgentMessage 的 finally 能立即读到最新值
           pendingPlanRef.current = {
-            messageId: assistantId,
+            messageId:
+              typeof chunk.plan_message_id === 'string' && chunk.plan_message_id
+                ? chunk.plan_message_id
+                : assistantId,
+            uiMessageId: assistantId,
             summary: planSummary,
             steps: planSteps,
           }
           setPendingPlan(pendingPlanRef.current)
+          setPlanPanelStatus('pending')
+          setPlanStatuses([])
+          setPlanMode('auto')
+        }
+        return
+      }
+
+      if (chunk.type === 'response.plan_state_updated') {
+        if (
+          chunk.plan_status === 'executing' ||
+          chunk.plan_status === 'completed' ||
+          chunk.plan_status === 'failed'
+        ) {
+          setPlanPanelStatus(chunk.plan_status)
+        }
+        if (Array.isArray(chunk.plan_step_statuses)) {
+          setPlanStatuses(chunk.plan_step_statuses)
         }
         return
       }
@@ -1599,8 +1707,18 @@ export function ChatView() {
           ? chunk.clarify_options.map(String)
           : []
         if (question && options.length > 0) {
+          const clarifyMessageId =
+            typeof chunk.clarify_message_id === 'string'
+              ? chunk.clarify_message_id
+              : assistantId
           // 同步设 ref，确保流结束后保持 submitted 状态（与 plan 一致）
-          pendingClarifyRef.current = { messageId: assistantId }
+          const clarification = {
+            messageId: clarifyMessageId,
+            question,
+            options,
+          }
+          pendingClarifyRef.current = clarification
+          setPendingClarify(clarification)
           updateAssistantParts(assistantId, parts => {
             // 模型可能在调用 clarify_question 前先输出过正文（如「请问你需要…」），
             // 这些 text delta 已被流式 append。命中 clarify 时后端落库为空正文，
@@ -1612,7 +1730,12 @@ export function ChatView() {
             if (!parts.some(p => p.type === 'clarify')) {
               parts.push({
                 type: 'clarify',
-                clarify: { question, options, status: 'pending' },
+                clarify: {
+                  messageId: clarifyMessageId,
+                  question,
+                  options,
+                  status: 'pending',
+                },
               } as any)
             }
           })
@@ -1873,6 +1996,7 @@ export function ChatView() {
         if (streamEnd.end === 'terminal') {
           approvalResumeCursorRef.current = ''
         }
+        return streamEnd
       } catch (error) {
         console.error('Chat stream error:', error)
         if (error instanceof Error && error.name === 'AbortError') return
@@ -1888,11 +2012,7 @@ export function ChatView() {
         setActiveAssistantId(null)
         // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
         // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
-        if (
-          pendingPlanRef.current ||
-          pendingClarifyRef.current ||
-          pendingApprovalRunIdRef.current
-        ) {
+        if (pendingClarifyRef.current || pendingApprovalRunIdRef.current) {
           setStatus('submitted')
         } else {
           setStatus('ready')
@@ -1944,9 +2064,7 @@ export function ChatView() {
         }
         setActiveAssistantId(null)
         setStatus(
-          pendingPlanRef.current ||
-            pendingClarifyRef.current ||
-            pendingApprovalRunIdRef.current
+          pendingClarifyRef.current || pendingApprovalRunIdRef.current
             ? 'submitted'
             : 'ready'
         )
@@ -2229,7 +2347,7 @@ export function ChatView() {
         setActiveAssistantId(null)
         // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
         // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
-        if (pendingPlanRef.current || pendingClarifyRef.current) {
+        if (pendingClarifyRef.current) {
           setStatus('submitted')
         } else {
           setStatus('ready')
@@ -2669,7 +2787,11 @@ export function ChatView() {
     setShowScrollToBottom(false)
     // 切换 agent 时清空 pending 状态，避免遗留的 plan/clarify 阻塞新会话 loading
     pendingPlanRef.current = null
+    setPendingPlan(null)
+    setPlanPanelStatus('pending')
+    setPlanStatuses([])
     pendingClarifyRef.current = null
+    setPendingClarify(null)
     pendingApprovalRunIdRef.current = null
     approvalAssistantIdRef.current = null
     approvalResumeCursorRef.current = ''
@@ -2846,18 +2968,23 @@ export function ChatView() {
   }, [messages, selectedModelDisplayLabel])
 
   const displayMessages = useMemo(() => {
-    if (!isLoading) return uiMessages
-    const last = uiMessages[uiMessages.length - 1]
-    if (last && last.role === 'assistant') return uiMessages
+    const visibleUiMessages = uiMessages.filter(message => {
+      if (message.role !== 'assistant' || message.content.trim()) return true
+      const parts = message.contentParts ?? []
+      return !(parts.length > 0 && parts.every(part => part.type === 'clarify'))
+    })
+    if (!isLoading || pendingClarify) return visibleUiMessages
+    const last = visibleUiMessages[visibleUiMessages.length - 1]
+    if (last && last.role === 'assistant') return visibleUiMessages
     return [
-      ...uiMessages,
+      ...visibleUiMessages,
       {
         id: 'pending-assistant',
         role: 'assistant' as const,
         content: '',
       },
     ]
-  }, [uiMessages, isLoading])
+  }, [uiMessages, isLoading, pendingClarify])
 
   const lastUserMessage = useMemo(() => {
     for (let i = displayMessages.length - 1; i >= 0; i -= 1) {
@@ -2936,7 +3063,10 @@ export function ChatView() {
     })
   }
 
-  const handleSend = async (messageContent?: string) => {
+  const handleSend = async (
+    messageContent?: string,
+    options?: { allowWhileLoading?: boolean }
+  ) => {
     const hasImages = supportsImageUpload && uploadedImageUrls.length > 0
     const shouldUseMessageContent =
       messageContent && typeof messageContent === 'string'
@@ -2945,7 +3075,7 @@ export function ChatView() {
       .trim()
     const contentToSend =
       textInput || (hasImages ? IMAGE_PLACEHOLDER_PROMPT : '')
-    if (!contentToSend || isLoading) return
+    if (!contentToSend || (isLoading && !options?.allowWhileLoading)) return
 
     setInput('')
     const previewBatch = supportsImageUpload ? [...imagePreviews] : []
@@ -3041,11 +3171,46 @@ export function ChatView() {
    * 计划面板保持显示（输入框上方），步骤状态实时更新。
    */
   const handleApprovePlan = async () => {
-    if (!pendingPlan || isLoading || !currentThreadId) return
-    const { summary, steps } = pendingPlan
+    if (
+      !pendingPlan ||
+      isLoading ||
+      !currentThreadId ||
+      planActionBusyRef.current
+    ) {
+      return
+    }
+    planActionBusyRef.current = true
+    const { messageId, uiMessageId, steps } = pendingPlan
 
-    // 切换面板状态为 approved，初始化步骤状态为 pending
-    setPlanPanelStatus('approved')
+    if (planPanelStatus === 'pending') {
+      try {
+        await agentService.decidePlan(messageId, 'approved')
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : String(error))
+        planActionBusyRef.current = false
+        return
+      }
+    }
+    setMessages(prev =>
+      prev.map(message => {
+        if (message.id !== uiMessageId || !Array.isArray(message.parts)) {
+          return message
+        }
+        return {
+          ...message,
+          parts: message.parts.map(part => {
+            if (!part || typeof part !== 'object') return part
+            const raw = part as Record<string, any>
+            if (raw.type !== 'plan') return part
+            return {
+              ...raw,
+              plan: { ...(raw.plan ?? raw), status: 'executing' },
+            }
+          }),
+        }
+      })
+    )
+    setPlanPanelStatus('executing')
     setPlanStatuses(steps.map(() => 'pending'))
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
@@ -3065,7 +3230,7 @@ export function ChatView() {
 
     // execute 请求：带结构化 approvedPlan
     const body = buildRequestBody(undefined, currentThreadId)
-    await streamAgentMessage(
+    const streamEnd = await streamAgentMessage(
       {
         messages: [
           {
@@ -3075,33 +3240,68 @@ export function ChatView() {
         ],
         ...body,
         planMode: 'execute',
-        approvedPlan: JSON.stringify({ summary, steps }),
+        approvedPlanMessageId: messageId,
       },
       assistantMessageId
     )
-    // 执行完成后，延迟清空计划面板，让用户看到最终完成的进度
-    pendingPlanRef.current = null
-    setTimeout(() => {
-      setPendingPlan(null)
-      setPlanPanelStatus('pending')
-      setPlanStatuses([])
-    }, 3000)
+    try {
+      if (streamEnd?.end === 'terminal' || !streamEnd) {
+        await loadThreadMessages(currentThreadId)
+      }
+    } finally {
+      planActionBusyRef.current = false
+    }
     textareaRef.current?.focus()
   }
 
   /**
    * 放弃计划：切换面板状态为 rejected，稍后清空。
    */
-  const handleRejectPlan = () => {
-    if (!pendingPlan) return
+  const handleRejectPlan = async () => {
+    if (!pendingPlan || isLoading || planActionBusyRef.current) return
+    planActionBusyRef.current = true
+    try {
+      await agentService.decidePlan(pendingPlan.messageId, 'rejected')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : String(error))
+      planActionBusyRef.current = false
+      return
+    }
     setPlanPanelStatus('rejected')
+    setMessages(prev =>
+      prev.map(message => {
+        if (
+          message.id !== pendingPlan.uiMessageId ||
+          !Array.isArray(message.parts)
+        ) {
+          return message
+        }
+        return {
+          ...message,
+          parts: message.parts.map(part => {
+            if (!part || typeof part !== 'object') return part
+            const raw = part as Record<string, any>
+            if (raw.type !== 'plan') return part
+            return {
+              ...raw,
+              plan: { ...(raw.plan ?? raw), status: 'rejected' },
+            }
+          }),
+        }
+      })
+    )
     pendingPlanRef.current = null
     // 延迟清空，让用户看到 rejected 状态
+    const rejectedMessageId = pendingPlan.messageId
     setTimeout(() => {
-      setPendingPlan(null)
-      setPlanPanelStatus('pending')
-      setPlanStatuses([])
+      setPendingPlan(current => {
+        if (current && current.messageId !== rejectedMessageId) return current
+        setPlanPanelStatus('pending')
+        setPlanStatuses([])
+        return null
+      })
     }, 2000)
+    planActionBusyRef.current = false
     textareaRef.current?.focus()
   }
 
@@ -3109,15 +3309,26 @@ export function ChatView() {
    * 选择澄清选项：提交用户所选项，并以用户身份发送回复以使对话继续执行。
    */
   const handleClarifySelect = async (messageId: string, option: string) => {
-    if (isLoading || !currentThreadId) return
-    // 用户已做出选择，清空 pendingClarify，解除 loading 保持状态
-    pendingClarifyRef.current = null
+    if (!currentThreadId) {
+      throw new Error('A thread is required to answer a clarification')
+    }
     try {
       await agentService.answerClarify(messageId, option)
       // 局部更新本地消息列表中的 clarify part 状态，避免二次刷新导致重复点选
       setMessages(prev =>
         prev.map(msg => {
-          if (msg.id !== messageId || !Array.isArray(msg.parts)) return msg
+          if (!Array.isArray(msg.parts)) return msg
+          const ownsClarification =
+            msg.id === messageId ||
+            msg.parts.some((part: any) => {
+              if (!part || part.type !== 'clarify') return false
+              const clarify = part.clarify ?? part
+              return (
+                clarify.messageId === messageId ||
+                clarify.message_id === messageId
+              )
+            })
+          if (!ownsClarification) return msg
           const newParts = msg.parts.map((part: any) => {
             if (part && part.type === 'clarify' && part.clarify) {
               return {
@@ -3136,9 +3347,14 @@ export function ChatView() {
       )
     } catch (err) {
       console.error('Failed to answer clarify question:', err)
+      throw err
     }
+    // 持久化成功后再解除等待态；失败时保留卡片，允许用户重试。
+    pendingClarifyRef.current = null
+    setPendingClarify(null)
+    setStatus('ready')
     // 自动将用户的选择作为新指令发送
-    handleSend(option)
+    await handleSend(option, { allowWhileLoading: true })
   }
 
   // 消费 pendingPrompt:当 selectedAgent 就绪后,自动发送预填消息(仅一次)。
@@ -3286,6 +3502,12 @@ export function ChatView() {
     setAssistantModelById({})
     setCurrentThreadId(null)
     setMessages([])
+    pendingPlanRef.current = null
+    setPendingPlan(null)
+    setPlanPanelStatus('pending')
+    setPlanStatuses([])
+    pendingClarifyRef.current = null
+    setPendingClarify(null)
     pendingApprovalRunIdRef.current = null
     approvalAssistantIdRef.current = null
     approvalResumeCursorRef.current = ''
@@ -3308,6 +3530,8 @@ export function ChatView() {
     approvalResumeCursorRef.current = ''
     setPendingApprovalRunId(null)
     setPendingApprovals([])
+    pendingClarifyRef.current = null
+    setPendingClarify(null)
     setStatus('ready')
     setActiveAssistantId(null)
     shouldAutoScrollRef.current = false
@@ -3316,6 +3540,12 @@ export function ChatView() {
   const handleNewThread = () => {
     setCurrentThreadId(null)
     setMessages([])
+    pendingPlanRef.current = null
+    setPendingPlan(null)
+    setPlanPanelStatus('pending')
+    setPlanStatuses([])
+    pendingClarifyRef.current = null
+    setPendingClarify(null)
     setImagesByMessageId({})
     setAssistantModelById({})
     pendingImageBatchesRef.current = []
@@ -3399,7 +3629,6 @@ export function ChatView() {
               ? t('voice.error')
               : t('voice.idle')
   const realtimeElapsedLabel = formatElapsedSeconds(realtimeElapsedSeconds)
-  const realtimeWaveHeights = [10, 18, 26, 15, 32, 22, 14, 28, 18, 24, 12, 20]
   const realtimeToolbarControl = (
     <button
       type='button'
@@ -3407,7 +3636,7 @@ export function ChatView() {
       disabled={isLoading || realtimeConfigLoading}
       className={`inline-flex h-8 max-w-full shrink-0 items-center gap-1.5 rounded-lg px-2.5 font-mono text-[10px] transition-all duration-200 active:scale-[0.98] ${
         realtimeEnabled
-          ? 'bg-accent text-accent-foreground ring-1 ring-primary/25'
+          ? 'bg-foreground text-background'
           : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
       } ${isLoading || realtimeConfigLoading ? 'opacity-60' : ''}`}
       aria-pressed={realtimeEnabled}
@@ -3418,121 +3647,41 @@ export function ChatView() {
       <span className='truncate'>{t('voice.shortLabel')}</span>
     </button>
   )
-  const getAuraState = () => {
+  const getAuraState = (): VoiceAuraState => {
     if (realtimeMicState === 'connecting') return 'connecting'
+    if (realtimeMicState === 'reconnecting') return 'reconnecting'
     if (realtimeMicState === 'listening') return 'listening'
     if (realtimeMicState === 'speaking') return 'speaking'
+    if (realtimeMicState === 'error') return 'error'
     return 'idle'
   }
 
-  const getAuraStatusText = () => {
-    switch (realtimeMicState) {
-      case 'connecting':
-        return t('voice.connecting') || 'Connecting...'
-      case 'listening':
-        return t('voice.listening') || 'Listening...'
-      case 'speaking':
-        return t('voice.speaking') || 'Speaking...'
-      case 'idle':
-      default:
-        return t('voice.idle') || 'Ready'
-    }
-  }
-
   const realtimeStatusPanel = realtimeEnabled ? (
-    <div className='agent-surface-shadow overflow-hidden rounded-2xl border border-border bg-card p-3 text-xs'>
-      <div className='flex min-w-0 items-center gap-3'>
-        <div className='flex min-w-0 items-center gap-2'>
-          <span
-            className={cn(
-              'inline-flex size-2 shrink-0 rounded-full transition-all duration-300',
-              realtimeMicState === 'error'
-                ? 'bg-destructive'
-                : isRealtimeMicActive
-                  ? 'animate-pulse bg-emerald-500'
-                  : realtimeAvailable
-                    ? 'bg-emerald-500'
-                    : 'bg-amber-500'
-            )}
-          />
-          <span className='font-medium text-foreground'>
-            {isRealtimeMicActive ? 'Live connected' : t('voice.title')}
-          </span>
-          <span className='rounded-md bg-muted/50 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground'>
-            {isRealtimeMicActive ? realtimeElapsedLabel : realtimeStatusLabel}
-          </span>
-        </div>
-
-        {/* SiriWave 经典彩虹流光声纹条 */}
-        <div className='relative flex h-8 min-w-[200px] flex-1 items-center justify-center gap-1 overflow-hidden rounded-lg bg-muted px-2'>
-          <VoiceAuraOrb
-            state={getAuraState()}
-            amplitude={realtimeVolumeAmplitude}
-            className='h-8 w-64 border-none bg-transparent shadow-none scale-100'
-            width={256}
-            height={32}
-          />
-        </div>
-
-        <span className='hidden min-w-20 text-muted-foreground sm:inline truncate'>
-          {isRealtimeMicActive ? realtimeMicLabel : t('voice.audioChannel')}
-        </span>
-
-        {realtimeMissingEnv.length > 0 && (
-          <span
-            className='max-w-[180px] truncate rounded-md border border-amber-300/70 bg-amber-50 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'
-            title={realtimeMissingEnv.join(', ')}
-          >
-            {t('voice.missingConfig', {
-              count: realtimeMissingEnv.length,
-            })}
-          </span>
-        )}
-        {realtimeErrorText && (
-          <span
-            className='max-w-[220px] truncate rounded-md border border-amber-300/70 bg-amber-50 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'
-            title={realtimeErrorText}
-          >
-            {realtimeErrorText}
-          </span>
-        )}
-
-        {/* 控制按钮组 */}
-        <button
-          type='button'
-          onClick={() => setRealtimeMuted(prev => !prev)}
-          className={cn(
-            'inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
-            realtimeMuted &&
-              'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
-          )}
-          title={realtimeMuted ? t('voice.unmute') : t('voice.mute')}
-        >
-          {realtimeMuted ? (
-            <MicOff className='size-3.5' />
-          ) : (
-            <Mic className='size-3.5' />
-          )}
-        </button>
-        <button
-          type='button'
-          onClick={handleStop}
-          disabled={!isLoading || realtimeMicState !== 'speaking'}
-          className='inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-muted px-2 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-45'
-        >
-          <Square className='size-3' />
-          {t('actions.stop') || 'Interrupt'}
-        </button>
-        <button
-          type='button'
-          onClick={() => setRealtimeEnabled(false)}
-          className='inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-destructive text-white hover:bg-destructive/90 transition-colors'
-          title={t('actions.stop') || 'Disconnect'}
-        >
-          <PhoneOff className='size-4' />
-        </button>
-      </div>
-    </div>
+    <RealtimeVoiceControl
+      state={getAuraState()}
+      amplitude={realtimeVolumeAmplitude}
+      active={isRealtimeMicActive}
+      muted={realtimeMuted}
+      available={realtimeAvailable}
+      statusLabel={realtimeStatusLabel}
+      stateLabel={realtimeMicLabel}
+      elapsedLabel={realtimeElapsedLabel}
+      errorText={realtimeErrorText}
+      configurationText={
+        realtimeMissingEnv.length > 0
+          ? t('voice.missingConfig', { count: realtimeMissingEnv.length })
+          : null
+      }
+      muteLabel={t('voice.mute')}
+      unmuteLabel={t('voice.unmute')}
+      mutedLabel={t('voice.muted')}
+      interruptLabel={t('voice.interrupt')}
+      disconnectLabel={t('voice.disconnect')}
+      canInterrupt={isLoading && realtimeMicState === 'speaking'}
+      onMutedChange={() => setRealtimeMuted(prev => !prev)}
+      onInterrupt={handleStop}
+      onDisconnect={() => setRealtimeEnabled(false)}
+    />
   ) : null
 
   const filteredThreads = threads.filter(thread => {
@@ -3546,8 +3695,8 @@ export function ChatView() {
       <div className='agent-workbench flex h-full min-h-0 w-full overflow-hidden text-foreground'>
         <aside
           className={cn(
-            'hidden shrink-0 border-r border-border transition-[width] duration-300 ease-out md:block',
-            sidebarCollapsed ? 'w-[62px]' : 'w-[280px]'
+            'hidden shrink-0 transition-[width] duration-300 ease-out md:block',
+            sidebarCollapsed ? 'w-[52px]' : 'w-56'
           )}
         >
           <AgentThreadSidebar
@@ -3592,7 +3741,7 @@ export function ChatView() {
             </SheetTrigger>
             <SheetContent
               side='left'
-              className='agent-workbench w-[min(88vw,320px)] gap-0 border-r border-border bg-card p-0 [&_[data-slot=sheet-close]]:top-3 [&_[data-slot=sheet-close]]:right-3'
+              className='agent-workbench w-[min(88vw,224px)] gap-0 border-r border-border bg-card p-0 [&_[data-slot=sheet-close]]:top-3 [&_[data-slot=sheet-close]]:right-3'
             >
               <SheetTitle className='sr-only'>{t('threads.title')}</SheetTitle>
               <AgentThreadSidebar
@@ -3654,10 +3803,9 @@ export function ChatView() {
             onStop={handleStop}
             onRetry={handleRetry}
             onCopy={handleCopy}
-            pendingPlanMessageId={pendingPlan?.messageId ?? null}
+            pendingPlanMessageId={pendingPlan?.uiMessageId ?? null}
             onApprovePlan={handleApprovePlan}
             onRejectPlan={handleRejectPlan}
-            onClarifySelect={handleClarifySelect}
             onClear={handleClear}
             onScrollToBottom={handleScrollToBottom}
             onModelChange={setSelectedModel}
@@ -3687,6 +3835,8 @@ export function ChatView() {
             planApprovedLabel={t('plan.approved')}
             planRejectedLabel={t('plan.rejected')}
             planPendingLabel={t('plan.pending')}
+            planCompletedLabel={t('plan.completed')}
+            planFailedLabel={t('plan.failed')}
             executingLabel={t('plan.executing')}
             planPanel={
               pendingPlan ? (
@@ -3703,14 +3853,31 @@ export function ChatView() {
                   approvedLabel={t('plan.approved')}
                   rejectedLabel={t('plan.rejected')}
                   pendingLabel={t('plan.pending')}
+                  completedLabel={t('plan.completed')}
+                  failedLabel={t('plan.failed')}
                   executingLabel={t('plan.executing')}
                   onApprove={
-                    planPanelStatus === 'pending'
+                    planPanelStatus === 'pending' ||
+                    planPanelStatus === 'approved'
                       ? handleApprovePlan
                       : undefined
                   }
                   onReject={
                     planPanelStatus === 'pending' ? handleRejectPlan : undefined
+                  }
+                />
+              ) : undefined
+            }
+            clarificationPanel={
+              pendingClarify ? (
+                <ClarifyPanel
+                  messageId={pendingClarify.messageId}
+                  question={pendingClarify.question}
+                  options={pendingClarify.options}
+                  status='pending'
+                  placement='composer'
+                  onSelect={option =>
+                    handleClarifySelect(pendingClarify.messageId, option)
                   }
                 />
               ) : undefined

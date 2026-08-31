@@ -74,3 +74,35 @@ test('data image URLs are bounded and require matching magic bytes', () => {
     /maximum size/
   )
 })
+
+test('rejects local, internal and cloud-metadata hostnames', () => {
+  assert.throws(
+    () => validateUrlSyntax('http://sub.localhost/image.png'),
+    /Localhost URLs are not allowed/
+  )
+  for (const value of [
+    'http://printer.local/image.png',
+    'http://db.internal/image.png',
+    'http://metadata.google.internal/computeMetadata/v1/',
+  ]) {
+    assert.throws(
+      () => validateUrlSyntax(value),
+      /Local or metadata hostnames/
+    )
+  }
+})
+
+test('fails closed on DNS errors and skips lookup for literal IPs', async () => {
+  await assert.rejects(
+    validateSafeUrl('https://example.com/image.png', async () => {
+      throw new Error('resolver down')
+    }),
+    /DNS lookup failed/
+  )
+
+  await assert.doesNotReject(
+    validateSafeUrl('http://8.8.8.8/image.png', async () => {
+      throw new Error('literal IPs must bypass the resolver')
+    })
+  )
+})

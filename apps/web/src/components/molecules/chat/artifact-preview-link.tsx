@@ -131,7 +131,7 @@ function getIcon(extension: string) {
     return <Presentation className='size-4 text-orange-600' />
   }
 
-  return <FileText className='size-4 text-blue-600' />
+  return <FileText className='size-4 text-foreground/65' />
 }
 
 export function ArtifactPreviewLink({

@@ -7,6 +7,7 @@
   },
   "Chat": {
     "toolCall": {
+      "group": "{count, plural, one {# tool call} other {# tool calls}}",
       "status": {
         "success": "Complete",
         "error": "Failed",
@@ -120,6 +121,8 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
       "executing": "Executing Plan",
       "executeTrigger": "Please execute according to the approved plan above"
     },
@@ -157,8 +160,11 @@
       "missingConfig": "Missing {count} configuration items",
       "microphoneError": "Unable to start the microphone, please check the browser permissions.",
       "socketError": "Real-time voice connection is abnormal, please try again later.",
-      "mute": "Mute Microphone",
-      "unmute": "Unmute Microphone"
+      "mute": "Mute microphone",
+      "unmute": "Unmute microphone",
+      "muted": "Microphone muted",
+      "interrupt": "Interrupt response",
+      "disconnect": "End voice session"
     },
     "reasoning": {
       "title": "Reasoning process",
@@ -179,9 +185,9 @@
     },
     "disclaimer": "AI assistants may make mistakes, please verify important information.",
     "threads": {
-      "title": "Conversation History",
-      "new": "New Conversation",
-      "search": "Searching conversation...",
+      "title": "Chats",
+      "new": "New chat",
+      "search": "Search chats...",
       "empty": "No conversations for now",
       "noResults": "Session not found",
       "rename": "Rename",

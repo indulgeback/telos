@@ -25,10 +25,19 @@ export class PlanStore {
 
   constructor(
     private readonly plan: StructuredPlan,
-    private readonly onStepUpdate: (update: PlanStepUpdate) => void
+    private readonly onStepUpdate: (update: PlanStepUpdate) => void,
+    initialStatuses?: readonly PlanStepStatus[]
   ) {
-    // 初始状态全部为 pending
-    this.statuses = plan.steps.map(() => 'pending' as PlanStepStatus)
+    this.statuses = plan.steps.map((_, index) => {
+      const status = initialStatuses?.[index]
+      return status === 'pending' ||
+        status === 'in_progress' ||
+        status === 'completed' ||
+        status === 'skipped' ||
+        status === 'failed'
+        ? status
+        : 'pending'
+    })
   }
 
   /**

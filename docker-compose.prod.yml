@@ -302,6 +302,7 @@ services:
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:?BETTER_AUTH_URL 必须设置}
       - NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL:-${BETTER_AUTH_URL}}
       - TRUSTED_ORIGINS=${TRUSTED_ORIGINS:-${BETTER_AUTH_URL}}
+      - BETTER_AUTH_COOKIE_DOMAIN=${BETTER_AUTH_COOKIE_DOMAIN:-indulgeback.icu}
       # ===== 数据库 (web 也直接读数据库做 Better-Auth) =====
       - DATABASE_URL=postgresql://${POSTGRES_USER:-telos}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-telos}?schema=public
       # ===== 浏览器侧 API 地址 (公网域名, 浏览器实际能访问到) =====

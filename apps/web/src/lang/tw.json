@@ -7,6 +7,7 @@
   },
   "Chat": {
     "toolCall": {
+      "group": "{count} 個工具調用",
       "status": {
         "success": "完成",
         "error": "失敗",
@@ -120,6 +121,8 @@
       "approved": "已批准",
       "rejected": "拒絕",
       "pending": "待處理",
+      "completed": "已完成",
+      "failed": "失敗",
       "executing": "執行計畫",
       "executeTrigger": "請依照上述核准的計畫執行"
     },
@@ -158,7 +161,10 @@
       "microphoneError": "無法啟動麥克風，請檢查瀏覽器權限。",
       "socketError": "即時語音連接異常，請稍後重試。",
       "mute": "靜音麥克風",
-      "unmute": "取消靜音麥克風"
+      "unmute": "取消靜音麥克風",
+      "muted": "麥克風已靜音",
+      "interrupt": "中斷播報",
+      "disconnect": "結束語音"
     },
     "reasoning": {
       "title": "推理過程",
@@ -179,8 +185,8 @@
     },
     "disclaimer": "AI 助手可能會產生錯誤，請核實重要資訊",
     "threads": {
-      "title": "會話歷史",
-      "new": "新建會話",
+      "title": "對話",
+      "new": "新對話",
       "search": "搜尋會話...",
       "empty": "暫無會話",
       "noResults": "未找到會話",

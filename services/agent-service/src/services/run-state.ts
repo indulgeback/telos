@@ -27,6 +27,7 @@ export interface CanonicalRunExecutionData {
   reasoningEffort: 'minimal' | 'low' | 'medium' | 'high' | null
   planMode?: 'plan' | 'execute'
   approvedPlan: StructuredPlan | null
+  approvedPlanMessageId?: string
   forceSkillName?: string
   replaceAssistantMessageId: string | null
   userId: string
@@ -84,6 +85,12 @@ export function canonicalizeRunExecution(
       : undefined
   const approvedPlan = asStructuredPlan(metadata.approvedPlan)
   if (planMode === 'execute' && !approvedPlan) return null
+  const approvedPlanMessageId =
+    typeof metadata.approvedPlanMessageId === 'string' &&
+    metadata.approvedPlanMessageId.trim()
+      ? metadata.approvedPlanMessageId
+      : undefined
+  if (planMode === 'execute' && !approvedPlanMessageId) return null
 
   return {
     runId: run.id,
@@ -98,6 +105,7 @@ export function canonicalizeRunExecution(
     reasoningEffort,
     planMode,
     approvedPlan,
+    approvedPlanMessageId,
     forceSkillName:
       typeof metadata.forceSkillName === 'string'
         ? metadata.forceSkillName
