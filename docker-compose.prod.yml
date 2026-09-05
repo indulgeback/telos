@@ -168,12 +168,15 @@ services:
   # Agent 服务 (Node/TypeScript) - 注册自己到 registry
   # ---------------------------------------------------------------------------
   agent-service:
-    image: ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-agent-service:${IMAGE_TAG:-latest}
+    image: &agent-image ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-agent-service:${IMAGE_TAG:-latest}
     container_name: telos-agent-service
     restart: unless-stopped
     expose:
       - '8895'
-    environment:
+    environment: &agent-environment
+      - WORKSPACE_PERSISTED_DIR=/var/lib/telos/workspaces
+      - WORKER_HEALTH_PORT=8896
+      - WORKER_SHUTDOWN_TIMEOUT_MS=${WORKER_SHUTDOWN_TIMEOUT_MS:-120000}
       - NODE_ENV=production
       - PORT=8895
       - SERVICE_NAME=agent-service
@@ -265,6 +268,7 @@ services:
       # 让容器能经 host.docker.internal 访问宿主机上的代理端口
       - 'host.docker.internal:host-gateway'
     volumes:
+      - ./workspaces:/var/lib/telos/workspaces
       # Google Cloud ADC 凭证（只读挂载，Vertex AI 认证用）
       - /opt/telos/secrets/gcp-adc.json:/secrets/gcp-adc.json:ro
     networks:
@@ -278,6 +282,42 @@ services:
           '--tries=1',
           '--spider',
           'http://localhost:8895/ready',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  # Same image, separate lifecycle. No container_name or published port so
+  # `docker compose up -d --scale agent-worker=2 agent-worker` is supported.
+  agent-worker:
+    image: *agent-image
+    restart: unless-stopped
+    volumes:
+      - ./workspaces:/var/lib/telos/workspaces
+      - /opt/telos/secrets/gcp-adc.json:/secrets/gcp-adc.json:ro
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    networks:
+      - telos-network
+    command: ['node', 'services/agent-service/dist/worker.js']
+    expose: ['8896']
+    stop_grace_period: ${WORKER_STOP_GRACE_PERIOD:-150s}
+    environment: *agent-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8896/ready',
         ]
       interval: 15s
       timeout: 5s
