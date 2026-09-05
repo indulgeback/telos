@@ -1,15 +1,34 @@
 import type { ChatModelOption, Message } from '@/components/organisms'
-import type { AgentMessage, AgentRunApproval } from '@/service/agent'
+import type { AgentMessage } from '@/service/agent'
+
+export const isTextPart = (
+  part: unknown
+): part is { type: 'text'; text: string } => {
+  return (
+    !!part &&
+    typeof part === 'object' &&
+    (part as { type?: string }).type === 'text' &&
+    typeof (part as { text?: unknown }).text === 'string'
+  )
+}
+
+export const isRenderableMessage = <T extends { role: string }>(
+  message: T
+): message is T & { role: 'user' | 'assistant' } => {
+  return message.role === 'user' || message.role === 'assistant'
+}
 
 export type ToolCallItem = NonNullable<Message['toolCalls']>[number]
 export type ContentPartItem = NonNullable<Message['contentParts']>[number]
 export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
-
 export type AgentRunDataPart = {
   type: 'data-agent-run'
-  data?: { threadId?: string; runId?: string; agentId?: string }
+  data?: {
+    threadId?: string
+    runId?: string
+    agentId?: string
+  }
 }
-
 export type ChatUiMessage = {
   id: string
   role: 'user' | 'assistant'
@@ -19,11 +38,9 @@ export type ChatUiMessage = {
   content?: string
   isVoiceTranscript?: boolean
 }
-
 export type ChatStatus = 'ready' | 'submitted' | 'streaming'
 export type RealtimeMicState =
   'idle' | 'connecting' | 'reconnecting' | 'listening' | 'speaking' | 'error'
-
 export type AgentStreamChunk = {
   type?: string
   id?: string
@@ -38,6 +55,7 @@ export type AgentStreamChunk = {
   output?: unknown
   errorText?: string
   error?: unknown
+  // plan 模式相关字段
   response_id?: string
   plan_text?: string
   plan_message_id?: string
@@ -51,7 +69,9 @@ export type AgentStreamChunk = {
     'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'
   >
   note?: string
+  // Redis Stream ID（如 "1690000000000-3"），前端只透传不运算
   sequence?: string
+  // clarify 模式相关字段
   clarify_message_id?: string
   clarify_question?: string
   clarify_options?: string[]
@@ -80,103 +100,11 @@ export type RealtimeConfig = {
   defaultAudioFormat: string
 }
 
-export type NormalizedUiMessage = ReturnType<typeof messageToUiMessage>
+const THINK_TAG_REGEX = /<think>([\s\S]*?)<\/think>/gi
 
-export const messageToUiMessage = (message: AgentMessage) => ({
-  id: message.id,
-  role:
-    message.role === 'assistant' ? ('assistant' as const) : ('user' as const),
-  runId: message.run_id,
-  modelKey: message.model_key,
-  content: message.content,
-  isVoiceTranscript: hasLiveTranscriptMarker(
-    Array.isArray(message.parts) ? message.parts : undefined
-  ),
-  parts:
-    Array.isArray(message.parts) && message.parts.length > 0
-      ? message.parts
-      : [{ type: 'text', text: message.content }],
-})
-
-export const isTextPart = (
-  part: unknown
-): part is { type: 'text'; text: string } =>
-  !!part &&
-  typeof part === 'object' &&
-  (part as { type?: string }).type === 'text' &&
-  typeof (part as { text?: unknown }).text === 'string'
-
-export const isRenderableMessage = <T extends { role: string }>(
-  message: T
-): message is T & { role: 'user' | 'assistant' } =>
-  message.role === 'user' || message.role === 'assistant'
-
-export const createTextPart = (text: string) => ({
-  type: 'text' as const,
-  text,
-})
-export const createReasoningPart = (
-  text = '',
-  state: 'streaming' | 'done' = 'streaming'
-) => ({ type: 'reasoning' as const, reasoning: { text, state } })
-export const createToolPart = (
-  toolCallId: string,
-  toolName: string,
-  state: string,
-  input?: unknown,
-  output?: unknown,
-  errorText?: string
-) => ({
-  type: 'tool' as const,
-  toolCallId,
-  toolName,
-  state,
-  input,
-  output,
-  errorText,
-})
-export const createLiveTranscriptMarker = () => ({
-  type: 'live-transcript' as const,
-})
-
-export const hasLiveTranscriptMarker = (parts: unknown[] | undefined) =>
-  Array.isArray(parts) &&
-  parts.some(
-    part =>
-      !!part &&
-      typeof part === 'object' &&
-      (part as { type?: unknown }).type === 'live-transcript'
-  )
-
-export const getTextFromParts = (parts: unknown[] | undefined) =>
-  Array.isArray(parts)
-    ? parts
-        .filter(isTextPart)
-        .map(part => part.text)
-        .join('')
-    : ''
-
-export const hasTextContent = (parts: unknown[] | undefined) =>
-  getTextFromParts(parts).trim().length > 0
-
-export const isVoicePlaceholder = (value?: string | null) => {
-  const safeValue = value?.trim()
-  return safeValue === '(Voice input)' || safeValue === '（语音输入）'
-}
-
-export const getDisplayThreadTitle = (
-  title?: string | null,
-  voiceLabel = 'Voice Chat'
-) => {
-  const safeTitle = title?.trim()
-  return !safeTitle || isVoicePlaceholder(safeTitle) ? voiceLabel : safeTitle
-}
-
-export const getDisplayMessageContent = (
-  content: string,
-  voiceInputLabel = 'Voice Input'
-) => (isVoicePlaceholder(content) ? voiceInputLabel : content)
-
+// 这些工具的产物有专属 UI（如 clarify_question → ClarifyPanel），
+// 不应再作为普通 tool card 重复展示
+const HIDDEN_TOOL_NAMES = new Set(['clarify_question'])
 export const normalizeModelProvider = (
   provider: unknown
 ): ChatModelOption['provider'] => {
@@ -188,14 +116,111 @@ export const normalizeModelProvider = (
   return 'deepseek'
 }
 
-export const supportsVision = (modelOption: ChatModelOption | undefined) =>
-  !!modelOption?.supportVision
+export const supportsVision = (modelOption: ChatModelOption | undefined) => {
+  if (!modelOption) return false
+  return !!modelOption.supportVision
+}
+
+export const messageToUiMessage = (message: AgentMessage) => {
+  const persistedParts = Array.isArray(message.parts) ? message.parts : []
+
+  return {
+    id: message.id,
+    role: message.role === 'assistant' ? 'assistant' : 'user',
+    runId: message.run_id,
+    modelKey: message.model_key,
+    content: message.content,
+    isVoiceTranscript: hasLiveTranscriptMarker(persistedParts),
+    parts:
+      persistedParts.length > 0
+        ? persistedParts
+        : [{ type: 'text', text: message.content }],
+  }
+}
+
+export const createTextPart = (text: string) => ({ type: 'text', text })
+
+export const createReasoningPart = (
+  text = '',
+  state: 'streaming' | 'done' = 'streaming'
+) => ({
+  type: 'reasoning',
+  reasoning: {
+    text,
+    state,
+  },
+})
+
+export const createToolPart = (
+  toolCallId: string,
+  toolName: string,
+  state: string,
+  input?: unknown,
+  output?: unknown,
+  errorText?: string
+) => ({
+  type: 'tool',
+  toolCallId,
+  toolName,
+  state,
+  input,
+  output,
+  errorText,
+})
+
+export const createLiveTranscriptMarker = () => ({
+  type: 'live-transcript',
+})
+
+export const hasLiveTranscriptMarker = (parts: unknown[] | undefined) => {
+  if (!Array.isArray(parts)) return false
+  return parts.some(
+    part =>
+      !!part &&
+      typeof part === 'object' &&
+      (part as { type?: unknown }).type === 'live-transcript'
+  )
+}
+
+export const getTextFromParts = (parts: unknown[] | undefined) => {
+  if (!Array.isArray(parts)) return ''
+  return parts
+    .filter(isTextPart)
+    .map(part => part.text)
+    .join('')
+}
 
 export const formatElapsedSeconds = (seconds: number) => {
   const safeSeconds = Math.max(0, Math.floor(seconds))
-  return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(
-    safeSeconds % 60
-  ).padStart(2, '0')}`
+  const minutes = Math.floor(safeSeconds / 60)
+  const rest = safeSeconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`
 }
 
-export type { AgentRunApproval }
+export const getDisplayThreadTitle = (
+  title?: string | null,
+  voiceLabel: string = 'Voice Chat'
+) => {
+  const safeTitle = title?.trim()
+  if (!safeTitle || isVoicePlaceholder(safeTitle)) {
+    return voiceLabel
+  }
+  return safeTitle
+}
+
+export const isVoicePlaceholder = (value?: string | null) => {
+  const safeValue = value?.trim()
+  return safeValue === '(Voice input)' || safeValue === '（语音输入）'
+}
+
+export const getDisplayMessageContent = (
+  content: string,
+  voiceInputLabel: string = 'Voice Input'
+) => {
+  if (isVoicePlaceholder(content)) return voiceInputLabel
+  return content
+}
+
+export const hasTextContent = (parts: unknown[] | undefined) => {
+  return getTextFromParts(parts).trim().length > 0
+}
