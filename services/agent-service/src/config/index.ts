@@ -41,6 +41,19 @@ export const config = {
     64
   ),
 
+  workerHealthPort: boundedInteger(
+    process.env.WORKER_HEALTH_PORT,
+    8896,
+    1,
+    65535
+  ),
+  workerShutdownTimeoutMs: boundedInteger(
+    process.env.WORKER_SHUTDOWN_TIMEOUT_MS,
+    120_000,
+    1_000,
+    900_000
+  ),
+
   // OpenAI
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiBaseUrl: process.env.OPENAI_BASE_URL || '',

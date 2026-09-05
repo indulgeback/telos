@@ -40,10 +40,16 @@ Telos is an AI agent orchestration platform built as a modern microservices mono
                │ signed requests
                ▼
 ┌────────────────────────────────────────────────┐
-│  agent-service (TypeScript Hono) :8895          │
+│  agent-service API (TypeScript Hono) :8895      │
 │  agents · chat · runs · tools · skills · mcp ·  │
 │  realtime                                       │
 └──────┬───────────────┬────────────────┬────────┘
+       │ BullMQ jobs   │                │
+       ▼               │                │
+┌──────────────────────┐                  │
+│ agent-worker :8896   │                  │
+│ queue + lease runner │                  │
+└──────────────────────┘                  │
        ▼               ▼                ▼
 ┌────────────┐  ┌───────────┐  ┌───────────────────────┐
 │ PostgreSQL │  │   Redis   │  │ Registry (Go)         │
@@ -113,7 +119,8 @@ telos/
 | ------------- | --------------------- | ------------------------------------------------------- |
 | Web (Next.js) | `8800`                | dev server; `next start` uses 8802                      |
 | API Gateway   | `8890`                | entry point for all `/api/*` routes                     |
-| Agent Service | `8895`                | Hono server, `/ready` health endpoint                   |
+| Agent API | `8895`                | Hono HTTP/SSE API; `/ready` checks database and queue       |
+| Agent Worker | `8896`                | Worker-only `/health` and `/ready`; local execution readiness |
 | Registry      | `REGISTRY_PORT`       | `.env.example` default `8081`; prod compose uses `8891` |
 | Admin Console | `5174`                | Vite dev server                                         |
 | Admin Service | `ADMIN_PORT` = `3002` | admin dashboard API                                     |
@@ -177,7 +184,8 @@ pnpm db:push                             # or: npx prisma migrate deploy
 pnpm --filter ./services/agent-service db:seed-skills
 
 # 5. Start services (each in its own terminal, or use docker compose)
-pnpm agent-service:dev                   # agent service on :8895
+pnpm agent-service:dev                   # API on :8895
+pnpm agent-worker:dev                    # queue worker and health on :8896
 pnpm api-gateway:dev                     # API gateway on :8890
 pnpm registry:dev                        # registry on $REGISTRY_PORT
 pnpm web:dev                             # web on :8800
@@ -206,7 +214,7 @@ make fmt                                 # go fmt
 
 ## 8. Deployment
 
-- Full-stack production: `docker-compose.prod.yml` (web, gateway, registry, agent-service, Postgres, Redis). See header comments inside the file for topology.
+- Full-stack production: `docker-compose.prod.yml` (web, gateway, registry, agent API, agent worker, Postgres, Redis). See [the independent worker guide](./docs/independent-worker.md) for the process split, health semantics, workspace storage, and shutdown behavior.
 - Scripted deploy: `deploy/deploy.sh`
 - CI/CD: GitHub Actions workflows handle basic checks, image builds and deployment.
 - Production deploys stop the old Agent worker, back up PostgreSQL, run the

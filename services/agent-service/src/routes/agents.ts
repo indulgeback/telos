@@ -1,3 +1,4 @@
+import { parseExplicitSkillTrigger } from '../services/skill-loader.js'
 import { Hono } from 'hono'
 import { prisma } from '../services/db.js'
 import { config, logger } from '../config/index.js'
@@ -19,8 +20,7 @@ import {
 import {
   DEFAULT_AGENT_TURNS,
   MAX_AGENT_TURNS,
-  parseExplicitSkillTrigger,
-} from '../services/runtime.js'
+} from '../services/runtime-input.js'
 import {
   getCurrentUserId,
   isAuthenticatedAdmin,

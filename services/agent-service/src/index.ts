@@ -1,3 +1,4 @@
+import { getPersistedWorkspaceRoot } from './services/workspace-root.js'
 import { serve } from '@hono/node-server'
 import type { IncomingMessage } from 'node:http'
 import path from 'node:path'
@@ -29,14 +30,9 @@ import { performRegistration } from './services/registry.js'
 import { handleVolcRealtimeAudioSocket } from './services/realtime/volc-realtime.js'
 import { ANONYMOUS_OWNER_ID } from './services/session.js'
 import {
-  closeAgentRunWorker,
-  isAgentRunWorkerReady,
-  startAgentRunWorker,
+  closeAgentRunQueue,
+  isAgentRunQueueReady,
 } from './services/run-queue.js'
-import {
-  closeOutboxDispatcher,
-  startOutboxDispatcher,
-} from './services/outbox.js'
 import {
   openSharedFile,
   SharedPathAccessError,
@@ -44,6 +40,7 @@ import {
 
 validateConfig()
 
+let stopping = false
 const app = new Hono()
 
 app.use('*', async (c, next) => {
@@ -103,15 +100,15 @@ app.get('/health', c =>
 )
 
 app.get('/ready', async c => {
-  const [database, runWorker] = await Promise.all([
+  const [database, queue] = await Promise.all([
     db.healthCheck(),
-    isAgentRunWorkerReady(),
+    isAgentRunQueueReady(),
   ])
-  const ready = database && runWorker
+  const ready = !stopping && database && queue
   return c.json(
     {
       status: ready ? 'ready' : 'not_ready',
-      checks: { database, run_worker: runWorker },
+      checks: { database, queue },
     },
     ready ? 200 : 503
   )
@@ -147,7 +144,7 @@ app.get('/workspaces/shares/:threadId/*', async c => {
     return c.text('Invalid path', 400)
   }
 
-  const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
+  const persistedDir = getPersistedWorkspaceRoot()
   const wsRoot = path.join(persistedDir, 'workspaces', threadId)
 
   let openedFile: Awaited<ReturnType<typeof openSharedFile>>
@@ -219,13 +216,6 @@ const server = serve(
       })
     })
     void performRegistration()
-    void startAgentRunWorker().catch(error => {
-      logger.error({
-        msg: 'Failed to start agent run worker',
-        err: error,
-      })
-    })
-    startOutboxDispatcher()
   }
 )
 
@@ -299,12 +289,15 @@ realtimeAudioWss.on(
 )
 
 const shutdown = async () => {
+  if (stopping) return
+  stopping = true
+  for (const ws of realtimeAudioWss.clients)
+    ws.close(1012, 'Service restarting')
   logger.info({ msg: 'Shutting down gracefully...' })
 
   server.close(async () => {
     try {
-      closeOutboxDispatcher()
-      await closeAgentRunWorker()
+      await closeAgentRunQueue()
       await db.disconnect()
       logger.info({ msg: 'Database disconnected' })
       process.exit(0)

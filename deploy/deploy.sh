@@ -166,6 +166,7 @@ declare -a SERVICES=(
   "registry:telos-registry"
   "api-gateway:telos-api-gateway"
   "agent-service:telos-agent-service"
+  "agent-worker:worker-replicas"
   "admin-service:telos-admin-service"
   "web:telos-web"
   "admin:telos-admin"
@@ -206,6 +207,28 @@ else
   exit 1
 fi
 
+service_health() {
+  local compose_file="$1" service="$2" ids id state result="healthy"
+  ids="$("${DC[@]}" -f "$compose_file" ps -aq "$service" 2>/dev/null)"
+  if [[ -z "$ids" ]]; then echo missing; return; fi
+  for id in $ids; do
+    state="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$id" 2>/dev/null || echo missing)"
+    case "$state" in
+      healthy|running) ;;
+      unhealthy|missing|exited|dead) echo unhealthy; return ;;
+      *) result="starting" ;;
+    esac
+  done
+  echo "$result"
+}
+
+# Capture old workers before stopping so failed migrations can restart them.
+OLD_WORKER_IDS="$("${DC[@]}" -f "$COMPOSE_FILE" ps -q agent-worker 2>/dev/null || true)"
+LEGACY_WORKSPACE_PRESENT="false"
+if docker exec telos-agent-service test -d /app/.persisted-workspaces 2>/dev/null; then
+  LEGACY_WORKSPACE_PRESENT="true"
+fi
+
 AGENT_WAS_RUNNING="$(docker inspect --format='{{.State.Running}}' telos-agent-service 2>/dev/null || echo false)"
 restore_previous_release_files() {
   local restore_dir="${PREVIOUS_RELEASE_BACKUP_DIR:-}"
@@ -226,6 +249,9 @@ restore_previous_release_files() {
 
 restart_previous_agent() {
   restore_previous_release_files || true
+  for worker_id in $OLD_WORKER_IDS; do
+    docker start "$worker_id" >/dev/null 2>&1 || true
+  done
   if [[ "$AGENT_WAS_RUNNING" == "true" ]]; then
     warn "恢复启动上一版本 agent-service..."
     docker start telos-agent-service >/dev/null 2>&1 || true
@@ -251,14 +277,22 @@ rollback_previous_release() {
     return 1
   fi
 
+  # Old manifests may predate shared storage. Restore the copied local files
+  # into the recreated legacy API/worker container before declaring recovery.
+  if ! grep -q 'WORKSPACE_PERSISTED_DIR' "$rollback_compose" && [[ -d "$DEPLOY_DIR/workspaces" ]]; then
+    docker cp "$DEPLOY_DIR/workspaces/." telos-agent-service:/app/.persisted-workspaces || return 1
+  fi
   local entry svc container rollback_status rollback_elapsed
   for entry in "${SERVICES[@]}"; do
     svc="${entry%%:*}"
     container="${entry##*:}"
+    if ! "${DC[@]}" -f "$rollback_compose" config --services | grep -qx "$svc"; then
+      continue
+    fi
     rollback_status="missing"
     rollback_elapsed=0
     while (( rollback_elapsed < HEALTH_TIMEOUT )); do
-      rollback_status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container" 2>/dev/null || echo "missing")"
+      rollback_status="$(service_health "$rollback_compose" "$svc")"
       if [[ "$rollback_status" == "healthy" || "$rollback_status" == "running" ]]; then
         break
       fi
@@ -298,8 +332,23 @@ recover_on_exit() {
 }
 trap recover_on_exit EXIT
 
-log "⏸️  停止旧 agent-service,阻止迁移期间产生新的 run..."
-"${DC[@]}" -f "$COMPOSE_FILE" stop agent-service >/dev/null 2>&1 || true
+log "⏸️  停止 API 接单并排空所有 Worker..."
+"${DC[@]}" -f "$COMPOSE_FILE" stop agent-service agent-worker
+
+# Preserve legacy container-local workspace files on the first split release.
+# Never merge two nonempty stores silently. A retry is safe after the marker.
+workspace_dir="$DEPLOY_DIR/workspaces"
+if [[ ! -f "$workspace_dir/.migration-complete" ]]; then
+  if [[ -d "$workspace_dir" && -n "$(ls -A "$workspace_dir")" ]]; then
+    err "共享工作区非空且尚未确认迁移，请先核对 $workspace_dir"
+    exit 1
+  fi
+  mkdir -p "$workspace_dir"
+  if [[ "$LEGACY_WORKSPACE_PRESENT" == "true" ]]; then
+    docker cp telos-agent-service:/app/.persisted-workspaces/. "$workspace_dir/"
+  fi
+  touch "$workspace_dir/.migration-complete"
+fi
 
 BACKUP_DATABASE=${BACKUP_DATABASE:-true}
 if [[ "$BACKUP_DATABASE" == "true" ]]; then
@@ -450,7 +499,7 @@ for entry in "${SERVICES[@]}"; do
   elapsed=0
   while (( elapsed < HEALTH_TIMEOUT )); do
     # docker inspect health 状态: healthy / unhealthy / starting / 无 healthcheck
-    status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container" 2>/dev/null || echo "missing")"
+    status="$(service_health "$COMPOSE_FILE" "$svc")"
 
     case "$status" in
       healthy|running)

@@ -16,7 +16,8 @@
     "install:all": "pnpm install && npm run install:go",
     "stat:front": "npx cloc --include-lang=JavaScript,TypeScript,SCSS,CSS --exclude-dir='node_modules,dist,build,.next,vendor' .",
     "stat:back": "npx cloc --include-lang=go --exclude-dir='node_modules,dist,build,.next,vendor' .",
-    "db:push": "npx prisma db push"
+    "db:push": "npx prisma db push",
+    "agent-worker:dev": "pnpm --filter ./services/agent-service dev:worker"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
