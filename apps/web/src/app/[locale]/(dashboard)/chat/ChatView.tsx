@@ -1,4 +1,5 @@
 'use client'
+import { useRealtimeVoice } from './use-realtime-voice'
 
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
@@ -6,7 +7,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import {
   AgentThreadSidebar,
   ChatContainer,
-  type ChatModelOption,
   type Message,
 } from '@/components/organisms'
 import {
@@ -30,7 +30,6 @@ import {
   SheetContent,
   SheetTitle,
   SheetTrigger,
-  type SuggestionPrompt,
 } from '@/components/atoms'
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
@@ -45,7 +44,6 @@ import {
   type AgentMessage,
   type AgentRun,
   type AgentRunApproval,
-  type AgentThread,
   type ClarifyPart,
 } from '@/service/agent'
 import { MessageSquare, Mic2 } from 'lucide-react'
@@ -85,7 +83,6 @@ import {
   isTextPart,
   isVoicePlaceholder,
   messageToUiMessage,
-  normalizeModelProvider,
   supportsVision,
 } from './chat-types'
 import {
@@ -111,110 +108,10 @@ import {
   fileToDataUrl,
   getRealtimeWebSocketUrl,
 } from './chat-audio-utils'
-
-const waitForRunStreamRetry = (delayMs: number, signal: AbortSignal) =>
-  new Promise<void>((resolve, reject) => {
-    if (signal.aborted) {
-      reject(new DOMException('Aborted', 'AbortError'))
-      return
-    }
-    const onAbort = () => {
-      window.clearTimeout(timer)
-      reject(new DOMException('Aborted', 'AbortError'))
-    }
-    const timer = window.setTimeout(() => {
-      signal.removeEventListener('abort', onAbort)
-      resolve()
-    }, delayMs)
-    signal.addEventListener('abort', onAbort, { once: true })
-  })
-
-/**
- * Consume a durable run stream with cursor-based reconnects. The server may
- * deliberately close a slow SSE consumer once its bounded buffer fills; the
- * Redis sequence lets the browser resume without losing or duplicating UI
- * events.
- */
-async function consumeAgentRunStream(
-  runId: string,
-  signal: AbortSignal,
-  onChunk: (chunk: AgentStreamChunk) => void,
-  initialCursor = ''
-): Promise<RunStreamResult> {
-  let cursor = initialCursor
-  let consecutiveFailures = 0
-
-  while (!signal.aborted) {
-    const query = cursor ? `?after=${encodeURIComponent(cursor)}` : ''
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/runs/${runId}/stream${query}`,
-        { credentials: 'include', signal }
-      )
-      if (!response.ok) {
-        throw new Error(`Run stream failed: ${response.status}`)
-      }
-      if (!response.body) throw new Error('Run stream response is empty')
-
-      consecutiveFailures = 0
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-      let end: RunStreamEnd | null = null
-
-      const consumeLine = (line: string) => {
-        if (!line.startsWith('data:')) return
-        const chunk = parseUiMessageStreamChunk(line.slice(5))
-        if (!chunk) return
-        if (typeof chunk.sequence === 'string' && chunk.sequence) {
-          cursor = chunk.sequence
-        }
-        onChunk(chunk)
-        if (
-          chunk.type === 'response.completed' ||
-          chunk.type === 'response.failed'
-        ) {
-          end = 'terminal'
-        } else if (chunk.type === 'response.tool_approval.required') {
-          end = 'awaiting_approval'
-        }
-      }
-
-      while (!end) {
-        const { value, done } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const frames = buffer.split(/\n\n/)
-        buffer = frames.pop() ?? ''
-        frames.forEach(frame => frame.split(/\n/).forEach(consumeLine))
-      }
-      if (!end && buffer.trim()) buffer.split(/\n/).forEach(consumeLine)
-      if (end) return { end, cursor }
-
-      const run = await agentService.getRun(runId)
-      if (
-        run.status === 'completed' ||
-        run.status === 'failed' ||
-        run.status === 'cancelled'
-      ) {
-        return { end: 'terminal', cursor }
-      }
-      if (run.status === 'awaiting_approval') {
-        return { end: 'awaiting_approval', cursor }
-      }
-      await waitForRunStreamRetry(250, signal)
-    } catch (error) {
-      if (signal.aborted) throw error
-      consecutiveFailures += 1
-      if (consecutiveFailures > 5) throw error
-      await waitForRunStreamRetry(
-        Math.min(2_000, 200 * 2 ** (consecutiveFailures - 1)),
-        signal
-      )
-    }
-  }
-  throw new DOMException('Aborted', 'AbortError')
-}
+import { consumeAgentRunStream } from './chat-run-stream'
+import { useChatThreads } from './use-chat-threads'
+import { useChatModels } from './use-chat-models'
+import { useChatSuggestions } from './use-chat-suggestions'
 
 export function ChatView() {
   const t = useTranslations('Chat')
@@ -247,22 +144,11 @@ export function ChatView() {
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [input, setInput] = useState('')
-  const [selectedModel, setSelectedModel] = useState('')
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null)
-  const [threads, setThreads] = useState<AgentThread[]>([])
+  const { modelOptions, selectedModel, setSelectedModel } = useChatModels()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileThreadsOpen, setMobileThreadsOpen] = useState(false)
   const [threadSearch, setThreadSearch] = useState('')
-  const [threadToRename, setThreadToRename] = useState<AgentThread | null>(null)
-  const [renameThreadTitle, setRenameThreadTitle] = useState('')
-  const [isRenamingThread, setIsRenamingThread] = useState(false)
-  const [threadToDelete, setThreadToDelete] = useState<AgentThread | null>(null)
-  const [isDeletingThread, setIsDeletingThread] = useState(false)
-  const [currentThreadId, setCurrentThreadId] = useState<string | null>(null)
-  const currentThreadIdRef = useRef<string | null>(null)
-  const threadsLoadRequestRef = useRef(0)
-  const [threadsLoading, setThreadsLoading] = useState(false)
-  const [modelOptions, setModelOptions] = useState<ChatModelOption[]>([])
   const [reasoningEffort, setReasoningEffort] =
     useState<ReasoningEffort>('medium')
   // plan 模式：'auto'=普通对话，'plan'=出计划模式
@@ -322,24 +208,6 @@ export function ChatView() {
   const [planStatuses, setPlanStatuses] = useState<
     Array<'pending' | 'in_progress' | 'completed' | 'skipped' | 'failed'>
   >([])
-  const [realtimeEnabled, setRealtimeEnabled] = useState(false)
-  const [realtimeConfig, setRealtimeConfig] = useState<RealtimeConfig | null>(
-    null
-  )
-  const [realtimeConfigLoading, setRealtimeConfigLoading] = useState(false)
-  const [realtimeMicState, setRealtimeMicState] =
-    useState<RealtimeMicState>('idle')
-  const [realtimeStartedAt, setRealtimeStartedAt] = useState<number | null>(
-    null
-  )
-  const [realtimeElapsedSeconds, setRealtimeElapsedSeconds] = useState(0)
-  const [realtimeErrorText, setRealtimeErrorText] = useState<string | null>(
-    null
-  )
-  const [realtimeVolumeAmplitude, setRealtimeVolumeAmplitude] = useState(0)
-  const [realtimeMuted, setRealtimeMuted] = useState(false)
-  const realtimeMutedRef = useRef(false)
-  realtimeMutedRef.current = realtimeMuted
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([])
@@ -375,14 +243,6 @@ export function ChatView() {
     processedRunIdsRef.current.set(threadId, set)
     return false
   }
-  const realtimeSocketRef = useRef<WebSocket | null>(null)
-  const realtimeStreamRef = useRef<MediaStream | null>(null)
-  const realtimeAudioContextRef = useRef<AudioContext | null>(null)
-  const realtimeSourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
-  const realtimeProcessorRef = useRef<ScriptProcessorNode | null>(null)
-  const realtimeUserIdRef = useRef<string | null>(null)
-  const realtimeAssistantIdRef = useRef<string | null>(null)
-  const realtimePlaybackTimeRef = useRef(0)
   // 当前正在执行的计划所在的消息 id（execute 阶段的 plan_step_updated 需要它来定位计划气泡）
   const activePlanMessageIdRef = useRef<string | null>(null)
   const planActionBusyRef = useRef(false)
@@ -414,7 +274,6 @@ export function ChatView() {
     status === 'streaming' ||
     activeAssistantId !== null ||
     pendingApprovalRunId !== null
-  const realtimeAvailable = Boolean(realtimeConfig?.configured)
   // ?prompt= 自动发送:支持从其他页面跳转时预填并自动发送一条消息
   // (例如「创建技能」按钮跳转 /chat?prompt=$skill-creator ...)。
   // 用 ref 保证只触发一次,且需等待 selectedAgent 就绪(创建会话需要 agentId)。
@@ -435,147 +294,9 @@ export function ChatView() {
     // 仅在挂载时读取一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  const isRealtimeMicActive =
-    realtimeMicState === 'connecting' ||
-    realtimeMicState === 'reconnecting' ||
-    realtimeMicState === 'listening' ||
-    realtimeMicState === 'speaking'
 
-  useEffect(() => {
-    currentThreadIdRef.current = currentThreadId
-  }, [currentThreadId])
-
-  useEffect(() => {
-    if (!isRealtimeMicActive || !realtimeStartedAt) {
-      setRealtimeElapsedSeconds(0)
-      return
-    }
-
-    const updateElapsed = () => {
-      setRealtimeElapsedSeconds((Date.now() - realtimeStartedAt) / 1000)
-    }
-
-    updateElapsed()
-    const interval = window.setInterval(updateElapsed, 1000)
-    return () => window.clearInterval(interval)
-  }, [isRealtimeMicActive, realtimeStartedAt])
-
-  useEffect(() => {
-    let disposed = false
-
-    const loadModels = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/agent/models`, {
-          credentials: 'include',
-        })
-        if (!response.ok) {
-          throw new Error(`Load models failed: ${response.status}`)
-        }
-
-        const payload = (await response.json()) as {
-          data?: Array<{
-            model?: unknown
-            label?: unknown
-            provider?: unknown
-            isReasoning?: unknown
-            supportVision?: unknown
-            supportReasoningControl?: unknown
-          }>
-        }
-
-        const models: ChatModelOption[] = Array.isArray(payload.data)
-          ? payload.data
-              .filter(
-                item =>
-                  item &&
-                  typeof item.model === 'string' &&
-                  item.model.trim() &&
-                  typeof item.label === 'string' &&
-                  item.label.trim()
-              )
-              .map(item => ({
-                model: item.model as string,
-                label: item.label as string,
-                provider: normalizeModelProvider(item.provider),
-                isReasoning: Boolean(item.isReasoning),
-                supportVision: Boolean(item.supportVision),
-                supportReasoningControl: Boolean(item.supportReasoningControl),
-              }))
-          : []
-
-        if (disposed) return
-        setModelOptions(models)
-        setSelectedModel(prev => {
-          if (prev && models.some(item => item.model === prev)) {
-            return prev
-          }
-          return models[0]?.model ?? ''
-        })
-      } catch (error) {
-        console.error('Failed to load chat models', error)
-        if (!disposed) {
-          setModelOptions([])
-          setSelectedModel('')
-        }
-      }
-    }
-
-    loadModels()
-
-    return () => {
-      disposed = true
-    }
-  }, [])
-
-  useEffect(() => {
-    let disposed = false
-
-    const loadRealtimeConfig = async () => {
-      try {
-        setRealtimeConfigLoading(true)
-        const response = await fetch(
-          `${API_BASE_URL}/api/agent/realtime/config`,
-          {
-            credentials: 'include',
-          }
-        )
-        if (!response.ok) {
-          throw new Error(`Load realtime config failed: ${response.status}`)
-        }
-        const payload = (await response.json()) as {
-          data?: RealtimeConfig
-        }
-        if (!disposed) {
-          setRealtimeConfig(payload.data ?? null)
-        }
-      } catch (error) {
-        console.error('Failed to load realtime config', error)
-        if (!disposed) {
-          setRealtimeConfig(null)
-        }
-      } finally {
-        if (!disposed) {
-          setRealtimeConfigLoading(false)
-        }
-      }
-    }
-
-    void loadRealtimeConfig()
-
-    return () => {
-      disposed = true
-    }
-  }, [])
-
-  const loadThreadMessages = useCallback(
-    async (threadId: string, options?: { requestId?: number }) => {
-      const storedMessages = await agentService.listThreadMessages(threadId)
-      if (
-        options?.requestId !== undefined &&
-        options.requestId !== threadsLoadRequestRef.current
-      ) {
-        return
-      }
+  const restoreThreadMessages = useCallback(
+    (storedMessages: AgentMessage[]) => {
       const visibleMessages = storedMessages.filter(
         message => message.role === 'user' || message.role === 'assistant'
       )
@@ -638,7 +359,6 @@ export function ChatView() {
         pendingClarifyRef.current = null
         setPendingClarify(null)
       }
-      setCurrentThreadId(threadId)
       pendingImageBatchesRef.current = []
       setImagesByMessageId({})
       setAssistantModelById({})
@@ -646,50 +366,47 @@ export function ChatView() {
     [setMessages]
   )
 
-  const loadThreads = useCallback(
-    async (options?: { selectLatest?: boolean }) => {
-      const requestId = threadsLoadRequestRef.current + 1
-      threadsLoadRequestRef.current = requestId
-      const agentId = selectedAgent?.id
-
-      if (!agentId) {
-        setThreads([])
-        setCurrentThreadId(null)
-        setMessages([])
-        pendingClarifyRef.current = null
-        setPendingClarify(null)
-        setThreadsLoading(false)
-        return
-      }
-
-      setThreadsLoading(true)
-      try {
-        const data = await agentService.listThreads({
-          agentId,
-        })
-        if (requestId !== threadsLoadRequestRef.current) return
-        setThreads(data)
-        if (options?.selectLatest) {
-          const latest = data[0]
-          if (latest) {
-            await loadThreadMessages(latest.id, { requestId })
-          } else {
-            setCurrentThreadId(null)
-            setMessages([])
-            pendingClarifyRef.current = null
-            setPendingClarify(null)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load agent threads', error)
-      } finally {
-        if (requestId === threadsLoadRequestRef.current) {
-          setThreadsLoading(false)
-        }
-      }
-    },
-    [loadThreadMessages, selectedAgent?.id, setMessages]
+  const clearThreadHistory = useCallback(() => {
+    setMessages([])
+    pendingClarifyRef.current = null
+    setPendingClarify(null)
+  }, [])
+  const voiceThreadTitle = useCallback(
+    (title?: string | null) => getDisplayThreadTitle(title, t('voiceChat')),
+    [t]
   )
+  const chatThreads = useChatThreads({
+    agentId: selectedAgent?.id,
+    isLoading,
+    voiceTitle: voiceThreadTitle,
+    onRestoreMessages: restoreThreadMessages,
+    onClearAgent: clearThreadHistory,
+    onCurrentThreadDeleted: clearThreadHistory,
+  })
+  const {
+    threads,
+    setThreads,
+    currentThreadId,
+    setCurrentThreadId,
+    currentThreadIdRef,
+    threadsLoading,
+    threadToRename,
+    setThreadToRename,
+    renameThreadTitle,
+    setRenameThreadTitle,
+    isRenamingThread,
+    threadToDelete,
+    setThreadToDelete,
+    isDeletingThread,
+    loadThreads,
+    loadThreadMessages,
+    selectThread,
+    beginRenameThread,
+    confirmRenameThread,
+    beginDeleteThread,
+    confirmDeleteThread,
+    invalidateRequests,
+  } = chatThreads
 
   useEffect(() => {
     void loadThreads({ selectLatest: true })
@@ -756,85 +473,8 @@ export function ChatView() {
     [setMessages]
   )
 
-  const ensureRealtimeTurnMessages = useCallback(() => {
-    if (realtimeUserIdRef.current && realtimeAssistantIdRef.current) {
-      return {
-        userId: realtimeUserIdRef.current,
-        assistantId: realtimeAssistantIdRef.current,
-      }
-    }
-
-    const userId = createClientMessageId('user')
-    const assistantId = createClientMessageId('assistant')
-    realtimeUserIdRef.current = userId
-    realtimeAssistantIdRef.current = assistantId
-    setActiveAssistantId(assistantId)
-    pendingReplyModelLabelRef.current = t('voice.modelLabel')
-    shouldAutoScrollRef.current = true
-    setShowScrollToBottom(false)
-    setMessages(prev => [
-      ...prev,
-      {
-        id: userId,
-        role: 'user',
-        content: '',
-        parts: [],
-      },
-      {
-        id: assistantId,
-        role: 'assistant',
-        content: '',
-        parts: [],
-      },
-    ])
-
-    return { userId, assistantId }
-  }, [t])
-
-  const updateUserTranscript = useCallback((userId: string, text: string) => {
-    setMessages(prev =>
-      prev.map(message => {
-        if (message.id !== userId || message.role !== 'user') return message
-        return {
-          ...message,
-          content: text,
-          parts: text
-            ? [{ type: 'text', text }, createLiveTranscriptMarker()]
-            : [],
-          isVoiceTranscript: true,
-        }
-      })
-    )
-  }, [])
-
-  const resetRealtimeTurnMessages = useCallback(() => {
-    const userId = realtimeUserIdRef.current
-    const assistantId = realtimeAssistantIdRef.current
-
-    if (userId || assistantId) {
-      setMessages(prev =>
-        prev.filter(message => {
-          if (message.id === userId && !message.content?.trim()) {
-            return false
-          }
-          if (message.id === assistantId && !message.content?.trim()) {
-            return false
-          }
-          return true
-        })
-      )
-    }
-
-    realtimeUserIdRef.current = null
-    realtimeAssistantIdRef.current = null
-  }, [setMessages])
-
   const applyAgentStreamChunk = useCallback(
-    (
-      assistantId: string,
-      chunk: AgentStreamChunk,
-      options: { suppressTextOnFailure?: boolean } = {}
-    ) => {
+    (assistantId: string, chunk: AgentStreamChunk) => {
       if (chunk.type === 'data-agent-run' && chunk.data?.threadId) {
         const shouldRefreshThreads =
           currentThreadIdRef.current !== chunk.data.threadId
@@ -995,10 +635,6 @@ export function ChatView() {
               : chunk.error && typeof chunk.error === 'object'
                 ? JSON.stringify(chunk.error)
                 : 'Service failed'
-        if (options.suppressTextOnFailure) {
-          setRealtimeErrorText(errorText)
-          return
-        }
         updateAssistantParts(assistantId, parts => {
           parts.push(createTextPart(t('chatError', { error: errorText })))
         })
@@ -1174,7 +810,13 @@ export function ChatView() {
         })
       }
     },
-    [loadThreads, t, updateAssistantParts]
+    [
+      currentThreadIdRef,
+      loadThreads,
+      setCurrentThreadId,
+      t,
+      updateAssistantParts,
+    ]
   )
 
   const streamAgentMessage = useCallback(
@@ -1262,7 +904,14 @@ export function ChatView() {
         }
       }
     },
-    [applyAgentStreamChunk, loadThreads, t, updateAssistantParts]
+    [
+      applyAgentStreamChunk,
+      currentThreadIdRef,
+      loadThreads,
+      setCurrentThreadId,
+      t,
+      updateAssistantParts,
+    ]
   )
 
   const subscribeExistingRun = useCallback(
@@ -1313,7 +962,7 @@ export function ChatView() {
         )
       }
     },
-    [applyAgentStreamChunk, t, updateAssistantParts]
+    [applyAgentStreamChunk, currentThreadIdRef, t, updateAssistantParts]
   )
 
   const resumeApprovalRun = useCallback(
@@ -1521,482 +1170,37 @@ export function ChatView() {
       disposed = true
     }
   }, [currentThreadId, restoreAssistantSnapshot, subscribeExistingRun])
-
-  const streamRealtimeTextMessage = useCallback(
-    async (input: string, assistantId: string) => {
-      const controller = new AbortController()
-      abortControllerRef.current = controller
-      setStatus('submitted')
-      setActiveAssistantId(assistantId)
-
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/agent/realtime/text`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input }),
-            signal: controller.signal,
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error(`Realtime stream failed: ${response.status}`)
-        }
-        if (!response.body) {
-          throw new Error('Realtime stream response is empty')
-        }
-
-        setStatus('streaming')
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-
-        while (true) {
-          const { value, done } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const frames = buffer.split(/\n\n/)
-          buffer = frames.pop() ?? ''
-
-          frames.forEach(frame => {
-            frame.split(/\n/).forEach(line => {
-              if (!line.startsWith('data:')) return
-              const chunk = parseUiMessageStreamChunk(line.slice(5))
-              if (chunk) {
-                applyAgentStreamChunk(assistantId, chunk)
-              }
-            })
-          })
-        }
-
-        if (buffer.trim()) {
-          buffer.split(/\n/).forEach(line => {
-            if (!line.startsWith('data:')) return
-            const chunk = parseUiMessageStreamChunk(line.slice(5))
-            if (chunk) applyAgentStreamChunk(assistantId, chunk)
-          })
-        }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') return
-        const message = error instanceof Error ? error.message : String(error)
-        updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(t('voiceError', { error: message })))
-        })
-      } finally {
-        abortControllerRef.current = null
-        setActiveAssistantId(null)
-        // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
-        // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
-        if (pendingClarifyRef.current) {
-          setStatus('submitted')
-        } else {
-          setStatus('ready')
-        }
-      }
-    },
-    [applyAgentStreamChunk, t, updateAssistantParts]
-  )
-
-  const stopRealtimeAudioResources = useCallback(() => {
-    realtimeProcessorRef.current?.disconnect()
-    realtimeSourceRef.current?.disconnect()
-    realtimeStreamRef.current?.getTracks().forEach(track => track.stop())
-    realtimeProcessorRef.current = null
-    realtimeSourceRef.current = null
-    realtimeStreamRef.current = null
-  }, [])
-
-  const playRealtimePcmAudio = useCallback(
-    async (base64Audio: string, format = 'pcm_f32le', sampleRate = 24000) => {
-      const AudioContextClass = window.AudioContext
-      const audioContext =
-        realtimeAudioContextRef.current || new AudioContextClass()
-      realtimeAudioContextRef.current = audioContext
-
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume()
-      }
-
-      const raw = base64ToArrayBuffer(base64Audio)
-      const floatData =
-        format === 'pcm_s16le'
-          ? (() => {
-              const pcm = new Int16Array(raw)
-              const samples = new Float32Array(pcm.length)
-              for (let i = 0; i < pcm.length; i += 1) {
-                samples[i] = (pcm[i] ?? 0) / 0x8000
-              }
-              return samples
-            })()
-          : new Float32Array(raw)
-
-      const buffer = audioContext.createBuffer(1, floatData.length, sampleRate)
-      buffer.copyToChannel(floatData, 0)
-
-      const source = audioContext.createBufferSource()
-      source.buffer = buffer
-      source.connect(audioContext.destination)
-
-      // 计算输出音频数据帧的音量振幅 (RMS)
-      let sum = 0
-      for (let i = 0; i < floatData.length; i++) {
-        sum += floatData[i] * floatData[i]
-      }
-      const rms = Math.sqrt(sum / floatData.length)
-      const normalizedAmp = Math.min(Math.max(rms * 3.5, 0), 1)
-      setRealtimeVolumeAmplitude(normalizedAmp)
-
-      // 注册播放结束回调
-      source.onended = () => {
-        const currentCtx = realtimeAudioContextRef.current
-        if (
-          currentCtx &&
-          currentCtx.currentTime >= realtimePlaybackTimeRef.current - 0.05
-        ) {
-          setRealtimeVolumeAmplitude(0)
-        }
-      }
-
-      const startAt = Math.max(
-        audioContext.currentTime,
-        realtimePlaybackTimeRef.current
-      )
-      source.start(startAt)
-      realtimePlaybackTimeRef.current = startAt + buffer.duration
-    },
-    []
-  )
-
-  const stopRealtimeMic = useCallback(() => {
-    if (realtimeSocketRef.current) {
-      realtimeSocketRef.current.onclose = null
-      realtimeSocketRef.current.onerror = null
-      try {
-        realtimeSocketRef.current.send(JSON.stringify({ type: 'client.stop' }))
-        realtimeSocketRef.current.close(1000, 'client stopped')
-      } catch {}
-      realtimeSocketRef.current = null
-    }
-    stopRealtimeAudioResources()
-    resetRealtimeTurnMessages()
-    setRealtimeStartedAt(null)
-    setRealtimeErrorText(null)
-    setRealtimeMicState('idle')
-    setStatus('ready')
-    setActiveAssistantId(null)
-    setRealtimeVolumeAmplitude(0)
-    setRealtimeMuted(false)
-  }, [resetRealtimeTurnMessages, stopRealtimeAudioResources])
-
-  const startRealtimeMic = useCallback(async () => {
-    if (isLoading || realtimeMicState === 'connecting') return
-    if (!realtimeAvailable) {
-      setRealtimeMicState('error')
-      return
-    }
-
-    pendingReplyModelLabelRef.current = t('voice.modelLabel')
-    resetRealtimeTurnMessages()
-    setRealtimeErrorText(null)
-    setRealtimeStartedAt(null)
-    shouldAutoScrollRef.current = true
-    setShowScrollToBottom(false)
-
-    setRealtimeMicState('connecting')
-    setStatus('streaming')
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      })
-      const AudioContextClass = window.AudioContext
-      const audioContext = new AudioContextClass()
-      const source = audioContext.createMediaStreamSource(stream)
-      const processor = audioContext.createScriptProcessor(4096, 1, 1)
-
-      realtimeStreamRef.current = stream
-      realtimeAudioContextRef.current = audioContext
-      realtimeSourceRef.current = source
-      realtimeProcessorRef.current = processor
-      realtimePlaybackTimeRef.current = 0
-
-      let reconnectCount = 0
-      let isReconnecting = false
-
-      const connectSocket = () => {
-        const socket = new WebSocket(getRealtimeWebSocketUrl())
-        socket.binaryType = 'arraybuffer'
-        realtimeSocketRef.current = socket
-
-        socket.onopen = () => {
-          if (realtimeSocketRef.current !== socket) return
-          reconnectCount = 0
-          isReconnecting = false
-          socket.send(
-            JSON.stringify({
-              type: 'client.start',
-              agentId: selectedAgent?.id,
-              threadId: currentThreadIdRef.current,
-            })
-          )
-          setRealtimeStartedAt(Date.now())
-          setRealtimeMicState('listening')
-          setStatus('streaming')
-        }
-
-        socket.onmessage = event => {
-          if (realtimeSocketRef.current !== socket) return
-          if (typeof event.data !== 'string') return
-          const chunk = parseUiMessageStreamChunk(event.data)
-          if (!chunk) return
-
-          if (chunk.type === 'ping') {
-            socket.send(JSON.stringify({ type: 'pong' }))
-            return
-          }
-
-          if (chunk.type === 'reconnecting') {
-            setRealtimeMicState('reconnecting')
-            return
-          }
-
-          if (chunk.type === 'reconnected') {
-            setRealtimeMicState('listening')
-            return
-          }
-
-          if (chunk.type === 'response.audio.delta') {
-            const audioChunk = chunk as unknown as {
-              audio?: unknown
-              format?: unknown
-              sampleRate?: unknown
-            }
-            const audio = audioChunk.audio
-            if (typeof audio === 'string') {
-              setRealtimeMicState('speaking')
-              void playRealtimePcmAudio(
-                audio,
-                typeof audioChunk.format === 'string'
-                  ? audioChunk.format
-                  : undefined,
-                typeof audioChunk.sampleRate === 'number'
-                  ? audioChunk.sampleRate
-                  : undefined
-              )
-            }
-            return
-          }
-
-          if (
-            chunk.type === 'response.input_audio_transcription.delta' ||
-            chunk.type === 'response.input_audio_transcription.completed'
-          ) {
-            if (
-              typeof chunk.transcript === 'string' &&
-              chunk.transcript.trim()
-            ) {
-              const { userId } = ensureRealtimeTurnMessages()
-              updateUserTranscript(userId, chunk.transcript)
-            }
-            return
-          }
-
-          if (chunk.type === 'response.created') return
-
-          if (chunk.type === 'response.completed') {
-            resetRealtimeTurnMessages()
-            setActiveAssistantId(null)
-            if (realtimeSocketRef.current === socket) {
-              setRealtimeMicState('listening')
-              setStatus('streaming')
-            }
-            return
-          }
-
-          const { assistantId } = ensureRealtimeTurnMessages()
-          applyAgentStreamChunk(assistantId, chunk, {
-            suppressTextOnFailure: true,
-          })
-        }
-
-        socket.onerror = () => {
-          if (realtimeSocketRef.current !== socket) return
-          if (!isReconnecting) {
-            setRealtimeMicState('error')
-            setRealtimeErrorText(t('voice.socketError'))
-          }
-        }
-
-        socket.onclose = () => {
-          if (
-            !realtimeSocketRef.current ||
-            realtimeSocketRef.current !== socket
-          ) {
-            return
-          }
-
-          if (reconnectCount < 5) {
-            isReconnecting = true
-            reconnectCount++
-            setRealtimeMicState('reconnecting')
-            const delay = Math.pow(2, reconnectCount - 1) * 1000
-            setTimeout(() => {
-              if (realtimeSocketRef.current === socket) {
-                connectSocket()
-              }
-            }, delay)
-          } else {
-            realtimeSocketRef.current = null
-            stopRealtimeAudioResources()
-            setStatus('ready')
-            setActiveAssistantId(null)
-            setRealtimeStartedAt(null)
-            setRealtimeMicState(prev => (prev === 'error' ? 'error' : 'idle'))
-          }
-        }
-      }
-
-      connectSocket()
-
-      processor.onaudioprocess = event => {
-        const currentSocket = realtimeSocketRef.current
-        if (!currentSocket || currentSocket.readyState !== WebSocket.OPEN)
-          return
-        const inputBuffer = event.inputBuffer.getChannelData(0)
-
-        // 实时采样录音端分贝振幅 (RMS)，用于呼吸球能量动态
-        let sum = 0
-        for (let i = 0; i < inputBuffer.length; i++) {
-          sum += inputBuffer[i] * inputBuffer[i]
-        }
-        const rms = Math.sqrt(sum / inputBuffer.length)
-        const normalizedAmp = realtimeMutedRef.current
-          ? 0
-          : Math.min(Math.max(rms * 4.5, 0), 1)
-        setRealtimeVolumeAmplitude(normalizedAmp)
-
-        // 如果静音，则拦截发送
-        if (realtimeMutedRef.current) {
-          return
-        }
-
-        const pcm = downsampleToPcm16(inputBuffer, audioContext.sampleRate)
-        currentSocket.send(pcm)
-      }
-      source.connect(processor)
-      processor.connect(audioContext.destination)
-    } catch (error) {
-      console.error('Failed to start realtime mic', error)
-      stopRealtimeAudioResources()
-      setRealtimeMicState('error')
-      setRealtimeStartedAt(null)
-      setRealtimeErrorText(t('voice.microphoneError'))
-      setStatus('ready')
-      setActiveAssistantId(null)
-    }
-  }, [
-    applyAgentStreamChunk,
-    ensureRealtimeTurnMessages,
-    isLoading,
-    playRealtimePcmAudio,
-    realtimeAvailable,
+  const {
+    realtimeEnabled,
+    setRealtimeEnabled,
+    realtimeConfig,
+    realtimeConfigLoading,
     realtimeMicState,
-    resetRealtimeTurnMessages,
-    selectedAgent?.id,
-    stopRealtimeAudioResources,
-    t,
-    updateUserTranscript,
-  ])
+    realtimeElapsedSeconds,
+    realtimeErrorText,
+    realtimeVolumeAmplitude,
+    realtimeMuted,
+    setRealtimeMuted,
+    realtimeAvailable,
+    isRealtimeMicActive,
+    streamRealtimeTextMessage,
+  } = useRealtimeVoice({
+    isLoading,
+    selectedAgent,
+    currentThreadIdRef,
+    pendingReplyModelLabelRef,
+    shouldAutoScrollRef,
+    setShowScrollToBottom,
+    setMessages,
+    setActiveAssistantId,
+    setStatus,
+    abortControllerRef,
+    pendingClarifyRef,
+    applyAgentStreamChunk,
+    updateAssistantParts,
+  })
 
-  useEffect(() => {
-    return () => {
-      realtimeSocketRef.current?.close(1000, 'unmount')
-      stopRealtimeAudioResources()
-      void realtimeAudioContextRef.current?.close()
-    }
-  }, [stopRealtimeAudioResources])
-
-  useEffect(() => {
-    if (realtimeEnabled) {
-      void startRealtimeMic()
-    } else if (realtimeMicState !== 'idle') {
-      stopRealtimeMic()
-    }
-  }, [realtimeEnabled, startRealtimeMic, stopRealtimeMic, realtimeMicState])
-
-  const suggestionPrompts = useMemo(
-    (): SuggestionPrompt[] => [
-      {
-        icon: '🍽️',
-        label: t('suggestions.whatToEat.label'),
-        prompt: t('suggestions.whatToEat.prompt'),
-      },
-      {
-        icon: '🧳',
-        label: t('suggestions.tripList.label'),
-        prompt: t('suggestions.tripList.prompt'),
-      },
-      {
-        icon: '💬',
-        label: t('suggestions.quickReply.label'),
-        prompt: t('suggestions.quickReply.prompt'),
-      },
-      {
-        icon: '🧾',
-        label: t('suggestions.quickSummary.label'),
-        prompt: t('suggestions.quickSummary.prompt'),
-      },
-      {
-        icon: '🧠',
-        label: t('suggestions.makeDecision.label'),
-        prompt: t('suggestions.makeDecision.prompt'),
-      },
-      {
-        icon: '🧘',
-        label: t('suggestions.focusPlan.label'),
-        prompt: t('suggestions.focusPlan.prompt'),
-      },
-      {
-        icon: '🛒',
-        label: t('suggestions.groceryList.label'),
-        prompt: t('suggestions.groceryList.prompt'),
-      },
-      {
-        icon: '🏃',
-        label: t('suggestions.workoutPlan.label'),
-        prompt: t('suggestions.workoutPlan.prompt'),
-      },
-      {
-        icon: '💤',
-        label: t('suggestions.sleepTip.label'),
-        prompt: t('suggestions.sleepTip.prompt'),
-      },
-      {
-        icon: '📖',
-        label: t('suggestions.learnQuick.label'),
-        prompt: t('suggestions.learnQuick.prompt'),
-      },
-      {
-        icon: '💰',
-        label: t('suggestions.saveMoney.label'),
-        prompt: t('suggestions.saveMoney.prompt'),
-      },
-      {
-        icon: '🧽',
-        label: t('suggestions.homeChores.label'),
-        prompt: t('suggestions.homeChores.prompt'),
-      },
-    ],
-    [t]
-  )
+  const suggestionPrompts = useChatSuggestions(t)
 
   useEffect(() => {
     isStreamingRef.current = isLoading
@@ -2014,33 +1218,36 @@ export function ChatView() {
     selectedModelOption?.supportReasoningControl ?? false
   const supportsImageUpload = supportsVision(selectedModelOption)
 
-  const handleAgentChange = useCallback((agent: Agent) => {
-    threadsLoadRequestRef.current += 1
-    setSelectedAgent(agent)
-    setCurrentThreadId(null)
-    currentThreadIdRef.current = null
-    setMessages([])
-    setImagesByMessageId({})
-    setAssistantModelById({})
-    pendingImageBatchesRef.current = []
-    setUploadedImageUrls([])
-    setImagePreviews([])
-    setThreadSearch('')
-    shouldAutoScrollRef.current = true
-    setShowScrollToBottom(false)
-    // 切换 agent 时清空 pending 状态，避免遗留的 plan/clarify 阻塞新会话 loading
-    pendingPlanRef.current = null
-    setPendingPlan(null)
-    setPlanPanelStatus('pending')
-    setPlanStatuses([])
-    pendingClarifyRef.current = null
-    setPendingClarify(null)
-    pendingApprovalRunIdRef.current = null
-    approvalAssistantIdRef.current = null
-    approvalResumeCursorRef.current = ''
-    setPendingApprovalRunId(null)
-    setPendingApprovals([])
-  }, [])
+  const handleAgentChange = useCallback(
+    (agent: Agent) => {
+      invalidateRequests()
+      setSelectedAgent(agent)
+      setCurrentThreadId(null)
+      currentThreadIdRef.current = null
+      setMessages([])
+      setImagesByMessageId({})
+      setAssistantModelById({})
+      pendingImageBatchesRef.current = []
+      setUploadedImageUrls([])
+      setImagePreviews([])
+      setThreadSearch('')
+      shouldAutoScrollRef.current = true
+      setShowScrollToBottom(false)
+      // 切换 agent 时清空 pending 状态，避免遗留的 plan/clarify 阻塞新会话 loading
+      pendingPlanRef.current = null
+      setPendingPlan(null)
+      setPlanPanelStatus('pending')
+      setPlanStatuses([])
+      pendingClarifyRef.current = null
+      setPendingClarify(null)
+      pendingApprovalRunIdRef.current = null
+      approvalAssistantIdRef.current = null
+      approvalResumeCursorRef.current = ''
+      setPendingApprovalRunId(null)
+      setPendingApprovals([])
+    },
+    [currentThreadIdRef, invalidateRequests, setCurrentThreadId]
+  )
 
   useEffect(() => {
     if (!supportsImageUpload && imagePreviews.length > 0) {
@@ -2800,56 +2007,11 @@ export function ChatView() {
     shouldAutoScrollRef.current = true
   }
 
-  const handleSelectThread = async (threadId: string) => {
-    if (isLoading || threadId === currentThreadId) return
-    await loadThreadMessages(threadId)
-  }
-
-  const handleRenameThread = async (thread: AgentThread) => {
-    setThreadToRename(thread)
-    setRenameThreadTitle(getDisplayThreadTitle(thread.title, t('voiceChat')))
-  }
-
-  const handleConfirmRenameThread = async () => {
-    if (!threadToRename) return
-    const nextTitle = renameThreadTitle.trim()
-    if (!nextTitle) return
-
-    setIsRenamingThread(true)
-    try {
-      await agentService.updateThread(threadToRename.id, { title: nextTitle })
-      await loadThreads()
-      setThreadToRename(null)
-      setRenameThreadTitle('')
-    } finally {
-      setIsRenamingThread(false)
-    }
-  }
-
-  const handleDeleteThread = async (thread: AgentThread) => {
-    setThreadToDelete(thread)
-  }
-
-  const handleConfirmDeleteThread = async () => {
-    if (!threadToDelete) return
-
-    setIsDeletingThread(true)
-    try {
-      await agentService.deleteThread(threadToDelete.id)
-
-      // 接口返回成功后，在本地状态中过滤掉被删除的会话
-      setThreads(prev => prev.filter(t => t.id !== threadToDelete.id))
-
-      if (threadToDelete.id === currentThreadId) {
-        setCurrentThreadId(null)
-        setMessages([])
-      }
-      await loadThreads({ selectLatest: threadToDelete.id === currentThreadId })
-      setThreadToDelete(null)
-    } finally {
-      setIsDeletingThread(false)
-    }
-  }
+  const handleSelectThread = selectThread
+  const handleRenameThread = beginRenameThread
+  const handleConfirmRenameThread = confirmRenameThread
+  const handleDeleteThread = beginDeleteThread
+  const handleConfirmDeleteThread = confirmDeleteThread
 
   const realtimeStatusLabel = realtimeConfigLoading
     ? t('voice.loading')
