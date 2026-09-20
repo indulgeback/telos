@@ -28,8 +28,18 @@ export default async function RootLayout({ children }: Iprops) {
   return (
     <html lang={lang} suppressHydrationWarning>
       <head>
-        <link rel='icon' type='image/png' href='/favicon.png' />
-        <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
+        <link
+          rel='icon'
+          type='image/svg+xml'
+          href='/brand/telos-01/app-icon.svg'
+        />
+        <link
+          rel='icon'
+          type='image/png'
+          sizes='32x32'
+          href='/brand/telos-01/icon-32.png'
+        />
+        <link rel='apple-touch-icon' href='/brand/telos-01/icon-180.png' />
         {/* Libre Baskerville: 衬线标题字体(对标 youmind 设计规范) */}
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link

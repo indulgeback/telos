@@ -19,10 +19,13 @@ import {
 import { Github, Menu } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState, useEffect } from 'react'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
+import { LandingNav } from './landing/landing-nav'
 
 export function Header() {
+  const pathname = usePathname()
   const t = useTranslations('Header')
+  const landing = useTranslations('LandingStudio')
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
@@ -34,14 +37,12 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  if (pathname === '/') return <LandingNav />
+
   const navLinks: { href: string; label: string }[] = [
-    { href: '/#overview', label: 'Overview' },
-    { href: '/#use-cases', label: 'Use cases' },
-    { href: '/skills', label: 'Skills' },
-    { href: '/#prompts', label: 'Prompts' },
-    { href: '/#pricing', label: 'Pricing' },
-    { href: '/#blog', label: 'Blog' },
-    { href: '/#updates', label: 'Updates' },
+    { href: '/#possibilities', label: landing('navPossibilities') },
+    { href: '/skills', label: landing('navSkills') },
+    { href: '/#start', label: landing('navStart') },
   ]
 
   return (

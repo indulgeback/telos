@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Link } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import { TelosLogo } from '@/components/atoms'
 
 const footerGroups = [
@@ -10,16 +10,16 @@ const footerGroups = [
     links: [
       ['Agents', '/agents'],
       ['Skills', '/skills'],
-      ['Workflows', '/#use-cases'],
-      ['Studio', '/#prompts'],
+      ['Workflows', '/#possibilities'],
+      ['Studio', '/#start'],
     ],
   },
   {
     title: 'Explore',
     links: [
       ['Overview', '/#overview'],
-      ['Community', '/#blog'],
-      ['Updates', '/#updates'],
+      ['Playground', '/#possibilities'],
+      ['Your space', '/#start'],
       ['GitHub', 'https://github.com/indulgeback/telos'],
     ],
   },
@@ -33,6 +33,9 @@ const footerGroups = [
 ]
 
 export function FooterSection() {
+  const pathname = usePathname()
+  if (pathname === '/') return null
+
   return (
     <motion.footer
       initial={{ opacity: 0, y: 40 }}

@@ -38,6 +38,7 @@ function LocaleToggle() {
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
+          aria-label={t('toggleLanguage')}
           variant='outline'
           size='icon'
           className='relative w-full border-transparent bg-transparent shadow-none hover:bg-muted/60 md:size-10'

@@ -623,5 +623,127 @@
     "actionsDesc": "Verwalten Sie Ihre Kontoeinstellungen",
     "settingsBtn": "Kontoeinstellungen",
     "viewChatBtn": "Konversationen anzeigen"
+  },
+  "LandingStudio": {
+    "title": "Deine Ideen.",
+    "titleAccent": "Wirklich gemacht.",
+    "intro": "Erkunde, schreibe und baue mit T. Gib dem Gedanken in deinem Kopf ein eigenes Leben.",
+    "start": "Sag Hallo zu T",
+    "possibilityTitle": "Ein wenig neugierig.",
+    "possibilityAccent": "Viel fähig.",
+    "chooseScene": "Wähle, was du mit T tun willst",
+    "tryIdea": "Probier das mit T",
+    "finalTitle": "Etwas im Kopf?",
+    "finalAccent": "Lass es uns machen.",
+    "promptLabel": "Ihre Nachricht an T",
+    "placeholder": "Hey T, ich habe eine Idee…",
+    "submit": "Schicke deine Idee an T",
+    "openChat": "Oder starte einfach ein Gespräch",
+    "navPossibilities": "Triff T",
+    "navSkills": "Fähigkeiten",
+    "navStart": "Beginnen Sie zu chatten",
+    "navLabel": "Hauptnavigation",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "skip": "Zum Inhalt springen",
+    "privacy": "Privatsphäre",
+    "terms": "Bedingungen",
+    "portraitAlt": "T mit marineblauem Vokuhila, grünen Augen und Kopfhörern, lächelnd mit der Wange auf ihrer Hand ruhend.",
+    "scenes": {
+      "build": {
+        "label": "Bauen",
+        "title": "Weniger festgefahren. Mehr erledigt.",
+        "body": "Von einem hartnäckigen Fehler zu deinem nächsten Nebenprojekt. Arbeite es mit T durch.",
+        "prompt": "Hilf mir, meine Idee für ein Nebenprojekt in einen funktionierenden Prototyp umzusetzen. Frag mich zuerst, was ich bauen möchte.",
+        "alt": "T konzentriert sich auf einen Laptop, ihr gestufter navyblauer Vokuhila und ihre grünen Augen sind sichtbar."
+      },
+      "explore": {
+        "label": "Erkunden",
+        "title": "Folge den guten Fragen.",
+        "body": "Erkunde ein Thema, verbinde die Teile und finde einen klareren Weg nach vorn.",
+        "prompt": "Hilf mir, eine Idee gründlich zu erkunden. Frage mich nach dem Thema und was ich lernen möchte.",
+        "alt": "T denkt über eine Idee nach, hält ein Notizbuch und stützt einen Finger an ihre Wange."
+      },
+      "create": {
+        "label": "Erstellen",
+        "title": "Lass es sich wie du anfühlen.",
+        "body": "Bringe einen groben Gedanken. Forme ihn zu einer Geschichte, einem Entwurf oder einer neuen Richtung.",
+        "prompt": "Hilf mir, meine verstreuten Notizen in eine Geschichte zu verwandeln. Frag mich nach meinen Notizen und für wen sie sind.",
+        "alt": "T lächelt nachdenklich, während ihre Wange auf ihrer Hand ruht."
+      }
+    },
+    "v3": {
+      "eyebrow": "Ein kleiner Funke. Ein Ort zum Beginnen.",
+      "withT": "Zusammen mit T",
+      "send": "Lass uns gehen",
+      "recommended": "Für dich",
+      "worldLabel": "Ein Raum für Ihre Ideen",
+      "heroAlt": "T sitzt in einem sonnenbeschienenen Atelier über den Wolken, umgeben von Notizbüchern, Modellen und schwebenden Seiten.",
+      "worldCaption": "Platz für alles, was als Nächstes kommt.",
+      "processTitle": "Bring deine Neugier mit.",
+      "processAccent": "Sieh, wohin es dich führt.",
+      "processIntro": "Eine Frage, ein paar Notizen, ein Projekt im Kopf. Gib ihm einen Ort zum Wachsen.",
+      "meetEyebrow": "TREFFE T",
+      "meetTitle": "Ein wenig verspielt.",
+      "meetAccent": "Sehr auf deiner Seite.",
+      "meetBody": "Neugierig, ein wenig frech und ernsthaft darin, Dinge zu erledigen. Sprich über eine grobe Idee, entwirre ein Problem oder probiere gemeinsam eine neue Fähigkeit aus.",
+      "browseSkills": "Fähigkeiten erkunden",
+      "finalIntro": "Dieses Ding, das du schon lange machen wolltest.",
+      "finalAction": "Beginne mit einem Gedanken",
+      "ideas": {
+        "website": {
+          "title": "Eine persönliche Website starten",
+          "prompt": "Hilf mir, eine persönliche Website zu planen und zu erstellen. Frage zuerst nach ihrem Zweck, dem Publikum und dem Stil, den ich mag."
+        },
+        "research": {
+          "title": "Untersuche eine Frage, die wichtig ist",
+          "prompt": "Hilf mir, ein Thema zu recherchieren und verschiedene Perspektiven zu vergleichen. Frage zuerst nach meiner Frage, dann unterscheide Beweise von Annahmen."
+        },
+        "story": {
+          "title": "Gib einer kleinen Idee eine größere Geschichte",
+          "prompt": "Hilf mir, eine Geschichte aus einer kleinen Idee zu entwickeln. Frage zuerst nach der Idee und dem Gefühl, das ich den Lesern vermitteln möchte."
+        },
+        "debug": {
+          "title": "Einen hartnäckigen Fehler entwirren",
+          "prompt": "Hilf mir, ein Problem zu debuggen. Frag zuerst nach dem Fehler, dem relevanten Code und dem, was ich erwartet habe, dass passieren würde."
+        },
+        "learn": {
+          "title": "Verstehe etwas Neues",
+          "prompt": "Hilf mir, ein neues Thema durch klare Beispiele zu verstehen. Frage zuerst, was ich lernen möchte und was ich bereits weiß."
+        },
+        "writing": {
+          "title": "Verteile Notizen in einen Entwurf",
+          "prompt": "Hilf mir, meine Notizen in einen klaren Entwurf zu verwandeln. Frage mich zuerst nach den Notizen, dem Publikum und dem Ton."
+        }
+      },
+      "chapters": {
+        "gather": {
+          "title": "Folge dem Funken",
+          "body": "Bringe die Frage, die Notizen, die halb entwickelte Idee. Fang mit dem an, was du hast, und finde, was es wert ist, erforscht zu werden.",
+          "prompt": "Ich habe einige verstreute Notizen und Ideen. Hilf mir, einen nützlichen Ausgangspunkt zu finden. Bitte frage mich zuerst, sie zu teilen.",
+          "action": "Beginnen Sie mit Ihren Notizen",
+          "alt": "Lose Seiten treiben auf ein warm beleuchtetes Archiv an einem See unter einem zunehmenden Mond zu."
+        },
+        "think": {
+          "title": "Finde die Verbindungen",
+          "body": "Vergleiche Perspektiven, stelle eine bessere Frage und arbeite die fehlenden Teile mit T durch. Klarheit kommt ein Gespräch nach dem anderen.",
+          "prompt": "Hilf mir, über eine schwierige Frage nachzudenken. Frag zuerst, was ich zu entscheiden versuche und was ich bisher weiß.",
+          "action": "Denke über eine Frage mit T nach",
+          "alt": "T untersucht ein Modell und ein Notizbuch in einem gläsernen Wintergarten, der von einer warmen Schreibtischlampe beleuchtet wird."
+        },
+        "make": {
+          "title": "Mach es real",
+          "body": "Ein erster Entwurf. Ein funktionierender Prototyp. Ein Plan, auf den Sie handeln können. Formen Sie ihn, probieren Sie ihn aus und machen Sie ihn weiterhin zu Ihrem eigenen.",
+          "prompt": "Hilf mir, eine Idee in eine konkrete erste Version umzusetzen. Frag zuerst, was ich machen möchte und wie ein nützliches erstes Ergebnis aussehen würde.",
+          "action": "Erstelle eine erste Version mit T",
+          "alt": "Ein beleuchteter Faden verbindet eine Skizze mit einem kleinen Atelier, das über einer Wiese aufgebaut ist."
+        }
+      },
+      "navExplore": "Erkunden"
+    },
+    "motion": {
+      "pause": "Seitenanimationen pausieren",
+      "resume": "Seitenanimationen abspielen"
+    }
   }
 }

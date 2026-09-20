@@ -1,0 +1,198 @@
+'use client'
+
+import Image from 'next/image'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link, useRouter } from '@/i18n/navigation'
+import { TelosLogo } from '@/components/atoms/telos-logo'
+import { authClient } from '@/lib/auth-client'
+import { getLandingStartHref } from './landing/landing-utils'
+import s from './landing/landing-world.module.css'
+
+const scenes = ['build', 'explore', 'create'] as const
+const sceneImages = { build: 'focus', explore: 'think', create: 'portrait' }
+
+export function LandingPage() {
+  const t = useTranslations('LandingStudio')
+  const router = useRouter()
+  const { data: session } = authClient.useSession()
+  const [scene, setScene] = useState<(typeof scenes)[number]>('build')
+  const [prompt, setPrompt] = useState('')
+  const [focused, setFocused] = useState(false)
+  const root = useRef<HTMLElement>(null)
+  const input = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (
+      !root.current ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    )
+      return
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(s.visible)
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+    root.current.querySelectorAll('[data-reveal]').forEach(el => {
+      el.classList.add(s.waiting)
+      observer.observe(el)
+    })
+    return () => observer.disconnect()
+  }, [])
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (prompt.trim())
+      router.push(getLandingStartHref(Boolean(session), prompt))
+  }
+
+  function beginWithIdea() {
+    setPrompt(t(`scenes.${scene}.prompt`))
+    input.current?.focus({ preventScroll: true })
+    input.current?.scrollIntoView({
+      block: 'center',
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
+    })
+  }
+
+  return (
+    <main id='main-content' ref={root} className={s.world}>
+      <section id='overview' className={s.hero}>
+        <div className={s.heroCopy}>
+          <h1>
+            {t('title')}
+            <br />
+            <em>{t('titleAccent')}</em>
+          </h1>
+          <p>{t('intro')}</p>
+          <a className={s.primary} href='#start'>
+            {t('start')}
+            <span aria-hidden='true'>↗</span>
+          </a>
+        </div>
+        <div className={s.heroArt}>
+          <Image
+            src='/landing/t-v2/portrait.webp'
+            alt={t('portraitAlt')}
+            fill
+            priority
+            sizes='(min-width: 900px) 55vw, 100vw'
+          />
+        </div>
+      </section>
+
+      <section id='possibilities' className={s.possibilities}>
+        <div className={s.sectionHeading} data-reveal>
+          <h2>
+            {t('possibilityTitle')}
+            <br />
+            <em>{t('possibilityAccent')}</em>
+          </h2>
+        </div>
+        <div className={s.showcase}>
+          <div className={s.sceneArt}>
+            {scenes.map(key => (
+              <Image
+                key={key}
+                src={`/landing/t-v2/${sceneImages[key]}.webp`}
+                alt={key === scene ? t(`scenes.${key}.alt`) : ''}
+                aria-hidden={key !== scene}
+                fill
+                sizes='(min-width: 900px) 44vw, 100vw'
+                className={key === scene ? s.activeImage : s.inactiveImage}
+              />
+            ))}
+          </div>
+          <div className={s.sceneCopy}>
+            <div className={s.tabs} role='group' aria-label={t('chooseScene')}>
+              {scenes.map(key => (
+                <button
+                  key={key}
+                  aria-pressed={scene === key}
+                  onClick={() => setScene(key)}
+                >
+                  {t(`scenes.${key}.label`)}
+                </button>
+              ))}
+            </div>
+            <div key={scene} className={s.sceneText} aria-live='polite'>
+              <h3>{t(`scenes.${scene}.title`)}</h3>
+              <p>{t(`scenes.${scene}.body`)}</p>
+            </div>
+            <button className={s.textLink} onClick={beginWithIdea}>
+              {t('tryIdea')}
+              <span aria-hidden='true'>↗</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id='start' className={s.startSection}>
+        <div className={s.sectionHeading} data-reveal>
+          <h2>
+            {t('finalTitle')}
+            <br />
+            <em>{t('finalAccent')}</em>
+          </h2>
+        </div>
+        <form className={s.composer} data-focused={focused} onSubmit={submit}>
+          <label htmlFor='idea-prompt' className={s.srOnly}>
+            {t('promptLabel')}
+          </label>
+          <textarea
+            ref={input}
+            id='idea-prompt'
+            value={prompt}
+            maxLength={2000}
+            onChange={event => setPrompt(event.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={t('placeholder')}
+            rows={2}
+            required
+          />
+          <button
+            type='submit'
+            className={s.send}
+            disabled={!prompt.trim()}
+            aria-label={t('submit')}
+          >
+            <span aria-hidden='true'>↗</span>
+          </button>
+        </form>
+        <Link
+          href={getLandingStartHref(Boolean(session))}
+          className={s.textLink}
+        >
+          {t('openChat')}
+        </Link>
+      </section>
+
+      <footer className={s.footer}>
+        <Link href='/' className={s.brand} aria-label='Telos'>
+          <TelosLogo />
+        </Link>
+        <div>
+          <Link href='/privacy-policy'>{t('privacy')}</Link>
+          <Link href='/terms-of-service'>{t('terms')}</Link>
+          <a
+            href='https://github.com/indulgeback/telos'
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            GitHub
+          </a>
+        </div>
+        <span>© 2026 Telos</span>
+      </footer>
+    </main>
+  )
+}

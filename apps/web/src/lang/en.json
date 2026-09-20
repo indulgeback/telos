@@ -623,5 +623,127 @@
     "actionsDesc": "Manage your account settings",
     "settingsBtn": "Account Settings",
     "viewChatBtn": "View Conversations"
+  },
+  "LandingStudio": {
+    "title": "Your ideas.",
+    "titleAccent": "Made real.",
+    "intro": "Explore, write, and build with T. Give that thought in your head a life of its own.",
+    "start": "Say hello to T",
+    "possibilityTitle": "A little curious.",
+    "possibilityAccent": "A lot capable.",
+    "chooseScene": "Choose what to do with T",
+    "tryIdea": "Try this with T",
+    "finalTitle": "Something in mind?",
+    "finalAccent": "Let’s make it.",
+    "promptLabel": "Your message to T",
+    "placeholder": "Hey T, I have an idea…",
+    "submit": "Send your idea to T",
+    "openChat": "Or just start a conversation",
+    "navPossibilities": "Meet T",
+    "navSkills": "Skills",
+    "navStart": "Start chatting",
+    "navLabel": "Main navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "skip": "Skip to content",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "portraitAlt": "T with navy mullet hair, green eyes and headphones, smiling with her cheek resting on her hand.",
+    "scenes": {
+      "build": {
+        "label": "Build",
+        "title": "Less stuck. More done.",
+        "body": "From a stubborn bug to your next side project. Work through it with T.",
+        "prompt": "Help me turn my side-project idea into a working prototype. Ask me what I want to build first.",
+        "alt": "T focuses on a laptop, her layered navy mullet and green eyes visible."
+      },
+      "explore": {
+        "label": "Explore",
+        "title": "Follow the good questions.",
+        "body": "Explore a topic, connect the pieces, and find a clearer way forward.",
+        "prompt": "Help me explore an idea in depth. Ask me about the topic and what I want to learn.",
+        "alt": "T considers an idea, holding a notebook and resting a finger against her cheek."
+      },
+      "create": {
+        "label": "Create",
+        "title": "Make it feel like you.",
+        "body": "Bring a rough thought. Shape it into a story, a draft, or a new direction.",
+        "prompt": "Help me turn my scattered notes into a story. Ask me for my notes and who it is for.",
+        "alt": "T smiles thoughtfully with her cheek resting on her hand."
+      }
+    },
+    "v3": {
+      "eyebrow": "A little spark. A place to begin.",
+      "withT": "Together with T",
+      "send": "Let’s go",
+      "recommended": "For you",
+      "worldLabel": "A space for your ideas",
+      "heroAlt": "T sits in a sunlit studio above the clouds, surrounded by notebooks, models and floating pages.",
+      "worldCaption": "Room for whatever comes next.",
+      "processTitle": "Bring your curiosity.",
+      "processAccent": "See where it takes you.",
+      "processIntro": "A question, a few notes, a project on your mind. Give it somewhere to grow.",
+      "meetEyebrow": "MEET T",
+      "meetTitle": "A little playful.",
+      "meetAccent": "Very much on your side.",
+      "meetBody": "Curious, a little cheeky, and serious about getting things done. Talk through a rough idea, untangle a problem, or try a new skill together.",
+      "browseSkills": "Explore skills",
+      "finalIntro": "That thing you’ve been meaning to make.",
+      "finalAction": "Start with a thought",
+      "ideas": {
+        "website": {
+          "title": "Start a personal website",
+          "prompt": "Help me plan and build a personal website. First ask about its purpose, audience and the style I like."
+        },
+        "research": {
+          "title": "Explore a question that matters",
+          "prompt": "Help me research a topic and compare different perspectives. First ask about my question, then distinguish evidence from assumptions."
+        },
+        "story": {
+          "title": "Give a small idea a bigger story",
+          "prompt": "Help me develop a story from a small idea. First ask about the idea and the feeling I want readers to have."
+        },
+        "debug": {
+          "title": "Untangle a stubborn bug",
+          "prompt": "Help me debug a problem. First ask for the error, relevant code and what I expected to happen."
+        },
+        "learn": {
+          "title": "Make sense of something new",
+          "prompt": "Help me understand a new topic through clear examples. First ask what I want to learn and what I already know."
+        },
+        "writing": {
+          "title": "Turn scattered notes into a draft",
+          "prompt": "Help me turn my notes into a clear draft. First ask me for the notes, audience and tone."
+        }
+      },
+      "chapters": {
+        "gather": {
+          "title": "Follow the spark",
+          "body": "Bring the question, the notes, the half-formed idea. Start with what you have, and find what’s worth exploring.",
+          "prompt": "I have some scattered notes and ideas. Help me find a useful starting point. First ask me to share them.",
+          "action": "Start with your notes",
+          "alt": "Loose pages drift toward a warmly lit archive on a lake beneath a crescent moon."
+        },
+        "think": {
+          "title": "Find the connections",
+          "body": "Compare perspectives, ask a better question, and work through the missing pieces with T. Clarity comes one conversation at a time.",
+          "prompt": "Help me think through a difficult question. First ask what I am trying to decide and what I know so far.",
+          "action": "Think through a question with T",
+          "alt": "T studies a model and notebook in a glass conservatory lit by a warm desk lamp."
+        },
+        "make": {
+          "title": "Make it real",
+          "body": "A first draft. A working prototype. A plan you can act on. Shape it, try it, and keep making it yours.",
+          "prompt": "Help me turn an idea into a concrete first version. First ask what I want to make and what a useful first result would look like.",
+          "action": "Make a first version with T",
+          "alt": "An illuminated thread connects a sketch to a small studio assembling above a meadow."
+        }
+      },
+      "navExplore": "Explore"
+    },
+    "motion": {
+      "pause": "Pause page animations",
+      "resume": "Play page animations"
+    }
   }
 }
