@@ -71,6 +71,44 @@ jobs:
         run: pnpm --filter ./services/agent-service test
         # 无 DATABASE_URL 时 diagnose 集成测试自动 skip
 
+  worker-process:
+    name: Worker process integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: telos_test
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: telos_worker_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U telos_test -d telos_worker_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://telos_test:fixture-only@127.0.0.1:5432/telos_worker_test
+      TELOS_PROCESS_TEST_DATABASE_URL: postgresql://telos_test:fixture-only@127.0.0.1:5432/telos_worker_test
+      TELOS_PROCESS_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm exec prisma generate --schema prisma/schema.prisma
+      # Disposable CI database only. Production continues to use migrate deploy.
+      - run: pnpm exec prisma db push
+      - run: pnpm --filter ./services/agent-service build
+      - run: node --test --test-concurrency=1 services/agent-service/test/worker-process.integration.test.mjs services/agent-service/test/worker-runtime.integration.test.mjs
+
   # ---------------------------------------------------------------------------
   # Go 后端检查 (api-gateway + registry + pkg/tlog)
   # ---------------------------------------------------------------------------
@@ -117,7 +155,7 @@ jobs:
   summary:
     name: 📊 汇总
     runs-on: ubuntu-latest
-    needs: [node, go]
+    needs: [node, go, worker-process]
     if: always()
     steps:
       - name: 📊 检查结果
@@ -128,10 +166,12 @@ jobs:
           echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🟢 Node (web: lint+test+build / agent-service: build+test) | ${{ needs.node.result == 'success' && '✅ 通过' || '❌ 失败' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔵 Go (api-gateway + registry + pkg: vet + test + build) | ${{ needs.go.result == 'success' && '✅ 通过' || '❌ 失败' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Worker process integration | ${{ needs.worker-process.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [[ "${{ needs.node.result }}" == "success" && "${{ needs.go.result }}" == "success" ]]; then
+          if [[ "${{ needs.node.result }}" == "success" && "${{ needs.go.result }}" == "success" && "${{ needs.worker-process.result }}" == "success" ]]; then
             echo "🎉 所有检查通过！" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ 有检查失败，请查看对应 job 的详细日志。" >> $GITHUB_STEP_SUMMARY
+            exit 1
           fi

@@ -15,7 +15,9 @@
     "start": "node dist/index.js",
     "db:seed-skills": "node scripts/seed-skills.mjs",
     "db:seed-skills:dry": "node scripts/seed-skills.mjs --dry-run",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "dev:worker": "tsx watch src/worker.ts",
+    "start:worker": "node dist/worker.js"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",

@@ -264,23 +264,25 @@ export async function pumpOutboxOnce(limit = 50) {
 }
 
 let outboxTimer: ReturnType<typeof setInterval> | null = null
+let outboxInFlight: Promise<unknown> | null = null
 
 export function startOutboxDispatcher(intervalMs = 1_000) {
   if (outboxTimer) return
-  const interval = Math.max(250, Math.min(60_000, Math.floor(intervalMs)))
-  void pumpOutboxOnce().catch(error =>
-    logger.error({ msg: 'Initial agent outbox pump failed', error })
-  )
-  outboxTimer = setInterval(() => {
-    void pumpOutboxOnce().catch(error =>
-      logger.error({ msg: 'Agent outbox pump failed', error })
-    )
-  }, interval)
+  const pump = () => {
+    if (outboxInFlight) return
+    outboxInFlight = pumpOutboxOnce()
+      .catch(error => logger.error({ msg: 'Agent outbox pump failed', error }))
+      .finally(() => {
+        outboxInFlight = null
+      })
+  }
+  outboxTimer = setInterval(pump, Math.max(250, Math.min(60_000, intervalMs)))
   outboxTimer.unref?.()
+  pump()
 }
 
-export function closeOutboxDispatcher() {
-  if (!outboxTimer) return
-  clearInterval(outboxTimer)
+export async function closeOutboxDispatcher() {
+  if (outboxTimer) clearInterval(outboxTimer)
   outboxTimer = null
+  await outboxInFlight
 }

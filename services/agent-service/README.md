@@ -1,5 +1,7 @@
 # Agent Service (TypeScript)
 
+当前服务拆分为 API 入口与独立 Worker 入口，共用同一镜像、数据库、Redis 与工作区配置。API 监听 `8895`，Worker 仅在 `8896` 提供 `/health` 与 `/ready`；API 的 `/ready` 检查数据库和队列，Worker 的就绪检查本地执行器。开发时分别运行 `pnpm agent-service:dev` 与 `pnpm agent-worker:dev`。完整部署说明见 [`docs/independent-worker.md`](../../docs/independent-worker.md)。
+
 基于 LangChain.js 的 AI Agent 服务，使用 AI SDK 的 UI Message 流式响应。
 
 ## 技术栈
@@ -84,6 +86,9 @@ npm run db:push
 
 ```bash
 npm run dev
+
+# 另一个终端启动独立 Worker
+pnpm --filter ./services/agent-service dev:worker
 ```
 
 ## API 接口

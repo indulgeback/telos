@@ -1,3 +1,4 @@
+import { getPersistedWorkspaceRoot } from './workspace-root.js'
 import fs from 'fs'
 import path from 'path'
 import COS from 'cos-nodejs-sdk-v5'
@@ -241,7 +242,7 @@ export class WorkspaceManager {
       process.env.TAP === '1' ||
       process.env.NODE_TEST_CONTEXT
     ) {
-      const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
+      const persistedDir = getPersistedWorkspaceRoot()
       logger.info({
         msg: 'Test environment detected. Forcing LocalStorageProvider',
         path: persistedDir,
@@ -264,7 +265,7 @@ export class WorkspaceManager {
         region
       )
     } else {
-      const persistedDir = path.resolve(process.cwd(), '.persisted-workspaces')
+      const persistedDir = getPersistedWorkspaceRoot()
       logger.info({
         msg: 'Initializing LocalStorageProvider for WorkspaceManager',
         path: persistedDir,

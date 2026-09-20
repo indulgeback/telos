@@ -37,10 +37,16 @@ Telos 是一个基于现代微服务单体仓库架构的 AI Agent 编排平台�
                │ 签名请求
                ▼
 ┌────────────────────────────────────────────────┐
-│  agent-service (TypeScript Hono) :8895          │
+│  agent-service API (TypeScript Hono) :8895      │
 │  agents · chat · runs · tools · skills · mcp ·  │
 │  realtime                                       │
 └──────┬───────────────┬────────────────┬────────┘
+       │ BullMQ 队列    │                │
+       ▼               │                │
+┌──────────────────────┐                  │
+│ agent-worker :8896   │                  │
+│ 队列与租约执行器     │                  │
+└──────────────────────┘                  │
        ▼               ▼                ▼
 ┌────────────┐  ┌───────────┐  ┌───────────────────────┐
 │ PostgreSQL │  │   Redis   │  │ Registry (Go)         │
@@ -110,7 +116,8 @@ telos/
 | ------------- | --------------------- | ------------------------------------------------- |
 | Web (Next.js) | `8800`                | 开发服务器；`next start` 使用 8802                |
 | API Gateway   | `8890`                | 所有 `/api/*` 路由的入口                          |
-| Agent Service | `8895`                | Hono 服务，健康检查为 `/ready`                    |
+| Agent API | `8895`                | Hono HTTP/SSE API；`/ready` 检查数据库与队列        |
+| Agent Worker | `8896`                | 仅提供 `/health`、`/ready`；就绪状态检查本地执行器   |
 | Registry      | `REGISTRY_PORT`       | `env.example` 默认 `8081`；生产 compose 为 `8891` |
 | Admin Console | `5174`                | Vite 开发服务器                                   |
 | Admin Service | `ADMIN_PORT` = `3002` | 管理后台 API                                      |
@@ -174,7 +181,8 @@ pnpm db:push                             # 或: npx prisma migrate deploy
 pnpm --filter ./services/agent-service db:seed-skills
 
 # 5. 启动服务（各自终端运行，或直接 docker compose）
-pnpm agent-service:dev                   # agent service 监听 :8895
+pnpm agent-service:dev                   # API 监听 :8895
+pnpm agent-worker:dev                    # worker 与健康检查监听 :8896
 pnpm api-gateway:dev                     # API gateway 监听 :8890
 pnpm registry:dev                        # registry 监听 $REGISTRY_PORT
 pnpm web:dev                             # web 监听 :8800
@@ -203,7 +211,7 @@ make fmt                                 # go fmt
 
 ## 8. 部署
 
-- 生产全栈部署：`docker-compose.prod.yml`（web、gateway、registry、agent-service、Postgres、Redis），拓扑见文件头部注释。
+- 生产全栈部署：`docker-compose.prod.yml`（web、gateway、registry、agent API、agent worker、Postgres、Redis）。进程拆分、健康检查、工作区存储与停止行为见[独立 Worker 指南](./independent-worker.md)。
 - 脚本化部署：`deploy/deploy.sh`
 - CI/CD：GitHub Actions 负责基础检查、镜像构建与部署。
 - 生产部署会先停止旧 Agent worker、备份 PostgreSQL，再执行已审查的

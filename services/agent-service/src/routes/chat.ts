@@ -1,3 +1,4 @@
+import { parseExplicitSkillTrigger } from '../services/skill-loader.js'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { fail, ok, parseJson } from '../http/response.js'
@@ -12,11 +13,7 @@ import {
   PlanStateError,
   resolveApprovedPlanForExecution,
 } from '../services/plan-state.js'
-import {
-  agentRuntimeService,
-  extractPromptFromBody,
-  parseExplicitSkillTrigger,
-} from '../services/runtime.js'
+import { extractPromptFromBody } from '../services/runtime-input.js'
 import { prisma } from '../services/db.js'
 import { findEnabledChatModel, listChatModels } from '../services/chat.js'
 import { toSnakeCase } from '../utils/serializer.js'

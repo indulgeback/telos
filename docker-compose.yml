@@ -105,13 +105,14 @@ services:
 
   # Agent 服务 (TypeScript/LangChain)
   agent-service:
-    build:
+    build: &agent-build
       context: .
       dockerfile: services/agent-service/Dockerfile
     container_name: telos-agent-service
     ports:
       - '127.0.0.1:8895:8895'
-    environment:
+    environment: &agent-dev-environment
+      - WORKSPACE_PERSISTED_DIR=/var/lib/telos/workspaces
       - NODE_ENV=development
       - PORT=8895
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
@@ -151,6 +152,8 @@ services:
       - AGENT_RUN_MAX_ESTIMATED_COST_USD=${AGENT_RUN_MAX_ESTIMATED_COST_USD:-}
       - AGENT_MODEL_PRICING_JSON=${AGENT_MODEL_PRICING_JSON:-}
       - AGENT_TOOL_APPROVAL_TTL_MS=${AGENT_TOOL_APPROVAL_TTL_MS:-900000}
+    volumes:
+      - agent_workspaces:/var/lib/telos/workspaces
     depends_on:
       registry:
         condition: service_healthy
@@ -225,10 +228,40 @@ services:
     profiles:
       - development
 
+  agent-worker:
+    build: *agent-build
+    command: ['node', 'services/agent-service/dist/worker.js']
+    environment: *agent-dev-environment
+    stop_grace_period: 150s
+    volumes:
+      - agent_workspaces:/var/lib/telos/workspaces
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - telos-network
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:8896/ready',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
 networks:
   telos-network:
     driver: bridge
 
 volumes:
+  agent_workspaces:
   postgres_data:
   redis_data:
