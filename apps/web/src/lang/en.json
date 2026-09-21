@@ -8,6 +8,8 @@
   "Chat": {
     "toolCall": {
       "group": "{count, plural, one {# tool call} other {# tool calls}}",
+      "groupAllSuccess": "all succeeded",
+      "groupHasFailure": "with failures",
       "status": {
         "success": "Complete",
         "error": "Failed",
@@ -15,7 +17,14 @@
       },
       "input": "Input",
       "output": "Output",
-      "error": "Error"
+      "error": "Error",
+      "action": {
+        "read": "Read {target}",
+        "write": "Write {target}",
+        "run": "Run {target}",
+        "search": "Search {target}",
+        "prepare": "Preparing call..."
+      }
     },
     "voiceChat": "Voice Chat",
     "voiceInput": "Voice Input",
@@ -166,10 +175,17 @@
       "interrupt": "Interrupt response",
       "disconnect": "End voice session"
     },
+    "activity": {
+      "preparing": "Preparing...",
+      "tool": "Calling {tool}...",
+      "planStep": "Executing plan · step {step} of {total}",
+      "elapsed": "{seconds}s"
+    },
     "reasoning": {
       "title": "Reasoning process",
       "thinking": "In the middle of reasoning",
-      "done": "Reasoning complete"
+      "done": "Reasoning complete",
+      "doneElapsed": "Thought for {duration}"
     },
     "actions": {
       "copy": "Copy",

@@ -8,6 +8,8 @@
   "Chat": {
     "toolCall": {
       "group": "{count} 件のツール呼び出し",
+      "groupAllSuccess": "すべて成功",
+      "groupHasFailure": "失敗あり",
       "status": {
         "success": "完了",
         "error": "失敗",
@@ -15,7 +17,14 @@
       },
       "input": "入力",
       "output": "出力",
-      "error": "エラー"
+      "error": "エラー",
+      "action": {
+        "read": "{target} を読み取り",
+        "write": "{target} に書き込み",
+        "run": "{target} を実行",
+        "search": "{target} を検索",
+        "prepare": "呼び出しパラメータを準備中..."
+      }
     },
     "voiceChat": "ボイスチャット",
     "voiceInput": "音声入力",
@@ -166,10 +175,17 @@
       "interrupt": "応答を中断",
       "disconnect": "音声セッションを終了"
     },
+    "activity": {
+      "preparing": "準備中...",
+      "tool": "{tool} を呼び出し中...",
+      "planStep": "プラン実行中 · ステップ {step}/{total}",
+      "elapsed": "{seconds}秒"
+    },
     "reasoning": {
       "title": "推論過程",
       "thinking": "推理中",
-      "done": "推理完了"
+      "done": "推理完了",
+      "doneElapsed": "思考完了 · 所要時間 {duration}"
     },
     "actions": {
       "copy": "コピー",

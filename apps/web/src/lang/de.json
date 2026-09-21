@@ -8,6 +8,8 @@
   "Chat": {
     "toolCall": {
       "group": "{count} Tool-Aufrufe",
+      "groupAllSuccess": "alle erfolgreich",
+      "groupHasFailure": "mit Fehlern",
       "status": {
         "success": "Vollständig",
         "error": "Fehlgeschlagen",
@@ -15,7 +17,14 @@
       },
       "input": "Eingabe",
       "output": "Ausgabe",
-      "error": "Fehler"
+      "error": "Fehler",
+      "action": {
+        "read": "{target} lesen",
+        "write": "{target} schreiben",
+        "run": "{target} ausführen",
+        "search": "{target} suchen",
+        "prepare": "Aufruf wird vorbereitet..."
+      }
     },
     "voiceChat": "Sprachchat",
     "voiceInput": "Sprachsteuerung",
@@ -166,10 +175,17 @@
       "interrupt": "Antwort unterbrechen",
       "disconnect": "Sprachsitzung beenden"
     },
+    "activity": {
+      "preparing": "Wird vorbereitet...",
+      "tool": "Rufe {tool} auf...",
+      "planStep": "Plan wird ausgeführt · Schritt {step} von {total}",
+      "elapsed": "{seconds} s"
+    },
     "reasoning": {
       "title": "Schlussfolgerungsprozess",
       "thinking": "Beim Nachdenken",
-      "done": "Ermittlung abgeschlossen"
+      "done": "Ermittlung abgeschlossen",
+      "doneElapsed": "Nachgedacht für {duration}"
     },
     "actions": {
       "copy": "Kopieren",

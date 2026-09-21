@@ -16,7 +16,9 @@ import { MarkdownContent } from './markdown-content'
 import { SkillSaver } from './SkillSaver'
 import { ToolCallGroup, type ToolCallPreview } from './tool-call-status'
 import { ThinkingTrace } from './thinking-trace'
-import { AgentLoadingState } from './agent-loading-state'
+import { ActivityStatusLine } from './activity-status-line'
+import { PlanProgressStrip } from './plan-progress'
+import { deriveAssistantActivity } from '@/app/[locale]/(dashboard)/chat/chat-activity'
 import { StreamingText } from './streaming-text'
 import { PlanPanel, type PlanStepStatus } from './PlanPanel'
 import {
@@ -274,6 +276,7 @@ function ChatMessageInner({
   const safeImages = images ?? []
   const safeContentParts = contentParts ?? []
   const groupedContentParts = groupConsecutiveToolParts(safeContentParts)
+  const activity = deriveAssistantActivity(safeContentParts, { isLoading })
   const isAssistant = role === 'assistant'
   const hasContent = safeContent.length > 0
   const hasImages = safeImages.length > 0
@@ -336,6 +339,11 @@ function ChatMessageInner({
           <div className='w-full'>
             {groupedContentParts.length > 0 ? (
               <div className='space-y-3'>
+                {isLoading &&
+                  activity.phase !== 'thinking' &&
+                  activity.phase !== 'idle' && (
+                    <ActivityStatusLine activity={activity} />
+                  )}
                 {groupedContentParts.map((part, index) => {
                   if (part.type === 'tool-group') {
                     return (
@@ -368,6 +376,19 @@ function ChatMessageInner({
                         ? { description: s }
                         : { description: s.description, tool_hint: s.tool_hint }
                     )
+                    // 待批准的计划保留完整面板（含审批按钮）；
+                    // 执行中/完成/历史消息一律用紧凑进度条，避免挤占消息流
+                    if (!showActions) {
+                      return (
+                        <PlanProgressStrip
+                          key={`plan-${id}-${index}`}
+                          summary={summary}
+                          steps={normalizedSteps}
+                          status={status}
+                          stepStatuses={stepStatuses}
+                        />
+                      )
+                    }
                     return (
                       <PlanPanel
                         key={`plan-${id}-${index}`}
@@ -434,7 +455,7 @@ function ChatMessageInner({
                 <SkillSaver text={safeContent} />
               </div>
             ) : isLoading ? (
-              <AgentLoadingState label={reasoningThinkingLabel} />
+              <ActivityStatusLine activity={{ phase: 'preparing' }} />
             ) : null}
           </div>
         ) : (
@@ -481,12 +502,7 @@ function ChatMessageInner({
 
         {isAssistant && (
           <div className='flex items-center gap-1.5'>
-            {isLoading && (hasContent || safeContentParts.length > 0) ? (
-              <span className='inline-flex items-center gap-1.5 px-1 font-mono text-[10px] text-primary'>
-                <span className='size-1.5 animate-pulse rounded-full bg-primary' />
-                {reasoningThinkingLabel}
-              </span>
-            ) : !isLoading && hasContent ? (
+            {!isLoading && hasContent ? (
               <>
                 <Button
                   variant='ghost'

@@ -8,6 +8,8 @@
   "Chat": {
     "toolCall": {
       "group": "{count} 個工具調用",
+      "groupAllSuccess": "全部成功",
+      "groupHasFailure": "存在失敗",
       "status": {
         "success": "完成",
         "error": "失敗",
@@ -15,7 +17,14 @@
       },
       "input": "輸入",
       "output": "輸出",
-      "error": "錯誤"
+      "error": "錯誤",
+      "action": {
+        "read": "讀取 {target}",
+        "write": "寫入 {target}",
+        "run": "執行 {target}",
+        "search": "搜尋 {target}",
+        "prepare": "正在組織呼叫參數…"
+      }
     },
     "voiceChat": "語音聊天",
     "voiceInput": "語音輸入",
@@ -166,10 +175,17 @@
       "interrupt": "中斷播報",
       "disconnect": "結束語音"
     },
+    "activity": {
+      "preparing": "正在準備…",
+      "tool": "正在呼叫 {tool}…",
+      "planStep": "正在執行計畫 · 第 {step}/{total} 步",
+      "elapsed": "{seconds} 秒"
+    },
     "reasoning": {
       "title": "推理過程",
       "thinking": "推理中",
-      "done": "推理完成"
+      "done": "推理完成",
+      "doneElapsed": "已思考 · 用時 {duration}"
     },
     "actions": {
       "copy": "複製",

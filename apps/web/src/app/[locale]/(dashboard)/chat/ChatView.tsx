@@ -32,6 +32,7 @@ import {
   SheetTrigger,
 } from '@/components/atoms'
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
+import { PlanProgressStrip } from '@/components/molecules/chat/plan-progress'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
 import { cn } from '@/lib/utils'
@@ -2245,32 +2246,47 @@ export function ChatView() {
             executingLabel={t('plan.executing')}
             planPanel={
               pendingPlan ? (
-                <PlanPanel
-                  summary={pendingPlan.summary}
-                  steps={pendingPlan.steps}
-                  status={planPanelStatus}
-                  stepStatuses={
-                    planStatuses.length > 0 ? planStatuses : undefined
-                  }
-                  titleLabel={t('plan.title')}
-                  approveLabel={t('plan.approve')}
-                  rejectLabel={t('plan.reject')}
-                  approvedLabel={t('plan.approved')}
-                  rejectedLabel={t('plan.rejected')}
-                  pendingLabel={t('plan.pending')}
-                  completedLabel={t('plan.completed')}
-                  failedLabel={t('plan.failed')}
-                  executingLabel={t('plan.executing')}
-                  onApprove={
-                    planPanelStatus === 'pending' ||
-                    planPanelStatus === 'approved'
-                      ? handleApprovePlan
-                      : undefined
-                  }
-                  onReject={
-                    planPanelStatus === 'pending' ? handleRejectPlan : undefined
-                  }
-                />
+                planPanelStatus === 'pending' ||
+                planPanelStatus === 'approved' ? (
+                  <PlanPanel
+                    summary={pendingPlan.summary}
+                    steps={pendingPlan.steps}
+                    status={planPanelStatus}
+                    stepStatuses={
+                      planStatuses.length > 0 ? planStatuses : undefined
+                    }
+                    titleLabel={t('plan.title')}
+                    approveLabel={t('plan.approve')}
+                    rejectLabel={t('plan.reject')}
+                    approvedLabel={t('plan.approved')}
+                    rejectedLabel={t('plan.rejected')}
+                    pendingLabel={t('plan.pending')}
+                    completedLabel={t('plan.completed')}
+                    failedLabel={t('plan.failed')}
+                    executingLabel={t('plan.executing')}
+                    onApprove={
+                      planPanelStatus === 'pending' ||
+                      planPanelStatus === 'approved'
+                        ? handleApprovePlan
+                        : undefined
+                    }
+                    onReject={
+                      planPanelStatus === 'pending'
+                        ? handleRejectPlan
+                        : undefined
+                    }
+                  />
+                ) : (
+                  /* 执行中/完成/失败：一行式进度条，不再全量铺开步骤 */
+                  <PlanProgressStrip
+                    summary={pendingPlan.summary}
+                    steps={pendingPlan.steps}
+                    status={planPanelStatus}
+                    stepStatuses={
+                      planStatuses.length > 0 ? planStatuses : undefined
+                    }
+                  />
+                )
               ) : undefined
             }
             clarificationPanel={

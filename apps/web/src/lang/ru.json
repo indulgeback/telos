@@ -8,6 +8,8 @@
   "Chat": {
     "toolCall": {
       "group": "Вызовы инструментов: {count}",
+      "groupAllSuccess": "все успешно",
+      "groupHasFailure": "есть ошибки",
       "status": {
         "success": "Завершить",
         "error": "Неудачно",
@@ -15,7 +17,14 @@
       },
       "input": "Ввод",
       "output": "Вывод",
-      "error": "Ошибка"
+      "error": "Ошибка",
+      "action": {
+        "read": "Чтение {target}",
+        "write": "Запись {target}",
+        "run": "Запуск {target}",
+        "search": "Поиск {target}",
+        "prepare": "Подготовка вызова..."
+      }
     },
     "voiceChat": "Голосовой чат",
     "voiceInput": "Голосовой ввод",
@@ -166,10 +175,17 @@
       "interrupt": "Прервать ответ",
       "disconnect": "Завершить голосовой сеанс"
     },
+    "activity": {
+      "preparing": "Подготовка...",
+      "tool": "Вызов {tool}...",
+      "planStep": "Выполнение плана · шаг {step} из {total}",
+      "elapsed": "{seconds} с"
+    },
     "reasoning": {
       "title": "процесс рассуждения",
       "thinking": "В процессе рассуждения",
-      "done": "Расследование завершено"
+      "done": "Расследование завершено",
+      "doneElapsed": "Обдумано за {duration}"
     },
     "actions": {
       "copy": "Копировать",

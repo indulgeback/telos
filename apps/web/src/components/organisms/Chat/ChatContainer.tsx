@@ -671,7 +671,13 @@ export function ChatContainer({
           {realtimeStatusPanel && (
             <div className='mb-2'>{realtimeStatusPanel}</div>
           )}
-          {planPanel && <div className='mb-2'>{planPanel}</div>}
+          {/* 计划审批面板需要用户决策时保留，但限高内滚动，
+              防止多步骤计划把消息区挤到无法滚动 */}
+          {planPanel && (
+            <div className='mb-2 max-h-[42vh] overflow-y-auto pr-1'>
+              {planPanel}
+            </div>
+          )}
           {clarificationPanel && (
             <div className='relative z-40 mb-3'>{clarificationPanel}</div>
           )}
