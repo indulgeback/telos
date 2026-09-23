@@ -114,22 +114,43 @@ if ! "${DC[@]}" -f "$COMPOSE_FILE" config >/dev/null; then
   exit 1
 fi
 
+# ---------------------------- 网络抖动重试 -----------------------------------
+# Registry 网络偶发 EOF/超时（出口代理抖动），对登录与拉取做有限重试
+retry() {
+  local attempts=$1 delay=$2 label=$3; shift 3
+  local n=1
+  until "$@"; do
+    if (( n >= attempts )); then return 1; fi
+    warn "${label} 第 ${n}/${attempts} 次失败,${delay}s 后重试..."
+    sleep "$delay"
+    n=$((n + 1))
+  done
+}
+
 # ---------------------------- GHCR 登录 --------------------------------------
 # 私有镜像需要登录。若未配置 token 则跳过(假定已通过 docker login 或公开镜像)
 if [[ -n "${GHCR_TOKEN:-}" ]] && [[ -n "${GHCR_USER:-${IMAGE_OWNER:-indulgeback}}" ]]; then
   log "🔑 登录 GHCR..."
-  echo "$GHCR_TOKEN" | docker login ghcr.io \
-    -u "${GHCR_USER}" \
-    --password-stdin
+  ghcr_login() {
+    echo "$GHCR_TOKEN" | docker login ghcr.io \
+      -u "${GHCR_USER}" \
+      --password-stdin
+  }
+  if ! retry 3 20 "GHCR 登录" ghcr_login; then
+    err "GHCR 登录失败(已重试 3 次)"
+    err "请检查服务器到 ghcr.io 的网络/代理是否正常"
+    exit 1
+  fi
 fi
 
 # ---------------------------- 拉取镜像 ---------------------------------------
 log "📥 拉取最新镜像 (tag: ${IMAGE_TAG})..."
-if ! "${DC[@]}" -f "$COMPOSE_FILE" pull; then
+if ! retry 3 30 "镜像拉取" "${DC[@]}" -f "$COMPOSE_FILE" pull; then
   err "镜像拉取失败"
   err "请检查:"
   err "  1. GHCR_TOKEN 是否有效且有 read:packages 权限"
   err "  2. tag '${IMAGE_TAG}' 是否存在"
+  err "  3. 服务器到 ghcr.io 的网络/代理是否正常"
   exit 1
 fi
 ok "镜像拉取完成"
