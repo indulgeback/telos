@@ -45,8 +45,8 @@ export const DEFAULT_CHAT_MODELS = [
     supportReasoningControl: false,
   },
   {
-    modelKey: 'google/gemini-3.7-flash',
-    displayName: 'Gemini 3.7 Flash',
+    modelKey: 'google/gemini-3.8-flash',
+    displayName: 'Gemini 3.8 Flash',
     provider: 'gcloud',
     isReasoning: true,
     sortOrder: 6,
@@ -111,7 +111,9 @@ export const DEFAULT_CHAT_MODELS = [
 
 /** Existing Agent rows are migrated before obsolete catalog rows are deleted. */
 export const CHAT_MODEL_MIGRATIONS: Readonly<Record<string, string>> = {
-  'google/gemini-3.5-flash': 'google/gemini-3.7-flash',
+  // 目标一律直指最终模型，避免链式迁移依赖遍历顺序
+  'google/gemini-3.5-flash': 'google/gemini-3.8-flash',
+  'google/gemini-3.7-flash': 'google/gemini-3.8-flash',
   'google/gemini-3.1-flash-lite': 'google/gemini-3.5-flash-lite',
   'google/gemini-2.5-pro': 'google/gemini-3.1-pro-preview',
   'doubao-seed-2-1-pro-260628': 'doubao-seed-2-1-turbo-260628',

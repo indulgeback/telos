@@ -116,7 +116,7 @@ pnpm --filter ./services/agent-service dev:worker
 - `deepseek-v4-flash`
 - `deepseek-v4-pro`
 - `openai/gpt-5.5`
-- `google/gemini-3.7-flash`
+- `google/gemini-3.8-flash`
 - `google/gemini-3.5-flash-lite`
 - `google/gemini-3.1-pro-preview`
 - `doubao-seed-2-1-turbo-260628`

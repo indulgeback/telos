@@ -57,7 +57,7 @@ export const config = {
   // OpenAI
   openaiApiKey: process.env.OPENAI_API_KEY || '',
   openaiBaseUrl: process.env.OPENAI_BASE_URL || '',
-  defaultModel: process.env.DEFAULT_AGENT_MODEL || 'gpt-4o-mini',
+  defaultModel: process.env.DEFAULT_AGENT_MODEL || 'deepseek-v4-flash',
 
   // Legacy OpenAI-compatible providers kept only so unused legacy modules compile.
   deepseekApiKey: process.env.DEEPSEEK_API_KEY || '',

@@ -8,7 +8,7 @@ import { getGcloudProjectId } from './gcloud.js'
 import { config } from '../config/index.js'
 import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
 
-const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image-preview'
+const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image'
 const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-2.5-flash-image'
 const SHORTAPI_MAX_QUERY_ATTEMPTS = 2
 const SHORTAPI_RETRY_DELAY_MS = 250

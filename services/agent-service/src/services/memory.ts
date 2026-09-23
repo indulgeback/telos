@@ -9,7 +9,7 @@ import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 let openaiClient: OpenAI | null = null
 
 async function getOpenAIClient(): Promise<OpenAI> {
-  const model = config.defaultModel || 'gpt-4o-mini'
+  const model = config.defaultModel
 
   if (model.startsWith('gemini-') || model.startsWith('google/gemini-')) {
     const [apiKey, baseURL] = await Promise.all([
@@ -359,7 +359,7 @@ export async function extractAndSynthesizeMemories(
 5. 绝对不要返回任何 Markdown 标记或除该 JSON 数组外的任何额外文字。`
 
       const response = await client.chat.completions.create({
-        model: config.defaultModel || 'gpt-4o-mini',
+        model: config.defaultModel,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `对话历史：\n${chatHistoryText}` }
