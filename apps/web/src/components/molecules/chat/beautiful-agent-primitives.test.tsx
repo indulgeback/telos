@@ -205,6 +205,67 @@ describe('Beautiful UI agent primitives', () => {
     expect(html).not.toContain('Which option?')
   })
 
+  it('freezes a reasoning segment once any newer part follows it', () => {
+    const html = renderWithIntl(
+      <ChatMessage
+        id='assistant-freeze'
+        role='assistant'
+        content=''
+        copiedId={null}
+        onCopy={() => undefined}
+        copyLabel='Copy'
+        copiedLabel='Copied'
+        isLoading
+        reasoningThinkingLabel='Thinking live'
+        reasoningDoneLabel='Reasoning complete'
+        contentParts={[
+          {
+            type: 'reasoning',
+            reasoning: { text: 'first segment', state: 'streaming' },
+          },
+          {
+            type: 'tool',
+            tool: {
+              toolCallId: 'call-1',
+              toolName: 'read_file',
+              state: 'running',
+            },
+          },
+        ]}
+      />
+    )
+
+    // 段落后出现了工具调用：即使 part.state 仍是 streaming，也按已结束渲染，
+    // 计时不再把工具执行的等待算进思考时长
+    expect(html).toContain('Reasoning complete')
+    expect(html).not.toContain('Thinking live')
+  })
+
+  it('keeps the latest reasoning segment live while it is still the last part', () => {
+    const html = renderWithIntl(
+      <ChatMessage
+        id='assistant-live'
+        role='assistant'
+        content=''
+        copiedId={null}
+        onCopy={() => undefined}
+        copyLabel='Copy'
+        copiedLabel='Copied'
+        isLoading
+        reasoningThinkingLabel='Thinking live'
+        reasoningDoneLabel='Reasoning complete'
+        contentParts={[
+          {
+            type: 'reasoning',
+            reasoning: { text: 'still thinking', state: 'streaming' },
+          },
+        ]}
+      />
+    )
+
+    expect(html).toContain('Thinking live')
+  })
+
   it('does not leave a green completion chip for answered composer clarification', () => {
     const html = renderToStaticMarkup(
       <ClarifyPanel

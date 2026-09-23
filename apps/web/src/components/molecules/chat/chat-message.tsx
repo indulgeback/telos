@@ -355,11 +355,20 @@ function ChatMessageInner({
                   }
 
                   if (part.type === 'reasoning') {
+                    // 后端的 reasoning.done 只在整轮流结束时发一次；段落级
+                    // 结束没有信号。只要这段思考后面出现了任何新内容
+                    // （工具/文本/计划），或整条消息已加载完毕，即视为该段
+                    // 思考已结束，冻结计时，避免把工具执行的等待算进思考时长。
+                    const isLastPart = index === groupedContentParts.length - 1
+                    const reasoningLive =
+                      isLoading &&
+                      isLastPart &&
+                      part.reasoning.state === 'streaming'
                     return (
                       <ThinkingTrace
                         key={`reasoning-${id}-${index}`}
                         text={part.reasoning.text}
-                        state={part.reasoning.state}
+                        state={reasoningLive ? 'streaming' : 'done'}
                         title={reasoningTitle}
                         thinkingLabel={reasoningThinkingLabel}
                         doneLabel={reasoningDoneLabel}
