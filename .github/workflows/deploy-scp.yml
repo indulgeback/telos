@@ -1,0 +1,230 @@
+name: 🚚 Deploy to Server (镜像直传)
+
+# =============================================================================
+# 备用部署通道:服务器无法直连 ghcr.io 时使用
+#   1. 在 Actions runner 上拉取全部应用镜像并打包(docker save)
+#   2. 经 SCP 传输到服务器,docker load 载入本机
+#   3. 以 SKIP_IMAGE_PULL=1 执行常规 deploy.sh
+#      (备份/迁移/健康检查/自动回滚逻辑与标准通道完全一致)
+# 手动触发,需提供与构建产物一致的 image_tag(如 sha-abc1234)
+# =============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: '要部署的镜像 tag (如 sha-abc1234 / main / 1.0.0)'
+        required: true
+        default: 'main'
+      build_sha:
+        description: '对应构建的完整 commit SHA (用于同步部署清单,可空)'
+        required: false
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  IMAGE_TAG: ${{ inputs.image_tag }}
+  BUILD_SHA: ${{ inputs.build_sha }}
+  DEPLOY_DIR: ${{ vars.DEPLOY_DIR || '/opt/telos' }}
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: indulgeback
+  SSH_HOST: ${{ secrets.SSH_HOST }}
+  SSH_USER: ${{ secrets.SSH_USER }}
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛡️ 校验部署参数
+        run: |
+          set -euo pipefail
+          if [[ ! "$IMAGE_TAG" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]]; then
+            echo "非法镜像 tag" >&2
+            exit 1
+          fi
+          if [[ -n "$BUILD_SHA" && ! "$BUILD_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "build_sha 必须是完整的 40 位 commit SHA" >&2
+            exit 1
+          fi
+          if [[ ! "$DEPLOY_DIR" =~ ^/[A-Za-z0-9._/-]+$ || "$DEPLOY_DIR" == "/" ]]; then
+            echo "DEPLOY_DIR 必须是安全的绝对目录且不能为根目录" >&2
+            exit 1
+          fi
+          if [[ -z "$SSH_HOST" || -z "$SSH_USER" ]]; then
+            echo "SSH_HOST/SSH_USER 未配置" >&2
+            exit 1
+          fi
+
+      - name: 📥 检出部署清单
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.build_sha || github.sha }}
+
+      - name: 📋 部署信息
+        run: |
+          echo "## 🚚 镜像直传部署" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          printf '| 镜像 Tag | `%s` |\n' "$IMAGE_TAG" >> "$GITHUB_STEP_SUMMARY"
+          printf '| 服务器 | `%s` |\n' "$SSH_HOST" >> "$GITHUB_STEP_SUMMARY"
+          printf '| 部署目录 | `%s` |\n' "$DEPLOY_DIR" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 🔑 登录 GHCR (runner 侧)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 拉取并打包全部应用镜像
+        run: |
+          set -euo pipefail
+          SERVICES="registry api-gateway agent-service admin-service web admin"
+          IMAGES=""
+          for svc in $SERVICES; do
+            image="${REGISTRY}/${IMAGE_OWNER}/telos-${svc}:${IMAGE_TAG}"
+            echo "⬇️ 拉取 ${image}"
+            docker pull "$image"
+            IMAGES="${IMAGES} ${image}"
+          done
+          # 共享层在单包内去重;层本身已压缩,gzip 用低级别加速
+          command -v pigz >/dev/null 2>&1 || sudo apt-get install -y pigz >/dev/null
+          echo "📦 docker save ${IMAGES}"
+          docker save $IMAGES | pigz -3 > /tmp/telos-images-${IMAGE_TAG}.tar.gz
+          ls -lh /tmp/telos-images-${IMAGE_TAG}.tar.gz
+          echo "ARCHIVE=/tmp/telos-images-${IMAGE_TAG}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: 🔑 加载 SSH 私钥
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [[ -n "$SSH_HOST_KEY" ]]; then
+            printf '%s\n' "$SSH_HOST_KEY" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+
+      - name: 📤 传输镜像包到服务器
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+          )
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            "mkdir -p '$DEPLOY_DIR/deploy/backups/images'"
+          echo "📡 SCP 传输镜像包(可能需要数分钟,取决于服务器入站带宽)..."
+          scp "${SSH_OPTS[@]}" "$ARCHIVE" \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/deploy/backups/images/"
+
+      - name: 📥 服务器载入镜像
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+          )
+          remote_archive="$DEPLOY_DIR/deploy/backups/images/$(basename "$ARCHIVE")"
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            "docker load -i '$remote_archive' && rm -f '$remote_archive'"
+
+      - name: 🚀 执行远程部署 (SKIP_IMAGE_PULL)
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+          )
+
+          echo "🔄 SSH 连接服务器并执行部署..."
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            bash -s -- "$DEPLOY_DIR" "$IMAGE_TAG" "$BUILD_SHA" <<'REMOTE'
+          set -euo pipefail
+          deploy_dir="$1"
+          image_tag="$2"
+          build_sha="${3:-manual}"
+          backup_id="${build_sha:0:12}-$(date -u +%Y%m%dT%H%M%SZ)"
+          backup_dir="$deploy_dir/deploy/backups/release-$backup_id"
+          had_compose="false"
+          had_deploy_script="false"
+
+          mkdir -p "$backup_dir"
+          if [[ -f "$deploy_dir/docker-compose.prod.yml" ]]; then
+            had_compose="true"
+            cp "$deploy_dir/docker-compose.prod.yml" "$backup_dir/"
+          fi
+          if [[ -f "$deploy_dir/deploy/deploy.sh" ]]; then
+            had_deploy_script="true"
+            cp "$deploy_dir/deploy/deploy.sh" "$backup_dir/"
+          fi
+
+          restore_partial_manifest_install() {
+            install_status="$?"
+            trap - EXIT
+            set +e
+            if [[ "$had_compose" == "true" ]]; then
+              install -m 0644 "$backup_dir/docker-compose.prod.yml" \
+                "$deploy_dir/docker-compose.prod.yml"
+            else
+              rm -f "$deploy_dir/docker-compose.prod.yml"
+            fi
+            if [[ "$had_deploy_script" == "true" ]]; then
+              install -m 0755 "$backup_dir/deploy.sh" \
+                "$deploy_dir/deploy/deploy.sh"
+            else
+              rm -f "$deploy_dir/deploy/deploy.sh"
+            fi
+            exit "$install_status"
+          }
+          trap restore_partial_manifest_install EXIT
+          install -m 0644 "$deploy_dir/docker-compose.prod.yml.next" \
+            "$deploy_dir/docker-compose.prod.yml"
+          install -m 0755 "$deploy_dir/deploy/deploy.sh.next" \
+            "$deploy_dir/deploy/deploy.sh"
+          rm -f "$deploy_dir/docker-compose.prod.yml.next" \
+            "$deploy_dir/deploy/deploy.sh.next"
+          trap - EXIT
+
+          cd "$deploy_dir"
+          set +e
+          env SKIP_IMAGE_PULL=1 PREVIOUS_RELEASE_BACKUP_DIR="$backup_dir" \
+            bash deploy/deploy.sh "$image_tag"
+          deploy_status=$?
+          set -e
+          if (( deploy_status != 0 )); then
+            if [[ -f "$backup_dir/docker-compose.prod.yml" ]]; then
+              install -m 0644 "$backup_dir/docker-compose.prod.yml" \
+                "$deploy_dir/docker-compose.prod.yml"
+            fi
+            if [[ -f "$backup_dir/deploy.sh" ]]; then
+              install -m 0755 "$backup_dir/deploy.sh" \
+                "$deploy_dir/deploy/deploy.sh"
+            fi
+          fi
+          exit "$deploy_status"
+          REMOTE
+
+      - name: ✅ 部署完成通知
+        if: success()
+        run: |
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          printf '🎉 **镜像直传部署成功!** 镜像 tag `%s` 已滚动到生产环境。\n' \
+            "$IMAGE_TAG" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ❌ 部署失败处理
+        if: failure()
+        run: |
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "❌ **镜像直传部署失败!** 请检查上方日志。" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

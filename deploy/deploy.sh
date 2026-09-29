@@ -127,33 +127,52 @@ retry() {
   done
 }
 
-# ---------------------------- GHCR 登录 --------------------------------------
-# 私有镜像需要登录。若未配置 token 则跳过(假定已通过 docker login 或公开镜像)
-if [[ -n "${GHCR_TOKEN:-}" ]] && [[ -n "${GHCR_USER:-${IMAGE_OWNER:-indulgeback}}" ]]; then
-  log "🔑 登录 GHCR..."
-  ghcr_login() {
-    echo "$GHCR_TOKEN" | docker login ghcr.io \
-      -u "${GHCR_USER}" \
-      --password-stdin
-  }
-  if ! retry 3 20 "GHCR 登录" ghcr_login; then
-    err "GHCR 登录失败(已重试 3 次)"
-    err "请检查服务器到 ghcr.io 的网络/代理是否正常"
+# ---------------------------- 镜像来源 ---------------------------------------
+# SKIP_IMAGE_PULL=1: 镜像已由外部通道载入本机(如 Actions 经 SSH docker load 直传),
+# 跳过 GHCR 登录与拉取,仅校验镜像齐全。默认走 GHCR 登录 + compose pull。
+if [[ "${SKIP_IMAGE_PULL:-0}" == "1" ]]; then
+  warn "⏭️ SKIP_IMAGE_PULL=1,跳过 GHCR 登录与镜像拉取,校验本机镜像..."
+  declare -a PRELOADED_APP_SERVICES=(
+    registry api-gateway agent-service admin-service web admin
+  )
+  for svc in "${PRELOADED_APP_SERVICES[@]}"; do
+    image="ghcr.io/${IMAGE_OWNER:-indulgeback}/telos-${svc}:${IMAGE_TAG}"
+    if ! docker image inspect "$image" >/dev/null 2>&1; then
+      err "本机缺少镜像: ${image}"
+      err "SKIP_IMAGE_PULL 模式要求全部应用镜像已提前 docker load"
+      exit 1
+    fi
+  done
+  ok "6 个应用镜像已在本机就绪 (tag: ${IMAGE_TAG})"
+else
+  # ---------------------------- GHCR 登录 ------------------------------------
+  # 私有镜像需要登录。若未配置 token 则跳过(假定已通过 docker login 或公开镜像)
+  if [[ -n "${GHCR_TOKEN:-}" ]] && [[ -n "${GHCR_USER:-${IMAGE_OWNER:-indulgeback}}" ]]; then
+    log "🔑 登录 GHCR..."
+    ghcr_login() {
+      echo "$GHCR_TOKEN" | docker login ghcr.io \
+        -u "${GHCR_USER}" \
+        --password-stdin
+    }
+    if ! retry 3 20 "GHCR 登录" ghcr_login; then
+      err "GHCR 登录失败(已重试 3 次)"
+      err "请检查服务器到 ghcr.io 的网络/代理是否正常"
+      exit 1
+    fi
+  fi
+
+  # ---------------------------- 拉取镜像 -------------------------------------
+  log "📥 拉取最新镜像 (tag: ${IMAGE_TAG})..."
+  if ! retry 3 30 "镜像拉取" "${DC[@]}" -f "$COMPOSE_FILE" pull; then
+    err "镜像拉取失败"
+    err "请检查:"
+    err "  1. GHCR_TOKEN 是否有效且有 read:packages 权限"
+    err "  2. tag '${IMAGE_TAG}' 是否存在"
+    err "  3. 服务器到 ghcr.io 的网络/代理是否正常"
     exit 1
   fi
+  ok "镜像拉取完成"
 fi
-
-# ---------------------------- 拉取镜像 ---------------------------------------
-log "📥 拉取最新镜像 (tag: ${IMAGE_TAG})..."
-if ! retry 3 30 "镜像拉取" "${DC[@]}" -f "$COMPOSE_FILE" pull; then
-  err "镜像拉取失败"
-  err "请检查:"
-  err "  1. GHCR_TOKEN 是否有效且有 read:packages 权限"
-  err "  2. tag '${IMAGE_TAG}' 是否存在"
-  err "  3. 服务器到 ghcr.io 的网络/代理是否正常"
-  exit 1
-fi
-ok "镜像拉取完成"
 
 # ---------------------------- 数据库迁移 -------------------------------------
 # 先保证数据库在线；业务服务仍保持当前版本，直到新镜像全部拉取完成。

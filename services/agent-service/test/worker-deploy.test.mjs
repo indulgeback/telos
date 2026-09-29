@@ -107,7 +107,7 @@ async function runCase(options) {
   const f = await fixture(options)
   const result = spawnSync('bash', [join(f.deploy, 'deploy.sh')], {
     cwd: f.root,
-    env: { ...process.env, ...f.env },
+    env: { ...process.env, ...f.env, ...(options?.extraEnv ?? {}) },
     encoding: 'utf8',
     timeout: 20_000,
   })
@@ -139,6 +139,25 @@ test('migration failure restarts the captured old API and worker', async () => {
   assert.notEqual(r.result.status, 0)
   assert.match(r.log, /start worker-old-1/)
   assert.match(r.log, /start telos-agent-service/)
+})
+
+test('SKIP_IMAGE_PULL skips registry login and pull for preloaded images', async () => {
+  const r = await runCase({ extraEnv: { SKIP_IMAGE_PULL: '1' } })
+  assert.equal(r.result.status, 0, r.result.stderr)
+  // r.log 是 fake docker 的调用日志:不应出现 login/pull,应逐一校验 6 张本地镜像
+  assert.doesNotMatch(r.log, /compose .* pull/)
+  assert.doesNotMatch(r.log, /login ghcr/)
+  for (const svc of [
+    'registry',
+    'api-gateway',
+    'agent-service',
+    'admin-service',
+    'web',
+    'admin',
+  ]) {
+    assert.match(r.log, new RegExp(`image inspect ghcr\\.io/fixture/telos-${svc}:fixture`))
+  }
+  assert.match(r.log, /compose .* run --rm --no-deps agent-service/)
 })
 
 test('health failure rolls back using a previous manifest without a worker', async () => {
