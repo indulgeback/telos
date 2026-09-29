@@ -83,26 +83,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📦 拉取并打包全部应用镜像
+      - name: 📦 拉取打包并逐个传输镜像
         run: |
           set -euo pipefail
-          SERVICES="registry api-gateway agent-service admin-service web admin"
-          IMAGES=""
-          for svc in $SERVICES; do
-            image="${REGISTRY}/${IMAGE_OWNER}/telos-${svc}:${IMAGE_TAG}"
-            echo "⬇️ 拉取 ${image}"
-            docker pull "$image"
-            IMAGES="${IMAGES} ${image}"
-          done
-          # 共享层在单包内去重;层本身已压缩,gzip 用低级别加速
-          command -v pigz >/dev/null 2>&1 || sudo apt-get install -y pigz >/dev/null
-          echo "📦 docker save ${IMAGES}"
-          docker save $IMAGES | pigz -3 > /tmp/telos-images-${IMAGE_TAG}.tar.gz
-          ls -lh /tmp/telos-images-${IMAGE_TAG}.tar.gz
-          echo "ARCHIVE=/tmp/telos-images-${IMAGE_TAG}.tar.gz" >> "$GITHUB_ENV"
-
-      - name: 🔑 加载 SSH 私钥
-        run: |
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+            -o ServerAliveInterval=15
+            -o ServerAliveCountMax=4
+            -o TCPKeepAlive=yes
+          )
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
@@ -111,32 +102,37 @@ jobs:
           else
             ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
           fi
-
-      - name: 📤 传输镜像包到服务器
-        run: |
-          set -euo pipefail
-          SSH_OPTS=(
-            -i ~/.ssh/deploy_key
-            -o StrictHostKeyChecking=yes
-            -o ConnectTimeout=20
-          )
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
             "mkdir -p '$DEPLOY_DIR/deploy/backups/images'"
-          echo "📡 SCP 传输镜像包(可能需要数分钟,取决于服务器入站带宽)..."
-          scp "${SSH_OPTS[@]}" "$ARCHIVE" \
-            "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/deploy/backups/images/"
-
-      - name: 📥 服务器载入镜像
-        run: |
-          set -euo pipefail
-          SSH_OPTS=(
-            -i ~/.ssh/deploy_key
-            -o StrictHostKeyChecking=yes
-            -o ConnectTimeout=20
-          )
-          remote_archive="$DEPLOY_DIR/deploy/backups/images/$(basename "$ARCHIVE")"
-          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
-            "docker load -i '$remote_archive' && rm -f '$remote_archive'"
+          command -v pigz >/dev/null 2>&1 || sudo apt-get install -y pigz >/dev/null
+          SERVICES="registry api-gateway agent-service admin-service web admin"
+          # 逐镜像 拉取→打包→传输→载入:单张失败只重试单张,
+          # keepalive 保证死链 1 分钟内暴露而不是无限挂起
+          for svc in $SERVICES; do
+            image="${REGISTRY}/${IMAGE_OWNER}/telos-${svc}:${IMAGE_TAG}"
+            echo "⬇️ [${svc}] 拉取 ${image}"
+            docker pull "$image"
+            echo "📦 [${svc}] docker save + pigz"
+            docker save "$image" | pigz -3 > "/tmp/telos-${svc}.tar.gz"
+            ls -lh "/tmp/telos-${svc}.tar.gz"
+            remote_path="$DEPLOY_DIR/deploy/backups/images/telos-${svc}-${IMAGE_TAG}.tar.gz"
+            n=1
+            until scp "${SSH_OPTS[@]}" "/tmp/telos-${svc}.tar.gz" \
+                "$SSH_USER@$SSH_HOST:$remote_path"; do
+              if (( n >= 3 )); then
+                echo "❌ [${svc}] 传输失败(已重试 3 次)" >&2
+                exit 1
+              fi
+              echo "⚠️ [${svc}] 传输中断,第 $((n + 1))/3 次重试"
+              n=$((n + 1))
+            done
+            rm -f "/tmp/telos-${svc}.tar.gz"
+            echo "📥 [${svc}] 服务器 docker load"
+            ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+              "docker load -i '$remote_path' && rm -f '$remote_path'"
+            echo "✅ [${svc}] 完成"
+          done
+          df -h / | tail -1
 
       - name: 🚀 执行远程部署 (SKIP_IMAGE_PULL)
         run: |
