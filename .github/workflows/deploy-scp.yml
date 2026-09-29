@@ -110,6 +110,12 @@ jobs:
           # keepalive 保证死链 1 分钟内暴露而不是无限挂起
           for svc in $SERVICES; do
             image="${REGISTRY}/${IMAGE_OWNER}/telos-${svc}:${IMAGE_TAG}"
+            # 断点续传:上一次运行可能已载入部分镜像,服务器已有的直接跳过
+            if ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+                "docker image inspect '$image' >/dev/null 2>&1"; then
+              echo "⏭️ [${svc}] 服务器已存在 ${image},跳过"
+              continue
+            fi
             echo "⬇️ [${svc}] 拉取 ${image}"
             docker pull "$image"
             echo "📦 [${svc}] docker save + pigz"
