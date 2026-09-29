@@ -106,6 +106,9 @@ jobs:
           fi
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
             "mkdir -p '$DEPLOY_DIR/deploy/backups/images'"
+          # 诊断磁盘,清理上次中断残留的镜像包与悬空层(正式清理只在部署成功后跑)
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            "df -h / ; rm -f '$DEPLOY_DIR'/deploy/backups/images/*.tar.gz ; docker image prune -f"
           command -v pigz >/dev/null 2>&1 || sudo apt-get install -y pigz >/dev/null
           SERVICES="registry api-gateway agent-service admin-service web admin"
           # 逐镜像 拉取→打包→传输→载入:单张失败只重试单张,
