@@ -106,10 +106,10 @@ jobs:
           fi
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
             "mkdir -p '$DEPLOY_DIR/deploy/backups/images'"
-          # 诊断磁盘;清理中断残留 + 全部未被容器使用的旧镜像
+          # 诊断磁盘;清理中断残留 + 全部未被容器使用的旧镜像 + 构建缓存 + 系统日志
           # (与 deploy.sh 成功后的 CLEAN_IMAGES 清理同一策略,数据库备份不动)
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
-            "df -h / ; rm -f '$DEPLOY_DIR'/deploy/backups/images/* ; docker image prune -af ; docker system df ; df -h /"
+            "df -h / ; rm -f '$DEPLOY_DIR'/deploy/backups/images/* ; docker image prune -af ; docker builder prune -af 2>/dev/null | tail -1 ; journalctl --vacuum-size=50M 2>/dev/null | tail -1 ; docker system df ; df -h /"
           command -v pigz >/dev/null 2>&1 || sudo apt-get install -y pigz >/dev/null
           SERVICES="registry api-gateway agent-service admin-service web admin"
           # 逐镜像 拉取→打包→传输→载入:单张失败只重试单张,
@@ -135,7 +135,9 @@ jobs:
                 echo "❌ [${svc}] 传输失败(已重试 3 次)" >&2
                 exit 1
               fi
-              echo "⚠️ [${svc}] 传输中断,第 $((n + 1))/3 次重试"
+              echo "⚠️ [${svc}] 传输中断,第 $((n + 1))/3 次重试,先清理磁盘空间"
+              ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+                "rm -f '$DEPLOY_DIR'/deploy/backups/images/*.partial ; docker image prune -af ; df -h / | tail -1"
               n=$((n + 1))
             done
             rm -f "/tmp/telos-${svc}.tar.gz"
