@@ -66,7 +66,9 @@ jobs:
       - name: 📥 检出部署清单
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.build_sha || github.sha }}
+          # 按 ref(分支)检出,绕开 GitHub 偶发的 exact-SHA fetch "not our ref";
+          # 不传 build_sha 时检出的就是调度时的 main 顶端,与镜像 tag 一致
+          ref: ${{ inputs.build_sha || github.ref }}
 
       - name: 📋 部署信息
         run: |
