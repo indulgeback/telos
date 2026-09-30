@@ -148,6 +148,22 @@ jobs:
           done
           df -h / | tail -1
 
+      - name: 📤 同步部署清单到服务器
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(
+            -i ~/.ssh/deploy_key
+            -o StrictHostKeyChecking=yes
+            -o ConnectTimeout=20
+            -o ServerAliveInterval=15
+            -o ServerAliveCountMax=4
+          )
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" "mkdir -p '$DEPLOY_DIR/deploy'"
+          scp "${SSH_OPTS[@]}" docker-compose.prod.yml \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/docker-compose.prod.yml.next"
+          scp "${SSH_OPTS[@]}" deploy/deploy.sh \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/deploy/deploy.sh.next"
+
       - name: 🚀 执行远程部署 (SKIP_IMAGE_PULL)
         run: |
           set -euo pipefail
