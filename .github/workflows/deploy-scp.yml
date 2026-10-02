@@ -106,10 +106,9 @@ jobs:
           fi
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
             "mkdir -p '$DEPLOY_DIR/deploy/backups/images'"
-          # 诊断磁盘;只清理悬空层(中断 load 的残留),绝不碰已打 tag 的镜像
-          # 注意:不能用 prune -af,否则会删掉上次运行刚载入的待部署镜像
+          # 诊断磁盘;清理悬空层 + 截断容器日志(json-file 默认无上限,报错时可涨 GB 级)
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
-            "df -h / ; rm -f '$DEPLOY_DIR'/deploy/backups/images/* ; docker image prune -f ; journalctl --vacuum-size=50M 2>/dev/null | tail -1 ; docker system df ; df -h /"
+            "df -h / ; rm -f '$DEPLOY_DIR'/deploy/backups/images/* ; docker image prune -f ; sudo -n sh -c 'truncate -s 0 /var/lib/docker/containers/*/*-json.log' 2>/dev/null || true ; echo '== 占用大头 ==' ; du -x -d1 -h / 2>/dev/null | sort -rh | head -6 ; sudo -n du -x -d1 -h /var/lib/docker 2>/dev/null | sort -rh | head -5 ; df -h /"
           command -v pigz >/dev/null 2>&1 || sudo apt-get install -y pigz >/dev/null
           SERVICES="registry api-gateway agent-service admin-service web admin"
           # 逐镜像 拉取→打包→传输→载入:单张失败只重试单张,
@@ -159,6 +158,9 @@ jobs:
             -o ServerAliveCountMax=4
           )
           ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" "mkdir -p '$DEPLOY_DIR/deploy'"
+          # 写入前再清一次:悬空层 + 容器日志,确保清单写入有空间
+          ssh "${SSH_OPTS[@]}" "$SSH_USER@$SSH_HOST" \
+            "docker image prune -f ; sudo -n sh -c 'truncate -s 0 /var/lib/docker/containers/*/*-json.log' 2>/dev/null || true ; df -h / | tail -1"
           scp "${SSH_OPTS[@]}" docker-compose.prod.yml \
             "$SSH_USER@$SSH_HOST:$DEPLOY_DIR/docker-compose.prod.yml.next"
           scp "${SSH_OPTS[@]}" deploy/deploy.sh \
