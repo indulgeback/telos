@@ -94,15 +94,35 @@ jobs:
           # 容器经 host.docker.internal 走代理,必须监听 LAN 口
           $SUDO sed -i "s/^allow-lan: false/allow-lan: true/" "$CFG_DIR/config.yaml"
           grep -E "^(mixed-port|allow-lan):" "$CFG_DIR/config.yaml" | head -2
-          if systemctl list-unit-files 2>/dev/null | grep -q "^mihomo"; then
+          if [ -x "$CFG_DIR/mihomo" ]; then
+            # 裸二进制部署:创建 systemd 单元(自愈 + 开机自启,替代手动拉起)
+            $SUDO tee /etc/systemd/system/mihomo.service > /dev/null <<UNIT
+          [Unit]
+          Description=mihomo (Clash Meta) proxy
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          ExecStart=$CFG_DIR/mihomo -d $CFG_DIR
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+          UNIT
+            $SUDO systemctl daemon-reload
+            $SUDO systemctl enable mihomo
+            $SUDO systemctl restart mihomo && echo "已创建并启动 systemd mihomo"
+          elif systemctl list-unit-files 2>/dev/null | grep -q "^mihomo"; then
             $SUDO systemctl restart mihomo && echo "已重启 systemd mihomo"
-          elif docker ps --format "{{.Names}}" | grep -qiE "mihomo|clash"; then
-            $SUDO docker restart $(docker ps --format "{{.Names}}" | grep -iE "mihomo|clash" | head -1) \
+          elif docker ps -a --format "{{.Names}}" | grep -qiE "mihomo|clash"; then
+            $SUDO docker restart $(docker ps -a --format "{{.Names}}" | grep -iE "mihomo|clash" | head -1) \
               && echo "已重启 docker mihomo"
           elif systemctl list-unit-files 2>/dev/null | grep -q "^clash"; then
             $SUDO systemctl restart clash && echo "已重启 systemd clash"
           else
-            echo "❌ 未发现 mihomo/clash 服务单元,请人工确认部署方式" >&2
+            echo "❌ 未发现 mihomo/clash 部署方式,请人工确认" >&2
             exit 1
           fi
           sleep 5
