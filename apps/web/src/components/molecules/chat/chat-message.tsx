@@ -16,6 +16,7 @@ import { MarkdownContent } from './markdown-content'
 import { SkillSaver } from './SkillSaver'
 import { ToolCallGroup, type ToolCallPreview } from './tool-call-status'
 import { ThinkingTrace } from './thinking-trace'
+import { AgentLoadingState } from './agent-loading-state'
 import { ActivityStatusLine } from './activity-status-line'
 import { PlanProgressStrip } from './plan-progress'
 import { deriveAssistantActivity } from '@/app/[locale]/(dashboard)/chat/chat-activity'
@@ -464,7 +465,7 @@ function ChatMessageInner({
                 <SkillSaver text={safeContent} />
               </div>
             ) : isLoading ? (
-              <ActivityStatusLine activity={{ phase: 'preparing' }} />
+              <AgentLoadingState label={reasoningThinkingLabel} />
             ) : null}
           </div>
         ) : (
