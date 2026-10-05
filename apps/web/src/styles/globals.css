@@ -380,15 +380,28 @@
     0 20px 60px hsl(220 40% 2% / 0.28);
 }
 
+/* Claude 风格流式光标：品牌紫呼吸 + 微光晕（呼应悬浮球配色） */
+.chat-stream-caret {
+  display: inline-block;
+  width: 3px;
+  height: 1.05em;
+  border-radius: 9999px;
+  vertical-align: text-bottom;
+  background: linear-gradient(180deg, #756bff, hsl(247 100% 71% / 0.35));
+  box-shadow: 0 0 8px hsl(247 100% 71% / 0.5);
+  animation: agent-stream-caret 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @keyframes agent-stream-caret {
   0%,
-  45% {
+  100% {
     opacity: 1;
+    transform: scaleY(1);
   }
 
-  55%,
-  100% {
-    opacity: 0.15;
+  50% {
+    opacity: 0.35;
+    transform: scaleY(0.8);
   }
 }
 
