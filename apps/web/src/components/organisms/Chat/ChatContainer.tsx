@@ -519,20 +519,20 @@ export function ChatContainer({
         <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
           <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10'>
             {messages.length === 0 ? (
-              <div className='mx-auto flex min-h-[58vh] max-w-2xl flex-col justify-center py-10'>
-                <div className='mb-8'>
-                  <div className='mb-6 flex w-full items-center justify-center'>
-                    <LiquidOrbIcon className='size-16' />
+              <div className='mx-auto flex min-h-[56vh] max-w-2xl flex-col items-center justify-center py-10'>
+                <div className='mb-10 flex flex-col items-center text-center'>
+                  <div className='mb-5'>
+                    <LiquidOrbIcon className='size-14' />
                   </div>
-                  <h2 className='text-balance text-3xl font-semibold leading-tight tracking-[-0.035em] text-foreground sm:text-4xl'>
+                  <h2 className='text-balance text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl'>
                     {emptyStateTitle}
                   </h2>
-                  <p className='mt-3 max-w-xl text-pretty text-[14px] leading-6 text-muted-foreground'>
+                  <p className='mt-2.5 max-w-md text-pretty text-[13.5px] leading-6 text-muted-foreground'>
                     {emptyStateDescription}
                   </p>
                 </div>
 
-                <div>
+                <div className='w-full'>
                   <div className='grid gap-2 sm:grid-cols-2'>
                     {visibleSuggestions.map(suggestion => (
                       <SuggestionPromptButton
@@ -544,12 +544,12 @@ export function ChatContainer({
                     ))}
                   </div>
                   {suggestionPrompts.length > SUGGESTION_BATCH_SIZE && (
-                    <div className='mt-3 flex justify-start'>
+                    <div className='mt-3 flex justify-center'>
                       <Button
                         variant='ghost'
                         size='sm'
                         onClick={handleShuffle}
-                        className='h-8 gap-1.5 rounded-lg px-2 font-mono text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground'
+                        className='h-8 gap-1.5 rounded-full px-3 font-mono text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground'
                       >
                         <RefreshCw className='mr-1 size-3' />
                         {refreshSuggestionsLabel}

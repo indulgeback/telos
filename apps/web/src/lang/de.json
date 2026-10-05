@@ -42,6 +42,13 @@
     "imageRemoveLabel": "Bild entfernen",
     "clearConversation": "Chat leeren",
     "emptyState": {
+      "greeting": {
+        "morning": "Guten Morgen",
+        "noon": "Guten Tag",
+        "afternoon": "Guten Tag",
+        "evening": "Guten Abend",
+        "night": "Noch wach?"
+      },
       "title": "Wie kann ich Ihnen helfen?",
       "description": "Wählen Sie eine vorgeschlagene Frage, um zu beginnen, oder geben Sie direkt Ihre Frage ein"
     },

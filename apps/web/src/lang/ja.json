@@ -42,6 +42,13 @@
     "imageRemoveLabel": "画像を削除",
     "clearConversation": "会話をクリア",
     "emptyState": {
+      "greeting": {
+        "morning": "おはようございます",
+        "noon": "こんにちは",
+        "afternoon": "こんにちは",
+        "evening": "こんばんは",
+        "night": "夜更かしですか？"
+      },
       "title": "何かお手伝いできることはありますか？",
       "description": "おすすめの質問を選んで始めるか、直接質問を入力してください"
     },

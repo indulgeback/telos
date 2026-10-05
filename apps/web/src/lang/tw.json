@@ -42,6 +42,13 @@
     "imageRemoveLabel": "移除圖片",
     "clearConversation": "清空對話",
     "emptyState": {
+      "greeting": {
+        "morning": "早安",
+        "noon": "午安",
+        "afternoon": "午安",
+        "evening": "晚安",
+        "night": "夜深了"
+      },
       "title": "有什麼可以幫到您？",
       "description": "選擇一個建議問題開始，或者直接輸入您的問題"
     },

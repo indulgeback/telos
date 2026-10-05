@@ -42,6 +42,13 @@
     "imageRemoveLabel": "Remove Image",
     "clearConversation": "Clear conversation",
     "emptyState": {
+      "greeting": {
+        "morning": "Good morning",
+        "noon": "Good afternoon",
+        "afternoon": "Good afternoon",
+        "evening": "Good evening",
+        "night": "Up late?"
+      },
       "title": "How can I help you?",
       "description": "Choose a suggested question to start, or simply type your question"
     },

@@ -2310,7 +2310,17 @@ export function ChatView() {
             sendAriaLabel={t('input.sendAriaLabel')}
             stopAriaLabel={t('actions.stop')}
             disclaimer={t('disclaimer')}
-            emptyStateTitle={t('emptyState.title')}
+            emptyStateTitle={t(
+              new Date().getHours() < 5
+                ? 'emptyState.greeting.night'
+                : new Date().getHours() < 12
+                  ? 'emptyState.greeting.morning'
+                  : new Date().getHours() < 14
+                    ? 'emptyState.greeting.noon'
+                    : new Date().getHours() < 18
+                      ? 'emptyState.greeting.afternoon'
+                      : 'emptyState.greeting.evening'
+            )}
             emptyStateDescription={t('emptyState.description')}
             copyLabel={t('actions.copy')}
             copiedLabel={t('actions.copied')}

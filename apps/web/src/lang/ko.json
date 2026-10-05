@@ -42,6 +42,13 @@
     "imageRemoveLabel": "이미지 제거",
     "clearConversation": "대화 지우기",
     "emptyState": {
+      "greeting": {
+        "morning": "좋은 아침이에요",
+        "noon": "안녕하세요",
+        "afternoon": "안녕하세요",
+        "evening": "좋은 저녁이에요",
+        "night": "밤샘 중이신가요?"
+      },
       "title": "무엇을 도와드릴까요?",
       "description": "추천 질문을 선택하여 시작하거나, 직접 질문을 입력하세요"
     },
