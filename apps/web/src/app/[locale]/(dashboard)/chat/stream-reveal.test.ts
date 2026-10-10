@@ -30,7 +30,8 @@ describe('nextCursor', () => {
 
 describe('splitForRender', () => {
   it('keeps completed lines as markdown head and fades only the tail', () => {
-    const text = '第一段已完成。\n\n第二行已经稳定输出的内容尾部字符'
+    const stable = '第二行已经稳定输出的内容，这一段完全不再有动画。尾部'
+    const text = `第一段已完成。\n\n${stable}正在渐入的尾部字符`
     const cursor = text.length
     const split = splitForRender(text, cursor)
     expect(split.head).toBe('第一段已完成。\n\n')
@@ -38,7 +39,7 @@ describe('splitForRender', () => {
     // 淡入窗口只有尾部 FADE_CHARS 个字符
     expect(split.tailFade.length).toBe(FADE_CHARS)
     expect(split.tailStatic + split.tailFade).toBe(
-      text.slice(text.lastIndexOf('\n') + 1)
+      stable + '正在渐入的尾部字符'
     )
   })
 

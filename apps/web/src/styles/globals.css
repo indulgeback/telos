@@ -405,17 +405,22 @@
   }
 }
 
-/* 流式逐字淡入：队列释放的新字符 250ms 透明→可见，多个字符并发形成柔和尾部 */
+/* 流式逐字淡入：队列释放的新字符 600ms 透明→可见，24 字窗口形成柔和尾部。
+   曲线前重后轻（40% 处已达 0.75），积压加速时字符提前离开窗口也不易察觉跳变。 */
 .stream-char {
-  animation: text-reveal 250ms ease-out both;
+  animation: text-reveal 600ms ease-out both;
 }
 
 @keyframes text-reveal {
-  from {
+  0% {
     opacity: 0;
   }
 
-  to {
+  40% {
+    opacity: 0.75;
+  }
+
+  100% {
     opacity: 1;
   }
 }

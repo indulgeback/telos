@@ -79,7 +79,6 @@ export function StreamRevealText({
         <MarkdownContent
           content={text.slice(0, Math.min(cursor, text.length))}
         />
-        {active && <StreamCaret />}
       </div>
     )
   }
@@ -94,18 +93,7 @@ export function StreamRevealText({
             {char}
           </span>
         ))}
-        {active && <StreamCaret />}
       </span>
     </div>
-  )
-}
-
-function StreamCaret() {
-  return (
-    <span
-      data-stream-caret='beautiful-ui'
-      className='chat-stream-caret ml-0.5'
-      aria-hidden='true'
-    />
   )
 }
