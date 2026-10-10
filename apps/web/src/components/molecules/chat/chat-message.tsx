@@ -19,6 +19,7 @@ import { ThinkingTrace } from './thinking-trace'
 import { AgentLoadingState } from './agent-loading-state'
 import { ActivityStatusLine } from './activity-status-line'
 import { PlanProgressStrip } from './plan-progress'
+import { StreamRevealText } from './stream-reveal-text'
 import { deriveAssistantActivity } from '@/app/[locale]/(dashboard)/chat/chat-activity'
 import { StreamingText } from './streaming-text'
 import { PlanPanel, type PlanStepStatus } from './PlanPanel'
@@ -427,21 +428,32 @@ function ChatMessageInner({
                     return null
                   }
 
+                  const isStreamingPart =
+                    isLoading && index === groupedContentParts.length - 1
+
                   return (
                     <div
                       key={`text-${id}-${index}`}
                       className='max-w-none text-[14px] leading-7'
                     >
-                      <StreamingText
-                        className={cn(
-                          'chat-assistant-markdown prose prose-sm dark:prose-invert'
-                        )}
-                        active={
-                          isLoading && index === groupedContentParts.length - 1
-                        }
-                      >
-                        <MarkdownContent content={part.text} />
-                      </StreamingText>
+                      {isStreamingPart ? (
+                        <StreamRevealText
+                          text={part.text}
+                          active={isStreamingPart}
+                          className={cn(
+                            'chat-assistant-markdown prose prose-sm dark:prose-invert'
+                          )}
+                        />
+                      ) : (
+                        <StreamingText
+                          className={cn(
+                            'chat-assistant-markdown prose prose-sm dark:prose-invert'
+                          )}
+                          active={false}
+                        >
+                          <MarkdownContent content={part.text} />
+                        </StreamingText>
+                      )}
                       {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
                       <SkillSaver text={part.text} />
                     </div>

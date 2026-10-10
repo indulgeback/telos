@@ -405,6 +405,27 @@
   }
 }
 
+/* 流式逐字淡入：队列释放的新字符 250ms 透明→可见，多个字符并发形成柔和尾部 */
+.stream-char {
+  animation: text-reveal 250ms ease-out both;
+}
+
+@keyframes text-reveal {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stream-char {
+    animation: none;
+  }
+}
+
 @keyframes agent-loading-sweep {
   from {
     transform: translateX(-110%);
