@@ -433,7 +433,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
