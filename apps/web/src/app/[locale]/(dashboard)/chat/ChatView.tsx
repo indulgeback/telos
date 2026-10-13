@@ -3,7 +3,7 @@ import { useRealtimeVoice } from './use-realtime-voice'
 
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import {
   AgentThreadSidebar,
   ChatContainer,
@@ -281,16 +281,19 @@ export function ChatView() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pendingPromptRef = useRef<string | null>(null)
+  const pathname = usePathname()
 
   useEffect(() => {
     const prompt = searchParams.get('prompt')
     if (prompt) {
       pendingPromptRef.current = prompt
-      // 消费后从 URL 移除 prompt,避免刷新/分享链接时重复发送
+      // 消费后从 URL 移除 prompt,避免刷新/分享链接时重复发送。
+      // 用当前 pathname 拼接,保留 locale 前缀(直接写 /chat 会经 middleware
+      // 补前缀导致整页重挂载,pendingPromptRef 随之丢失)。
       const next = new URLSearchParams(searchParams.toString())
       next.delete('prompt')
       const rest = next.toString()
-      router.replace(rest ? `/chat?${rest}` : '/chat')
+      router.replace(rest ? `${pathname}?${rest}` : pathname)
     }
     // 仅在挂载时读取一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -410,7 +413,9 @@ export function ChatView() {
   } = chatThreads
 
   useEffect(() => {
-    void loadThreads({ selectLatest: true })
+    // 从落地页带话进入时不开最近会话:让 pendingPrompt 走新会话,
+    // 避免自动选中的旧会话消息与自动发送互相竞争
+    void loadThreads({ selectLatest: !pendingPromptRef.current })
   }, [loadThreads])
 
   const updateAssistantParts = useCallback(
@@ -1808,14 +1813,16 @@ export function ChatView() {
     await handleSend(option, { allowWhileLoading: true })
   }
 
-  // 消费 pendingPrompt:当 selectedAgent 就绪后,自动发送预填消息(仅一次)。
-  // handleSend 在 isLoading 或无 agent 时会提前 return,所以必须等 agent 就绪。
+  // 消费 pendingPrompt:当 selectedAgent 就绪且会话列表加载稳定后,
+  // 自动发送预填消息(仅一次)。handleSend 在 isLoading 或无 agent 时会提前
+  // return,所以必须等 agent 就绪;threadsLoading 未定时消费会与
+  // 会话列表加载竞争,导致消息被 restore 覆盖或根本发不出去。
   useEffect(() => {
     if (
       pendingPromptRef.current &&
       selectedAgent?.id &&
       !isLoading &&
-      messages.length === 0
+      !threadsLoading
     ) {
       const msg = pendingPromptRef.current
       pendingPromptRef.current = null
@@ -1823,7 +1830,7 @@ export function ChatView() {
     }
     // handleSend 故意不进依赖:它是每次渲染重建的回调,加入会导致循环触发。
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAgent?.id, isLoading, messages.length])
+  }, [selectedAgent?.id, isLoading, threadsLoading])
 
   const handlePickImages = async (files: FileList | File[] | null) => {
     if (!files) return

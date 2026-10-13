@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { TelosLogo } from '@/components/atoms/telos-logo'
@@ -24,7 +24,7 @@ const chapters = ['gather', 'think', 'make'] as const
 export function LandingPage() {
   const t = useTranslations('LandingStudio')
   const router = useRouter()
-  const { data: session } = authClient.useSession()
+  const { data: session, isPending: sessionPending } = authClient.useSession()
   const [mode, setMode] = useState<(typeof modes)[number]>('all')
   const [prompt, setPrompt] = useState('')
   const [focused, setFocused] = useState(false)
@@ -32,15 +32,29 @@ export function LandingPage() {
   const [motionPaused, setMotionPaused] = useState(false)
   useLandingMotion(root, motionPaused)
   const input = useRef<HTMLTextAreaElement>(null)
+  const sessionRef = useRef(session)
+  const sessionPendingRef = useRef(sessionPending)
+
+  // ref 在 effect 中同步,供 submit 的等待循环读取最新会话状态
+  useEffect(() => {
+    sessionRef.current = session
+    sessionPendingRef.current = sessionPending
+  }, [session, sessionPending])
+
   const visibleIdeas =
     mode === 'all'
       ? ideas.slice(0, 3)
       : ideas.filter(idea => idea.mode === mode)
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (prompt.trim())
-      router.push(getLandingStartHref(Boolean(session), prompt))
+    if (!prompt.trim()) return
+    // session 未就绪时短暂等待(上限 2s),避免把已登录用户误判为未登录弹去登录页
+    const deadline = Date.now() + 2_000
+    while (sessionPendingRef.current && Date.now() < deadline) {
+      await new Promise(resolve => window.setTimeout(resolve, 50))
+    }
+    router.push(getLandingStartHref(Boolean(sessionRef.current), prompt))
   }
 
   function beginIdea(text: string) {
