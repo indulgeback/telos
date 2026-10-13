@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import '@/styles/globals.css'
 import NextTopLoader from 'nextjs-toploader'
-import { headers } from 'next/headers'
-import appConfig from '@/appConfig'
+import { getLocale } from 'next-intl/server'
 import { ThemeProvider } from '@/components/providers'
 
 export const metadata: Metadata = {
@@ -16,14 +15,8 @@ interface Iprops {
 }
 
 export default async function RootLayout({ children }: Iprops) {
-  const headersList = await headers()
-  const path = headersList.get('x-invoke-path') || '/'
-
-  let lang = path.split('/')[1]
-
-  if (!lang || !appConfig.locales.includes(lang)) {
-    lang = appConfig.defaultLocale
-  }
+  // x-invoke-path 是已废弃的 Vercel 专有头,本项目无人设置,之前永远落到默认语言
+  const lang = await getLocale()
 
   return (
     <html lang={lang} suppressHydrationWarning>

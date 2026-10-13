@@ -11,6 +11,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	gatewayauth "github.com/indulgeback/telos/apps/api-gateway/internal/auth"
@@ -40,6 +41,7 @@ type ProxyManager struct {
 	routes        []RouteConfig
 	discovery     service.ServiceDiscovery
 	proxies       map[string]*httputil.ReverseProxy
+	proxiesMu     sync.Mutex // proxies map 会被并发请求读写,必须串行化
 	authenticator *gatewayauth.Authenticator
 }
 
@@ -150,6 +152,9 @@ func (pm *ProxyManager) StreamProxy(c echo.Context) error {
 		}
 	}
 	sanitizeIdentityHeaders(req.Header)
+	// 后端若返回 gzip,响应头剥离 Content-Encoding 后客户端将无法解码
+	// (Go transport 不会为手动构造的请求自动解压)。去掉该头让后端返回未压缩内容
+	req.Header.Del("Accept-Encoding")
 	// 更新 Host 头
 	req.Host = ""
 	req.Header.Set("X-Forwarded-Host", c.Request().Host)
@@ -409,6 +414,11 @@ func (pm *ProxyManager) findRoute(path string) *RouteConfig {
 func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.ReverseProxy, error) {
 	key := fmt.Sprintf("%s:%s", target, route.ServiceName)
 
+	// 两个并发请求同时命中未缓存的 target 时,map 的并发读写会触发
+	// fatal error(concurrent map read and map write),进程直接崩溃且无法 recover
+	pm.proxiesMu.Lock()
+	defer pm.proxiesMu.Unlock()
+
 	if proxy, exists := pm.proxies[key]; exists {
 		return proxy, nil
 	}
@@ -448,7 +458,14 @@ func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.R
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
-			// 不设置 ResponseHeaderTimeout，允许流式响应持续进行
+		}
+
+		// 非流式路由用 ResponseHeaderTimeout 兜底:后端 accept TCP 却永不回包时
+		// 不至于永久挂起。流式路由(/api/agent、/api/runs)首字节前可能等待上游
+		// 模型,不设;ResponseHeaderTimeout 只约束到响应头,不限制流的持续时间
+		if route.Path != "/api/agent" && route.Path != "/api/runs" {
+			proxy.Transport.(*http.Transport).ResponseHeaderTimeout =
+				time.Duration(route.Timeout) * time.Second
 		}
 	}
 

@@ -162,23 +162,39 @@ skillsRouter.post('/:id/install', async c => {
     })
   }
 
-  // 克隆到用户命名空间,metadata 记录溯源
+  // 克隆到用户命名空间,metadata 记录溯源。
+  // 双击/并发安装会撞 @@unique([ownerId, name]):捕获 P2002 走幂等分支而不是 500
   const sourceMeta =
     (source.metadata as { category?: string } & Record<string, unknown>) ?? {}
-  const installed = await prisma.skill.create({
-    data: {
-      name: source.name,
-      description: source.description,
-      content: source.content,
-      enabled: true,
-      metadata: {
-        ...sourceMeta,
-        category: sourceMeta.category,
-        installedFrom: source.id,
-      } as any,
-      ownerId: userId,
-    },
-  })
+  let installed
+  try {
+    installed = await prisma.skill.create({
+      data: {
+        name: source.name,
+        description: source.description,
+        content: source.content,
+        enabled: true,
+        metadata: {
+          ...sourceMeta,
+          category: sourceMeta.category,
+          installedFrom: source.id,
+        } as any,
+        ownerId: userId,
+      },
+    })
+  } catch (error) {
+    const code = (error as { code?: unknown })?.code
+    if (code !== 'P2002') throw error
+    const raceExisting = await prisma.skill.findFirst({
+      where: { ownerId: userId, name: source.name },
+    })
+    if (!raceExisting) throw error
+    return ok(c, {
+      installed: false,
+      skill: toSnakeCase(raceExisting),
+      message: 'already_installed',
+    })
+  }
   return created(c, {
     installed: true,
     skill: toSnakeCase(installed),

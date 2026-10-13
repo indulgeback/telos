@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import {
   Button,
   Tabs,
@@ -25,7 +25,9 @@ export default function SkillsPage() {
 
   // 创建技能 → 跳转聊天,用 skill-creator 通过 AI 生成
   const handleCreateWithAI = () => {
-    router.push('/chat?prompt=$skill-creator 我想创建一个新的技能')
+    router.push(
+      `/chat?prompt=${encodeURIComponent(`$skill-creator ${t('createWithAiPrompt')}`)}`
+    )
   }
 
   const loadSkills = async (silent = false) => {

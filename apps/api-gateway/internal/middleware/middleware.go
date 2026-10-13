@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -213,17 +212,18 @@ func (rl *rateLimiter) cleanup() {
 	}
 }
 
-// getClientIP 获取客户端真实 IP
+// getClientIP 获取客户端真实 IP(用于限流)
 func getClientIP(r *http.Request) string {
-	// 检查代理头
-	if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
-		ips := strings.Split(ip, ",")
-		return strings.TrimSpace(ips[0])
-	}
+	// X-Real-IP 由前置反代(SafeLine)覆写,客户端伪造无效,可信度最高。
+	// 不能用 X-Forwarded-For:客户端可自附加该头并每次轮换,直接绕过限流。
 	if ip := r.Header.Get("X-Real-IP"); ip != "" {
 		return ip
 	}
 
-	// 返回远程地址
-	return r.RemoteAddr
+	// 返回远程地址(去掉端口)
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return host
 }

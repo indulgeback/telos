@@ -261,7 +261,9 @@ export function LandingPage() {
           <div className={s.meetLinks}>
             <Link
               className={s.primary}
-              href={getLandingStartHref(Boolean(session))}
+              href={
+                sessionPending ? '/chat' : getLandingStartHref(Boolean(session))
+              }
             >
               {t('start')} <span aria-hidden='true'>↗</span>
             </Link>

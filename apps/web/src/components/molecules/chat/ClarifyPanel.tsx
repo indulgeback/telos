@@ -1,6 +1,7 @@
 'use client'
 
 import ApprovalCard from '@/components/primitives/ApprovalCard'
+import { CLARIFY_SKIP_SENTINEL } from '@/app/[locale]/(dashboard)/chat/chat-types'
 
 export interface ClarifyPanelProps {
   messageId: string
@@ -49,8 +50,8 @@ export function ClarifyPanel({
           if (!answer) return
           await onSelect?.(answer)
         }}
-        onSkipped={() => onSelect?.('Skip this question')}
-        onDismissed={() => onSelect?.('Skip this question')}
+        onSkipped={() => onSelect?.(CLARIFY_SKIP_SENTINEL)}
+        onDismissed={() => onSelect?.(CLARIFY_SKIP_SENTINEL)}
       />
     </div>
   )

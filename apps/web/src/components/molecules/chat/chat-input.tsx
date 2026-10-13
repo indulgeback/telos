@@ -50,6 +50,8 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
   ) => {
     const [isFocused, setIsFocused] = useState(false)
     const [isComposing, setIsComposing] = useState(false)
+    // setTimeout 闭包里读到的 state 永远是过期值,用 ref 让 compositionEnd 的自动提交真正生效
+    const isComposingRef = useRef(false)
     const [isStopCooldown, setIsStopCooldown] = useState(false)
     const [isImageDragActive, setIsImageDragActive] = useState(false)
 
@@ -65,18 +67,20 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     }
 
     const handleCompositionStart = () => {
+      isComposingRef.current = true
       setIsComposing(true)
     }
 
     const handleCompositionEnd = (
       e: React.CompositionEvent<HTMLTextAreaElement>
     ) => {
+      isComposingRef.current = false
       setIsComposing(false)
       // 输入法结束后，如果用户按了回车确认选词，手动触发提交
       if (e.data && canSend && !sendDisabled) {
-        // 使用 nextTick 确保 isComposing 状态已更新
+        // 使用 nextTick 确保浏览器完全退出组合态
         setTimeout(() => {
-          if (!isComposing) {
+          if (!isComposingRef.current) {
             onSend()
           }
         }, 0)

@@ -30,6 +30,7 @@
     "voiceInput": "음성 입력",
     "voiceError": "실시간 음성 서비스 오류: {error}",
     "chatError": "채팅 서비스 오류: {error}",
+    "clarifySkipAnswer": "(사용자가 이 질문을 건너뛰었습니다)",
     "reconnecting": "다시 연결하는 중...",
     "imageUploadLabel": "이미지 추가",
     "imageUploadDisabledLabel": "현재 모델은 이미지를 볼 수 없습니다. 비전 모델로 전환하세요.",
@@ -273,7 +274,9 @@
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "로그인 링크 보내기",
       "magicLinkSent": "로그인 링크가 귀하의 이메일로 발송되었습니다. 확인해 주세요!",
-      "orSocial": "또는 소셜 계정으로 로그인"
+      "orSocial": "또는 소셜 계정으로 로그인",
+      "tryAgain": "다시 시도",
+      "backToHome": "홈으로"
     },
     "error": {
       "title": "인증 오류",
@@ -393,7 +396,9 @@
     "promptStatus": {
       "generating": "AI 프롬프트가 백그라운드에서 생성되고 있습니다...",
       "failed": "프롬프트 생성에 실패하여 설명이 백업으로 사용되었습니다."
-    }
+    },
+    "readOnly": "읽기 전용",
+    "pageTitle": "에이전트"
   },
   "Skill": {
     "title": "기술",
@@ -417,13 +422,15 @@
       "title": "카테고리별로 검색",
       "count": "{count}개의 기술"
     },
+    "createWithAiPrompt": "$skill-creator 새 스킬을 만들고 싶어요",
     "category": {
       "writing": "쓰기",
       "coding": "코딩",
       "productivity": "생산성",
       "office": "사무실",
       "translation": "번역",
-      "data": "사무실"
+      "data": "사무실",
+      "all": "전체"
     },
     "totalSkills": "{count}개의 기술",
     "selected": "{count}개 선택됨",

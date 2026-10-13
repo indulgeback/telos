@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from '../services/db.js'
+import { logger } from '../config/logger.js'
 import { fail, ok } from '../http/response.js'
 import { toSnakeCase } from '../utils/serializer.js'
 import { getCurrentUserId } from '../middleware/gatewayIdentity.js'
@@ -252,7 +253,13 @@ runsRouter.get('/:id/stream', async c => {
             pending.length === 0 &&
             (controller.desiredSize ?? 1) > 0
           ) {
-            controller.enqueue(encoder.encode(': ping\n\n'))
+            try {
+              controller.enqueue(encoder.encode(': ping\n\n'))
+            } catch {
+              // 流已被 errored/closed:必须停掉心跳,否则 enqueue 的异常会成为
+              // 未捕获异常,经 index.ts 的 shutdown 处理拖垮整个 API 进程
+              releaseResources()
+            }
           }
         }, 15000)
 
@@ -260,11 +267,24 @@ runsRouter.get('/:id/stream', async c => {
 
         // 顺序关键：先回放历史、取快照最后一条 ID 作为显式 cursor 再订阅——
         // XREAD 对显式 ID 返回严格大于它的全部条目，无丢事件/重复事件窗口
-        const history = await readRunEvents(
-          runId,
-          lastSentSequence || undefined,
-          SSE_REPLAY_BATCH_SIZE
-        )
+        let history: Awaited<ReturnType<typeof readRunEvents>> = []
+        try {
+          history = await readRunEvents(
+            runId,
+            lastSentSequence || undefined,
+            SSE_REPLAY_BATCH_SIZE
+          )
+        } catch (error) {
+          // Redis 抖动时干净关闭流,客户端按自身节奏重连;
+          // start() 内的异步异常会把流打成 errored,心跳随即可抛未捕获异常
+          logger.error({
+            msg: 'Failed to replay run events for SSE',
+            runId,
+            error,
+          })
+          close()
+          return
+        }
         for (const event of history) {
           sendPayload(event.payload, event.sequence)
           if (closingAfterDrain) break
@@ -284,10 +304,22 @@ runsRouter.get('/:id/stream', async c => {
           )
         )
 
-        const latest = await prisma.agentRun.findUnique({
-          where: { id: runId },
-          select: { id: true, status: true, finalOutput: true, error: true },
-        })
+        let latest: {
+          id: string
+          status: string
+          finalOutput: string | null
+          error: string | null
+        } | null = null
+        try {
+          latest = await prisma.agentRun.findUnique({
+            where: { id: runId },
+            select: { id: true, status: true, finalOutput: true, error: true },
+          })
+        } catch (error) {
+          logger.error({ msg: 'Failed to load run state for SSE', runId, error })
+          close()
+          return
+        }
         const terminalPayload = latest ? buildTerminalUiPayload(latest) : null
         if (terminalPayload) {
           // DB 是事实源。若进程在 DB commit 后、Redis 投影前崩溃，这里用

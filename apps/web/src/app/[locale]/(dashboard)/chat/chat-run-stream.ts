@@ -83,6 +83,8 @@ export async function consumeAgentRunStream(
         buffer = frames.pop() ?? ''
         frames.forEach(frame => frame.split(/\n/).forEach(consumeLine))
       }
+      // flush 多字节字符被 chunk 边界切开时的剩余字节,否则响应尾部的 UTF-8 字符会被静默丢弃
+      buffer += decoder.decode()
       if (!end && buffer.trim()) buffer.split(/\n/).forEach(consumeLine)
       if (end) return { end, cursor }
 

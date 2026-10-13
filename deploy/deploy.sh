@@ -396,7 +396,11 @@ if [[ "$BACKUP_DATABASE" == "true" ]]; then
   backup_file="$backup_dir/$(date -u +%Y%m%dT%H%M%SZ)-${IMAGE_TAG}.dump"
   mkdir -p "$backup_dir"
   chmod 700 "$backup_dir"
-  log "💾 创建迁移前数据库备份..."
+  # 迁移前先释放空间:pg_dump 备份在满盘上会静默失败,导致部署取消
+sudo sh -c 'truncate -s 0 /var/lib/docker/containers/*/*-json.log' 2>/dev/null || true
+docker image prune -f >/dev/null 2>&1 || true
+
+log "💾 创建迁移前数据库备份..."
   if ! "${DC[@]}" -f "$COMPOSE_FILE" exec -T postgres \
     pg_dump -U "${POSTGRES_USER:-telos}" -d "${POSTGRES_DB:-telos}" -Fc \
     > "$backup_file"; then
@@ -631,6 +635,16 @@ if [[ "$CLEAN_IMAGES" == "true" ]]; then
 fi
 
 # ---------------------------- 成功输出 ---------------------------------------
+# 轮转数据库备份:只保留最近 10 份,40G 盘经不起逐日累积
+BACKUP_KEEP=${BACKUP_KEEP:-10}
+if [ -d "$DEPLOY_DIR/deploy/backups/database" ]; then
+  REMOVED=$(ls -1t "$DEPLOY_DIR/deploy/backups/database"/*.dump 2>/dev/null | tail -n +$((BACKUP_KEEP + 1)) | wc -l)
+  ls -1t "$DEPLOY_DIR/deploy/backups/database"/*.dump 2>/dev/null | tail -n +$((BACKUP_KEEP + 1)) | xargs rm -f
+  if [ "${REMOVED:-0}" -gt 0 ]; then
+    log "🗄️  已轮转 ${REMOVED} 份过期数据库备份(保留最近 ${BACKUP_KEEP} 份)"
+  fi
+fi
+
 ok "🎉 部署成功!所有服务健康。"
 echo ""
 log "📊 当前运行服务:"

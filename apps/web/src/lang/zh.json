@@ -30,6 +30,7 @@
     "voiceInput": "语音输入",
     "voiceError": "实时语音服务错误：{error}",
     "chatError": "聊天服务错误：{error}",
+    "clarifySkipAnswer": "（用户跳过了这个问题）",
     "reconnecting": "重新连接中...",
     "imageUploadLabel": "上传图片",
     "imageUploadDisabledLabel": "当前模型不支持查看图片，请切换到视觉模型。",
@@ -273,7 +274,9 @@
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "发送登录链接",
       "magicLinkSent": "登录链接已发送至您的邮箱，请注意查收！",
-      "orSocial": "或使用社交账户登录"
+      "orSocial": "或使用社交账户登录",
+      "tryAgain": "重试",
+      "backToHome": "返回首页"
     },
     "error": {
       "title": "认证错误",
@@ -393,7 +396,9 @@
     "promptStatus": {
       "generating": "AI 提示正在后台生成...",
       "failed": "提示生成失败，使用描述作为备用。"
-    }
+    },
+    "readOnly": "只读",
+    "pageTitle": "智能体"
   },
   "Skill": {
     "title": "技能",
@@ -417,13 +422,15 @@
       "title": "按分类浏览",
       "count": "{count} 个技能"
     },
+    "createWithAiPrompt": "$skill-creator 我想创建一个新的技能",
     "category": {
       "writing": "写作",
       "coding": "编程",
       "productivity": "效率",
       "office": "办公",
       "translation": "翻译",
-      "data": "办公室"
+      "data": "办公室",
+      "all": "全部"
     },
     "totalSkills": "{count} 技能",
     "selected": "已选择 {count} 个",

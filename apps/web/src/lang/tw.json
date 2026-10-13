@@ -30,6 +30,7 @@
     "voiceInput": "語音輸入",
     "voiceError": "即時語音服務錯誤：{error}",
     "chatError": "聊天服務錯誤：{error}",
+    "clarifySkipAnswer": "（使用者跳過了這個問題）",
     "reconnecting": "重新連線中…",
     "imageUploadLabel": "上傳圖片",
     "imageUploadDisabledLabel": "目前模型不支援查看圖片，請切換到視覺模型。",
@@ -273,7 +274,9 @@
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "發送登錄連結",
       "magicLinkSent": "登錄連結已發送至您的郵箱，請注意查收！",
-      "orSocial": "或使用社交帳號登入"
+      "orSocial": "或使用社交帳號登入",
+      "tryAgain": "重試",
+      "backToHome": "返回首頁"
     },
     "error": {
       "title": "認證錯誤",
@@ -393,7 +396,9 @@
     "promptStatus": {
       "generating": "AI 提示正在背景中生成…",
       "failed": "提示生成失敗，使用描述作為備用。"
-    }
+    },
+    "readOnly": "唯讀",
+    "pageTitle": "智能體"
   },
   "Skill": {
     "title": "技能",
@@ -417,13 +422,15 @@
       "title": "按類別瀏覽",
       "count": "{count} 技能"
     },
+    "createWithAiPrompt": "$skill-creator 我想創建一個新的技能",
     "category": {
       "writing": "寫作",
       "coding": "編程",
       "productivity": "生產力",
       "office": "辦公室",
       "translation": "翻譯",
-      "data": "辦公室"
+      "data": "辦公室",
+      "all": "全部"
     },
     "totalSkills": "{count} 技能",
     "selected": "{count} 已選",

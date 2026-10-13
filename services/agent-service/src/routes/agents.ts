@@ -263,6 +263,10 @@ agentsRouter.post('/', async c => {
   if (!enabledModel) return fail(c, 400, 'Requested model is not enabled')
   const modelKey = enabledModel.model
 
+  // Agent.name 全局唯一:预检把冲突变成 409,而不是 Prisma P2002 的 500
+  const nameConflict = await prisma.agent.findUnique({ where: { name } })
+  if (nameConflict) return fail(c, 409, 'Agent name already exists')
+
   const agent = await prisma.agent.create({
     data: {
       name,
@@ -598,7 +602,16 @@ agentsRouter.put('/:id/subagents', async c => {
 
   const relations = Array.isArray(body.relations) ? body.relations : []
 
-  await prisma.agentRelation.deleteMany({ where: { parentId } })
+  // 校验全部通过后再在事务内整体替换,失败不会留下半套子代理配置
+  const resolved: Array<{
+    subagentId: string
+    mode: 'handoff' | 'as_tool'
+    name: string | null
+    description: string
+    sortOrder: number
+    enabled: boolean
+    metadata: Record<string, unknown>
+  }> = []
   for (let index = 0; index < relations.length; index += 1) {
     const relation = relations[index] as Record<string, unknown>
     const subagentId =
@@ -611,22 +624,37 @@ agentsRouter.put('/:id/subagents', async c => {
     const subagent = await findAccessibleAgent(subagentId, userId)
     if (!subagent) continue
 
-    await prisma.agentRelation.create({
-      data: {
-        parentId,
-        subagentId,
-        mode: relation.mode === 'handoff' ? 'handoff' : 'as_tool',
-        name: typeof relation.name === 'string' ? relation.name : null,
-        description:
-          typeof relation.description === 'string'
-            ? relation.description
-            : 'Specialist subagent',
-        sortOrder: index,
-        enabled: relation.enabled !== false,
-        metadata: (relation.metadata ?? {}) as any,
-      },
+    resolved.push({
+      subagentId,
+      mode: relation.mode === 'handoff' ? 'handoff' : 'as_tool',
+      name: typeof relation.name === 'string' ? relation.name : null,
+      description:
+        typeof relation.description === 'string'
+          ? relation.description
+          : 'Specialist subagent',
+      sortOrder: index,
+      enabled: relation.enabled !== false,
+      metadata: (relation.metadata ?? {}) as any,
     })
   }
+
+  await prisma.$transaction(async tx => {
+    await tx.agentRelation.deleteMany({ where: { parentId } })
+    for (const item of resolved) {
+      await tx.agentRelation.create({
+        data: {
+          parentId,
+          subagentId: item.subagentId,
+          mode: item.mode,
+          name: item.name,
+          description: item.description,
+          sortOrder: item.sortOrder,
+          enabled: item.enabled,
+          metadata: item.metadata as any,
+        },
+      })
+    }
+  })
 
   return ok(c, { message: 'subagents configured' })
 })

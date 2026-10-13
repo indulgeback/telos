@@ -68,7 +68,9 @@ export function StoreSkillCard({
           </div>
           {categoryId && (
             <Badge variant='secondary' className='shrink-0 capitalize'>
-              {t(`category.${categoryId}`, { defaultMessage: categoryId })}
+              {t.has(`category.${categoryId}`)
+                ? t(`category.${categoryId}`)
+                : categoryId}
             </Badge>
           )}
         </div>

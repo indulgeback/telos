@@ -91,12 +91,14 @@ export function EditAgentModal({
     initialVoice.characterDetails || ''
   )
 
-  // 监听外部 agent 属性的变化，尤其是在异步生成提示词完成时同步更新
+  // 监听外部 agent 属性的变化，尤其是在异步生成提示词完成时同步更新。
+  // 用户正在编辑时不能覆盖未保存的输入(3s 轮询会带着后台生成的文案回来)
+  const [instructionsDirty, setInstructionsDirty] = useState(false)
   useEffect(() => {
-    if (agent.instructions) {
+    if (agent.instructions && !instructionsDirty) {
       setInstructions(agent.instructions)
     }
-  }, [agent.instructions])
+  }, [agent.instructions, instructionsDirty])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -236,7 +238,10 @@ export function EditAgentModal({
                 <Textarea
                   id='edit-instructions'
                   value={instructions}
-                  onChange={e => setInstructions(e.target.value)}
+                  onChange={e => {
+                    setInstructionsDirty(true)
+                    setInstructions(e.target.value)
+                  }}
                   placeholder={
                     agent.instruction_status === 'generating'
                       ? t('promptStatus.generating')

@@ -104,13 +104,14 @@ export const config = {
   volcRealtimeAccessKey: process.env.VOLC_REALTIME_ACCESS_KEY || '',
   volcRealtimeResourceId:
     process.env.VOLC_REALTIME_RESOURCE_ID || 'volc.speech.dialog',
-  volcRealtimeAppKey: process.env.VOLC_REALTIME_APP_KEY || 'PlgvMymc7f3tQnJ6',
+  // 凭证类配置不给源码默认值:曾硬编码过一个看似可用的 AppKey,既无法轮换也构成泄露
+  volcRealtimeAppKey: process.env.VOLC_REALTIME_APP_KEY || '',
   volcRealtimeModel: process.env.VOLC_REALTIME_MODEL || '1.2.1.1',
   volcRealtimeSpeaker: process.env.VOLC_REALTIME_SPEAKER || '',
   volcRealtimeDemo: process.env.VOLC_REALTIME_DEMO === 'true',
 
   // 服务
-  port: parseInt(process.env.PORT || '8895', 10),
+  port: boundedInteger(process.env.PORT, 8895, 1, 65535),
   serviceName: process.env.SERVICE_NAME || 'agent-service',
   serviceAddress: process.env.SERVICE_ADDRESS || '', // 服务注册地址
   // Local development runs the registry on the host. Container deployments

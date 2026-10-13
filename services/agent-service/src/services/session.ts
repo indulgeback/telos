@@ -4,6 +4,7 @@ import { safeJsonStringify } from '../utils/json.js'
 import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
 import { resolveMessageModelKey } from './message-model.js'
 import { normalizeUserImageParts } from './image-input.js'
+import { createMessageWithSequence } from './message-writer.js'
 import {
   buildPersistedGeminiSignatureProviderData,
   GEMINI_THOUGHT_SIGNATURE_METADATA_KEY,
@@ -268,21 +269,13 @@ export class AgentSessionService {
     metadata?: unknown
   }) {
     return prisma.$transaction(async tx => {
-      const last = await tx.agentMessage.findFirst({
-        where: { threadId: options.threadId },
-        orderBy: { sequence: 'desc' },
-        select: { sequence: true },
-      })
-      const message = await tx.agentMessage.create({
-        data: {
-          threadId: options.threadId,
-          runId: options.runId ?? null,
-          role: options.role,
-          content: toContent(options.content),
-          parts: (options.parts ?? []) as any,
-          metadata: (options.metadata ?? {}) as any,
-          sequence: (last?.sequence ?? 0) + 1,
-        },
+      const message = await createMessageWithSequence(tx, {
+        threadId: options.threadId,
+        runId: options.runId ?? null,
+        role: options.role,
+        content: toContent(options.content),
+        parts: (options.parts ?? []) as any,
+        metadata: (options.metadata ?? {}) as any,
       })
       await tx.agentThread.update({
         where: { id: options.threadId },

@@ -24,6 +24,12 @@
 
 name: telos-prod
 
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: '50m'
+    max-file: '3'
+
 services:
   # ---------------------------------------------------------------------------
   # Consul - 真正的服务注册中心 (★ 必需,registry 依赖它)
@@ -38,6 +44,7 @@ services:
       - '${CONSUL_UI_PORT:-}:8500'
     volumes:
       - consul_data:/consul/data
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -59,9 +66,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-telos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须在 .env 中设置}
     ports:
-      - '${EXPOSE_DB_PORT:-}:5432'
+      # 默认只绑回环;确实要对外暴露时在 .env 设 EXPOSE_DB_PORT=公网IP
+      - '${EXPOSE_DB_PORT:-127.0.0.1}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -81,6 +90,7 @@ services:
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -106,6 +116,7 @@ services:
     depends_on:
       consul:
         condition: service_healthy
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -147,6 +158,7 @@ services:
     depends_on:
       registry:
         condition: service_healthy
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -271,6 +283,7 @@ services:
       - ./workspaces:/var/lib/telos/workspaces
       # Google Cloud ADC 凭证（只读挂载，Vertex AI 认证用）
       - /opt/telos/secrets/gcp-adc.json:/secrets/gcp-adc.json:ro
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -298,6 +311,7 @@ services:
       - /opt/telos/secrets/gcp-adc.json:/secrets/gcp-adc.json:ro
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+    logging: *default-logging
     networks:
       - telos-network
     command: ['node', 'services/agent-service/dist/worker.js']
@@ -378,6 +392,7 @@ services:
     extra_hosts:
       # 让容器能经 host.docker.internal 访问宿主机上的代理端口
       - 'host.docker.internal:host-gateway'
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -418,6 +433,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:
@@ -455,6 +471,7 @@ services:
     depends_on:
       admin-service:
         condition: service_healthy
+    logging: *default-logging
     networks:
       - telos-network
     healthcheck:

@@ -11,6 +11,10 @@ import (
 	"github.com/indulgeback/telos/pkg/tlog"
 )
 
+// registryClient 带超时的共享 HTTP 客户端:无超时的 http.Get 在 registry 挂起时
+// 会在持有写锁的情况下永久阻塞,冻结整个网关的请求路径
+var registryClient = &http.Client{Timeout: 5 * time.Second}
+
 // ServiceDiscovery 服务发现接口
 // 只定义服务注册、注销、实例列表和发现方法
 // Register/Unregister 生产环境可留空
@@ -65,7 +69,7 @@ func (r *RegistryServiceDiscovery) startAutoRefresh() {
 
 func (r *RegistryServiceDiscovery) FetchAllServiceNames() []string {
 	url := fmt.Sprintf("%s/api/services", r.RegistryAddr)
-	resp, err := http.Get(url)
+	resp, err := registryClient.Get(url)
 	if err != nil {
 		tlog.Error("获取服务列表失败", "error", err, "url", url)
 		return nil
@@ -87,15 +91,21 @@ func (r *RegistryServiceDiscovery) refreshAllServices() {
 	if len(serviceNames) == 0 {
 		serviceNames = []string{"agent-service"}
 	}
-	r.cacheLock.Lock()
-	defer r.cacheLock.Unlock()
-
+	// 在锁外完成全部网络 IO,拿到完整快照后再短暂持锁替换缓存,
+	// 避免一次 registry 挂起把写锁攥住导致全量请求阻塞
+	fresh := make(map[string][]string, len(serviceNames))
 	activeServices := make(map[string]bool)
 	for _, name := range serviceNames {
 		activeServices[name] = true
 		instances := r.FetchInstances(name)
-		r.cache[name] = instances
+		fresh[name] = instances
 		tlog.Info("服务发现刷新", "service", name, "instances", instances, "count", len(instances))
+	}
+
+	r.cacheLock.Lock()
+	defer r.cacheLock.Unlock()
+	for name, instances := range fresh {
+		r.cache[name] = instances
 	}
 
 	for k := range r.cache {
@@ -115,7 +125,7 @@ func (r *RegistryServiceDiscovery) InvalidateCache(serviceName string) {
 
 func (r *RegistryServiceDiscovery) FetchInstances(serviceName string) []string {
 	url := fmt.Sprintf("%s/api/service?name=%s", r.RegistryAddr, serviceName)
-	resp, err := http.Get(url)
+	resp, err := registryClient.Get(url)
 	if err != nil {
 		return nil
 	}

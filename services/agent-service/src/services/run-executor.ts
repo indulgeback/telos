@@ -1,5 +1,6 @@
 import { agentSessionService } from './session.js'
 import { agentRuntimeService } from './runtime.js'
+import { logger } from '../config/logger.js'
 import { PlanStore } from './plan-store.js'
 import type { StructuredPlan } from './plan-tools.js'
 import { loadPlanExecution, persistPlanExecution } from './plan-state.js'
@@ -646,14 +647,23 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
           totalTokens: Number(rawUsage.totalTokens || 0),
         }
       : undefined
-    const usageCostUsd = usage
-      ? calculateUsageCost({
+    let usageCostUsd: number | null = null
+    if (usage) {
+      try {
+        usageCostUsd = calculateUsageCost({
           modelKey,
           inputTokens: usage.inputTokens,
           outputTokens: usage.outputTokens,
           pricing: parseModelPricing(process.env.AGENT_MODEL_PRICING_JSON),
         })
-      : null
+      } catch (pricingError) {
+        // 定价配置错误只影响成本记账,绝不能把已经成功完成的 run 打成 failed
+        logger.warn({
+          msg: 'Failed to parse AGENT_MODEL_PRICING_JSON; recording usage without cost',
+          error: pricingError,
+        })
+      }
+    }
     if (textStarted) {
       emit('response.output_text.done', {
         response_id: options.runId,

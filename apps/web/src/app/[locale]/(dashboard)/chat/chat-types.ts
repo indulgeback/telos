@@ -87,6 +87,9 @@ export type AgentStreamChunk = {
 export type RunStreamEnd = 'terminal' | 'awaiting_approval'
 export type RunStreamResult = { end: RunStreamEnd; cursor: string }
 
+/** 澄清面板「跳过」的哨兵值:发送前由 ChatView 翻译成本地语言文案 */
+export const CLARIFY_SKIP_SENTINEL = '__clarify_skip__'
+
 export type RealtimeConfig = {
   configured: boolean
   readyForRealConnection?: boolean

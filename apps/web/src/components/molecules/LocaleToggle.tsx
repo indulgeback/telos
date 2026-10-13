@@ -18,7 +18,13 @@ function LocaleToggle() {
   const t = useTranslations('Common')
 
   const handleLocaleChange = (newLocale: string) => {
-    router.replace(pathname, { locale: newLocale })
+    router.replace(
+      {
+        pathname,
+        query: Object.fromEntries(new URLSearchParams(window.location.search)),
+      },
+      { locale: newLocale }
+    )
   }
 
   const getLocaleName = (code: string) => {

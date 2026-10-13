@@ -157,18 +157,33 @@ async function processAgentRun(job: Job<AgentRunJobData>) {
         })
       })
   }, 1_000)
+  let heartbeatFailures = 0
   const heartbeatPoller = setInterval(
     () => {
       void heartbeatRunLease(lease, leaseDurationMs())
         .then(active => {
           if (!active) {
             logger.error({ msg: 'Run lease lost; aborting execution', runId })
+            heartbeatFailures = 0
             controller.abort('Run lease lost')
+          } else {
+            heartbeatFailures = 0
           }
         })
         .catch(error => {
-          logger.error({ msg: 'Unable to heartbeat run lease', runId, error })
-          controller.abort('Run lease heartbeat failed')
+          // 单次 DB 抖动不代表租约失效(最长还有 leaseDurationMs 的有效期),
+          // 连续多次失败才中止,避免一次瞬时抖动毁掉已完成大量工作的 run
+          heartbeatFailures += 1
+          logger.error({
+            msg: 'Unable to heartbeat run lease',
+            runId,
+            heartbeatFailures,
+            error,
+          })
+          if (heartbeatFailures >= 3) {
+            heartbeatFailures = 0
+            controller.abort('Run lease heartbeat failed')
+          }
         })
     },
     Math.max(1_000, Math.floor(leaseDurationMs() / 3))

@@ -30,6 +30,7 @@
     "voiceInput": "音声入力",
     "voiceError": "リアルタイム音声サービスエラー: {error}",
     "chatError": "チャットサービスエラー: {error}",
+    "clarifySkipAnswer": "（ユーザーはこの質問をスキップしました）",
     "reconnecting": "再接続中...",
     "imageUploadLabel": "画像をアップロード",
     "imageUploadDisabledLabel": "このモデルは画像を表示できません。ビジョンモデルに切り替えてください。",
@@ -273,7 +274,9 @@
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "ログインリンクを送信する",
       "magicLinkSent": "ログインリンクはあなたのメールに送信されましたので、ご確認ください！",
-      "orSocial": "またはソーシャルアカウントでサインイン"
+      "orSocial": "またはソーシャルアカウントでサインイン",
+      "tryAgain": "再試行",
+      "backToHome": "ホームに戻る"
     },
     "error": {
       "title": "認証エラー",
@@ -393,7 +396,9 @@
     "promptStatus": {
       "generating": "AIプロンプトがバックグラウンドで生成されています...",
       "failed": "プロンプトの生成に失敗しました。説明文がバックアップとして使用されました。"
-    }
+    },
+    "readOnly": "読み取り専用",
+    "pageTitle": "エージェント"
   },
   "Skill": {
     "title": "スキル",
@@ -417,13 +422,15 @@
       "title": "カテゴリ別に閲覧",
       "count": "{count} スキル"
     },
+    "createWithAiPrompt": "$skill-creator 新しいスキルを作りたい",
     "category": {
       "writing": "書くこと",
       "coding": "コーディング",
       "productivity": "生産性",
       "office": "オフィス",
       "translation": "翻訳",
-      "data": "オフィス"
+      "data": "オフィス",
+      "all": "すべて"
     },
     "totalSkills": "{count} スキル",
     "selected": "{count} 件選択",

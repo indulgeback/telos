@@ -3,6 +3,7 @@ import { safeJsonStringify } from '../utils/json.js'
 import { appendRunEvent, appendRunEventForLease } from './run-events.js'
 import { logger } from '../config/index.js'
 import { enqueueOutboxEvent } from './outbox.js'
+import { createMessageWithSequence } from './message-writer.js'
 import { hasActiveRunLease, runLeaseWhere, type RunLease } from './run-lease.js'
 import {
   claimToolCall,
@@ -253,22 +254,13 @@ export class AgentRunPersistence {
       }
 
       if (!message) {
-        const last = await tx.agentMessage.findFirst({
-          where: { threadId: options.threadId },
-          orderBy: { sequence: 'desc' },
-          select: { sequence: true },
-        })
-        message = await tx.agentMessage.create({
-          data: {
-            threadId: options.threadId,
-            runId: this.runId,
-            role: 'assistant',
-            content: options.persistedOutput,
-            parts: (options.parts ?? []) as any,
-            metadata: (options.metadata ?? {}) as any,
-            sequence: (last?.sequence ?? 0) + 1,
-          },
-          select: { id: true },
+        message = await createMessageWithSequence(tx, {
+          threadId: options.threadId,
+          runId: this.runId,
+          role: 'assistant',
+          content: options.persistedOutput,
+          parts: (options.parts ?? []) as any,
+          metadata: (options.metadata ?? {}) as any,
         })
       }
 

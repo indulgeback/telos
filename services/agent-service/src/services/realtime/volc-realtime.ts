@@ -1171,12 +1171,31 @@ export async function handleVolcRealtimeAudioSocket(options: {
       logger.error({ msg: 'Volc realtime upstream socket error', err: error })
       if (!isReconnecting) {
         tryReconnectUpstream()
+        return
+      }
+      // 重连预算耗尽后的异步失败必须终结会话,否则客户端握着死上游变成僵尸会话
+      if (reconnectCount >= 3) {
+        safeSendClientJson(client, 'session_ended', {
+          reason: 'upstream_disconnected_permanently',
+        })
+        closeBoth(1011, 'upstream disconnected permanently')
       }
     })
 
     upstream.on('close', () => {
-      if (!isReconnecting && !stopRequested && client.readyState === WebSocket.OPEN) {
+      if (
+        !isReconnecting &&
+        !stopRequested &&
+        client.readyState === WebSocket.OPEN
+      ) {
         tryReconnectUpstream()
+        return
+      }
+      if (isReconnecting && reconnectCount >= 3 && !stopRequested) {
+        safeSendClientJson(client, 'session_ended', {
+          reason: 'upstream_disconnected_permanently',
+        })
+        closeBoth(1011, 'upstream disconnected permanently')
       }
     })
   }

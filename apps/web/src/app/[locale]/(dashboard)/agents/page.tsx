@@ -60,7 +60,7 @@ export default function AgentsPage() {
     <div className='flex h-full flex-col overflow-hidden'>
       <div className='shrink-0 border-b border-border/60 bg-background/95 px-6 py-5 backdrop-blur supports-[backdrop-filter]:bg-background/85'>
         <div className='container mx-auto flex items-center justify-between'>
-          <h1 className='text-3xl font-bold'>Agents</h1>
+          <h1 className='text-3xl font-bold'>{t('pageTitle')}</h1>
         </div>
       </div>
 

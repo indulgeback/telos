@@ -218,12 +218,14 @@ async function dispatchOutboxEvent(event: ClaimedOutboxEvent) {
     await appendRunUiEvent(event.aggregateId, terminalType, {
       ...payload,
       response_id: event.aggregateId,
-      ...(terminalType === 'response.failed'
-        ? {
+      ...(terminalType === 'response.completed'
+        ? // 直连 Redis 投影丢失、由 outbox 兜底发布的 completed 事件也要带
+          // output_text(executor 直发与 DB 重建两条路径的字段名就是这个)
+          { output_text: payload.finalOutput ?? '' }
+        : {
             error: payload.error || payload.reason || 'Agent run failed',
             run_status: event.eventType.slice('agent_run.'.length),
-          }
-        : {}),
+          }),
     })
     return
   }

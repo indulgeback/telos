@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { useTranslations } from 'next-intl'
+import { useRouter } from '@/i18n/navigation'
 import {
   Avatar,
   AvatarFallback,
@@ -21,6 +22,7 @@ import { CustomLink } from './CustomLink'
 import { SystemSettingsModal } from './SystemSettingsModal'
 
 export function UserAvatar() {
+  const router = useRouter()
   const { data: session, isPending } = authClient.useSession()
   const t = useTranslations('UserMenu')
   const [showSettingsModal, setShowSettingsModal] = useState(false)
@@ -47,10 +49,14 @@ export function UserAvatar() {
     : user.email?.[0]?.toUpperCase() || 'U'
 
   const handleSignOut = async () => {
-    console.log('开始登出流程')
-    await authClient.signOut()
-    console.log('登出流程完成')
-    window.location.href = '/'
+    try {
+      await authClient.signOut()
+      // 用 i18n router 跳转,保留当前语言前缀;失败时提示而不是静默卡住
+      await router.replace('/')
+      router.refresh()
+    } catch (error) {
+      console.error('登出失败', error)
+    }
   }
 
   return (

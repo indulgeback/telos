@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import {
   Card,
   CardContent,
@@ -33,6 +33,7 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
+import { enUS, zhCN, zhTW, ja, ko, de, ru } from 'date-fns/locale'
 import { ConfigureToolsModal } from './ConfigureToolsModal'
 import { EditAgentModal } from './EditAgentModal'
 
@@ -41,8 +42,21 @@ interface AgentCardProps {
   onUpdate: () => void
 }
 
+const DATE_FNS_LOCALES = {
+  en: enUS,
+  zh: zhCN,
+  tw: zhTW,
+  ja,
+  ko,
+  de,
+  ru,
+} as const
+
 export function AgentCard({ agent, onUpdate }: AgentCardProps) {
   const t = useTranslations('Agent')
+  const activeLocale = useLocale()
+  const dateFnsLocale =
+    DATE_FNS_LOCALES[activeLocale as keyof typeof DATE_FNS_LOCALES] ?? enUS
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showToolsModal, setShowToolsModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -190,11 +204,12 @@ export function AgentCard({ agent, onUpdate }: AgentCardProps) {
             <span>
               {t('created')}{' '}
               {formatDistanceToNow(new Date(agent.created_at), {
+                locale: dateFnsLocale,
                 addSuffix: true,
               })}
             </span>
             {agent.owner_name && agent.type !== 'system' && (
-              <span>by {agent.owner_name}</span>
+              <span>· {agent.owner_name}</span>
             )}
           </div>
 

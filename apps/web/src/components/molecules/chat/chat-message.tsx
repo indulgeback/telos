@@ -657,6 +657,13 @@ function areEqual(prev: ChatMessageProps, next: ChatMessageProps): boolean {
   if (prev.imageNextLabel !== next.imageNextLabel) return false
   if (prev.userAvatarUrl !== next.userAvatarUrl) return false
   if (prev.userInitials !== next.userInitials) return false
+  // onRetry/onApprovePlan/onRejectPlan 每次渲染都是新引用,只能比"有无":
+  // 它们的存在性决定重试按钮/审批按钮是否渲染,漏比会让按钮残留且闭包过期
+  if (Boolean(prev.onRetry) !== Boolean(next.onRetry)) return false
+  if (prev.isPendingPlan !== next.isPendingPlan) return false
+  if (prev.isVoiceTranscript !== next.isVoiceTranscript) return false
+  if (Boolean(prev.onApprovePlan) !== Boolean(next.onApprovePlan)) return false
+  if (Boolean(prev.onRejectPlan) !== Boolean(next.onRejectPlan)) return false
 
   const prevCopied = prev.copiedId === prev.id
   const nextCopied = next.copiedId === next.id

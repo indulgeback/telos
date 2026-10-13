@@ -30,6 +30,7 @@
     "voiceInput": "Sprachsteuerung",
     "voiceError": "Echtzeit-Sprachdienstfehler: {error}",
     "chatError": "Chat-Dienstfehler: {error}",
+    "clarifySkipAnswer": "(Der Nutzer hat diese Frage übersprungen)",
     "reconnecting": "Wiederverbinden...",
     "imageUploadLabel": "Bild hochladen",
     "imageUploadDisabledLabel": "Dieses Modell kann keine Bilder sehen. Wähle ein Vision-Modell.",
@@ -273,7 +274,9 @@
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "Anmeldelink senden",
       "magicLinkSent": "Der Login-Link wurde an Ihre E-Mail gesendet, bitte überprüfen Sie Ihr Postfach!",
-      "orSocial": "oder mit sozialen Konten anmelden"
+      "orSocial": "oder mit sozialen Konten anmelden",
+      "tryAgain": "Erneut versuchen",
+      "backToHome": "Zur Startseite"
     },
     "error": {
       "title": "Fehler bei der Authentifizierung",
@@ -393,7 +396,9 @@
     "promptStatus": {
       "generating": "KI-Aufforderung wird im Hintergrund generiert...",
       "failed": "Die Aufforderungserstellung ist fehlgeschlagen, die Beschreibung wurde als Backup verwendet."
-    }
+    },
+    "readOnly": "Schreibgeschützt",
+    "pageTitle": "Agenten"
   },
   "Skill": {
     "title": "Fähigkeiten",
@@ -417,13 +422,15 @@
       "title": "Nach Kategorie durchsuchen",
       "count": "{count} Fähigkeiten"
     },
+    "createWithAiPrompt": "$skill-creator Ich möchte einen neuen Skill erstellen",
     "category": {
       "writing": "Schreiben",
       "coding": "Programmieren",
       "productivity": "Produktivität",
       "office": "Büro",
       "translation": "Übersetzung",
-      "data": "Büro"
+      "data": "Büro",
+      "all": "Alle"
     },
     "totalSkills": "{count} Fähigkeiten",
     "selected": "{count} ausgewählt",

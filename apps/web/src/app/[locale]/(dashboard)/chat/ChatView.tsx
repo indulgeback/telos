@@ -85,6 +85,7 @@ import {
   isVoicePlaceholder,
   messageToUiMessage,
   supportsVision,
+  CLARIFY_SKIP_SENTINEL,
 } from './chat-types'
 import {
   extractRunApprovals,
@@ -196,6 +197,9 @@ export function ChatView() {
         ctrl.move('down')
       } else if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
+        // 阻止事件继续到达 ChatInput 的 onKeyDown,否则会把输入框里的
+        // 半截 "$sk" 作为消息发出去,并冲掉刚选中的技能文本
+        e.stopPropagation()
         ctrl.move('enter')
       } else if (e.key === 'Escape') {
         e.preventDefault()
@@ -243,6 +247,10 @@ export function ChatView() {
     set.add(runId)
     processedRunIdsRef.current.set(threadId, set)
     return false
+  }
+  // 订阅失败时撤销标记,允许后续 effect 重新尝试恢复订阅
+  const unmarkRunProcessed = (threadId: string, runId: string) => {
+    processedRunIdsRef.current.get(threadId)?.delete(runId)
   }
   // 当前正在执行的计划所在的消息 id（execute 阶段的 plan_step_updated 需要它来定位计划气泡）
   const activePlanMessageIdRef = useRef<string | null>(null)
@@ -493,6 +501,15 @@ export function ChatView() {
       }
 
       if (chunk.type === 'agent.run.created' && chunk.data?.threadId) {
+        // 只认当前在途 run 的线程锚定:切换 agent/新会话后,旧 run 的
+        // 迟到事件不得把 UI 拽回旧线程
+        if (
+          activeRunIdRef.current &&
+          chunk.data.runId &&
+          chunk.data.runId !== activeRunIdRef.current
+        ) {
+          return
+        }
         const shouldRefreshThreads =
           currentThreadIdRef.current !== chunk.data.threadId
         currentThreadIdRef.current = chunk.data.threadId
@@ -854,14 +871,8 @@ export function ChatView() {
           throw new Error('Chat run response is missing run_id')
         }
         activeRunIdRef.current = runId
-        if (currentThreadIdRef.current) {
-          markRunProcessed(currentThreadIdRef.current, runId)
-        }
-        setMessages(prev =>
-          prev.map(message =>
-            message.id === assistantId ? { ...message, runId } : message
-          )
-        )
+        // 先应用服务端返回的 thread_id 再登记已处理,保证去重记录落在
+        // run 实际所属线程的桶里(否则新线程 revisit 时可能重复订阅)
         if (threadId) {
           const shouldRefreshThreads = currentThreadIdRef.current !== threadId
           currentThreadIdRef.current = threadId
@@ -870,6 +881,14 @@ export function ChatView() {
             void loadThreads()
           }
         }
+        if (currentThreadIdRef.current) {
+          markRunProcessed(currentThreadIdRef.current, runId)
+        }
+        setMessages(prev =>
+          prev.map(message =>
+            message.id === assistantId ? { ...message, runId } : message
+          )
+        )
 
         setStatus('streaming')
         const streamEnd = await consumeAgentRunStream(
@@ -923,8 +942,16 @@ export function ChatView() {
   const subscribeExistingRun = useCallback(
     async (runId: string, assistantId: string) => {
       if (activeRunIdRef.current === runId) return
-      if (currentThreadIdRef.current) {
-        markRunProcessed(currentThreadIdRef.current, runId)
+      // 非 approval 恢复路径也取最后事件序号作为初始 cursor:
+      // 快照已渲染过部分内容,从 0 重放会把文本追加一遍
+      let initialCursor = approvalResumeCursorRef.current
+      if (!initialCursor) {
+        try {
+          const eventData = await agentService.getRunEvents(runId)
+          initialCursor = eventData.events.at(-1)?.sequence ?? ''
+        } catch {
+          initialCursor = ''
+        }
       }
       const controller = new AbortController()
       abortControllerRef.current = controller
@@ -937,7 +964,7 @@ export function ChatView() {
           runId,
           controller.signal,
           chunk => applyAgentStreamChunk(assistantId, chunk),
-          approvalResumeCursorRef.current
+          initialCursor
         )
         if (streamEnd.end === 'awaiting_approval') {
           pendingApprovalRunIdRef.current = runId
@@ -951,6 +978,10 @@ export function ChatView() {
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') return
+        // 订阅失败时撤销"已处理"标记,允许本线程后续重试恢复
+        if (currentThreadIdRef.current) {
+          unmarkRunProcessed(currentThreadIdRef.current, runId)
+        }
         const message = error instanceof Error ? error.message : String(error)
         updateAssistantParts(assistantId, parts => {
           parts.push(createTextPart(t('chatError', { error: message })))
@@ -1224,8 +1255,19 @@ export function ChatView() {
     selectedModelOption?.supportReasoningControl ?? false
   const supportsImageUpload = supportsVision(selectedModelOption)
 
+  // 中止在途请求并丢弃当前 run:切换 agent 后旧流的事件会把 UI 拽回旧线程,
+  // 并让 composer 卡在 submitted/streaming 状态
+  const discardInFlightRun = useCallback(() => {
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
+    activeRunIdRef.current = null
+    setStatus('ready')
+    setActiveAssistantId(null)
+  }, [])
+
   const handleAgentChange = useCallback(
     (agent: Agent) => {
+      discardInFlightRun()
       invalidateRequests()
       setSelectedAgent(agent)
       setCurrentThreadId(null)
@@ -1769,7 +1811,10 @@ export function ChatView() {
       throw new Error('A thread is required to answer a clarification')
     }
     try {
-      await agentService.answerClarify(messageId, option)
+      // 跳过/关闭不把硬编码英文塞进对话历史,翻译成本地语言后照常驱动流程
+      const answerForThread =
+        option === CLARIFY_SKIP_SENTINEL ? t('clarifySkipAnswer') : option
+      await agentService.answerClarify(messageId, answerForThread)
       // 局部更新本地消息列表中的 clarify part 状态，避免二次刷新导致重复点选
       setMessages(prev =>
         prev.map(msg => {
@@ -1810,7 +1855,7 @@ export function ChatView() {
     setPendingClarify(null)
     setStatus('ready')
     // 自动将用户的选择作为新指令发送
-    await handleSend(option, { allowWhileLoading: true })
+    await handleSend(answerForThread, { allowWhileLoading: true })
   }
 
   // 消费 pendingPrompt:当 selectedAgent 就绪且会话列表加载稳定后,
@@ -1951,6 +1996,7 @@ export function ChatView() {
   }
 
   const handleClear = () => {
+    discardInFlightRun()
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
     pendingImageBatchesRef.current = []
@@ -1996,6 +2042,7 @@ export function ChatView() {
   }
 
   const handleNewThread = () => {
+    discardInFlightRun()
     setCurrentThreadId(null)
     setMessages([])
     pendingPlanRef.current = null

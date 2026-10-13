@@ -30,6 +30,7 @@
     "voiceInput": "Voice Input",
     "voiceError": "Real-time voice service error: {error}",
     "chatError": "Chat service error: {error}",
+    "clarifySkipAnswer": "(The user skipped this question)",
     "reconnecting": "Reconnecting...",
     "imageUploadLabel": "Upload Image",
     "imageUploadDisabledLabel": "This model can't view images. Choose a vision model.",
@@ -273,7 +274,9 @@
       "emailPlaceholder": "name@example.com",
       "sendMagicLink": "Send login link",
       "magicLinkSent": "The login link has been sent to your email, please check it!",
-      "orSocial": "or sign in with social accounts"
+      "orSocial": "or sign in with social accounts",
+      "tryAgain": "Try again",
+      "backToHome": "Back to home"
     },
     "error": {
       "title": "Authentication errors",
@@ -393,7 +396,9 @@
     "promptStatus": {
       "generating": "AI Prompt is being generated in the background...",
       "failed": "Prompt generation failed, description used as backup."
-    }
+    },
+    "readOnly": "Read-only",
+    "pageTitle": "Agents"
   },
   "Skill": {
     "title": "Skills",
@@ -417,13 +422,15 @@
       "title": "Browse by category",
       "count": "{count} skills"
     },
+    "createWithAiPrompt": "$skill-creator I want to create a new skill",
     "category": {
       "writing": "Writing",
       "coding": "Coding",
       "productivity": "Productivity",
       "office": "Office",
       "data": "Office",
-      "translation": "Translation"
+      "translation": "Translation",
+      "all": "All"
     },
     "totalSkills": "{count} skills",
     "selected": "{count} selected",

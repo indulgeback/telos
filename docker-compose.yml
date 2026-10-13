@@ -1,6 +1,22 @@
 version: '3.8'
 
 services:
+  # Consul - 服务注册中心 (★ 必需,registry 依赖它)
+  consul:
+    image: hashicorp/consul:1.18
+    container_name: telos-consul
+    command: agent -dev -client=0.0.0.0 -ui
+    ports:
+      - '8500:8500'
+    networks:
+      - telos-network
+    healthcheck:
+      test: ['CMD', 'curl', '-sf', 'http://localhost:8500/v1/status/leader']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
   # 数据库服务
   postgres:
     image: postgres:15-alpine
@@ -46,10 +62,15 @@ services:
     ports:
       - '8090:8090'
     environment:
-      - PORT=8090
+      # Go 读取的是 REGISTRY_PORT(不是 PORT),写错会导致健康检查永远探不到服务
+      - REGISTRY_PORT=8090
+      - CONSUL_ADDRESS=telos-consul:8500
       - NODE_ENV=production
     networks:
       - telos-network
+    depends_on:
+      telos-consul:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -58,7 +79,7 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://localhost:8090/health',
+          'http://localhost:8090/api/health',
         ]
       interval: 30s
       timeout: 10s
@@ -190,7 +211,7 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8890
       - NODE_ENV=production
       # 注意：生产环境中应该使用环境变量或密钥管理
-      - AUTH_SECRET=your-auth-secret-here
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-dev-secret-only-change-in-production}
       - GITHUB_CLIENT_ID=your-github-client-id
       - GITHUB_CLIENT_SECRET=your-github-client-secret
     depends_on:

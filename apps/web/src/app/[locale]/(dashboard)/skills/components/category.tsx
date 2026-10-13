@@ -27,6 +27,11 @@ export interface SkillCategory {
 
 export const SKILL_CATEGORIES: SkillCategory[] = [
   {
+    id: 'all',
+    icon: LayoutGrid,
+    iconColor: 'text-slate-600 dark:text-slate-400',
+  },
+  {
     id: 'writing',
     icon: PenLine,
     iconColor: 'text-amber-600 dark:text-amber-400',

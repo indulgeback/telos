@@ -19,6 +19,7 @@
   "Chat.voiceInput": "Voice Input",
   "Chat.voiceError": "Real-time voice service error: {error}",
   "Chat.chatError": "Chat service error: {error}",
+  "Chat.clarifySkipAnswer": "(The user skipped this question)",
   "Chat.reconnecting": "Reconnecting...",
   "Chat.imageUploadLabel": "Upload Image",
   "Chat.imageUploadDisabledLabel": "This model can't view images. Choose a vision model.",
@@ -306,6 +307,8 @@
   "Auth.signIn.sendMagicLink": "Send login link",
   "Auth.signIn.magicLinkSent": "The login link has been sent to your email, please check it!",
   "Auth.signIn.orSocial": "or sign in with social accounts",
+  "Auth.signIn.tryAgain": "Try again",
+  "Auth.signIn.backToHome": "Back to home",
   "Auth.error.title": "Authentication errors",
   "Auth.error.subtitle": "An error occurred during login",
   "Auth.error.oauthSignin": "The third-party login service is temporarily unavailable, please try again later",
@@ -439,6 +442,7 @@
   "Skill.category.office": "Office",
   "Skill.category.data": "Office",
   "Skill.category.translation": "Translation",
+  "Skill.category.all": "All",
   "Skill.totalSkills": "{count} skills",
   "Skill.selected": "{count} selected",
   "Skill.noSkillsFound": "No matching skills found",
@@ -797,5 +801,8 @@
   "LandingStudio.motion.pause": "Pause page animations",
   "LandingStudio.motion.resume": "Play page animations",
   "Chat.toolCall.groupAllSuccess": "all succeeded",
-  "Chat.toolCall.groupHasFailure": "with failures"
+  "Chat.toolCall.groupHasFailure": "with failures",
+  "Agent.readOnly": "Read-only",
+  "Skill.createWithAiPrompt": "$skill-creator I want to create a new skill",
+  "Agent.pageTitle": "Agents"
 }

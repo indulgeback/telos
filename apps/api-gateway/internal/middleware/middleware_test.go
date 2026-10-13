@@ -22,7 +22,7 @@ func TestRateLimitMiddlewareBlocksBurstThenRecovers(t *testing.T) {
 	getStatus := func(ip string) int {
 		req, _ := http.NewRequest(http.MethodGet, server.URL, nil)
 		if ip != "" {
-			req.Header.Set("X-Forwarded-For", ip)
+			req.Header.Set("X-Real-IP", ip)
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -122,9 +122,10 @@ func TestGetClientIPPrefersForwardedHeaders(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "x-forwarded-for wins",
+			// X-Forwarded-For 可被客户端自附加,故意不信任:走 RemoteAddr 兜底
+			name:     "x-forwarded-for is ignored (spoofable)",
 			headers:  map[string]string{"X-Forwarded-For": "198.51.100.9, 10.0.0.1"},
-			expected: "198.51.100.9",
+			expected: "192.0.2.1",
 		},
 		{
 			name:     "x-real-ip used without x-forwarded-for",
@@ -134,7 +135,7 @@ func TestGetClientIPPrefersForwardedHeaders(t *testing.T) {
 		{
 			name:     "falls back to remote address",
 			headers:  map[string]string{},
-			expected: "192.0.2.1:5555",
+			expected: "192.0.2.1",
 		},
 	}
 	for _, tc := range cases {

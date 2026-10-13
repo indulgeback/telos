@@ -336,7 +336,8 @@ model AgentRun {
   approvals AgentToolApproval[]
 
   @@index([agentId, createdAt])
-  @@index([threadId])
+  @@index([threadId, createdAt])
+  @@index([status, createdAt])
   @@map("agent_runs")
 }
 

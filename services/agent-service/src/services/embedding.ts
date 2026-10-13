@@ -96,11 +96,11 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     }
   }
 
-  // 默认使用 OpenAI
+  // 默认使用 OpenAI(EMBEDDING_MODEL 同样作用于该路径,避免配置被静默忽略)
   try {
     const client = getOpenAIClient()
     const response = await client.embeddings.create({
-      model: 'text-embedding-3-small',
+      model: config.embeddingModel || 'text-embedding-3-small',
       input: text,
       encoding_format: 'float' as const,
     })
