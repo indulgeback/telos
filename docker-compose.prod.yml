@@ -66,8 +66,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-telos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 必须在 .env 中设置}
     ports:
-      # 默认只绑回环;确实要对外暴露时在 .env 设 EXPOSE_DB_PORT=公网IP
-      - '${EXPOSE_DB_PORT:-127.0.0.1}:5432'
+      # 默认只绑回环;确实要对外暴露时在 .env 设 EXPOSE_DB_PORT=公网IP。
+      # 用 long syntax:短语法 "IP:端口" 在 compose v2.40 会被判 invalid hostPort
+      - target: 5432
+        host_ip: ${EXPOSE_DB_PORT:-127.0.0.1}
+        published: '5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     logging: *default-logging
