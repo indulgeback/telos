@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  LayoutGrid,
   PenLine,
   Code2,
   Zap,

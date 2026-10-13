@@ -5,6 +5,7 @@ import {
   type ReactNode,
   TextareaHTMLAttributes,
   useState,
+  useRef,
 } from 'react'
 import { Button } from '@/components/atoms'
 import { ArrowUp, Square } from 'lucide-react'

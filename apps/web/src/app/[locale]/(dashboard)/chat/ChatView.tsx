@@ -1810,10 +1810,11 @@ export function ChatView() {
     if (!currentThreadId) {
       throw new Error('A thread is required to answer a clarification')
     }
+    // 跳过/关闭不把硬编码英文塞进对话历史,翻译成本地语言后照常驱动流程。
+    // 声明在 try 外:持久化成功后的自动发送(finally 路径)也要用到它
+    const answerForThread =
+      option === CLARIFY_SKIP_SENTINEL ? t('clarifySkipAnswer') : option
     try {
-      // 跳过/关闭不把硬编码英文塞进对话历史,翻译成本地语言后照常驱动流程
-      const answerForThread =
-        option === CLARIFY_SKIP_SENTINEL ? t('clarifySkipAnswer') : option
       await agentService.answerClarify(messageId, answerForThread)
       // 局部更新本地消息列表中的 clarify part 状态，避免二次刷新导致重复点选
       setMessages(prev =>
