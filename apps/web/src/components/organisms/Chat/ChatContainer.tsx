@@ -165,6 +165,7 @@ export interface ChatContainerProps {
   copiedLabel: string
   retryLabel: string
   usedModelLabel: string
+  liveTranscriptLabel?: string
   reasoningTitle: string
   reasoningThinkingLabel: string
   reasoningDoneLabel: string
@@ -259,6 +260,7 @@ export function ChatContainer({
   copiedLabel,
   retryLabel,
   usedModelLabel,
+  liveTranscriptLabel,
   reasoningTitle,
   reasoningThinkingLabel,
   reasoningDoneLabel,
@@ -599,6 +601,7 @@ export function ChatContainer({
                       retryLabel={retryLabel}
                       assistantModelLabel={message.modelLabel}
                       usedModelLabel={usedModelLabel}
+                      liveTranscriptLabel={liveTranscriptLabel}
                       reasoningTitle={reasoningTitle}
                       reasoningThinkingLabel={reasoningThinkingLabel}
                       reasoningDoneLabel={reasoningDoneLabel}

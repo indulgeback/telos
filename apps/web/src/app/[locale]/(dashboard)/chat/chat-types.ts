@@ -87,6 +87,17 @@ export type AgentStreamChunk = {
 export type RunStreamEnd = 'terminal' | 'awaiting_approval'
 export type RunStreamResult = { end: RunStreamEnd; cursor: string }
 
+// 用 type alias 而非 interface:别名带隐式索引签名,可直接塞进 parts(Record<string, unknown>)
+export type ErrorPart = {
+  type: 'error'
+  message: string
+}
+
+export const createErrorPart = (message: string): ErrorPart => ({
+  type: 'error',
+  message,
+})
+
 /** 澄清面板「跳过」的哨兵值:发送前由 ChatView 翻译成本地语言文案 */
 export const CLARIFY_SKIP_SENTINEL = '__clarify_skip__'
 

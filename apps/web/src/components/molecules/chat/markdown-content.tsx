@@ -8,6 +8,7 @@ import 'highlight.js/styles/github-dark.css'
 import type { Components } from 'react-markdown'
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
+import { useTranslations } from 'next-intl'
 import { Download } from 'lucide-react'
 import { ArtifactPreviewLink } from './artifact-preview-link'
 
@@ -22,6 +23,7 @@ const CustomZoomContent = ({
   buttonUnzoom: ReactElement
   img: ReactElement | null
 }) => {
+  const t = useTranslations('Chat')
   const imgElement = img as ReactElement<any> | null
   const src = imgElement?.props?.src
 
@@ -60,8 +62,8 @@ const CustomZoomContent = ({
         <button
           onClick={handleDownload}
           className='fixed top-4 right-4 z-50 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white shadow-md transition-colors flex items-center justify-center cursor-pointer border border-white/10'
-          title='下载图片'
-          aria-label='下载图片'
+          title={t('downloadImage')}
+          aria-label={t('downloadImage')}
         >
           <Download className='size-5' />
         </button>
@@ -73,6 +75,7 @@ const CustomZoomContent = ({
 const MARKDOWN_COMPONENTS: Components = {
   img: ({ src, alt, ...props }) => (
     <Zoom ZoomContent={CustomZoomContent}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- COS 签名 URL 有时效且每次变化,next/image 优化与缓存均不适用 */}
       <img
         src={src}
         alt={alt}

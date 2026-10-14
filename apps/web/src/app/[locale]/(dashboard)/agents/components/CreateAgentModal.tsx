@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Dialog,
@@ -12,12 +12,20 @@ import {
 } from '@/components/atoms'
 import { Button } from '@/components/atoms'
 import { Input } from '@/components/atoms'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/atoms'
 import { Textarea } from '@/components/atoms'
 import { Label } from '@/components/atoms'
 import { agentService } from '@/service/agent'
 import { Loader2, Globe, Lock, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useAgentModels } from './use-agent-models'
 
 const DEFAULT_AGENT_TURNS = 50
 const MAX_AGENT_TURNS = 200
@@ -36,7 +44,14 @@ export function CreateAgentModal({
   const t = useTranslations('Agent')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [modelKey, setModelKey] = useState('deepseek-v4-flash')
+  const { models: modelOptions, loading: modelsLoading } = useAgentModels()
+  const [modelKey, setModelKey] = useState('')
+  useEffect(() => {
+    // 目录就绪后默认选中第一个启用模型,替代写死的 deepseek-v4-flash
+    if (!modelKey && modelOptions.length > 0) {
+      setModelKey(modelOptions[0].model)
+    }
+  }, [modelKey, modelOptions])
   const [maxTurns, setMaxTurns] = useState(DEFAULT_AGENT_TURNS)
   const [loopMode, setLoopMode] = useState<'auto' | 'single_turn'>('auto')
   const [type, setType] = useState<AgentTypeOption>('private')
@@ -58,7 +73,7 @@ export function CreateAgentModal({
         name: name.trim(),
         description: description.trim(),
         type,
-        modelKey: modelKey.trim() || 'deepseek-v4-flash',
+        modelKey: modelKey.trim(),
         maxTurns: clampMaxTurns(maxTurns),
         loopMode,
       })
@@ -151,13 +166,32 @@ export function CreateAgentModal({
           <div className='grid gap-4 md:grid-cols-[1fr_140px_160px]'>
             <div className='space-y-2'>
               <Label htmlFor='modelKey'>{t('form.modelKey')}</Label>
-              <Input
-                id='modelKey'
-                value={modelKey}
-                onChange={e => setModelKey(e.target.value)}
-                placeholder='deepseek-v4-flash'
-                disabled={isCreating}
-              />
+              {modelOptions.length > 0 ? (
+                <Select
+                  value={modelKey || undefined}
+                  onValueChange={setModelKey}
+                  disabled={isCreating}
+                >
+                  <SelectTrigger id='modelKey'>
+                    <SelectValue placeholder={t('form.modelKey')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modelOptions.map(option => (
+                      <SelectItem key={option.model} value={option.model}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id='modelKey'
+                  value={modelKey}
+                  onChange={e => setModelKey(e.target.value)}
+                  placeholder={modelsLoading ? '...' : 'deepseek-v4-flash'}
+                  disabled={isCreating}
+                />
+              )}
             </div>
             <div className='space-y-2'>
               <Label htmlFor='maxTurns'>{t('form.maxTurns')}</Label>

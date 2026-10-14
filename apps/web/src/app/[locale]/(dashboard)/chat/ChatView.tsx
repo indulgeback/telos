@@ -86,6 +86,7 @@ import {
   messageToUiMessage,
   supportsVision,
   CLARIFY_SKIP_SENTINEL,
+  createErrorPart,
 } from './chat-types'
 import {
   extractRunApprovals,
@@ -659,7 +660,7 @@ export function ChatView() {
                 ? JSON.stringify(chunk.error)
                 : 'Service failed'
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(t('chatError', { error: errorText })))
+          parts.push(createErrorPart(errorText))
         })
         return
       }
@@ -912,7 +913,7 @@ export function ChatView() {
         if (error instanceof Error && error.name === 'AbortError') return
         const message = error instanceof Error ? error.message : String(error)
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(t('chatError', { error: message })))
+          parts.push(createErrorPart(message))
         })
       } finally {
         abortControllerRef.current = null
@@ -984,7 +985,7 @@ export function ChatView() {
         }
         const message = error instanceof Error ? error.message : String(error)
         updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(t('chatError', { error: message })))
+          parts.push(createErrorPart(message))
         })
       } finally {
         abortControllerRef.current = null
@@ -2381,6 +2382,7 @@ export function ChatView() {
             copiedLabel={t('actions.copied')}
             retryLabel={t('actions.retry')}
             usedModelLabel={t('actions.usedModel')}
+            liveTranscriptLabel={t('liveTranscript')}
             reasoningTitle={t('reasoning.title')}
             reasoningThinkingLabel={t('reasoning.thinking')}
             reasoningDoneLabel={t('reasoning.done')}

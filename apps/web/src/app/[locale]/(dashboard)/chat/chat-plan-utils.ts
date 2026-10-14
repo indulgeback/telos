@@ -472,6 +472,21 @@ export const extractAssistantContentParts = (
       return
     }
 
+    // 前端本地追加的错误块(不落库):原样透传给渲染层
+    if (
+      part &&
+      typeof part === 'object' &&
+      (part as { type?: unknown }).type === 'error' &&
+      typeof (part as { message?: unknown }).message === 'string'
+    ) {
+      flushText()
+      result.push({
+        type: 'error',
+        message: (part as { message: string }).message,
+      })
+      return
+    }
+
     const tool = parseToolCallPart(part)
     if (!tool) return
 

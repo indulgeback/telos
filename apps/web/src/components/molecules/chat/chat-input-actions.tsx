@@ -60,6 +60,7 @@ export function ChatInputActions({
   disableImageUpload = false,
   isUploadingImages = false,
   reasoningEffort,
+  reasoningEffortLabel,
   reasoningEffortLow,
   reasoningEffortMedium,
   reasoningEffortHigh,
@@ -98,10 +99,10 @@ export function ChatInputActions({
                 : 'bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
             } ${disableReasoningEffort ? 'opacity-60' : ''}`}
             aria-pressed={reasoningEffort !== 'minimal'}
-            title='Thinking Mode'
+            title={reasoningEffortLabel}
           >
             <BrainCircuit className='size-3.5 shrink-0' />
-            <span className='truncate'>Thinking</span>
+            <span className='truncate'>{reasoningEffortLabel}</span>
           </button>
           {reasoningEffort !== 'minimal' && showReasoningControl && (
             <div className='flex h-8 items-center rounded-lg bg-muted px-2 font-mono text-[10px]'>

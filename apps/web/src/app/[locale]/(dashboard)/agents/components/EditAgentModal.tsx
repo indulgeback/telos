@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Dialog,
@@ -12,8 +12,16 @@ import {
 } from '@/components/atoms'
 import { Button } from '@/components/atoms'
 import { Input } from '@/components/atoms'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/atoms'
 import { Textarea } from '@/components/atoms'
 import { Label } from '@/components/atoms'
+import { useAgentModels } from './use-agent-models'
 import { agentService, type Agent } from '@/service/agent'
 import {
   Loader2,
@@ -52,9 +60,8 @@ export function EditAgentModal({
   const [name, setName] = useState(agent.name || '')
   const [description, setDescription] = useState(agent.description || '')
   const [instructions, setInstructions] = useState(agent.instructions || '')
-  const [modelKey, setModelKey] = useState(
-    agent.model_key || 'deepseek-v4-flash'
-  )
+  const [modelKey, setModelKey] = useState(agent.model_key || '')
+  const { models: modelOptions, loading: modelsLoading } = useAgentModels()
   const [maxTurns, setMaxTurns] = useState(
     agent.max_turns || DEFAULT_AGENT_TURNS
   )
@@ -65,6 +72,12 @@ export function EditAgentModal({
     agent.type === 'system' ? 'private' : (agent.type as 'public' | 'private')
   )
   const [isSaving, setIsSaving] = useState(false)
+
+  const modelInCatalog = modelOptions.some(option => option.model === modelKey)
+  const modelFieldEditable = isReadOnly || isSaving
+  // 目录里没有当前 key(历史遗留模型)时保留自由输入,避免用户没法查看/保存
+  const useFreeTextModelInput =
+    !modelsLoading && modelOptions.length > 0 && !modelInCatalog
   const clampMaxTurns = (value: number) =>
     Math.min(MAX_AGENT_TURNS, Math.max(1, value || DEFAULT_AGENT_TURNS))
 
@@ -130,7 +143,7 @@ export function EditAgentModal({
         instructions:
           agent.instruction_status === 'generating' ? undefined : instructions,
         type,
-        modelKey: modelKey.trim() || 'deepseek-v4-flash',
+        modelKey: modelKey.trim(),
         maxTurns: clampMaxTurns(maxTurns),
         loopMode,
         metadata: updatedMetadata,
@@ -279,13 +292,33 @@ export function EditAgentModal({
             <div className='grid gap-4 md:grid-cols-[1fr_140px_160px] border-t pt-4'>
               <div className='space-y-2'>
                 <Label htmlFor='edit-modelKey'>{t('form.modelKey')}</Label>
-                <Input
-                  id='edit-modelKey'
-                  value={modelKey}
-                  onChange={e => setModelKey(e.target.value)}
-                  placeholder='deepseek-v4-flash'
-                  disabled={isReadOnly || isSaving}
-                />
+                {useFreeTextModelInput ? (
+                  <Input
+                    id='edit-modelKey'
+                    value={modelKey}
+                    onChange={e => setModelKey(e.target.value)}
+                    disabled={modelFieldEditable}
+                  />
+                ) : (
+                  <Select
+                    value={modelKey || undefined}
+                    onValueChange={setModelKey}
+                    disabled={modelFieldEditable}
+                  >
+                    <SelectTrigger id='edit-modelKey'>
+                      <SelectValue
+                        placeholder={modelsLoading ? '...' : undefined}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modelOptions.map(option => (
+                        <SelectItem key={option.model} value={option.model}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className='space-y-2'>
                 <Label htmlFor='edit-maxTurns'>{t('form.maxTurns')}</Label>

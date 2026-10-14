@@ -43,6 +43,7 @@ export type ActivityPart =
         selectedOption?: string | null
       }
     }
+  | { type: 'error'; message: string }
 
 /**
  * 助手消息的实时相位：

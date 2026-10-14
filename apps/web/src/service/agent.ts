@@ -241,21 +241,43 @@ export class AgentService {
     endpoint: string,
     init: RequestInit = {}
   ): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(init.headers ?? {}),
-      },
-      ...init,
-    })
+    // 后端挂起时不让页面永久转圈;调用方自带 signal 时优先用它的
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 30_000)
+    let response: Response
+    try {
+      response = await fetch(`${this.baseURL}${endpoint}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(init.headers ?? {}),
+        },
+        ...init,
+        signal: init.signal ?? controller.signal,
+      })
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error('Request timed out')
+      }
+      throw error
+    } finally {
+      window.clearTimeout(timeout)
+    }
 
     if (!response.ok) {
-      const error = new Error(
-        `Request failed: ${response.statusText}`
-      ) as Error & {
-        status?: number
+      // 优先透出服务端错误信息(如"Agent name already exists"),
+      // 拿不到再退回 statusText,避免用户只看到 Internal Server Error
+      let detail = response.statusText || 'Request failed'
+      try {
+        const body = (await response.json()) as {
+          message?: string
+          error?: string
+        }
+        detail = body.message || body.error || detail
+      } catch {
+        // 响应体不是 JSON,保留 statusText
       }
+      const error = new Error(detail) as Error & { status?: number }
       error.status = response.status
       throw error
     }

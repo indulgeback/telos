@@ -27,6 +27,7 @@ import {
   Copy,
   Check,
   RotateCcw,
+  AlertTriangle,
   ChevronRight,
   ChevronLeft,
   Mic2,
@@ -71,6 +72,7 @@ export type AssistantContentPart =
         selectedOption?: string | null
       }
     }
+  | { type: 'error'; message: string }
 
 type RenderContentPart =
   | Exclude<AssistantContentPart, { type: 'tool' }>
@@ -121,6 +123,7 @@ export interface ChatMessageProps {
   userAvatarUrl?: string | null
   userInitials?: string | null
   isVoiceTranscript?: boolean
+  liveTranscriptLabel?: string
   // Plan 模式相关
   planTitle?: string
   planApproveLabel?: string
@@ -199,6 +202,11 @@ function compareContentParts(
       continue
     }
 
+    if (prevPart.type === 'error' && nextPart.type === 'error') {
+      if (prevPart.message !== nextPart.message) return false
+      continue
+    }
+
     if (prevPart.type === 'clarify' && nextPart.type === 'clarify') {
       if (
         prevPart.clarify.status !== nextPart.clarify.status ||
@@ -262,6 +270,7 @@ function ChatMessageInner({
   userAvatarUrl,
   userInitials,
   isVoiceTranscript = false,
+  liveTranscriptLabel = 'Live transcript',
   planTitle = 'Plan',
   planApproveLabel = 'Approve',
   planRejectLabel = 'Reject',
@@ -428,6 +437,32 @@ function ChatMessageInner({
                     return null
                   }
 
+                  if (part.type === 'error') {
+                    return (
+                      <div
+                        key={`error-${id}-${index}`}
+                        className='flex items-start gap-2.5 rounded-xl border border-red-500/25 bg-red-500/5 px-3.5 py-3'
+                        role='alert'
+                      >
+                        <AlertTriangle className='mt-0.5 size-4 shrink-0 text-red-500' />
+                        <p className='min-w-0 flex-1 break-words text-[13px] leading-relaxed text-red-600 dark:text-red-400'>
+                          {part.message}
+                        </p>
+                        {onRetry && (
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            className='h-7 shrink-0 gap-1 rounded-lg px-2 text-[11px] text-red-600 hover:bg-red-500/10 dark:text-red-400'
+                            onClick={onRetry}
+                          >
+                            <RotateCcw className='size-3' />
+                            {retryLabel}
+                          </Button>
+                        )}
+                      </div>
+                    )
+                  }
+
                   const isStreamingPart =
                     isLoading && index === groupedContentParts.length - 1
 
@@ -496,6 +531,7 @@ function ChatMessageInner({
                       }}
                       aria-label={imagePreviewLabel}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- 本地 blob/任意远端预览,无需 next/image 优化管线 */}
                       <img
                         src={src}
                         alt={`user-image-${index + 1}`}
@@ -516,7 +552,7 @@ function ChatMessageInner({
             {isVoiceTranscript && hasContent && (
               <span className='inline-flex items-center gap-1 text-[11px] text-muted-foreground'>
                 <Mic2 className='size-3' />
-                Live transcript
+                {liveTranscriptLabel}
               </span>
             )}
           </div>
@@ -662,6 +698,7 @@ function areEqual(prev: ChatMessageProps, next: ChatMessageProps): boolean {
   if (Boolean(prev.onRetry) !== Boolean(next.onRetry)) return false
   if (prev.isPendingPlan !== next.isPendingPlan) return false
   if (prev.isVoiceTranscript !== next.isVoiceTranscript) return false
+  if (prev.liveTranscriptLabel !== next.liveTranscriptLabel) return false
   if (Boolean(prev.onApprovePlan) !== Boolean(next.onApprovePlan)) return false
   if (Boolean(prev.onRejectPlan) !== Boolean(next.onRejectPlan)) return false
 
