@@ -399,6 +399,11 @@ if [[ "$BACKUP_DATABASE" == "true" ]]; then
   # 迁移前先释放空间:pg_dump 备份在满盘上会静默失败,导致部署取消
 sudo sh -c 'truncate -s 0 /var/lib/docker/containers/*/*-json.log' 2>/dev/null || true
 docker image prune -f >/dev/null 2>&1 || true
+# 失败部署遗留的 rollback-* tag 会永久钉住旧镜像代际把盘堆满;
+# 新一轮部署马上会创建新的回滚点,旧的这里直接清掉
+for t in $(docker images --format "{{.Repository}}:{{.Tag}}" | grep ":rollback-"); do
+  sudo docker rmi "$t" >/dev/null 2>&1 || true
+done
 
 log "💾 创建迁移前数据库备份..."
   if ! "${DC[@]}" -f "$COMPOSE_FILE" exec -T postgres \
