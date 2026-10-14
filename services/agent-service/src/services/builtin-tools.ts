@@ -379,9 +379,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
         },
         model: {
           type: 'string',
-          enum: ['gemini', 'gpt-image-2'],
-          description:
-            '指定使用的图像生成模型。默认为 gemini。如果在需要生成带有精确文本、电商海报、促销文字的画面时，强烈建议使用 gpt-image-2。',
+          enum: ['gemini'],
+          description: '指定使用的图像生成模型，当前仅支持 gemini。',
           default: 'gemini',
         },
       },
@@ -1215,7 +1214,7 @@ export function buildBuiltinTool(
               ? String(rawInput.input_image_url)
               : undefined
             const model = rawInput.model
-              ? (String(rawInput.model) as 'gemini' | 'gpt-image-2')
+              ? (String(rawInput.model) as 'gemini')
               : undefined
 
             const reference_image_urls: string[] = []
@@ -1235,7 +1234,6 @@ export function buildBuiltinTool(
                 reference_image_urls,
                 negative_prompt,
                 input_image_url,
-                model,
               },
               threadId
             )

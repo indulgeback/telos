@@ -8,10 +8,7 @@ import { getGcloudProjectId } from './gcloud.js'
 import { config } from '../config/index.js'
 import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
 
-const MODEL = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image'
 const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-2.5-flash-image'
-const SHORTAPI_MAX_QUERY_ATTEMPTS = 2
-const SHORTAPI_RETRY_DELAY_MS = 250
 
 const STYLE_SUFFIX_MAP: Record<string, string> = {
   photo_realistic:
@@ -79,187 +76,8 @@ async function uploadToCDN(
   return WorkspaceManager.getFileUrl(threadId, fileName)
 }
 
-function mapAspectRatioToShortApiSize(ratio?: string): string {
-  if (!ratio) return '1024x1024'
-  if (ratio === '1:1') return '1024x1024'
-  if (ratio === '9:16' || ratio === '3:4') return '1024x1536'
-  if (ratio === '16:9' || ratio === '4:3') return '1536x1024'
-  return '1024x1024'
-}
-
 export function isGeminiImageModel(model: string): boolean {
   return /^gemini-.+-image(?:-preview)?$/.test(model)
-}
-
-export function resolveShortApiJobBaseUrl(baseUrl: string): string {
-  const normalized = baseUrl.trim().replace(/\/+$/, '')
-  if (!normalized) return 'https://api.shortapi.ai/api/v1'
-  if (normalized.endsWith('/api/v1')) return normalized
-  return normalized.endsWith('/v1')
-    ? `${normalized.slice(0, -3)}/api/v1`
-    : `${normalized}/api/v1`
-}
-
-function describeProviderError(error: unknown): string {
-  if (!(error instanceof Error)) return String(error)
-  const cause = error.cause
-  if (cause instanceof Error && cause.message) {
-    return `${error.message}; cause: ${cause.message}`
-  }
-  if (cause && typeof cause === 'object' && 'code' in cause) {
-    return `${error.message}; cause code: ${String((cause as { code: unknown }).code)}`
-  }
-  return error.message
-}
-
-async function fetchShortApi(
-  url: string,
-  init: RequestInit,
-  options: { retryable?: boolean } = {}
-): Promise<Response> {
-  const maxAttempts = options.retryable ? SHORTAPI_MAX_QUERY_ATTEMPTS : 1
-  let lastError: unknown
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const response = await fetch(url, init)
-      if (
-        options.retryable &&
-        attempt < maxAttempts &&
-        [408, 425, 429, 500, 502, 503, 504].includes(response.status)
-      ) {
-        await response.body?.cancel().catch(() => undefined)
-        await new Promise(resolve =>
-          setTimeout(resolve, SHORTAPI_RETRY_DELAY_MS)
-        )
-        continue
-      }
-      return response
-    } catch (error) {
-      lastError = error
-      if (attempt < maxAttempts) {
-        await new Promise(resolve =>
-          setTimeout(resolve, SHORTAPI_RETRY_DELAY_MS)
-        )
-        continue
-      }
-    }
-  }
-
-  throw new Error(
-    `ShortAPI request failed after ${maxAttempts} attempt${maxAttempts === 1 ? '' : 's'}: ${describeProviderError(lastError)}`,
-    { cause: lastError }
-  )
-}
-
-async function executeShortApiGenerate(
-  prompt: string,
-  aspectRatio: string | undefined,
-  threadId: string,
-  inputImageUrl?: string
-): Promise<{ imageUrl: string; modelUsed: string }> {
-  const apiKey = config.shortapiApiKey
-  if (!apiKey) {
-    throw new Error('SHORTAPI_API_KEY is not configured.')
-  }
-
-  const size = mapAspectRatioToShortApiSize(aspectRatio)
-
-  // 根据是否提供输入图片决定使用 text-to-image 还是 edit 模型
-  const isImg2Img = !!inputImageUrl
-  const modelPath = isImg2Img
-    ? 'openai/gpt-image-2/edit'
-    : 'openai/gpt-image-2/text-to-image'
-
-  const args: Record<string, unknown> = {
-    prompt,
-    size,
-  }
-
-  // 图生图模式：将输入图片作为编辑源传入
-  if (isImg2Img && inputImageUrl) {
-    args.image = inputImageUrl
-  }
-
-  const jobBaseUrl = resolveShortApiJobBaseUrl(config.shortapiBaseUrl)
-
-  // 1. Create Job
-  // Do not retry this POST: a lost response may still have created a billable job.
-  const createRes = await fetchShortApi(`${jobBaseUrl}/job/create`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ model: modelPath, args }),
-  })
-
-  if (!createRes.ok) {
-    const errText = await createRes.text()
-    throw new Error(
-      `ShortAPI job creation failed: ${createRes.status} - ${errText}`
-    )
-  }
-
-  const createData = (await createRes.json()) as any
-  const jobId = createData.data?.job_id
-  if (!jobId) {
-    throw new Error('ShortAPI did not return a job_id.')
-  }
-
-  // 2. Poll Status
-  const queryUrl = `${jobBaseUrl}/job/query?id=${encodeURIComponent(jobId)}`
-  let attempts = 0
-  // 复杂 prompt（如封面图）生成耗时较长，90s 常超时；提到 180s（90 次 × 2s）
-  const maxAttempts = 90
-
-  while (attempts < maxAttempts) {
-    attempts++
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    const queryRes = await fetchShortApi(
-      queryUrl,
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      },
-      { retryable: true }
-    )
-
-    if (!queryRes.ok) {
-      logger.warn(
-        `ShortAPI query attempt ${attempts} failed: ${queryRes.status}`
-      )
-      continue
-    }
-
-    const queryData = (await queryRes.json()) as any
-    const dataBlock = queryData.data || {}
-    const status = dataBlock.status
-
-    if (status === 2) {
-      const images = dataBlock.result?.images
-      if (images?.length && images[0].url) {
-        const imgUrl = images[0].url
-        const { base64Data, mimeType } = await fetchImageAsBase64(imgUrl)
-        const imageUrl = await uploadToCDN(base64Data, mimeType, threadId)
-        return {
-          imageUrl,
-          modelUsed: isImg2Img
-            ? 'openai/gpt-image-2/edit'
-            : 'openai/gpt-image-2',
-        }
-      }
-      throw new Error('No images found in successful ShortAPI result.')
-    }
-
-    if (status !== 1) {
-      throw new Error(`ShortAPI job failed with status: ${status}`)
-    }
-  }
-
-  throw new Error('ShortAPI image generation timed out after 180 seconds.')
 }
 
 export async function executeGeminiApiGenerate(
@@ -375,7 +193,6 @@ interface GenerateImageInput {
   aspect_ratio?: string
   reference_image_urls?: string[]
   negative_prompt?: string
-  model?: 'gemini' | 'gpt-image-2'
   /** 图生图模式：提供输入图片 URL，模型将基于此图 + prompt 生成变换后的新图 */
   input_image_url?: string
 }
@@ -392,53 +209,23 @@ interface GenerateImageOutput {
   }
 }
 
+function describeProviderError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error)
+  const cause = error.cause
+  if (cause instanceof Error && cause.message) {
+    return `${error.message}; cause: ${cause.message}`
+  }
+  if (cause && typeof cause === 'object' && 'code' in cause) {
+    return `${error.message}; cause code: ${String((cause as { code: unknown }).code)}`
+  }
+  return error.message
+}
+
 export async function executeGenerateImage(
   input: GenerateImageInput,
   threadId: string
 ): Promise<GenerateImageOutput> {
   const startTime = Date.now()
-  const reqModel = input.model
-
-  // 1. If user explicitly requested gpt-image-2
-  if (reqModel === 'gpt-image-2') {
-    try {
-      const { prompt: enhancedPrompt } = enhancePrompt(
-        input.prompt,
-        input.style_preset || 'photo_realistic',
-        input.negative_prompt
-      )
-      const { imageUrl, modelUsed } = await executeShortApiGenerate(
-        enhancedPrompt,
-        input.aspect_ratio,
-        threadId,
-        input.input_image_url
-      )
-      return {
-        success: true,
-        image_url: imageUrl,
-        metadata: {
-          model: modelUsed,
-          prompt_used: enhancedPrompt,
-          aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime,
-        },
-      }
-    } catch (err: any) {
-      return {
-        success: false,
-        error: `ShortAPI generation failed: ${err.message}`,
-        metadata: {
-          model: 'openai/gpt-image-2',
-          prompt_used: input.prompt,
-          aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime,
-        },
-      }
-    }
-  }
-
-  // 2. Default Strategy: "Prefer Gemini, Fallback GPT-Image-2"
-  const errors: string[] = []
 
   const { prompt: enhancedPrompt, negativePrompt } = enhancePrompt(
     input.prompt,
@@ -446,42 +233,9 @@ export async function executeGenerateImage(
     input.negative_prompt
   )
 
-  // Try 1: Gemini API Mode (via GEMINI_API_KEY)
-  const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
-  if (geminiApiKey) {
-    try {
-      const client = new GoogleGenAI({ apiKey: geminiApiKey })
-      const generated = await executeGeminiApiGenerate(
-        client,
-        MODEL,
-        enhancedPrompt,
-        input.aspect_ratio,
-        input.reference_image_urls,
-        input.input_image_url
-      )
-      const imageUrl = await uploadToCDN(
-        generated.base64Data,
-        generated.mimeType,
-        threadId
-      )
-      return {
-        success: true,
-        image_url: imageUrl,
-        metadata: {
-          model: MODEL,
-          prompt_used: enhancedPrompt,
-          aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime,
-        },
-      }
-    } catch (err: any) {
-      errors.push(`Gemini API error: ${err.message}`)
-    }
-  } else {
-    errors.push('Gemini API skipped: GEMINI_API_KEY not configured.')
-  }
-
-  // Try 2: Vertex AI Mode (via local ADC)
+  // Vertex AI (via local ADC) —— 当前唯一启用的生图通道。
+  // Gemini 开发者 API 因预付费余额耗尽移除(402);ShortAPI 因服务器
+  // 无法直连 api.shortapi.ai 移除。恢复任一通道时参考 git 历史。
   try {
     const projectId = await getGcloudProjectId()
     const client = new GoogleGenAI({
@@ -516,44 +270,15 @@ export async function executeGenerateImage(
       },
     }
   } catch (err: any) {
-    errors.push(`Vertex AI error: ${err.message}`)
-  }
-
-  // Try 3: ShortAPI Fallback Mode (GPT Image 2)
-  if (config.shortapiApiKey) {
-    try {
-      const { imageUrl, modelUsed } = await executeShortApiGenerate(
-        enhancedPrompt,
-        input.aspect_ratio,
-        threadId,
-        input.input_image_url
-      )
-      return {
-        success: true,
-        image_url: imageUrl,
-        metadata: {
-          model: modelUsed,
-          prompt_used: enhancedPrompt,
-          aspect_ratio: input.aspect_ratio || '1:1',
-          latency_ms: Date.now() - startTime,
-        },
-      }
-    } catch (err: any) {
-      errors.push(`ShortAPI error: ${err.message}`)
+    return {
+      success: false,
+      error: `Vertex AI generation failed: ${describeProviderError(err)}`,
+      metadata: {
+        model: process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL,
+        prompt_used: enhancedPrompt,
+        aspect_ratio: input.aspect_ratio || '1:1',
+        latency_ms: Date.now() - startTime,
+      },
     }
-  } else {
-    errors.push('ShortAPI skipped: SHORTAPI_API_KEY not configured.')
-  }
-
-  // If all failed
-  return {
-    success: false,
-    error: `All image generation channels failed. Errors: [${errors.join('; ')}]`,
-    metadata: {
-      model: 'unknown',
-      prompt_used: enhancedPrompt,
-      aspect_ratio: input.aspect_ratio || '1:1',
-      latency_ms: Date.now() - startTime,
-    },
   }
 }
