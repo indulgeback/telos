@@ -8,7 +8,7 @@ import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 
 let openaiClient: OpenAI | null = null
 
-async function getOpenAIClient(): Promise<OpenAI> {
+export async function getOpenAIClient(): Promise<OpenAI> {
   const model = config.defaultModel
 
   if (model.startsWith('gemini-') || model.startsWith('google/gemini-')) {

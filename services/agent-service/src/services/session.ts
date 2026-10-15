@@ -39,7 +39,7 @@ function normalizeOwnerId(ownerId?: string | null) {
   return ownerId?.trim() || ANONYMOUS_OWNER_ID
 }
 
-function titleFromInput(input?: string) {
+export function titleFromInput(input?: string) {
   const text = (input || '新会话').trim().replace(/\s+/g, ' ')
   if (!text) return '新会话'
   return text.slice(0, /[\u4e00-\u9fff]/.test(text) ? 24 : 48)

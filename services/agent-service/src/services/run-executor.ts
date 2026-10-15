@@ -5,6 +5,7 @@ import { PlanStore } from './plan-store.js'
 import type { StructuredPlan } from './plan-tools.js'
 import { loadPlanExecution, persistPlanExecution } from './plan-state.js'
 import { AgentRunPersistence } from './persistence.js'
+import { maybeGenerateThreadTitle } from './thread-title.js'
 import {
   appendRunEventForLease,
   appendRunUiEvent,
@@ -842,6 +843,10 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     })
     await flushPendingEmits()
     scheduleEventCleanup(options.runId)
+    // 首轮对话完成后用默认模型生成会话标题(后台异步,失败静默)
+    if (options.threadId) {
+      void maybeGenerateThreadTitle(options.threadId)
+    }
   } catch (error) {
     const effectiveError = budget.normalizeError(error)
     const message = enrichAgentRunError(effectiveError)

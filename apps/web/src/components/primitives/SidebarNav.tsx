@@ -65,6 +65,8 @@ const DEFAULT_RECENTS: SidebarRecent[] = [
 
 type SidebarNavProps = {
   activeTitle?: string | null
+  /** 会话列表按线程 ID 标定选中态;不传时回退到按标题匹配(演示模式) */
+  activeId?: string | null
   className?: string
   fill?: boolean
   onNewChat?: () => void
@@ -250,6 +252,7 @@ function WorkspaceMenu({
 
 export default function SidebarNav({
   activeTitle,
+  activeId,
   className = '',
   fill = false,
   onNewChat,
@@ -510,7 +513,10 @@ export default function SidebarNav({
 
             <GlideGroup>
               {visibleRecents.map(item => {
-                const active = item.label === selectedTitle
+                const active =
+                  activeId !== undefined && activeId !== null
+                    ? item.id === activeId
+                    : item.label === selectedTitle
                 return (
                   <div
                     key={item.id}

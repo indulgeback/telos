@@ -120,6 +120,7 @@ export function AgentThreadSidebar({
       fill
       className={cn('beautiful-ui h-full bg-surface py-2', className)}
       activeTitle={activeThread ? getThreadTitle(activeThread) : null}
+      activeId={currentThreadId}
       recents={collapsed ? [] : recents}
       collapsed={collapsed}
       collapsedMode='actions-only'

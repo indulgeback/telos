@@ -906,6 +906,10 @@ export function ChatView() {
         }
         if (streamEnd.end === 'terminal') {
           approvalResumeCursorRef.current = ''
+          // 标题由后端在首轮完成后异步生成,延时刷新让侧边栏尽快显示
+          window.setTimeout(() => {
+            void loadThreads()
+          }, 4_000)
         }
         return streamEnd
       } catch (error) {
@@ -976,6 +980,10 @@ export function ChatView() {
         }
         if (streamEnd.end === 'terminal') {
           approvalResumeCursorRef.current = ''
+          // 标题由后端在首轮完成后异步生成,延时刷新让侧边栏尽快显示
+          window.setTimeout(() => {
+            void loadThreads()
+          }, 4_000)
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') return
