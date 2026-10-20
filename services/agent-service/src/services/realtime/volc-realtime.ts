@@ -78,6 +78,16 @@ export function getVolcRealtimePublicConfig() {
   return getVolcRealtimeDiagnostics()
 }
 
+/**
+ * ws 对非 101 握手响应抛出的错误形如 "Unexpected server response: 403"。
+ * 401/403/404 意味着凭证或资源授权问题，重试只会原样失败。
+ */
+export function upstreamHandshakeStatus(error: unknown): number | null {
+  if (!(error instanceof Error)) return null
+  const match = /Unexpected server response: (\d{3})/.exec(error.message)
+  return match ? Number(match[1]) : null
+}
+
 function createWebSocket(connectId: string) {
   return new WebSocket(config.volcRealtimeEndpoint, {
     headers: {
@@ -1169,6 +1179,20 @@ export async function handleVolcRealtimeAudioSocket(options: {
 
     upstream.on('error', error => {
       logger.error({ msg: 'Volc realtime upstream socket error', err: error })
+      const handshakeStatus = upstreamHandshakeStatus(error)
+      if (
+        handshakeStatus === 401 ||
+        handshakeStatus === 403 ||
+        handshakeStatus === 404
+      ) {
+        // 授权类失败重试无意义，立即终结并让前端展示可理解的原因
+        safeSendClientJson(client, 'session_ended', {
+          reason: 'upstream_unauthorized',
+          status: handshakeStatus,
+        })
+        closeBoth(1011, 'upstream rejected the handshake')
+        return
+      }
       if (!isReconnecting) {
         tryReconnectUpstream()
         return

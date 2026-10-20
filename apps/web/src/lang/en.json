@@ -180,6 +180,7 @@
       "missingConfig": "Missing {count} configuration items",
       "microphoneError": "Unable to start the microphone, please check the browser permissions.",
       "socketError": "Real-time voice connection is abnormal, please try again later.",
+      "serviceUnavailable": "Real-time voice service is unavailable. The speech service may not be activated or has expired.",
       "mute": "Mute microphone",
       "unmute": "Unmute microphone",
       "muted": "Microphone muted",

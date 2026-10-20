@@ -180,6 +180,7 @@
       "missingConfig": "Fehlen {count} Konfigurationen",
       "microphoneError": "Das Mikrofon kann nicht gestartet werden. Bitte überprüfen Sie die Berechtigungen des Browsers.",
       "socketError": "Echtzeit-Sprachverbindung gestört, bitte versuchen Sie es später erneut.",
+      "serviceUnavailable": "Der Echtzeit-Sprachdienst ist nicht verfügbar. Der Sprachdienst ist möglicherweise nicht aktiviert oder abgelaufen.",
       "mute": "Mikrofon stummschalten",
       "unmute": "Mikrofon einschalten",
       "muted": "Mikrofon stummgeschaltet",

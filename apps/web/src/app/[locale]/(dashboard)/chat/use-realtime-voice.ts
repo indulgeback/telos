@@ -558,6 +558,28 @@ export function useRealtimeVoice({
             return
           }
 
+          // 服务端判定会话不可恢复（如上游语音服务未授权），直接终止并展示原因
+          if (chunk.type === 'session_ended') {
+            const reason = (chunk as { reason?: unknown }).reason
+            realtimeSocketRef.current = null
+            socket.onclose = null
+            socket.onerror = null
+            try {
+              socket.close(1000, 'upstream ended')
+            } catch {}
+            stopRealtimeAudioResources()
+            setStatus('ready')
+            setActiveAssistantId(null)
+            setRealtimeStartedAt(null)
+            setRealtimeMicState('error')
+            setRealtimeErrorText(
+              reason === 'upstream_unauthorized'
+                ? t('voice.serviceUnavailable')
+                : t('voice.socketError')
+            )
+            return
+          }
+
           if (chunk.type === 'response.audio.delta') {
             const audioChunk = chunk as unknown as {
               audio?: unknown

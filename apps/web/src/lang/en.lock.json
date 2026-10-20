@@ -123,6 +123,7 @@
   "Chat.voice.voiceInputMessage": "(Voice input)",
   "Chat.voice.microphoneError": "Unable to start the microphone, please check the browser permissions.",
   "Chat.voice.socketError": "Real-time voice connection is abnormal, please try again later.",
+  "Chat.voice.serviceUnavailable": "Real-time voice service is unavailable. The speech service may not be activated or has expired.",
   "Chat.voice.mute": "Mute Microphone",
   "Chat.voice.unmute": "Unmute Microphone",
   "Chat.reasoning.title": "Reasoning process",

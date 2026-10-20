@@ -180,6 +180,7 @@
       "missingConfig": "缺少 {count} 項配置",
       "microphoneError": "無法啟動麥克風，請檢查瀏覽器權限。",
       "socketError": "即時語音連接異常，請稍後重試。",
+      "serviceUnavailable": "即時語音服務不可用，語音服務可能未開通或已過期。",
       "mute": "靜音麥克風",
       "unmute": "取消靜音麥克風",
       "muted": "麥克風已靜音",
