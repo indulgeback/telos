@@ -1,10 +1,16 @@
 import { randomUUID } from 'node:crypto'
+import { RunContext, type FunctionTool, type Tool } from '@openai/agents'
 import WebSocket, { type RawData } from 'ws'
 import { config, createModuleLogger } from '../../config/index.js'
 import { safeJsonStringify } from '../../utils/json.js'
 import { agentRuntimeService } from '../runtime.js'
 import { agentSessionService } from '../session.js'
 import { prisma } from '../db.js'
+import { buildBuiltinTool, isBuiltinToolAllowed } from '../builtin-tools.js'
+import { AgentRunPersistence } from '../persistence.js'
+import { buildEndpointTool, type LoadedTool } from '../runtime.js'
+import { isToolUserAssignable } from '../tool-access.js'
+import { toolRequiresApproval } from '../tool-approval-policy.js'
 
 const logger = createModuleLogger('volc-realtime')
 
@@ -106,10 +112,61 @@ function resolveVoice(rawSpeaker: string): string {
   return 'zh_female_vv_jupiter_bigtts'
 }
 
+// 与火山的 function 声明格式一致：标准 JSON schema 直传
+export interface VoiceToolDeclaration {
+  type: 'function'
+  name: string
+  description: string
+  parameters: Record<string, unknown>
+}
+
+const VOICE_TOOL_LIMIT = 16
+const VOICE_TOOL_CALL_LIMIT = 20
+const VOICE_TOOL_TIMEOUT_MS = 60_000
+const VOICE_TOOL_OUTPUT_MAX_CHARS = 8000
+
+/**
+ * 语音会话可用工具的白名单过滤：
+ * 沙箱不可用的内置工具、非用户可分配工具、需审批工具（语音无法审批）一律排除，
+ * MCP/子 agent 不在此列（v1 不接入语音）。数量上限 VOICE_TOOL_LIMIT。
+ */
+export function filterVoiceToolRaws(rows: LoadedTool[]): LoadedTool[] {
+  return rows
+    .filter(raw => Boolean(raw))
+    .filter(
+      raw =>
+        isBuiltinToolAllowed(raw) &&
+        isToolUserAssignable(raw) &&
+        !toolRequiresApproval(raw)
+    )
+    .slice(0, VOICE_TOOL_LIMIT)
+}
+
+/** 兼容扁平与嵌套 item 两种下发包法，提取 FC 调用的三元组 */
+export function parseVoiceFunctionCallEvent(event: Record<string, unknown>): {
+  callId: string
+  name: string
+  argsRaw: string
+} {
+  const source = (event.item && typeof event.item === 'object'
+    ? event.item
+    : event) as Record<string, unknown>
+  const callId =
+    (typeof source.call_id === 'string' && source.call_id) ||
+    (typeof source.callId === 'string' && source.callId) ||
+    randomUUID()
+  const name = typeof source.name === 'string' ? source.name : ''
+  const argsRaw = typeof source.arguments === 'string' ? source.arguments : ''
+  return { callId, name, argsRaw }
+}
+
+
 function buildVoiceSession(params: {
   instructions?: string
   voiceConfig?: VolcRealtimeVoiceConfig
   resumeSessionId?: string | null
+  tools?: VoiceToolDeclaration[]
+  webSearchEnabled?: boolean
 }) {
   const voice = params.voiceConfig || {}
   const isVoiceEnabled = voice.enabled !== false
@@ -140,6 +197,14 @@ function buildVoiceSession(params: {
         voice: speaker,
       },
     },
+  }
+  if (params.tools && params.tools.length > 0) {
+    session.tools = params.tools
+  }
+  if (params.webSearchEnabled) {
+    session.extension = {
+      dialog: { extra: { enable_volc_websearch: true } },
+    }
   }
   // 官方约定 session.id 传原 dialog id 即可接续上下文（重连恢复用）
   if (params.resumeSessionId) {
@@ -265,6 +330,24 @@ export async function handleVolcRealtimeAudioSocket(options: {
   let agentInstructions: string | undefined
   let voiceConfig: VolcRealtimeVoiceConfig | null = null
   let initiallyMuted = false
+
+  // ---- 语音工具调用（Function Calling）状态 ----
+  // 语音会话无法走审批交互，需审批的工具在解析阶段整类排除；
+  // MCP 与子 agent 涉及审批策略绑定，v1 同样不接入。
+  interface VoiceToolBinding {
+    raw: LoadedTool
+    functionTool: FunctionTool<any, any, any>
+  }
+  interface VoiceToolRuntime {
+    persistence: AgentRunPersistence
+    bindings: Map<string, VoiceToolBinding>
+    declarations: VoiceToolDeclaration[]
+  }
+  let voiceToolsetLoaded = false
+  let voiceToolRaws: LoadedTool[] = []
+  let voiceToolRuntime: VoiceToolRuntime | null = null
+  let voiceToolChain: Promise<void> = Promise.resolve()
+  let voiceToolCalls = 0
   const pendingAudio: Buffer[] = []
   let turnIndex = 0
   let currentTurnId: string | undefined
@@ -427,6 +510,219 @@ export async function handleVolcRealtimeAudioSocket(options: {
     currentAssistantText = ''
   }
 
+  // ---- 语音工具集：解析 → 构建 SDK 执行器 → FC 事件执行 ----
+
+  const loadVoiceToolset = async (agentId: string) => {
+    if (voiceToolsetLoaded) return
+    voiceToolsetLoaded = true
+    try {
+      const rows = await prisma.agentTool.findMany({
+        where: { agentId, enabled: true },
+        include: { tool: true },
+        orderBy: { sortOrder: 'asc' },
+      })
+      voiceToolRaws = filterVoiceToolRaws(
+        rows.map(row => row.tool)
+      )
+      if (voiceToolRaws.length > 0) {
+        logger.info({
+          msg: 'Voice toolset resolved',
+          agentId,
+          tools: voiceToolRaws.map(raw => raw.name || raw.id),
+        })
+      }
+    } catch (error) {
+      logger.error({ msg: 'Failed to load voice toolset', err: error, agentId })
+    }
+  }
+
+  let voiceToolRuntimeReady = false
+  const ensureVoiceToolRuntime = async (): Promise<VoiceToolRuntime | null> => {
+    if (voiceToolRuntimeReady) return voiceToolRuntime
+    voiceToolRuntimeReady = true
+    if (voiceToolRaws.length === 0 || !currentAgentId || !currentThreadId) {
+      return null
+    }
+    try {
+      // 一条轻量 run 承载整个语音会话的工具执行：工作区/图片按线程落盘、事件留痕
+      const run = await prisma.agentRun.create({
+        data: {
+          agentId: currentAgentId,
+          threadId: currentThreadId,
+          status: 'completed',
+          input: { source: 'realtime_voice_function_call' },
+          finalOutput: '语音会话工具执行容器',
+          metadata: {
+            source: 'realtime_voice_fc',
+            model: config.volcRealtimeModel,
+          },
+          startedAt: new Date(),
+          completedAt: new Date(),
+        },
+      })
+      const persistence = new AgentRunPersistence(run.id)
+      const bindings = new Map<string, VoiceToolBinding>()
+      const declarations: VoiceToolDeclaration[] = []
+      for (const raw of voiceToolRaws) {
+        const built = buildEndpointTool(raw, persistence)
+        if (!built || built.type !== 'function') continue
+        const functionTool = built as FunctionTool<any, any, any>
+        const declaration: VoiceToolDeclaration = {
+          type: 'function',
+          name: functionTool.name,
+          description:
+            raw.description || raw.displayName || raw.name || functionTool.name,
+          parameters:
+            (raw.parameters as Record<string, unknown> | null) ?? {},
+        }
+        bindings.set(declaration.name, { raw, functionTool })
+        declarations.push(declaration)
+      }
+      if (declarations.length === 0) return null
+      voiceToolRuntime = { persistence, bindings, declarations }
+      return voiceToolRuntime
+    } catch (error) {
+      logger.error({ msg: 'Failed to prepare voice tool runtime', err: error })
+      return null
+    }
+  }
+
+  const sendVoiceToolOutputToVolc = (callId: string, text: string) => {
+    sendUpstreamJson({
+      type: 'conversation.item.create',
+      item: {
+        type: 'function_call_output',
+        call_id: callId,
+        role: 'tool',
+        content: [{ type: 'input_text', text }],
+      },
+    })
+  }
+
+  const executeVoiceFunctionCall = async (event: Record<string, unknown>) => {
+    voiceToolCalls += 1
+    const { callId, name, argsRaw } = parseVoiceFunctionCallEvent(event)
+
+    const fail = (message: string) => {
+      safeSendClientJson(client, 'tool-output-available', {
+        toolCallId: callId,
+        toolName: name || 'tool',
+        output: message,
+      })
+      sendVoiceToolOutputToVolc(callId, message)
+    }
+
+    if (voiceToolCalls > VOICE_TOOL_CALL_LIMIT) {
+      fail(`本会话工具调用次数已达上限（${VOICE_TOOL_CALL_LIMIT} 次）。`)
+      return
+    }
+    const runtime = voiceToolRuntime
+    if (!runtime) {
+      fail('当前语音会话没有可用的工具。')
+      return
+    }
+    const binding = runtime.bindings.get(name)
+    if (!binding) {
+      fail(`未知的工具：${name || '(未提供名称)'}。`)
+      return
+    }
+    let args: Record<string, unknown>
+    try {
+      const parsed: unknown = JSON.parse(argsRaw || '{}')
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('arguments must be a JSON object')
+      }
+      args = parsed as Record<string, unknown>
+    } catch (error) {
+      fail(
+        `工具参数解析失败：${error instanceof Error ? error.message : String(error)}`
+      )
+      return
+    }
+
+    safeSendClientJson(client, 'tool-input-available', {
+      toolCallId: callId,
+      toolName: name,
+      input: args,
+    })
+    await runtime.persistence
+      .event('voice_tool_call_start', { callId, toolName: name, arguments: args })
+      .catch(() => undefined)
+
+    try {
+      const invocation = binding.functionTool.invoke(
+        new RunContext(),
+        safeJsonStringify(args),
+        {
+          toolCall: {
+            type: 'function_call',
+            callId,
+            name,
+            arguments: safeJsonStringify(args),
+          },
+        }
+      )
+      const result = await new Promise<string | unknown>((resolve, reject) => {
+        const timer = setTimeout(
+          () =>
+            reject(new Error(`工具执行超时（${VOICE_TOOL_TIMEOUT_MS / 1000}s）`)),
+          VOICE_TOOL_TIMEOUT_MS
+        )
+        timer.unref?.()
+        invocation.then(
+          value => {
+            clearTimeout(timer)
+            resolve(value)
+          },
+          error => {
+            clearTimeout(timer)
+            reject(error)
+          }
+        )
+      })
+      const rawOutput =
+        typeof result === 'string' ? result : safeJsonStringify(result ?? {})
+      const outputText =
+        rawOutput.length > VOICE_TOOL_OUTPUT_MAX_CHARS
+          ? `${rawOutput.slice(0, VOICE_TOOL_OUTPUT_MAX_CHARS)}…[已截断]`
+          : rawOutput || '（工具无输出）'
+      await runtime.persistence
+        .event('voice_tool_call_end', { callId, toolName: name, ok: true })
+        .catch(() => undefined)
+      safeSendClientJson(client, 'tool-output-available', {
+        toolCallId: callId,
+        toolName: name,
+        output: outputText,
+      })
+      sendVoiceToolOutputToVolc(callId, outputText)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      logger.warn({ msg: 'Voice tool call failed', toolName: name, err: error })
+      await runtime.persistence
+        .event('voice_tool_call_end', {
+          callId,
+          toolName: name,
+          ok: false,
+          error: message,
+        })
+        .catch(() => undefined)
+      const text = `工具执行失败：${message}`
+      safeSendClientJson(client, 'tool-output-available', {
+        toolCallId: callId,
+        toolName: name,
+        output: text,
+      })
+      sendVoiceToolOutputToVolc(callId, text)
+    }
+  }
+
+  // 工具调用逐个串行执行，避免并发写同一线程工作区
+  const queueVoiceFunctionCall = (event: Record<string, unknown>) => {
+    voiceToolChain = voiceToolChain
+      .catch(() => undefined)
+      .then(() => executeVoiceFunctionCall(event))
+  }
+
   const sendUpstreamJson = (payload: Record<string, unknown>) => {
     if (upstream.readyState !== WebSocket.OPEN) return
     upstream.send(safeJsonStringify(payload))
@@ -438,6 +734,9 @@ export async function handleVolcRealtimeAudioSocket(options: {
         instructions: pendingInstructions || agentInstructions,
         voiceConfig: voiceConfig ?? undefined,
         resumeSessionId: resume ? lastVolcDialogId : null,
+        tools: voiceToolRuntime?.declarations,
+        webSearchEnabled:
+          voiceConfig?.enabled !== false && voiceConfig?.webSearchEnabled === true,
       })
     )
   }
@@ -655,11 +954,8 @@ export async function handleVolcRealtimeAudioSocket(options: {
       case 'input_audio_buffer.cleared':
         return
       case 'response.function_call_arguments.done':
-        // Function calling 链路尚未接线，仅记录避免静默丢功能
-        logger.warn({
-          msg: 'Volc realtime function call received but FC is not wired',
-          name: event.name,
-        })
+        // 火山模型已决定调用工具且参数齐备；排队串行执行后回传结果
+        queueVoiceFunctionCall(event)
         return
       case 'response.done':
       case 'response.canceled':
@@ -746,6 +1042,10 @@ export async function handleVolcRealtimeAudioSocket(options: {
               threadId: payload.threadId,
             })
             startRequested = true
+            if (currentAgentId) {
+              await loadVoiceToolset(currentAgentId)
+              await ensureVoiceToolRuntime()
+            }
             createVolcSession(false)
             return
           }

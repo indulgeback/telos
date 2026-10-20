@@ -315,7 +315,7 @@ export function checkpointFunctionTool(
   return functionTool
 }
 
-function buildEndpointTool(
+export function buildEndpointTool(
   raw: LoadedTool,
   persistence?: AgentRunPersistence,
   options: { allowPrivateNetwork?: boolean } = {}
