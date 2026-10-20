@@ -96,17 +96,13 @@ export const config = {
   embeddingProvider: process.env.EMBEDDING_PROVIDER || 'openai',
   embeddingModel: process.env.EMBEDDING_MODEL || 'text-embedding-004',
 
-  // VolcEngine Doubao realtime speech
+  // VolcEngine Doubao realtime speech (全双工版 / Seeduplex, X-Api-Key 鉴权)
   volcRealtimeEndpoint:
     process.env.VOLC_REALTIME_ENDPOINT ||
-    'wss://openspeech.bytedance.com/api/v3/realtime/dialogue',
-  volcRealtimeAppId: process.env.VOLC_REALTIME_APP_ID || '',
-  volcRealtimeAccessKey: process.env.VOLC_REALTIME_ACCESS_KEY || '',
-  volcRealtimeResourceId:
-    process.env.VOLC_REALTIME_RESOURCE_ID || 'volc.speech.dialog',
-  // 凭证类配置不给源码默认值:曾硬编码过一个看似可用的 AppKey,既无法轮换也构成泄露
-  volcRealtimeAppKey: process.env.VOLC_REALTIME_APP_KEY || '',
-  volcRealtimeModel: process.env.VOLC_REALTIME_MODEL || '1.2.1.1',
+    'wss://openspeech.bytedance.com/api/v3/duplex/realtime/dialogue',
+  // 全双工 API 的唯一鉴权凭证,取自控制台 API Key 管理
+  volcRealtimeApiKey: process.env.VOLC_REALTIME_API_KEY || '',
+  volcRealtimeModel: process.env.VOLC_REALTIME_MODEL || '1.2.6.1',
   volcRealtimeSpeaker: process.env.VOLC_REALTIME_SPEAKER || '',
   volcRealtimeDemo: process.env.VOLC_REALTIME_DEMO === 'true',
 

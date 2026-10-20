@@ -19,7 +19,7 @@ import type {
   RealtimeConfig,
   RealtimeMicState,
 } from './chat-types'
-import { createTextPart, createLiveTranscriptMarker } from './chat-types'
+import { createLiveTranscriptMarker } from './chat-types'
 import { parseUiMessageStreamChunk } from './chat-plan-utils'
 import {
   base64ToArrayBuffer,
@@ -45,10 +45,6 @@ interface RealtimeVoiceOptions {
     chunk: AgentStreamChunk,
     options?: { suppressTextOnFailure?: boolean }
   ) => void
-  updateAssistantParts: (
-    assistantId: string,
-    updater: (parts: Array<Record<string, unknown>>) => void
-  ) => void
 }
 
 export function useRealtimeVoice({
@@ -64,7 +60,6 @@ export function useRealtimeVoice({
   abortControllerRef,
   pendingClarifyRef,
   applyAgentStreamChunk,
-  updateAssistantParts,
 }: RealtimeVoiceOptions) {
   const t = useTranslations('Chat')
   const scopeRef = useRef(new VoiceSessionScope())
@@ -97,6 +92,19 @@ export function useRealtimeVoice({
   const realtimeMutedRef = useRef(false)
 
   realtimeMutedRef.current = realtimeMuted
+
+  // 静音切换同步给服务端：全双工协议里静音后没有音频帧，
+  // 服务端要向上游发 mute 事件保活，否则会话超时
+  useEffect(() => {
+    const socket = realtimeSocketRef.current
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(
+        JSON.stringify({
+          type: realtimeMuted ? 'client.mute' : 'client.unmute',
+        })
+      )
+    }
+  }, [realtimeMuted])
 
   const realtimeSocketRef = useRef<WebSocket | null>(null)
 
@@ -259,104 +267,6 @@ export function useRealtimeVoice({
     realtimeUserIdRef.current = null
     realtimeAssistantIdRef.current = null
   }, [setMessages])
-
-  const streamRealtimeTextMessage = useCallback(
-    async (input: string, assistantId: string) => {
-      const controller = new AbortController()
-      abortControllerRef.current = controller
-      setStatus('submitted')
-      setActiveAssistantId(assistantId)
-
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/agent/realtime/text`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input }),
-            signal: controller.signal,
-          }
-        )
-
-        if (!response.ok) {
-          throw new Error(`Realtime stream failed: ${response.status}`)
-        }
-        if (!response.body) {
-          throw new Error('Realtime stream response is empty')
-        }
-
-        if (
-          controller.signal.aborted ||
-          abortControllerRef.current !== controller
-        )
-          return
-        setStatus('streaming')
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-
-        while (true) {
-          const { value, done } = await reader.read()
-          if (
-            controller.signal.aborted ||
-            abortControllerRef.current !== controller
-          )
-            return
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const frames = buffer.split(/\n\n/)
-          buffer = frames.pop() ?? ''
-
-          frames.forEach(frame => {
-            frame.split(/\n/).forEach(line => {
-              if (!line.startsWith('data:')) return
-              const chunk = parseUiMessageStreamChunk(line.slice(5))
-              if (chunk) {
-                applyAgentStreamChunk(assistantId, chunk)
-              }
-            })
-          })
-        }
-
-        if (buffer.trim()) {
-          buffer.split(/\n/).forEach(line => {
-            if (!line.startsWith('data:')) return
-            const chunk = parseUiMessageStreamChunk(line.slice(5))
-            if (chunk) applyAgentStreamChunk(assistantId, chunk)
-          })
-        }
-      } catch (error) {
-        if (abortControllerRef.current !== controller) return
-        if (error instanceof Error && error.name === 'AbortError') return
-        const message = error instanceof Error ? error.message : String(error)
-        updateAssistantParts(assistantId, parts => {
-          parts.push(createTextPart(t('voiceError', { error: message })))
-        })
-      } finally {
-        if (abortControllerRef.current !== controller) return
-        abortControllerRef.current = null
-        setActiveAssistantId(null)
-        // plan 模式且计划正在等待审批时，保持 submitted（loading）状态，
-        // 不让复制/重试按钮过早出现；clarify 同理（等待用户选择）
-        if (pendingClarifyRef.current) {
-          setStatus('submitted')
-        } else {
-          setStatus('ready')
-        }
-      }
-    },
-    [
-      applyAgentStreamChunk,
-      t,
-      updateAssistantParts,
-      abortControllerRef,
-      pendingClarifyRef,
-      setActiveAssistantId,
-      setStatus,
-    ]
-  )
 
   const stopRealtimeAudioResources = useCallback(() => {
     realtimeProcessorRef.current?.disconnect()
@@ -530,6 +440,8 @@ export function useRealtimeVoice({
               type: 'client.start',
               agentId: selectedAgent?.id,
               threadId: currentThreadIdRef.current,
+              // 连接建立前就静音的场景：服务端 session 建好后需要主动补发静音保活
+              muted: realtimeMutedRef.current,
             })
           )
           setRealtimeStartedAt(Date.now())
@@ -778,6 +690,5 @@ export function useRealtimeVoice({
     setRealtimeMuted,
     realtimeAvailable,
     isRealtimeMicActive,
-    streamRealtimeTextMessage,
   }
 }

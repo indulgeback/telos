@@ -1232,7 +1232,6 @@ export function ChatView() {
     setRealtimeMuted,
     realtimeAvailable,
     isRealtimeMicActive,
-    streamRealtimeTextMessage,
   } = useRealtimeVoice({
     isLoading,
     selectedAgent,
@@ -1246,7 +1245,6 @@ export function ChatView() {
     abortControllerRef,
     pendingClarifyRef,
     applyAgentStreamChunk,
-    updateAssistantParts,
   })
 
   const suggestionPrompts = useChatSuggestions(t)
@@ -1598,31 +1596,8 @@ export function ChatView() {
     setShowScrollToBottom(false)
     pendingReplyModelLabelRef.current = selectedModelDisplayLabel
 
-    if (realtimeEnabled) {
-      pendingReplyModelLabelRef.current = t('voice.modelLabel')
-      const userMessageId = createClientMessageId('user')
-      const assistantMessageId = createClientMessageId('assistant')
-      setActiveAssistantId(assistantMessageId)
-      setMessages(prev => [
-        ...prev,
-        {
-          id: userMessageId,
-          role: 'user',
-          content: contentToSend,
-          parts: [{ type: 'text', text: contentToSend }],
-        },
-        {
-          id: assistantMessageId,
-          role: 'assistant',
-          content: '',
-          parts: [],
-        },
-      ])
-      await streamRealtimeTextMessage(contentToSend, assistantMessageId)
-      textareaRef.current?.focus()
-      return
-    }
-
+    // 语音模式下键入文字也走常规 agent 对话流：全双工语音 API 是纯语音
+    // 协议，没有文字提问事件；语音会话本身继续独立进行，互不影响。
     let threadIdForRequest = currentThreadId
     if (!threadIdForRequest && selectedAgent?.id) {
       const thread = await agentService.createThread({
