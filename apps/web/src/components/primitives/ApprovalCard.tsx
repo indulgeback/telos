@@ -17,6 +17,7 @@ import {
 } from 'react'
 import { Button } from '@/components/atoms'
 import GlideMenu from '@/components/primitives/GlideMenu'
+import { isImeComposingKeyEvent } from '@/components/molecules/chat/ime'
 import { cn } from '@/lib/utils'
 
 export type ApprovalQuestion = {
@@ -577,6 +578,10 @@ export default function ApprovalCard({
                             }
                           }}
                           onKeyDown={event => {
+                            // 输入法组合中的 Enter（确认候选词）不推进问题
+                            if (isImeComposingKeyEvent(event.nativeEvent)) {
+                              return
+                            }
                             if (event.key === 'Enter' && hasAnswer) {
                               event.preventDefault()
                               advance()

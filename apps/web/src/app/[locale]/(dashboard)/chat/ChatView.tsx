@@ -35,6 +35,7 @@ import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
 import { PlanProgressStrip } from '@/components/molecules/chat/plan-progress'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
+import { isImeComposingKeyEvent } from '@/components/molecules/chat/ime'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
 import { uploadImageToCos } from '@/lib/cos-upload'
@@ -190,6 +191,8 @@ export function ChatView() {
     const onKeyDown = (e: KeyboardEvent) => {
       const ctrl = skillTriggerControlsRef.current
       if (!ctrl || !ctrl.isOpen()) return
+      // 输入法组合中（方向键翻页/Enter 确认候选词）不拦截按键
+      if (isImeComposingKeyEvent(e)) return
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         ctrl.move('up')
