@@ -43,15 +43,20 @@ COPY prisma ./prisma
 # Prisma 7 的 migrate deploy/resolve 从该配置读取 datasource URL。
 COPY prisma.config.ts ./prisma.config.ts
 
-# Install production dependencies only (--ignore-scripts 跳过 husky prepare)
-# --filter 只装 agent-service（否则 monorepo 锁文件会把 web/mobile/admin 的依赖
-# 也 hoist 进根 node_modules，镜像因此从 ~800MB 膨胀到 2.9GB）；同层清掉
-# content-addressable store（运行时不需要，硬链接副本也在 node_modules 里）
-RUN cd services/agent-service && pnpm install --prod --frozen-lockfile --ignore-scripts --filter @telos/agent-service && rm -rf /root/.local/share/pnpm/store
+# Install production dependencies only, deployed to a self-contained tree.
+# workspace + hoisted 模式会把 monorepo 锁文件里所有包（web/mobile/admin）的
+# 依赖都提升进根 node_modules，镜像因此膨胀到 2.9GB；`pnpm deploy --prod`
+ # 只物化 agent-service 自己的生产依赖，node_modules 换成精简版后 store 一并清除。
+RUN cd services/agent-service \
+    && pnpm deploy --filter @telos/agent-service --prod /deployed \
+    && rm -rf /root/.local/share/pnpm/store \
+    && rm -rf services/agent-service/node_modules \
+    && cp -a /deployed/node_modules services/agent-service/node_modules \
+    && rm -rf /deployed
 
-# Runtime 也需要生成 Prisma Client (--prod 重装后 client 是空的)。Prisma
+# Runtime 也需要生成 Prisma Client (deploy --prod 后 client 是空的)。Prisma
 # CLI 是锁文件固定的 production dependency，不允许 npx 在构建时临时下载。
-RUN cd services/agent-service && pnpm exec prisma generate --schema ../../prisma/schema.prisma
+RUN cd services/agent-service && ./node_modules/.bin/prisma generate --schema ../../prisma/schema.prisma
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist
