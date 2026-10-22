@@ -12,11 +12,16 @@ const A2A_OWNER_ID = 'a2a-external'
 const A2A_SEND_TIMEOUT_MS = 120_000
 const A2A_POLL_INTERVAL_MS = 1_500
 
-export const a2aRouter = new Hono()
+// strict:false 让 /api/a2a 与 /api/a2a/ 等价（客户端两种写法都常见）
+export const a2aRouter = new Hono({ strict: false })
 
 // ---------- 鉴权（Bearer，独立于 Better Auth cookie 通道） ----------
-
+// Agent Card 是公开的发现文档，不要求鉴权
 a2aRouter.use('*', async (c, next) => {
+  if (c.req.path.endsWith('/.well-known/agent-card.json')) {
+    await next()
+    return
+  }
   if (!config.a2aApiKey) {
     return c.json(
       { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'A2A endpoint is disabled (A2A_API_KEY not configured)' } },
