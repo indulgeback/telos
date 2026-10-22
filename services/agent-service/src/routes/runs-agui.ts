@@ -18,10 +18,8 @@ import {
   isAguiTerminalEvent,
   translateRunEventToAgui,
 } from '../services/agui-translate.js'
-import { BoundedByteQueue } from '../services/bounded-byte-queue.js'
 
 const AGUI_REPLAY_BATCH_SIZE = 500
-const AGUI_PENDING_BYTES = 256 * 1024
 
 export const runsAguiRouter = new Hono()
 
@@ -48,8 +46,6 @@ runsAguiRouter.get('/:id/agui', async c => {
   let lastSentSequence = afterValid
   const encoder = new TextEncoder()
   let closed = false
-  let closingAfterDrain = false
-  const pending = new BoundedByteQueue<Uint8Array>(AGUI_PENDING_BYTES)
   const resources: {
     unsubscribe?: () => void
     heartbeat?: ReturnType<typeof setInterval>
@@ -68,44 +64,21 @@ runsAguiRouter.get('/:id/agui', async c => {
           if (closed) return
           closed = true
           releaseResources()
-          pending.clear()
           try {
             controller.close()
           } catch {
             // noop
           }
         }
-        const drain = () => {
-          while (!closed && pending.length > 0) {
-            if ((controller.desiredSize ?? 1) <= 0) break
-            const chunk = pending.shift()
-            if (chunk) controller.enqueue(chunk)
-          }
-          if (!closed && closingAfterDrain && pending.length === 0) close()
-        }
-        const closeAfterDrain = () => {
-          if (closed || closingAfterDrain) return
-          closingAfterDrain = true
-          releaseResources()
-          drain()
-        }
-        const enqueue = (chunk: Uint8Array) => {
-          if (closed || closingAfterDrain) return false
-          if (pending.length === 0 && (controller.desiredSize ?? 1) > 0) {
-            controller.enqueue(chunk)
-            return true
-          }
-          if (pending.push(chunk)) return true
-          closeAfterDrain()
-          return false
-        }
 
-        // AG-UI SSE 帧：事件类型在 JSON 的 type 字段内，无 event: 行
+        // AG-UI SSE 帧：事件类型在 JSON 的 type 字段内，无 event: 行。
+        // 直接写 controller，由 ReadableStream 内部队列缓冲（运行事件量级小，
+        // 无需内部端点那套慢消费者 BoundedByteQueue/drain 机制）。
         const sendAgui = (agui: {
           type: string
           [key: string]: unknown
         }) => {
-          if (closed || closingAfterDrain) return false
+          if (closed) return false
           const sequence = typeof agui.sequence === 'string' ? agui.sequence : ''
           if (
             !sequence ||
@@ -114,12 +87,15 @@ runsAguiRouter.get('/:id/agui', async c => {
           ) {
             return false
           }
-          const accepted = enqueue(
-            encoder.encode(`data: ${safeJsonStringify(agui)}\n\n`)
-          )
-          if (!accepted) return false
+          try {
+            controller.enqueue(
+              encoder.encode(`data: ${safeJsonStringify(agui)}\n\n`)
+            )
+          } catch {
+            return false
+          }
           lastSentSequence = sequence
-          if (isAguiTerminalEvent(agui.type)) closeAfterDrain()
+          if (isAguiTerminalEvent(agui.type)) close()
           return true
         }
 
@@ -130,15 +106,7 @@ runsAguiRouter.get('/:id/agui', async c => {
               ...(payload as Record<string, unknown>),
               sequence,
             })
-            if (!translated) return
-            const accepted = sendAgui(translated)
-            logger.debug({
-              msg: 'AG-UI replay event',
-              runId,
-              sequence,
-              aguiType: translated.type,
-              accepted,
-            })
+            if (translated) sendAgui(translated)
           } catch (error) {
             logger.error({
               msg: 'AG-UI translate/send failed',
@@ -150,12 +118,7 @@ runsAguiRouter.get('/:id/agui', async c => {
         }
 
         resources.heartbeat = setInterval(() => {
-          if (
-            !closed &&
-            !closingAfterDrain &&
-            pending.length === 0 &&
-            (controller.desiredSize ?? 1) > 0
-          ) {
+          if (!closed) {
             try {
               controller.enqueue(encoder.encode(': ping\n\n'))
             } catch {
@@ -190,7 +153,7 @@ runsAguiRouter.get('/:id/agui', async c => {
         })
         for (const event of history) {
           translateAndSend(event.payload, event.sequence)
-          if (closingAfterDrain) break
+          if (closed) break
         }
         logger.info({
           msg: 'AG-UI replay done',
@@ -198,9 +161,8 @@ runsAguiRouter.get('/:id/agui', async c => {
           historyLen: history.length,
           lastSentSequence,
           closed,
-          closingAfterDrain,
         })
-        if (closed || closingAfterDrain) return
+        if (closed) return
 
         resources.unsubscribe = subscribeRunEvents(
           runId,
@@ -217,7 +179,7 @@ runsAguiRouter.get('/:id/agui', async c => {
           where: { id: runId },
           select: { id: true, status: true, finalOutput: true, error: true },
         })
-        if (closed || closingAfterDrain) return
+        if (closed) return
         const terminalPayload = latest ? buildTerminalUiPayload(latest) : null
         if (terminalPayload) {
           const terminalEvent = await appendRunUiEvent(
@@ -226,13 +188,12 @@ runsAguiRouter.get('/:id/agui', async c => {
             terminalPayload
           )
           translateAndSend(terminalEvent.payload, terminalEvent.sequence)
-          closeAfterDrain()
+          close()
         }
       },
       cancel() {
         closed = true
         releaseResourcesSafe(resources)
-        pending.clear()
       },
     }
   )
