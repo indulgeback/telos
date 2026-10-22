@@ -149,6 +149,9 @@
       "medium": "中",
       "high": "高い"
     },
+    "reasoningSlider": {
+      "title": "思考強度"
+    },
     "toolbar": {
       "reasoning": "推論",
       "plan": "計画",

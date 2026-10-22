@@ -149,6 +149,9 @@
       "medium": "Mitte",
       "high": "hoch"
     },
+    "reasoningSlider": {
+      "title": "Denkintensität"
+    },
     "toolbar": {
       "reasoning": "Denken",
       "plan": "Plan",

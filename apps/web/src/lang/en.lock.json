@@ -101,6 +101,7 @@
   "Chat.reasoningEffort.label": "Thinking intensity",
   "Chat.reasoningEffort.hint": "Only the Doubao model is effective",
   "Chat.reasoningEffort.minimal": "Close",
+  "Chat.reasoningSlider.title": "Thinking intensity",
   "Chat.reasoningEffort.low": "Low",
   "Chat.reasoningEffort.medium": "Medium",
   "Chat.reasoningEffort.high": "Tall",

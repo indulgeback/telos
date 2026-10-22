@@ -66,6 +66,7 @@ import { VoiceAuraOrb } from './VoiceAuraOrb'
 import { WebSearchPill } from './web-search-pill'
 import { SearchResultsPanel } from './search-results-panel'
 import { CommandPalette, type ChatCommand } from './command-palette'
+import { ReasoningSliderPanel } from './reasoning-slider'
 
 const chatMessages = {
   Chat: {
@@ -111,6 +112,7 @@ const chatMessages = {
       panelTitle: 'Search results',
       close: 'Close search results',
     },
+    reasoningSlider: { title: 'Thinking intensity' },
     commands: {
       groupInsert: 'Add',
       groupActions: 'Commands',
@@ -569,5 +571,28 @@ describe('Beautiful UI agent primitives', () => {
       />
     )
     expect(html).not.toContain('Attach')
+  })
+
+  it('renders the reasoning slider with gradient fill, sparks and aria state', () => {
+    const html = renderWithIntl(
+      <ReasoningSliderPanel
+        value='high'
+        onChange={() => undefined}
+        levelLabels={{
+          minimal: 'Close',
+          low: 'Low',
+          medium: 'Medium',
+          high: 'Tall',
+        }}
+        title='Thinking intensity'
+      />
+    )
+    expect(html).toContain('Thinking intensity')
+    expect(html).toContain('Tall')
+    expect(html).toContain('data-reasoning-spark')
+    expect(html).toContain('role="slider"')
+    expect(html).toContain('aria-valuenow="3"')
+    expect(html).toContain('aria-valuetext="Tall"')
+    expect(html).toContain('from-emerald-400')
   })
 })

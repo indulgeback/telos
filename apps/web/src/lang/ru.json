@@ -149,6 +149,9 @@
       "medium": "середина",
       "high": "высокий"
     },
+    "reasoningSlider": {
+      "title": "Интенсивность мышления"
+    },
     "toolbar": {
       "reasoning": "Рассуждение",
       "plan": "План",

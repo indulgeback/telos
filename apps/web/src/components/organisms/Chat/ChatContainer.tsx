@@ -16,11 +16,10 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   SvgIcon,
   SuggestionPromptButton,
   type SuggestionPrompt,
@@ -51,6 +50,10 @@ import {
   CommandPalette,
   type ChatCommand,
 } from '@/components/molecules/chat/command-palette'
+import {
+  ReasoningSliderPanel,
+  type ReasoningEffortLevel,
+} from '@/components/molecules/chat/reasoning-slider'
 import type { WebSearchResultItem } from '@/app/[locale]/(dashboard)/chat/web-search-results'
 
 const SUGGESTION_BATCH_SIZE = 4
@@ -312,6 +315,7 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const t = useTranslations('Chat')
   const [suggestionSeed, setSuggestionSeed] = useState(0)
+  const [reasoningSliderOpen, setReasoningSliderOpen] = useState(false)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   // `/` 指令面板的命令清单：收纳工具栏里的模式开关与低频操作
@@ -465,11 +469,7 @@ export function ChatContainer({
     setSuggestionSeed(prev => prev + 1)
   }
 
-  // 当前模型对应的推理级别标签（仅在推理开启时用于 trigger）
-  const reasoningEffortLabelMap: Record<
-    'minimal' | 'low' | 'medium' | 'high',
-    string
-  > = {
+  const reasoningEffortLabelMap: Record<ReasoningEffortLevel, string> = {
     minimal: reasoningEffortMinimal,
     low: reasoningEffortLow,
     medium: reasoningEffortMedium,
@@ -513,16 +513,8 @@ export function ChatContainer({
     },
   ]
 
-  const reasoningLevels: Array<'minimal' | 'low' | 'medium' | 'high'> = [
-    'minimal',
-    'low',
-    'medium',
-    'high',
-  ]
-
   // 合并后的「模型 + 推理强度」紧凑选择器（Codex 风格）
-  // - 模型项点击即选中并关闭菜单
-  // - 推理强度作为子菜单：hover 时向右侧展开 Off/Low/Medium/High
+  // - 模型项点击即选中并关闭菜单；推理强度走工具栏上的滑条入口
   const modelReasoningPicker = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -536,12 +528,6 @@ export function ChatContainer({
             <>
               <ModelIcon modelKey={selectedModelOption.model} />
               <span className='truncate'>{selectedModelOption.label}</span>
-              {showReasoningEffort && reasoningEffort !== 'minimal' && (
-                <span className='inline-flex shrink-0 items-center gap-1 rounded-md bg-accent px-1.5 py-0.5 text-[9px] leading-none text-accent-foreground'>
-                  <BrainCircuit className='size-2.5' />
-                  {reasoningEffortLabelMap[reasoningEffort]}
-                </span>
-              )}
             </>
           ) : (
             <span className='truncate text-muted-foreground'>
@@ -597,46 +583,6 @@ export function ChatContainer({
               )
           )}
         </div>
-
-        {showReasoningEffort && (
-          <>
-            <DropdownMenuSeparator className='my-1' />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger
-                disabled={disableReasoningEffort}
-                className='gap-2 px-2 py-1.5 text-xs'
-              >
-                <BrainCircuit className='size-3.5 shrink-0' />
-                <span>{reasoningEffortLabel}</span>
-                <span className='ml-auto pl-2 text-[10px] text-muted-foreground'>
-                  {reasoningEffortLabelMap[reasoningEffort]}
-                </span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className='min-w-[7rem] p-1'>
-                {reasoningLevels.map(level => {
-                  const active = reasoningEffort === level
-                  return (
-                    <DropdownMenuItem
-                      key={level}
-                      onSelect={e => {
-                        e.preventDefault()
-                        onReasoningEffortChange(level)
-                      }}
-                      className='gap-2 px-2 py-1.5 text-xs'
-                    >
-                      <span className='flex-1'>
-                        {reasoningEffortLabelMap[level]}
-                      </span>
-                      {active && (
-                        <Check className='size-3.5 shrink-0 text-primary' />
-                      )}
-                    </DropdownMenuItem>
-                  )
-                })}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -887,6 +833,40 @@ export function ChatContainer({
                   <Plus className='size-4' />
                 </Button>
                 {toolbarLeading}
+                {showReasoningEffort && (
+                  <Popover
+                    open={reasoningSliderOpen}
+                    onOpenChange={setReasoningSliderOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        disabled={disableReasoningEffort}
+                        className='h-8 gap-1.5 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground'
+                        aria-label={`${reasoningEffortLabel} ${reasoningEffortLabelMap[reasoningEffort]}`}
+                      >
+                        <BrainCircuit className='size-3.5' />
+                        <span>{reasoningEffortLabelMap[reasoningEffort]}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side='top'
+                      align='start'
+                      sideOffset={8}
+                      className='w-auto rounded-xl p-3'
+                      onOpenAutoFocus={e => e.preventDefault()}
+                    >
+                      <ReasoningSliderPanel
+                        value={reasoningEffort}
+                        onChange={onReasoningEffortChange}
+                        levelLabels={reasoningEffortLabelMap}
+                        title={t('reasoningSlider.title')}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
                 {modelReasoningPicker}
               </div>
             }

@@ -149,6 +149,9 @@
       "medium": "Medium",
       "high": "Tall"
     },
+    "reasoningSlider": {
+      "title": "Thinking intensity"
+    },
     "toolbar": {
       "reasoning": "Reasoning",
       "plan": "Plan",

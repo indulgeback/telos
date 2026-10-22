@@ -149,6 +149,9 @@
       "medium": "중",
       "high": "높다"
     },
+    "reasoningSlider": {
+      "title": "사고 강도"
+    },
     "toolbar": {
       "reasoning": "추론",
       "plan": "계획",
