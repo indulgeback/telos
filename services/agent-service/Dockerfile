@@ -51,7 +51,7 @@ RUN cd services/agent-service \
     && pnpm deploy --legacy --ignore-scripts --filter @telos/agent-service --prod /deployed \
     && rm -rf /root/.local/share/pnpm/store \
     && rm -rf services/agent-service/node_modules \
-    && cp -a /deployed/node_modules services/agent-service/node_modules \
+    && cp -a /deployed/node_modules ./node_modules \
     && rm -rf /deployed
 
 # Runtime 也需要生成 Prisma Client (deploy --prod 后 client 是空的)。Prisma
