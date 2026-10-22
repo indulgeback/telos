@@ -15,6 +15,7 @@ import { chatRouter } from './routes/chat.js'
 import { mcpRouter } from './routes/mcp.js'
 import { realtimeRouter } from './routes/realtime.js'
 import { runsRouter } from './routes/runs.js'
+import { runsAguiRouter } from './routes/runs-agui.js'
 import { skillsRouter } from './routes/skills.js'
 import { toolsRouter } from './routes/tools.js'
 import {
@@ -184,6 +185,7 @@ app.route('/api/tools', toolsRouter)
 app.route('/api/skills', skillsRouter)
 app.route('/api/mcp-servers', mcpRouter)
 app.route('/api/runs', runsRouter)
+app.route('/api/runs', runsAguiRouter)
 
 const server = serve(
   {
