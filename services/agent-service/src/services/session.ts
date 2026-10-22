@@ -5,6 +5,7 @@ import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
 import { resolveMessageModelKey } from './message-model.js'
 import { normalizeUserImageParts } from './image-input.js'
 import { createMessageWithSequence } from './message-writer.js'
+import { maybeCompactThread } from './thread-compaction.js'
 import {
   buildPersistedGeminiSignatureProviderData,
   GEMINI_THOUGHT_SIGNATURE_METADATA_KEY,
@@ -433,8 +434,17 @@ export class AgentSessionService {
         where: { id: threadId },
         select: { summary: true },
       })
-      const summary = summarizeMessages(thread?.summary, older)
-      if (summary) {
+      // 优先模型化压缩（结构化滚动摘要），模型失败回退朴素行拼接
+      const compacted = await maybeCompactThread(
+        threadId,
+        thread?.summary,
+        older.map(message => ({
+          role: message.role,
+          content: toContent(message.content),
+        }))
+      )
+      const summary = compacted ?? summarizeMessages(thread?.summary, older)
+      if (summary && summary !== thread?.summary) {
         await prisma.agentThread.update({
           where: { id: threadId },
           data: { summary },
