@@ -48,7 +48,7 @@ COPY prisma.config.ts ./prisma.config.ts
 # 依赖都提升进根 node_modules，镜像因此膨胀到 2.9GB；`pnpm deploy --prod`
  # 只物化 agent-service 自己的生产依赖，node_modules 换成精简版后 store 一并清除。
 RUN cd services/agent-service \
-    && pnpm deploy --filter @telos/agent-service --prod /deployed \
+    && pnpm deploy --legacy --filter @telos/agent-service --prod /deployed \
     && rm -rf /root/.local/share/pnpm/store \
     && rm -rf services/agent-service/node_modules \
     && cp -a /deployed/node_modules services/agent-service/node_modules \
