@@ -31,6 +31,21 @@
       "panelTitle": "搜索结果",
       "close": "关闭搜索结果"
     },
+    "commands": {
+      "groupInsert": "添加",
+      "groupActions": "指令",
+      "open": "指令",
+      "image": "图片",
+      "imageDesc": "为本条消息附上图片",
+      "plan": "计划",
+      "planDesc": "进入或退出计划模式",
+      "think": "思考",
+      "thinkDesc": "切换深度思考档位（当前：{level}）",
+      "clear": "清空",
+      "clearDesc": "清空当前对话",
+      "skills": "技能",
+      "skillsDesc": "浏览 Agent 技能（$）"
+    },
     "voiceChat": "语音聊天",
     "voiceInput": "语音输入",
     "voiceError": "实时语音服务错误：{error}",
@@ -112,7 +127,7 @@
       }
     },
     "input": {
-      "placeholder": "输入您的问题... (Shift + Enter 换行)",
+      "placeholder": "输入问题，/ 唤起指令，$ 使用技能",
       "sendAriaLabel": "发送消息"
     },
     "model": {

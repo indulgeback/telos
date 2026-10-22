@@ -39,6 +39,19 @@ vi.mock('@/components/atoms', () => ({
     radius?: string
     variant?: string
   }) => <button {...props}>{children}</button>,
+  Popover: ({
+    children,
+    open,
+  }: {
+    children: React.ReactNode
+    open?: boolean
+  }) => (open === false ? null : <div data-popover>{children}</div>),
+  PopoverAnchor: ({ children }: { children?: React.ReactNode }) => (
+    <div data-popover-anchor>{children}</div>
+  ),
+  PopoverContent: ({ children }: { children?: React.ReactNode }) => (
+    <div data-popover-content>{children}</div>
+  ),
 }))
 import { AgentLoadingState } from './agent-loading-state'
 import { ChatMessage } from './chat-message'
@@ -52,6 +65,7 @@ import { PlanPanel } from './PlanPanel'
 import { VoiceAuraOrb } from './VoiceAuraOrb'
 import { WebSearchPill } from './web-search-pill'
 import { SearchResultsPanel } from './search-results-panel'
+import { CommandPalette, type ChatCommand } from './command-palette'
 
 const chatMessages = {
   Chat: {
@@ -96,6 +110,21 @@ const chatMessages = {
       count: '{count} web pages',
       panelTitle: 'Search results',
       close: 'Close search results',
+    },
+    commands: {
+      groupInsert: 'Add',
+      groupActions: 'Commands',
+      open: 'Commands',
+      image: 'Image',
+      imageDesc: 'Attach images to this message',
+      plan: 'Plan',
+      planDesc: 'Toggle plan mode',
+      think: 'Thinking',
+      thinkDesc: 'Cycle reasoning effort (current: {level})',
+      clear: 'Clear',
+      clearDesc: 'Clear this conversation',
+      skills: 'Skills',
+      skillsDesc: 'Browse agent skills ($)',
     },
   },
 }
@@ -477,5 +506,68 @@ describe('Beautiful UI agent primitives', () => {
     expect(html).toContain('Telos release notes')
     expect(html).toContain('example.com')
     expect(html).toContain('data-highlight="true"')
+  })
+
+  it('renders the slash command palette grouped and filtered, with active and disabled states', () => {
+    const commands: ChatCommand[] = [
+      {
+        id: 'cmd-image',
+        group: 'Add',
+        keyword: 'image',
+        icon: <span />,
+        label: 'Image',
+        description: 'Attach images',
+      },
+      {
+        id: 'cmd-plan',
+        group: 'Add',
+        keyword: 'plan',
+        icon: <span />,
+        label: 'Plan',
+        description: 'Toggle plan mode',
+        active: true,
+      },
+      {
+        id: 'cmd-clear',
+        group: 'Commands',
+        keyword: 'clear',
+        icon: <span />,
+        label: 'Clear',
+        description: 'Clear this conversation',
+        disabled: true,
+      },
+    ]
+    const html = renderWithIntl(
+      <CommandPalette input='/' commands={commands} onPick={() => undefined} />
+    )
+    expect(html).toContain('Image')
+    expect(html).toContain('image')
+    expect(html).toContain('Plan')
+    expect(html).toContain('Clear')
+    expect(html).toContain('Add')
+    expect(html).toContain('Commands')
+    // 激活态对勾 + 禁用态
+    expect(html).toContain('text-primary')
+    expect(html).toContain('cursor-not-allowed')
+  })
+
+  it('keeps the command palette closed when input is normal text', () => {
+    const html = renderWithIntl(
+      <CommandPalette
+        input='hello /world'
+        commands={[
+          {
+            id: 'cmd-image',
+            group: 'Add',
+            keyword: 'image',
+            icon: <span />,
+            label: 'Image',
+            description: 'Attach',
+          },
+        ]}
+        onPick={() => undefined}
+      />
+    )
+    expect(html).not.toContain('Attach')
   })
 })

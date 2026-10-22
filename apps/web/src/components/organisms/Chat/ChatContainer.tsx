@@ -1,6 +1,12 @@
 'use client'
 
-import { type ReactNode, type RefObject, useMemo, useState } from 'react'
+import {
+  type ReactNode,
+  type RefObject,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import Image from 'next/image'
 import {
   LiquidOrbIcon,
@@ -21,7 +27,6 @@ import {
 } from '@/components/atoms'
 import {
   ChatInput,
-  ChatInputActions,
   ChatMessage,
   type AssistantContentPart,
   type ToolCallPreview,
@@ -31,11 +36,21 @@ import {
   BrainCircuit,
   Check,
   ChevronDown,
+  ClipboardList,
   ImageIcon,
+  ImagePlus,
+  Plus,
   RefreshCw,
+  Trash2,
+  Wand2,
   X,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import {
+  CommandPalette,
+  type ChatCommand,
+} from '@/components/molecules/chat/command-palette'
 import type { WebSearchResultItem } from '@/app/[locale]/(dashboard)/chat/web-search-results'
 
 const SUGGESTION_BATCH_SIZE = 4
@@ -122,6 +137,11 @@ export interface ChatContainerProps {
     title: string,
     highlightIndex?: number
   ) => void
+  /** 注册 `/` 指令面板的键盘导航控制（ChatView 捕获阶段监听用） */
+  onRegisterCommandControls?: (controls: {
+    move: (direction: 'up' | 'down' | 'enter' | 'escape') => void
+    isOpen: () => boolean
+  }) => void
   // Text
   modelLabel: string
   modelEmptyLabel: string
@@ -140,8 +160,6 @@ export interface ChatContainerProps {
   // Plan 模式相关
   planMode: 'auto' | 'plan'
   onPlanModeChange: (value: 'auto' | 'plan') => void
-  planLabel: string
-  autoLabel: string
   planTitle: string
   planApproveLabel: string
   planRejectLabel: string
@@ -224,6 +242,7 @@ export function ChatContainer({
   onPickImages,
   onRemoveImage,
   onOpenSearchResults,
+  onRegisterCommandControls,
   modelLabel,
   modelEmptyLabel,
   modelReasoningLabel,
@@ -240,8 +259,6 @@ export function ChatContainer({
   reasoningEffortHigh,
   planMode,
   onPlanModeChange,
-  planLabel,
-  autoLabel,
   planTitle,
   planApproveLabel,
   planRejectLabel,
@@ -293,7 +310,109 @@ export function ChatContainer({
   userAvatarUrl,
   userInitials,
 }: ChatContainerProps) {
+  const t = useTranslations('Chat')
   const [suggestionSeed, setSuggestionSeed] = useState(0)
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
+
+  // `/` 指令面板的命令清单：收纳工具栏里的模式开关与低频操作
+  const reasoningLevelLabels: Record<string, string> = {
+    minimal: reasoningEffortMinimal,
+    low: reasoningEffortLow,
+    medium: reasoningEffortMedium,
+    high: reasoningEffortHigh,
+  }
+  const chatCommands = useMemo<ChatCommand[]>(
+    () => [
+      {
+        id: 'cmd-image',
+        group: t('commands.groupInsert'),
+        keyword: 'image',
+        icon: <ImagePlus className='size-3.5' />,
+        label: t('commands.image'),
+        description: t('commands.imageDesc'),
+        disabled: !showImageUpload || isLoading || isUploadingImages,
+      },
+      {
+        id: 'cmd-plan',
+        group: t('commands.groupInsert'),
+        keyword: 'plan',
+        icon: <ClipboardList className='size-3.5' />,
+        label: t('commands.plan'),
+        description: t('commands.planDesc'),
+        active: planMode === 'plan',
+        disabled: disableReasoningEffort,
+      },
+      {
+        id: 'cmd-think',
+        group: t('commands.groupActions'),
+        keyword: 'think',
+        icon: <BrainCircuit className='size-3.5' />,
+        label: t('commands.think'),
+        description: t('commands.thinkDesc', {
+          level: reasoningLevelLabels[reasoningEffort] ?? reasoningEffort,
+        }),
+        disabled: !showReasoningEffort,
+      },
+      {
+        id: 'cmd-clear',
+        group: t('commands.groupActions'),
+        keyword: 'clear',
+        icon: <Trash2 className='size-3.5' />,
+        label: t('commands.clear'),
+        description: t('commands.clearDesc'),
+        disabled: messages.length === 0 || isLoading,
+      },
+      {
+        id: 'cmd-skills',
+        group: t('commands.groupActions'),
+        keyword: 'skills',
+        icon: <Wand2 className='size-3.5' />,
+        label: t('commands.skills'),
+        description: t('commands.skillsDesc'),
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 标签/状态依赖均为渲染期快照，逐项列出只会制造噪音
+    [
+      t,
+      showImageUpload,
+      isLoading,
+      isUploadingImages,
+      planMode,
+      disableReasoningEffort,
+      showReasoningEffort,
+      reasoningEffort,
+      reasoningEffortMinimal,
+      reasoningEffortLow,
+      reasoningEffortMedium,
+      reasoningEffortHigh,
+      messages.length,
+    ]
+  )
+
+  const handleCommandPick = (command: ChatCommand) => {
+    switch (command.id) {
+      case 'cmd-image':
+        imageInputRef.current?.click()
+        break
+      case 'cmd-plan':
+        onPlanModeChange(planMode === 'plan' ? 'auto' : 'plan')
+        break
+      case 'cmd-think': {
+        const order = ['minimal', 'low', 'medium', 'high'] as const
+        const next = order[(order.indexOf(reasoningEffort) + 1) % order.length]
+        onReasoningEffortChange(next)
+        break
+      }
+      case 'cmd-clear':
+        onClear()
+        break
+      case 'cmd-skills':
+        // 复用 $ 技能面板：置入触发符即弹出
+        onInputChange('$')
+        break
+    }
+    onInputChange(command.id === 'cmd-skills' ? '$' : '')
+  }
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (!showImageUpload || isLoading || isUploadingImages) return
@@ -749,51 +868,40 @@ export function ChatContainer({
             }
             actions={
               <div className='flex min-w-0 flex-wrap items-center gap-2'>
-                <ChatInputActions
-                  showImageUpload
-                  showReasoningEffort={false}
-                  imageUploadLabel={imageUploadLabel}
-                  imageUploadDisabledLabel={imageUploadDisabledLabel}
-                  imageUploadingLabel={imageUploadingLabel}
-                  imageUploadSupported={showImageUpload}
-                  disableImageUpload={
-                    !showImageUpload || isLoading || isUploadingImages
-                  }
-                  isUploadingImages={isUploadingImages}
-                  reasoningEffort={reasoningEffort}
-                  reasoningEffortLabel={reasoningEffortLabel}
-                  reasoningEffortMinimal={reasoningEffortMinimal}
-                  reasoningEffortLow={reasoningEffortLow}
-                  reasoningEffortMedium={reasoningEffortMedium}
-                  reasoningEffortHigh={reasoningEffortHigh}
-                  disableReasoningEffort={disableReasoningEffort}
-                  onPickImages={onPickImages}
-                  onReasoningEffortChange={onReasoningEffortChange}
+                <CommandPalette
+                  input={safeInput}
+                  commands={chatCommands}
+                  onPick={handleCommandPick}
+                  registerControls={onRegisterCommandControls}
                 />
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='size-8 rounded-lg text-muted-foreground hover:text-foreground'
+                  aria-label={t('commands.open')}
+                  title={t('commands.open')}
+                  disabled={isLoading}
+                  onClick={() => onInputChange('/')}
+                >
+                  <Plus className='size-4' />
+                </Button>
                 {toolbarLeading}
                 {modelReasoningPicker}
-                <ChatInputActions
-                  showImageUpload={false}
-                  showReasoningEffort={false}
-                  imageUploadLabel={imageUploadLabel}
-                  reasoningEffort={reasoningEffort}
-                  reasoningEffortLabel={reasoningEffortLabel}
-                  reasoningEffortMinimal={reasoningEffortMinimal}
-                  reasoningEffortLow={reasoningEffortLow}
-                  reasoningEffortMedium={reasoningEffortMedium}
-                  reasoningEffortHigh={reasoningEffortHigh}
-                  disableReasoningEffort={disableReasoningEffort}
-                  onPickImages={onPickImages}
-                  onReasoningEffortChange={onReasoningEffortChange}
-                  showPlanMode
-                  planMode={planMode}
-                  planLabel={planLabel}
-                  autoLabel={autoLabel}
-                  disablePlanMode={disableReasoningEffort}
-                  onPlanModeChange={onPlanModeChange}
-                />
               </div>
             }
+          />
+          <input
+            ref={imageInputRef}
+            type='file'
+            accept='image/*'
+            multiple
+            hidden
+            onChange={event => {
+              const files = event.target.files
+              if (files && files.length > 0) onPickImages?.(files)
+              event.target.value = ''
+            }}
           />
           <p className='mt-2.5 text-center font-mono text-[9px] text-muted-foreground/75'>
             {disclaimer}

@@ -31,6 +31,21 @@
       "panelTitle": "Suchergebnisse",
       "close": "Suchergebnisse schließen"
     },
+    "commands": {
+      "groupInsert": "Hinzufügen",
+      "groupActions": "Befehle",
+      "open": "Befehle",
+      "image": "Bild",
+      "imageDesc": "Bilder an diese Nachricht anhängen",
+      "plan": "Plan",
+      "planDesc": "Planmodus umschalten",
+      "think": "Denken",
+      "thinkDesc": "Denkstufe wechseln (aktuell: {level})",
+      "clear": "Leeren",
+      "clearDesc": "Diese Unterhaltung leeren",
+      "skills": "Skills",
+      "skillsDesc": "Agent-Skills durchsuchen ($)"
+    },
     "voiceChat": "Sprachchat",
     "voiceInput": "Sprachsteuerung",
     "voiceError": "Echtzeit-Sprachdienstfehler: {error}",
@@ -112,7 +127,7 @@
       }
     },
     "input": {
-      "placeholder": "Geben Sie Ihre Frage ein... (Shift + Enter für Zeilenumbruch)",
+      "placeholder": "Frage etwas — / für Befehle, $ für Skills",
       "sendAriaLabel": "Nachricht senden"
     },
     "model": {

@@ -31,6 +31,21 @@
       "panelTitle": "검색 결과",
       "close": "검색 결과 닫기"
     },
+    "commands": {
+      "groupInsert": "추가",
+      "groupActions": "명령",
+      "open": "명령",
+      "image": "이미지",
+      "imageDesc": "이 메시지에 이미지 첨부",
+      "plan": "계획",
+      "planDesc": "계획 모드 전환",
+      "think": "사고",
+      "thinkDesc": "추론 수준 전환 (현재: {level})",
+      "clear": "지우기",
+      "clearDesc": "이 대화 지우기",
+      "skills": "스킬",
+      "skillsDesc": "Agent 스킬 탐색 ($)"
+    },
     "voiceChat": "음성 채팅",
     "voiceInput": "음성 입력",
     "voiceError": "실시간 음성 서비스 오류: {error}",
@@ -112,7 +127,7 @@
       }
     },
     "input": {
-      "placeholder": "질문을 입력하세요... (Shift + Enter로 줄 바꿈)",
+      "placeholder": "질문을 입력하세요 — / 명령, $ 스킬",
       "sendAriaLabel": "메시지 보내기"
     },
     "model": {

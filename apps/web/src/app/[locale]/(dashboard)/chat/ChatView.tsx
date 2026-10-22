@@ -144,6 +144,10 @@ export function ChatView() {
     move: (direction: 'up' | 'down' | 'enter' | 'escape') => void
     isOpen: () => boolean
   } | null>(null)
+  const commandTriggerControlsRef = useRef<{
+    move: (direction: 'up' | 'down' | 'enter' | 'escape') => void
+    isOpen: () => boolean
+  } | null>(null)
   const shouldAutoScrollRef = useRef(true)
   const isStreamingRef = useRef(false)
   const lastScrollTopRef = useRef(0)
@@ -215,15 +219,35 @@ export function ChatView() {
     },
     [input]
   )
-  // SkillTrigger 键盘导航：拦截方向键/Enter/Escape
+  // 触发面板键盘导航：拦截方向键/Enter/Escape（指令面板优先，其次技能面板）
   useEffect(() => {
     const el = textareaRef.current
     if (!el) return
     const onKeyDown = (e: KeyboardEvent) => {
-      const ctrl = skillTriggerControlsRef.current
-      if (!ctrl || !ctrl.isOpen()) return
       // 输入法组合中（方向键翻页/Enter 确认候选词）不拦截按键
       if (isImeComposingKeyEvent(e)) return
+      const commandCtrl = commandTriggerControlsRef.current
+      if (commandCtrl && commandCtrl.isOpen()) {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault()
+          commandCtrl.move('up')
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault()
+          commandCtrl.move('down')
+        } else if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault()
+          // 阻止事件继续到达 ChatInput 的 onKeyDown,否则会把输入框里的
+          // 半截 "/pl" 作为消息发出去
+          e.stopPropagation()
+          commandCtrl.move('enter')
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          setInput('')
+        }
+        return
+      }
+      const ctrl = skillTriggerControlsRef.current
+      if (!ctrl || !ctrl.isOpen()) return
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         ctrl.move('up')
@@ -2306,8 +2330,6 @@ export function ChatView() {
             reasoningEffortHigh={t('reasoningEffort.high')}
             planMode={planMode}
             onPlanModeChange={setPlanMode}
-            planLabel={t('toolbar.plan')}
-            autoLabel={t('toolbar.auto')}
             planTitle={t('plan.title')}
             planApproveLabel={t('plan.approve')}
             planRejectLabel={t('plan.reject')}
@@ -2411,8 +2433,6 @@ export function ChatView() {
             onPickImages={handlePickImages}
             onRemoveImage={handleRemoveImage}
             imageUploadLabel={t('imageUploadLabel')}
-            imageUploadDisabledLabel={t('imageUploadDisabledLabel')}
-            imageUploadingLabel={t('imageUploadingLabel')}
             imageDropLabel={t('imageDropLabel')}
             imageRemoveLabel={t('imageRemoveLabel')}
             imagePreviewLabel={t('actions.previewImage')}
@@ -2426,6 +2446,9 @@ export function ChatView() {
             userAvatarUrl={userAvatarUrl}
             userInitials={userInitials}
             onOpenSearchResults={openSearchResults}
+            onRegisterCommandControls={controls => {
+              commandTriggerControlsRef.current = controls
+            }}
           />
         </div>
         {searchPanel && (

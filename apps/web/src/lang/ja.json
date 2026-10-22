@@ -31,6 +31,21 @@
       "panelTitle": "検索結果",
       "close": "検索結果を閉じる"
     },
+    "commands": {
+      "groupInsert": "追加",
+      "groupActions": "コマンド",
+      "open": "コマンド",
+      "image": "画像",
+      "imageDesc": "このメッセージに画像を添付",
+      "plan": "計画",
+      "planDesc": "計画モードを切り替える",
+      "think": "思考",
+      "thinkDesc": "推論レベルを切り替える（現在：{level}）",
+      "clear": "クリア",
+      "clearDesc": "この会話をクリア",
+      "skills": "スキル",
+      "skillsDesc": "Agent スキルを探す（$）"
+    },
     "voiceChat": "ボイスチャット",
     "voiceInput": "音声入力",
     "voiceError": "リアルタイム音声サービスエラー: {error}",
@@ -112,7 +127,7 @@
       }
     },
     "input": {
-      "placeholder": "質問を入力してください…（Shift + Enter で改行）",
+      "placeholder": "質問を入力 — / でコマンド、$ でスキル",
       "sendAriaLabel": "メッセージを送信"
     },
     "model": {

@@ -31,6 +31,21 @@
       "panelTitle": "Search results",
       "close": "Close search results"
     },
+    "commands": {
+      "groupInsert": "Add",
+      "groupActions": "Commands",
+      "open": "Commands",
+      "image": "Image",
+      "imageDesc": "Attach images to this message",
+      "plan": "Plan",
+      "planDesc": "Toggle plan mode",
+      "think": "Thinking",
+      "thinkDesc": "Cycle reasoning effort (current: {level})",
+      "clear": "Clear",
+      "clearDesc": "Clear this conversation",
+      "skills": "Skills",
+      "skillsDesc": "Browse agent skills ($)"
+    },
     "voiceChat": "Voice Chat",
     "voiceInput": "Voice Input",
     "voiceError": "Real-time voice service error: {error}",
@@ -112,7 +127,7 @@
       }
     },
     "input": {
-      "placeholder": "Enter your question... (Shift + Enter for a new line)",
+      "placeholder": "Ask anything — / for commands, $ for skills",
       "sendAriaLabel": "Send Message"
     },
     "model": {
