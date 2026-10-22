@@ -54,9 +54,9 @@ RUN cd services/agent-service \
     && cp -a /deployed/node_modules ./node_modules \
     && rm -rf /deployed
 
-# Prisma Client 生成物从 builder 拷入（deploy --prod 不含 prisma CLI；
-# 生成物版本由同一锁文件锁定，与运行时 @prisma/client 完全一致）
-COPY --from=builder /app/services/agent-service/node_modules/.prisma ./services/agent-service/node_modules/.prisma
+# Prisma Client 生成物从 builder 拷入（deploy --prod 不含 prisma CLI）。
+# Prisma 7 把生成物写进 hoisted 的 @prisma/client 包目录（workspace 根）
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist
