@@ -125,11 +125,28 @@ runsAguiRouter.get('/:id/agui', async c => {
 
         const translateAndSend = (payload: unknown, sequence: string) => {
           if (!payload || typeof payload !== 'object') return
-          const translated = translateRunEventToAgui({
-            ...(payload as Record<string, unknown>),
-            sequence,
-          })
-          if (translated) sendAgui(translated)
+          try {
+            const translated = translateRunEventToAgui({
+              ...(payload as Record<string, unknown>),
+              sequence,
+            })
+            if (!translated) return
+            const accepted = sendAgui(translated)
+            logger.debug({
+              msg: 'AG-UI replay event',
+              runId,
+              sequence,
+              aguiType: translated.type,
+              accepted,
+            })
+          } catch (error) {
+            logger.error({
+              msg: 'AG-UI translate/send failed',
+              runId,
+              sequence,
+              error,
+            })
+          }
         }
 
         resources.heartbeat = setInterval(() => {
@@ -165,10 +182,24 @@ runsAguiRouter.get('/:id/agui', async c => {
           close()
           return
         }
+        logger.info({
+          msg: 'AG-UI replay start',
+          runId,
+          historyLen: history.length,
+          after: lastSentSequence || '(start)',
+        })
         for (const event of history) {
           translateAndSend(event.payload, event.sequence)
           if (closingAfterDrain) break
         }
+        logger.info({
+          msg: 'AG-UI replay done',
+          runId,
+          historyLen: history.length,
+          lastSentSequence,
+          closed,
+          closingAfterDrain,
+        })
         if (closed || closingAfterDrain) return
 
         resources.unsubscribe = subscribeRunEvents(
