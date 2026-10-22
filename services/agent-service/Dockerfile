@@ -14,7 +14,9 @@ COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
 
 # Install dependencies (--ignore-scripts 跳过根 package.json 的 husky prepare, 容器里不需要)
-RUN cd services/agent-service && pnpm install --frozen-lockfile --ignore-scripts
+# --filter 限定只装 agent-service 自身: monorepo 锁文件包含全部包,
+# 不加 filter 会把 web/mobile/admin 的依赖也 hoist 进来
+RUN cd services/agent-service && pnpm install --frozen-lockfile --ignore-scripts --filter @telos/agent-service && pnpm store prune
 
 # 生成 Prisma Client (agent-service import { Prisma, PrismaClient, Tool } from '@prisma/client')
 # 不 generate 的话 tsc 会报 "has no exported member"
@@ -42,7 +44,10 @@ COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
 
 # Install production dependencies only (--ignore-scripts 跳过 husky prepare)
-RUN cd services/agent-service && pnpm install --prod --frozen-lockfile --ignore-scripts
+# --filter 只装 agent-service（否则 monorepo 锁文件会把 web/mobile/admin 的依赖
+# 也 hoist 进根 node_modules，镜像因此从 ~800MB 膨胀到 2.9GB）；同层清掉
+# content-addressable store（运行时不需要，硬链接副本也在 node_modules 里）
+RUN cd services/agent-service && pnpm install --prod --frozen-lockfile --ignore-scripts --filter @telos/agent-service && rm -rf /root/.local/share/pnpm/store
 
 # Runtime 也需要生成 Prisma Client (--prod 重装后 client 是空的)。Prisma
 # CLI 是锁文件固定的 production dependency，不允许 npx 在构建时临时下载。
