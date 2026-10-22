@@ -73,7 +73,7 @@ func main() {
 		{
 			// A2A 出口：标准 JSON-RPC 2.0，自带 Bearer 鉴权（A2A_API_KEY），
 			// 因此网关层放行 public；外部 agent 客户端不持有 Better Auth cookie
-			Path:        "/a2a",
+			Path:        "/api/a2a",
 			ServiceName: "agent-service",
 			StripPrefix: false,
 			Timeout:     300,

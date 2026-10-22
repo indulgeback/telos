@@ -187,7 +187,7 @@ app.route('/api/skills', skillsRouter)
 app.route('/api/mcp-servers', mcpRouter)
 app.route('/api/runs', runsRouter)
 app.route('/api/runs', runsAguiRouter)
-app.route('/a2a', a2aRouter)
+app.route('/api/a2a', a2aRouter)
 
 const server = serve(
   {
