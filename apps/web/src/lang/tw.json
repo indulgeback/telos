@@ -26,6 +26,11 @@
         "prepare": "正在組織呼叫參數…"
       }
     },
+    "searchResults": {
+      "count": "{count} 個網頁",
+      "panelTitle": "搜尋結果",
+      "close": "關閉搜尋結果"
+    },
     "voiceChat": "語音聊天",
     "voiceInput": "語音輸入",
     "voiceError": "即時語音服務錯誤：{error}",

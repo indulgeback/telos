@@ -26,6 +26,11 @@
         "prepare": "正在组织调用参数…"
       }
     },
+    "searchResults": {
+      "count": "{count} 个网页",
+      "panelTitle": "搜索结果",
+      "close": "关闭搜索结果"
+    },
     "voiceChat": "语音聊天",
     "voiceInput": "语音输入",
     "voiceError": "实时语音服务错误：{error}",

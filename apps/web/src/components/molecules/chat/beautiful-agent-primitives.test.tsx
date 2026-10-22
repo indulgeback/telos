@@ -50,6 +50,8 @@ import { ActivityStatusLine } from './activity-status-line'
 import { PlanProgressStrip } from './plan-progress'
 import { PlanPanel } from './PlanPanel'
 import { VoiceAuraOrb } from './VoiceAuraOrb'
+import { WebSearchPill } from './web-search-pill'
+import { SearchResultsPanel } from './search-results-panel'
 
 const chatMessages = {
   Chat: {
@@ -89,6 +91,11 @@ const chatMessages = {
       pending: 'Pending',
       approved: 'Approved',
       rejected: 'Rejected',
+    },
+    searchResults: {
+      count: '{count} web pages',
+      panelTitle: 'Search results',
+      close: 'Close search results',
     },
   },
 }
@@ -407,5 +414,68 @@ describe('Beautiful UI agent primitives', () => {
 
     expect(html).not.toContain('<canvas')
     expect(html.match(/<span/g)).toHaveLength(12)
+  })
+
+  it('renders the web search pill with aggregated count and favicons', () => {
+    const results = [
+      {
+        index: 1,
+        title: 'Docs',
+        url: 'https://example.com/a',
+        snippet: 's',
+        source: 'example.com',
+      },
+      {
+        index: 2,
+        title: 'News',
+        url: 'https://news.com/b',
+        snippet: 's',
+        source: 'news.com',
+      },
+      {
+        index: 3,
+        title: 'Wiki',
+        url: 'https://wiki.com/c',
+        snippet: 's',
+        source: 'wiki.com',
+      },
+    ]
+    const html = renderWithIntl(
+      <WebSearchPill results={results} onOpen={() => undefined} />
+    )
+    expect(html).toContain('3 web pages')
+    expect(html).toContain('icons.duckduckgo.com/ip3/example.com.ico')
+    expect(html).toContain('icons.duckduckgo.com/ip3/news.com.ico')
+  })
+
+  it('renders the search results panel with sources and highlight target', () => {
+    const results = [
+      {
+        index: 1,
+        title: 'Telos release notes',
+        url: 'https://example.com/a',
+        snippet: 'First snippet',
+        source: 'example.com',
+      },
+      {
+        index: 2,
+        title: 'Second source',
+        url: 'https://news.com/b',
+        snippet: 'Second snippet',
+        source: 'news.com',
+      },
+    ]
+    const html = renderWithIntl(
+      <SearchResultsPanel
+        title='What changed?'
+        results={results}
+        highlightIndex={2}
+        onClose={() => undefined}
+      />
+    )
+    expect(html).toContain('Search results')
+    expect(html).toContain('Telos release notes')
+    expect(html).toContain('example.com')
+    expect(html).toContain('data-highlight="true"')
   })
 })

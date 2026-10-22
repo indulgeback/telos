@@ -245,3 +245,28 @@ test('Plan Mode Security - isReadOnlyTool Whitelist', () => {
     })
   )
 })
+
+test('web_search output is a parseable results envelope for the web UI', async () => {
+  const { buildWebSearchResultsOutput } = await import(
+    '../dist/services/builtin-tools.js'
+  )
+  const output = buildWebSearchResultsOutput('telos agent platform', [
+    { title: 'Telos', url: 'https://example.com/docs?a=1', content: 'Intro text' },
+    { title: 'Bad URL stays raw', url: 'not-a-url', content: 'Snippet' },
+  ])
+  const envelope = JSON.parse(output)
+  assert.strictEqual(envelope.type, 'web_search_results')
+  assert.strictEqual(envelope.query, 'telos agent platform')
+  assert.strictEqual(envelope.results.length, 2)
+  assert.deepStrictEqual(Object.keys(envelope.results[0]).sort(), [
+    'index',
+    'snippet',
+    'source',
+    'title',
+    'url',
+  ])
+  assert.strictEqual(envelope.results[0].index, 1)
+  assert.strictEqual(envelope.results[0].source, 'example.com')
+  assert.strictEqual(envelope.results[1].source, 'not-a-url')
+  assert.ok(envelope.cite.includes('[n]'))
+})

@@ -33,6 +33,8 @@ import {
 } from '@/components/atoms'
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
 import { PlanProgressStrip } from '@/components/molecules/chat/plan-progress'
+import { SearchResultsPanel } from '@/components/molecules/chat/search-results-panel'
+import type { WebSearchResultItem } from './web-search-results'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
 import { isImeComposingKeyEvent } from '@/components/molecules/chat/ime'
@@ -153,6 +155,35 @@ export function ChatView() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileThreadsOpen, setMobileThreadsOpen] = useState(false)
   const [threadSearch, setThreadSearch] = useState('')
+  // DeepSeek 风格搜索来源面板：web_search 胶囊/[n] 角标点击后展示。
+  // ≥lg 渲染内嵌右列；<lg 用 Sheet 浮层（mobileOpen 在点击时判定视口）。
+  const [searchPanel, setSearchPanel] = useState<{
+    results: WebSearchResultItem[]
+    title: string
+    highlightIndex: number | null
+    mobileOpen: boolean
+  } | null>(null)
+  const openSearchResults = useCallback(
+    (
+      results: WebSearchResultItem[],
+      title: string,
+      highlightIndex?: number
+    ) => {
+      const isDesktop = window.matchMedia('(min-width: 1024px)').matches
+      setSearchPanel(current => ({
+        results,
+        title,
+        highlightIndex:
+          highlightIndex ??
+          (current?.title === title ? current.highlightIndex : null),
+        mobileOpen: !isDesktop,
+      }))
+    },
+    []
+  )
+  const closeSearchPanel = useCallback(() => {
+    setSearchPanel(null)
+  }, [])
   const [reasoningEffort, setReasoningEffort] =
     useState<ReasoningEffort>('medium')
   // plan 模式：'auto'=普通对话，'plan'=出计划模式
@@ -2394,9 +2425,53 @@ export function ChatView() {
             realtimeStatusPanel={realtimeStatusPanel}
             userAvatarUrl={userAvatarUrl}
             userInitials={userInitials}
+            onOpenSearchResults={openSearchResults}
           />
         </div>
+        {searchPanel && (
+          <aside className='hidden w-80 shrink-0 border-l border-border bg-background/60 lg:flex'>
+            <SearchResultsPanel
+              className='w-full'
+              title={searchPanel.title}
+              results={searchPanel.results}
+              highlightIndex={searchPanel.highlightIndex}
+              onClose={closeSearchPanel}
+            />
+          </aside>
+        )}
       </div>
+      <Sheet
+        open={Boolean(searchPanel?.mobileOpen)}
+        onOpenChange={open => {
+          if (!open) {
+            setSearchPanel(current =>
+              current ? { ...current, mobileOpen: false } : null
+            )
+          }
+        }}
+      >
+        <SheetContent
+          side='right'
+          className='w-[86vw] max-w-sm p-0 sm:max-w-sm'
+        >
+          <SheetTitle className='sr-only'>
+            {searchPanel?.title || 'Search results'}
+          </SheetTitle>
+          {searchPanel && (
+            <SearchResultsPanel
+              className='h-full'
+              title={searchPanel.title}
+              results={searchPanel.results}
+              highlightIndex={searchPanel.highlightIndex}
+              onClose={() => {
+                setSearchPanel(current =>
+                  current ? { ...current, mobileOpen: false } : null
+                )
+              }}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
 
       <Dialog
         open={Boolean(pendingApprovalRunId)}

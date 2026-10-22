@@ -26,6 +26,11 @@
         "prepare": "呼び出しパラメータを準備中..."
       }
     },
+    "searchResults": {
+      "count": "{count} 件のウェブページ",
+      "panelTitle": "検索結果",
+      "close": "検索結果を閉じる"
+    },
     "voiceChat": "ボイスチャット",
     "voiceInput": "音声入力",
     "voiceError": "リアルタイム音声サービスエラー: {error}",

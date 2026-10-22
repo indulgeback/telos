@@ -36,6 +36,7 @@ import {
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { WebSearchResultItem } from '@/app/[locale]/(dashboard)/chat/web-search-results'
 
 const SUGGESTION_BATCH_SIZE = 4
 
@@ -115,6 +116,12 @@ export interface ChatContainerProps {
   ) => void
   onPickImages?: (files: FileList | File[] | null) => void
   onRemoveImage?: (index: number) => void
+  /** 打开搜索来源面板（web_search 引用胶囊与 [n] 角标触发） */
+  onOpenSearchResults?: (
+    results: WebSearchResultItem[],
+    title: string,
+    highlightIndex?: number
+  ) => void
   // Text
   modelLabel: string
   modelEmptyLabel: string
@@ -216,6 +223,7 @@ export function ChatContainer({
   onReasoningEffortChange,
   onPickImages,
   onRemoveImage,
+  onOpenSearchResults,
   modelLabel,
   modelEmptyLabel,
   modelReasoningLabel,
@@ -622,6 +630,7 @@ export function ChatContainer({
                       isPendingPlan={message.id === pendingPlanMessageId}
                       onApprovePlan={onApprovePlan}
                       onRejectPlan={onRejectPlan}
+                      onOpenSearchResults={onOpenSearchResults}
                     />
                   )
                 })}

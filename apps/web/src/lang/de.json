@@ -26,6 +26,11 @@
         "prepare": "Aufruf wird vorbereitet..."
       }
     },
+    "searchResults": {
+      "count": "{count} Webseiten",
+      "panelTitle": "Suchergebnisse",
+      "close": "Suchergebnisse schließen"
+    },
     "voiceChat": "Sprachchat",
     "voiceInput": "Sprachsteuerung",
     "voiceError": "Echtzeit-Sprachdienstfehler: {error}",

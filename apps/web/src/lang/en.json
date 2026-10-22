@@ -26,6 +26,11 @@
         "prepare": "Preparing call..."
       }
     },
+    "searchResults": {
+      "count": "{count, plural, one {# web page} other {# web pages}}",
+      "panelTitle": "Search results",
+      "close": "Close search results"
+    },
     "voiceChat": "Voice Chat",
     "voiceInput": "Voice Input",
     "voiceError": "Real-time voice service error: {error}",

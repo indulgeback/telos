@@ -20,6 +20,9 @@ import { AgentLoadingState } from './agent-loading-state'
 import { ActivityStatusLine } from './activity-status-line'
 import { PlanProgressStrip } from './plan-progress'
 import { StreamRevealText } from './stream-reveal-text'
+import { WebSearchPill } from './web-search-pill'
+import type { WebSearchResultItem } from '@/app/[locale]/(dashboard)/chat/web-search-results'
+import { parseWebSearchOutput } from '@/app/[locale]/(dashboard)/chat/web-search-results'
 import { deriveAssistantActivity } from '@/app/[locale]/(dashboard)/chat/chat-activity'
 import { StreamingText } from './streaming-text'
 import { PlanPanel, type PlanStepStatus } from './PlanPanel'
@@ -97,6 +100,24 @@ function groupConsecutiveToolParts(
   }, [])
 }
 
+/**
+ * 一组连续工具全部是成功解析出结构化结果的 web_search 时，返回聚合结果
+ * （替代通用工具卡渲染搜索胶囊）；混入其它工具或旧格式输出则返回 null。
+ */
+function collectGroupSearchResults(
+  tools: ToolCallPreview[]
+): WebSearchResultItem[] | null {
+  if (tools.length === 0) return null
+  const aggregated: WebSearchResultItem[] = []
+  for (const tool of tools) {
+    if (tool.toolName !== 'web_search' || tool.state === 'error') return null
+    const parsed = parseWebSearchOutput(tool.outputText)
+    if (!parsed) return null
+    aggregated.push(...parsed)
+  }
+  return aggregated.length > 0 ? aggregated : null
+}
+
 export interface ChatMessageProps {
   id: string
   role: 'user' | 'assistant'
@@ -137,6 +158,12 @@ export interface ChatMessageProps {
   isPendingPlan?: boolean
   onApprovePlan?: () => void
   onRejectPlan?: () => void
+  /** 消息含可解析的 web_search 结果时生效：打开来源面板（highlightIndex 用于引用角标定位） */
+  onOpenSearchResults?: (
+    results: WebSearchResultItem[],
+    title: string,
+    highlightIndex?: number
+  ) => void
 }
 
 function compareToolPreview(
@@ -282,6 +309,7 @@ function ChatMessageInner({
   isPendingPlan = false,
   onApprovePlan,
   onRejectPlan,
+  onOpenSearchResults,
 }: ChatMessageProps) {
   const safeContent = content ?? ''
   const safeImages = images ?? []
@@ -295,6 +323,26 @@ function ChatMessageInner({
   const [previewIndex, setPreviewIndex] = useState(0)
   const [isAvatarBouncing, setIsAvatarBouncing] = useState(false)
   const avatarBounceTimerRef = useRef<number | null>(null)
+
+  // 引用角标 [n] 定位到的是全消息聚合去重后的结果序号
+  const handleMessageCitationClick = (citationIndex: number) => {
+    if (!onOpenSearchResults) return
+    const aggregated: WebSearchResultItem[] = []
+    const seen = new Set<string>()
+    for (const part of groupedContentParts) {
+      if (part.type !== 'tool-group') continue
+      const results = collectGroupSearchResults(part.tools)
+      if (!results) continue
+      for (const item of results) {
+        if (seen.has(item.url)) continue
+        seen.add(item.url)
+        aggregated.push(item)
+      }
+    }
+    if (aggregated.length > 0) {
+      onOpenSearchResults(aggregated, safeContent.slice(0, 60), citationIndex)
+    }
+  }
 
   useEffect(() => {
     return () => {
@@ -357,6 +405,21 @@ function ChatMessageInner({
                   )}
                 {groupedContentParts.map((part, index) => {
                   if (part.type === 'tool-group') {
+                    const openResults = onOpenSearchResults
+                    const searchResults = openResults
+                      ? collectGroupSearchResults(part.tools)
+                      : null
+                    if (searchResults && openResults) {
+                      return (
+                        <WebSearchPill
+                          key={`${part.tools[0]?.toolCallId ?? 'tools'}-${index}`}
+                          results={searchResults}
+                          onOpen={items =>
+                            openResults(items, safeContent.slice(0, 60))
+                          }
+                        />
+                      )
+                    }
                     return (
                       <ToolCallGroup
                         key={`${part.tools[0]?.toolCallId ?? 'tools'}-${index}`}
@@ -486,7 +549,10 @@ function ChatMessageInner({
                           )}
                           active={false}
                         >
-                          <MarkdownContent content={part.text} />
+                          <MarkdownContent
+                            content={part.text}
+                            onCitationClick={handleMessageCitationClick}
+                          />
                         </StreamingText>
                       )}
                       {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
@@ -506,7 +572,10 @@ function ChatMessageInner({
                   )}
                   active={isLoading}
                 >
-                  <MarkdownContent content={safeContent} />
+                  <MarkdownContent
+                    content={safeContent}
+                    onCitationClick={handleMessageCitationClick}
+                  />
                 </StreamingText>
                 {/* 当助手输出 SKILL.md 时,渲染「保存为技能」按钮 */}
                 <SkillSaver text={safeContent} />
@@ -696,6 +765,9 @@ function areEqual(prev: ChatMessageProps, next: ChatMessageProps): boolean {
   // onRetry/onApprovePlan/onRejectPlan 每次渲染都是新引用,只能比"有无":
   // 它们的存在性决定重试按钮/审批按钮是否渲染,漏比会让按钮残留且闭包过期
   if (Boolean(prev.onRetry) !== Boolean(next.onRetry)) return false
+  if (Boolean(prev.onOpenSearchResults) !== Boolean(next.onOpenSearchResults)) {
+    return false
+  }
   if (prev.isPendingPlan !== next.isPendingPlan) return false
   if (prev.isVoiceTranscript !== next.isVoiceTranscript) return false
   if (prev.liveTranscriptLabel !== next.liveTranscriptLabel) return false

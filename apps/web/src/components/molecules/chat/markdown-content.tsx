@@ -14,6 +14,8 @@ import { ArtifactPreviewLink } from './artifact-preview-link'
 
 interface MarkdownContentProps {
   content: string
+  /** 传入后，正文中的 [n] 引用标记会渲染为可点击的上标按钮 */
+  onCitationClick?: (index: number) => void
 }
 
 const CustomZoomContent = ({
@@ -175,15 +177,25 @@ const MARKDOWN_COMPONENTS: Components = {
     </blockquote>
   ),
   hr: props => <hr className='my-4 border-border' {...props} />,
-  a: ({ children, href, ...props }) => (
-    <ArtifactPreviewLink
-      className='text-primary hover:underline'
-      href={href || '#'}
-      {...props}
-    >
-      {children}
-    </ArtifactPreviewLink>
-  ),
+  a: ({ children, href, ...props }) => {
+    const citationMatch = href?.match(CITE_LINK_PATTERN)
+    if (citationMatch) {
+      return (
+        <CitationSuperscript citationIndex={Number(citationMatch[1])}>
+          {children}
+        </CitationSuperscript>
+      )
+    }
+    return (
+      <ArtifactPreviewLink
+        className='text-primary hover:underline'
+        href={href || '#'}
+        {...props}
+      >
+        {children}
+      </ArtifactPreviewLink>
+    )
+  },
   table: ({ children, ...props }) => (
     <div className='mb-4 overflow-x-auto rounded-xl border border-border bg-card'>
       <table className='min-w-full border-collapse text-[13px]' {...props}>
@@ -230,17 +242,70 @@ const MARKDOWN_COMPONENTS: Components = {
 const REMARK_PLUGINS = [remarkGfm]
 const REHYPE_PLUGINS = [rehypeHighlight]
 
+/** [n] 引用角标点击回调，由有搜索结果的消息通过 Provider 提供 */
+const CitationClickContext = React.createContext<
+  ((index: number) => void) | null
+>(null)
+
+const CITE_LINK_PATTERN = /#cite-(\d{1,2})$/
+// 仅转换前后是空白/标点/CJK 边界的 [n]，避开 arr[1] 这类代码下标
+const CITATION_TEXT_PATTERN =
+  /(^|[\s(（【"'„「『。！？，；：、])\[(\d{1,2})\](?=$|[\s.,;:!?)】】"'」』。！？，；：、])/
+
+/** 把正文里的 [n] 引用标记改写成可拦截的内链（跳过代码块与行内代码） */
+function linkifyCitations(content: string): string {
+  return content
+    .split(/(```[\s\S]*?(?:```|$)|`[^`\n]*`)/g)
+    .map((segment, index) =>
+      index % 2 === 1
+        ? segment
+        : segment.replace(
+            new RegExp(CITATION_TEXT_PATTERN.source, 'gm'),
+            (_match, prefix: string, num: string) =>
+              `${prefix}[${num}](#cite-${num})`
+          )
+    )
+    .join('')
+}
+
+const CitationSuperscript = ({
+  citationIndex,
+  children,
+}: {
+  citationIndex: number
+  children: React.ReactNode
+}) => {
+  const onCitationClick = React.useContext(CitationClickContext)
+  return (
+    <button
+      type='button'
+      onClick={event => {
+        event.preventDefault()
+        onCitationClick?.(citationIndex)
+      }}
+      className='mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-primary/30 bg-primary/10 px-1 align-super text-[10px] font-medium leading-none text-primary transition-colors hover:bg-primary/20'
+    >
+      {children}
+    </button>
+  )
+}
+
 export const MarkdownContent = memo(function MarkdownContent({
   content,
+  onCitationClick,
 }: MarkdownContentProps) {
+  const citationEnabled = typeof onCitationClick === 'function'
+  const renderContent = citationEnabled ? linkifyCitations(content) : content
   return (
-    <ReactMarkdown
-      remarkPlugins={REMARK_PLUGINS}
-      rehypePlugins={REHYPE_PLUGINS}
-      components={MARKDOWN_COMPONENTS}
-    >
-      {content}
-    </ReactMarkdown>
+    <CitationClickContext.Provider value={onCitationClick ?? null}>
+      <ReactMarkdown
+        remarkPlugins={REMARK_PLUGINS}
+        rehypePlugins={REHYPE_PLUGINS}
+        components={MARKDOWN_COMPONENTS}
+      >
+        {renderContent}
+      </ReactMarkdown>
+    </CitationClickContext.Provider>
   )
 })
 MarkdownContent.displayName = 'MarkdownContent'

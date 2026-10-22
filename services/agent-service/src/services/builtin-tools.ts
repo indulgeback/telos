@@ -1,6 +1,6 @@
 import { tool, type Tool } from '@openai/agents'
 import { logger } from '../config/index.js'
-import { asRecord } from '../utils/json.js'
+import { asRecord, safeJsonStringify } from '../utils/json.js'
 import { prisma } from './db.js'
 import type { AgentRunPersistence } from './persistence.js'
 import {
@@ -15,6 +15,37 @@ import fs from 'fs'
 import { executeGenerateImage } from './image-generator.js'
 import { formatCurrentTime } from './current-time.js'
 import { toolRequiresApproval } from './tool-approval-policy.js'
+
+/** 从 URL 提取展示用来源域名，解析失败回退整个字符串 */
+function safeHostname(url: string): string {
+  try {
+    return new URL(url).hostname
+  } catch {
+    return url
+  }
+}
+
+/**
+ * web_search 输出的 JSON 信封：模型按 cite 指令标注 [n] 引用；
+ * 前端解析 results 渲染「N 个网页」胶囊与来源面板，并随消息 parts 持久化。
+ */
+export function buildWebSearchResultsOutput(
+  query: string,
+  results: { title: string; url: string; content: string }[]
+) {
+  return safeJsonStringify({
+    type: 'web_search_results',
+    query,
+    results: results.map((item, index) => ({
+      index: index + 1,
+      title: item.title,
+      url: item.url,
+      snippet: item.content,
+      source: safeHostname(item.url),
+    })),
+    cite: '回答时请在来自搜索结果的信息处标注 [n]（n 为结果序号），便于用户溯源。',
+  })
+}
 
 type BuiltinToolKey =
   | 'get_current_time'
@@ -305,8 +336,8 @@ export const BUILTIN_TOOL_DEFINITIONS: BuiltinToolDefinition[] = [
     id: 'builtin_web_search',
     name: 'web_search',
     displayName: '网络搜索',
-    description:
-      '使用 Tavily API 查询实时互联网的最新信息、第三方文档、API 说明等。输入 query 应为详细清晰的语义搜索词。',
+  description:
+    '使用 Tavily API 查询实时互联网的最新信息、第三方文档、API 说明等。输入 query 应为详细清晰的语义搜索词。返回 JSON 结果列表，回答时请在引用搜索信息的句子处标注 [序号] 引用标记。',
     category: 'builtin',
     endpoint: { kind: 'builtin', builtin: 'web_search' },
     parameters: {
@@ -1169,6 +1200,7 @@ export function buildBuiltinTool(
                   query,
                   search_depth: 'basic',
                   include_answer: false,
+                  max_results: 8,
                 }),
               })
 
@@ -1183,12 +1215,7 @@ export function buildBuiltinTool(
                 if (searchResults.length === 0) {
                   output = `网页搜索没有找到与 "${query}" 相关的结果。`
                 } else {
-                  const formatted = searchResults
-                    .map((item, index) => {
-                      return `[${index + 1}] 标题: ${item.title}\n    链接: ${item.url}\n    摘要: ${item.content}`
-                    })
-                    .join('\n\n')
-                  output = `搜索查询: "${query}"\n\n结果:\n\n${formatted}`
+                  output = buildWebSearchResultsOutput(query, searchResults)
                 }
               }
             } catch (e: any) {

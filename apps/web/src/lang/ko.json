@@ -26,6 +26,11 @@
         "prepare": "호출 파라미터 준비 중..."
       }
     },
+    "searchResults": {
+      "count": "웹페이지 {count}개",
+      "panelTitle": "검색 결과",
+      "close": "검색 결과 닫기"
+    },
     "voiceChat": "음성 채팅",
     "voiceInput": "음성 입력",
     "voiceError": "실시간 음성 서비스 오류: {error}",
