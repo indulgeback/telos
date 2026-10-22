@@ -16,6 +16,7 @@ import { mcpRouter } from './routes/mcp.js'
 import { realtimeRouter } from './routes/realtime.js'
 import { runsRouter } from './routes/runs.js'
 import { runsAguiRouter } from './routes/runs-agui.js'
+import { a2aRouter } from './routes/a2a.js'
 import { skillsRouter } from './routes/skills.js'
 import { toolsRouter } from './routes/tools.js'
 import {
@@ -186,6 +187,7 @@ app.route('/api/skills', skillsRouter)
 app.route('/api/mcp-servers', mcpRouter)
 app.route('/api/runs', runsRouter)
 app.route('/api/runs', runsAguiRouter)
+app.route('/a2a', a2aRouter)
 
 const server = serve(
   {

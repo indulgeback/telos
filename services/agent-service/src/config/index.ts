@@ -106,6 +106,10 @@ export const config = {
   volcRealtimeSpeaker: process.env.VOLC_REALTIME_SPEAKER || '',
   volcRealtimeDemo: process.env.VOLC_REALTIME_DEMO === 'true',
 
+  // A2A 出口：为空时 /a2a 端点整体禁用（403/503）
+  a2aApiKey: process.env.A2A_API_KEY || '',
+  a2aPublicBaseUrl: process.env.A2A_PUBLIC_BASE_URL || '',
+
   // 服务
   port: boundedInteger(process.env.PORT, 8895, 1, 65535),
   serviceName: process.env.SERVICE_NAME || 'agent-service',
