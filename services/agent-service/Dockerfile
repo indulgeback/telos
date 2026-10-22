@@ -54,9 +54,9 @@ RUN cd services/agent-service \
     && cp -a /deployed/node_modules ./node_modules \
     && rm -rf /deployed
 
-# Runtime 也需要生成 Prisma Client (deploy --prod 后 client 是空的)。Prisma
-# CLI 是锁文件固定的 production dependency，不允许 npx 在构建时临时下载。
-RUN cd services/agent-service && ./node_modules/.bin/prisma generate --schema ../../prisma/schema.prisma
+# Prisma Client 生成物从 builder 拷入（deploy --prod 不含 prisma CLI；
+# 生成物版本由同一锁文件锁定，与运行时 @prisma/client 完全一致）
+COPY --from=builder /app/services/agent-service/node_modules/.prisma ./services/agent-service/node_modules/.prisma
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist
