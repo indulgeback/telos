@@ -262,6 +262,13 @@ export function isAuthenticatedAdmin(c: Context) {
 }
 
 export async function gatewayIdentityMiddleware(c: Context, next: Next) {
+  // A2A 端点有独立的 Bearer 鉴权（A2A_API_KEY，见 routes/a2a.ts），
+  // 面向不持有 Better Auth cookie 的外部 agent，跳过网关身份签名
+  if (c.req.path.startsWith('/api/a2a')) {
+    await next()
+    return
+  }
+
   const userId = c.req.header('X-User-ID')?.trim()
   const timestamp = c.req.header('X-Gateway-Timestamp')?.trim()
   const nonce = c.req.header('X-Gateway-Nonce')?.trim()
