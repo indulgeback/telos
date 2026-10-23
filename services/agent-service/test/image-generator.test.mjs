@@ -9,6 +9,7 @@ const {
 test('recognizes Gemini image models separately from Imagen models', () => {
   assert.equal(isGeminiImageModel('gemini-2.5-flash-image'), true)
   assert.equal(isGeminiImageModel('gemini-3.1-flash-image-preview'), true)
+  assert.equal(isGeminiImageModel('gemini-nano-banana-2.1'), true)
   assert.equal(isGeminiImageModel('imagen-3.0-generate-002'), false)
 })
 

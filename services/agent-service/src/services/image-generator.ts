@@ -8,7 +8,7 @@ import { getGcloudProjectId } from './gcloud.js'
 import { config } from '../config/index.js'
 import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
 
-const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-2.5-flash-image'
+const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-nano-banana-2.1'
 
 const STYLE_SUFFIX_MAP: Record<string, string> = {
   photo_realistic:
@@ -77,7 +77,10 @@ async function uploadToCDN(
 }
 
 export function isGeminiImageModel(model: string): boolean {
-  return /^gemini-.+-image(?:-preview)?$/.test(model)
+  // Gemini 系对话式生图模型：经典 *-image 命名 + Nano Banana 系（nano-banana-2.1 等）
+  return /^(?:gemini-.+-image(?:-preview)?|gemini-nano-banana-\d+(?:\.\d+)?)$/.test(
+    model
+  )
 }
 
 export async function executeGeminiApiGenerate(

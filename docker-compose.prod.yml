@@ -270,7 +270,7 @@ services:
       # Gemini 3.x OpenAI-compatible chat models are published on the global endpoint.
       # Keep GCLOUD_LOCATION regional for embeddings/images.
       - GCLOUD_CHAT_LOCATION=${GCLOUD_CHAT_LOCATION:-global}
-      - VERTEX_IMAGE_MODEL=${VERTEX_IMAGE_MODEL:-gemini-2.5-flash-image}
+      - VERTEX_IMAGE_MODEL=${VERTEX_IMAGE_MODEL:-gemini-nano-banana-2.1}
     depends_on:
       registry:
         condition: service_healthy
