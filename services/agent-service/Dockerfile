@@ -56,14 +56,8 @@ RUN cd services/agent-service && pnpm install --prod --frozen-lockfile --ignore-
        /app/node_modules/pdfjs-dist /app/node_modules/lucide-react \
        /app/node_modules/lucide-vue-next /app/node_modules/@central-icons-react \
        /app/node_modules/@tailwindcss/oxide /app/node_modules/@parcel-watcher* \
-       /app/node_modules/@swc /app/node_modules/esbuild
-
-# Prisma Client 生成物与 CLI 从 builder 补齐（deploy --prod 都不含；
-# CLI 是 deploy.sh 的 migrate deploy 步骤所必需）。
-# Prisma 7 把生成物写进 hoisted 的 @prisma/client 包目录（workspace 根）
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+       /app/node_modules/@swc /app/node_modules/esbuild \
+    && pnpm exec prisma generate --schema ../../prisma/schema.prisma
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist
