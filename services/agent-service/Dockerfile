@@ -50,8 +50,8 @@ COPY prisma.config.ts ./prisma.config.ts
 RUN cd services/agent-service \
     && pnpm deploy --legacy --ignore-scripts --filter @telos/agent-service --prod /deployed \
     && rm -rf /root/.local/share/pnpm/store \
-    && rm -rf services/agent-service/node_modules \
-    && mv /deployed/node_modules ./node_modules \
+    && mv /deployed/node_modules/node_modules ./node_modules \
+    && cp -a /deployed/node_modules/. ./node_modules/ \
     && rm -rf /deployed
 
 # Prisma Client 生成物与 CLI 从 builder 补齐（deploy --prod 都不含；
