@@ -83,6 +83,12 @@ export function isGeminiImageModel(model: string): boolean {
   )
 }
 
+// Nano Banana 系列只在 Vertex 的 global region 上架（区域端点 404），
+// 选择 Vertex 请求 location 时据此分流。
+export function isNanoBananaModel(model: string): boolean {
+  return /^gemini-nano-banana-\d+(?:\.\d+)?$/.test(model)
+}
+
 export async function executeGeminiApiGenerate(
   client: GoogleGenAI,
   model: string,
@@ -240,14 +246,19 @@ export async function executeGenerateImage(
   // Gemini 开发者 API 因预付费余额耗尽移除(402);ShortAPI 因服务器
   // 无法直连 api.shortapi.ai 移除。恢复任一通道时参考 git 历史。
   try {
+    const vertexModel =
+      process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL
+    // Nano Banana 系列仅在 Vertex 的 global region 提供，其他模型仍走
+    // 区域端点（us-central1），global 区域模型在区域端点上会 404。
+    const location = isNanoBananaModel(vertexModel)
+      ? 'global'
+      : config.gcloudLocation || 'us-central1'
     const projectId = await getGcloudProjectId()
     const client = new GoogleGenAI({
       vertexai: true,
       project: projectId,
-      location: config.gcloudLocation || 'us-central1',
+      location,
     })
-    const vertexModel =
-      process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL
     const generated = await executeVertexAiGenerate(
       client,
       vertexModel,
