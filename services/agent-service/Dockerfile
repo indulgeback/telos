@@ -54,9 +54,12 @@ RUN cd services/agent-service \
     && mv /deployed/node_modules ./node_modules \
     && rm -rf /deployed
 
-# Prisma Client 生成物从 builder 拷入（deploy --prod 不含 prisma CLI）。
+# Prisma Client 生成物与 CLI 从 builder 补齐（deploy --prod 都不含；
+# CLI 是 deploy.sh 的 migrate deploy 步骤所必需）。
 # Prisma 7 把生成物写进 hoisted 的 @prisma/client 包目录（workspace 根）
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 # Copy built files from builder
 COPY --from=builder /app/services/agent-service/dist ./services/agent-service/dist
