@@ -43,16 +43,20 @@ COPY prisma ./prisma
 # Prisma 7 的 migrate deploy/resolve 从该配置读取 datasource URL。
 COPY prisma.config.ts ./prisma.config.ts
 
-# Install production dependencies only, deployed to a self-contained tree.
+# Install production dependencies only (--ignore-scripts 跳过 husky prepare)。
 # workspace + hoisted 模式会把 monorepo 锁文件里所有包（web/mobile/admin）的
-# 依赖都提升进根 node_modules，镜像因此膨胀到 2.9GB；`pnpm deploy --prod`
- # 只物化 agent-service 自己的生产依赖，node_modules 换成精简版后 store 一并清除。
-RUN cd services/agent-service \
-    && pnpm deploy --legacy --ignore-scripts --filter @telos/agent-service --prod /deployed \
+# 依赖都提升进根 node_modules（镜像曾因此膨胀到 2.9GB）。安装后同层删除
+# 确定与 agent-service 运行时无关的前端大件与 content store。
+RUN cd services/agent-service && pnpm install --prod --frozen-lockfile --ignore-scripts \
     && rm -rf /root/.local/share/pnpm/store \
-    && mv /deployed/node_modules/node_modules ./node_modules \
-    && cp -a /deployed/node_modules/. ./node_modules/ \
-    && rm -rf /deployed
+    && rm -rf /app/node_modules/next /app/node_modules/@next \
+       /app/node_modules/react-native /app/node_modules/@react-native \
+       /app/node_modules/expo /app/node_modules/@expo \
+       /app/node_modules/echarts /app/node_modules/three \
+       /app/node_modules/pdfjs-dist /app/node_modules/lucide-react \
+       /app/node_modules/lucide-vue-next /app/node_modules/@central-icons-react \
+       /app/node_modules/@tailwindcss/oxide /app/node_modules/@parcel-watcher* \
+       /app/node_modules/@swc /app/node_modules/esbuild
 
 # Prisma Client 生成物与 CLI 从 builder 补齐（deploy --prod 都不含；
 # CLI 是 deploy.sh 的 migrate deploy 步骤所必需）。
