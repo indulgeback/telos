@@ -51,7 +51,7 @@ RUN cd services/agent-service \
     && pnpm deploy --legacy --ignore-scripts --filter @telos/agent-service --prod /deployed \
     && rm -rf /root/.local/share/pnpm/store \
     && rm -rf services/agent-service/node_modules \
-    && cp -a /deployed/node_modules/. ./node_modules/ \
+    && mv /deployed/node_modules ./node_modules \
     && rm -rf /deployed
 
 # Prisma Client 生成物从 builder 拷入（deploy --prod 不含 prisma CLI）。
