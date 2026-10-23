@@ -423,9 +423,11 @@ log "💾 创建迁移前数据库备份..."
 fi
 
 run_prisma() {
+  # 镜像运行时依赖是平铺的(deploy 产物不含 workspace .bin 链接)，
+  # 用 node 直呼 prisma CLI 入口，避免 pnpm exec 在子包里找不到 .bin
   "${DC[@]}" -f "$COMPOSE_FILE" run --rm --no-deps agent-service \
     sh -lc 'cd /app/services/agent-service && \
-      pnpm exec prisma "$@" \
+      node /app/node_modules/prisma/build/index.js "$@" \
         --config /app/prisma.config.ts' \
     prisma "$@"
 }
