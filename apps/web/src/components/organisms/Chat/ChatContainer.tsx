@@ -348,7 +348,7 @@ export function ChatContainer({
         label: t('commands.plan'),
         description: t('commands.planDesc'),
         active: planMode === 'plan',
-        disabled: disableReasoningEffort,
+        disabled: isLoading,
       },
       {
         id: 'cmd-think',
@@ -844,7 +844,10 @@ export function ChatContainer({
                   aria-label={t('commands.open')}
                   title={t('commands.open')}
                   disabled={isLoading}
-                  onClick={() => onInputChange(safeInput === '/' ? '' : '/')}
+                  data-command-palette-toggle
+                  onClick={() =>
+                    onInputChange(/^\/[a-z0-9-]*$/i.test(safeInput) ? '' : '/')
+                  }
                 >
                   <Plus className='size-4' />
                 </Button>

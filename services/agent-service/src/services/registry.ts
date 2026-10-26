@@ -110,6 +110,20 @@ export async function registerToRegistry(
   }
 }
 
+// Consul 以 -dev 内存模式运行，重启后所有注册蒸发。周期性重注册保证
+// consul 恢复后服务能自动回到发现列表，无需人工重启各服务
+const RE_REGISTRATION_INTERVAL_MS = 30_000
+let reRegistrationTimer: NodeJS.Timeout | null = null
+
+export function startPeriodicRegistration(intervalMs = RE_REGISTRATION_INTERVAL_MS) {
+  if (reRegistrationTimer) return
+  reRegistrationTimer = setInterval(() => {
+    void performRegistration()
+  }, intervalMs)
+  // 定时器不该阻止进程退出
+  reRegistrationTimer.unref?.()
+}
+
 /**
  * 获取服务注册地址
  * 对应 Go 版本: pkg/netutil/local_ip.go:GetServiceAddress()

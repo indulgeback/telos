@@ -337,12 +337,27 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
           : appendRunUiEvent(options.runId, type, payload)
 
     if (result && typeof (result as Promise<void>).then === 'function') {
-      pendingEmits.push(Promise.resolve(result).then(() => undefined))
+      // 必须就地挂上 rejection 处理器：worker 监听 unhandledRejection 会直接
+      // 停机，而 flush 的 allSettled 要到终态路径才执行，来不及救
+      pendingEmits.push(
+        Promise.resolve(result).then(
+          () => undefined,
+          error => {
+            logger.warn({
+              msg: 'Run event emit rejected',
+              runId: options.runId,
+              type,
+              error: error instanceof Error ? error.message : String(error),
+            })
+          }
+        )
+      )
     }
   }
 
   const textId = `text-${options.runId}`
   const activeToolCalls = new Map<string, string>()
+  let nextToolOutputIndex = 0
   const assistantParts = restoreAssistantParts(options.partialParts)
   let planStore: PlanStore | undefined
   let planPersistenceChain = Promise.resolve()
@@ -392,13 +407,23 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
           })
           if (options.approvedPlanMessageId && planStore) {
             const snapshot = [...planStore.getStatuses()]
-            planPersistenceChain = planPersistenceChain.then(() =>
-              persistPlanExecution(
-                options.approvedPlanMessageId!,
-                options.runId,
-                snapshot
+            planPersistenceChain = planPersistenceChain
+              .then(() =>
+                persistPlanExecution(
+                  options.approvedPlanMessageId!,
+                  options.runId,
+                  snapshot
+                )
               )
-            )
+              .catch(error => {
+                // 计划步进持久化是尽力而为，不能让链条上的 rejection 变成
+                // unhandledRejection 打崩 worker
+                logger.warn({
+                  msg: 'Plan execution persist failed',
+                  runId: options.runId,
+                  error: error instanceof Error ? error.message : String(error),
+                })
+              })
           }
         },
         restoredExecution?.stepStatuses
@@ -432,10 +457,11 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
             const toolName = toolNameFromPayload(event.payload)
             const input = toolInputFromPayload(event.payload)
             activeToolCalls.set(toolName, toolCallId)
+            const toolOutputIndex = nextToolOutputIndex++
             emit('response.output_item.added', {
               response_id: options.runId,
               item_id: toolCallId,
-              output_index: activeToolCalls.size - 1,
+              output_index: toolOutputIndex,
               toolCallId,
               toolName,
               item: {
@@ -450,7 +476,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
               emit('response.function_call_arguments.delta', {
                 response_id: options.runId,
                 item_id: toolCallId,
-                output_index: activeToolCalls.size - 1,
+                output_index: toolOutputIndex,
                 toolCallId,
                 toolName,
                 delta: inputText,
@@ -460,7 +486,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
             emit('response.function_call_arguments.done', {
               response_id: options.runId,
               item_id: toolCallId,
-              output_index: activeToolCalls.size - 1,
+              output_index: toolOutputIndex,
               toolCallId,
               toolName,
               input,
@@ -483,9 +509,14 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
 
           if (event.type === 'tool_end') {
             const toolName = toolNameFromPayload(event.payload)
+            // 同名工具并发时 map 会互相覆盖，事件自带的 callId 才是权威归属
             const toolCallId =
+              toolCallIdFromPayload(event.payload) ||
               activeToolCalls.get(toolName) ||
-              toolCallIdFromPayload(event.payload)
+              toolName
+            if (activeToolCalls.get(toolName) === toolCallId) {
+              activeToolCalls.delete(toolName)
+            }
             emit('agent.tool_call.output', {
               response_id: options.runId,
               item_id: toolCallId,

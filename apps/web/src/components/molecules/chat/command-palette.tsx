@@ -128,6 +128,18 @@ export function CommandPalette({
         sideOffset={8}
         className='w-80 p-1'
         onOpenAutoFocus={e => e.preventDefault()}
+        onPointerDownOutside={event => {
+          // 点在 + 开关上时不走 outside-dismiss：dismiss 会先清空输入，
+          // 随后按钮 click 再用旧值写回，造成过滤词丢失 + 开关闪烁。
+          // 交给按钮自身的 toggle 逻辑处理
+          if (
+            (event.target as Element | null)?.closest(
+              '[data-command-palette-toggle]'
+            )
+          ) {
+            event.preventDefault()
+          }
+        }}
       >
         {filtered.length === 0 ? null : (
           <div ref={listRef} className='max-h-64 overflow-y-auto'>

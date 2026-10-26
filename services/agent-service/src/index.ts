@@ -28,7 +28,10 @@ import { ensureBuiltinTools } from './services/builtin-tools.js'
 import { ensureDefaultAgent } from './services/default-agent.js'
 import { ensureSystemSkills } from './services/default-skills.js'
 import { db, prisma } from './services/db.js'
-import { performRegistration } from './services/registry.js'
+import {
+  performRegistration,
+  startPeriodicRegistration,
+} from './services/registry.js'
 import { handleVolcRealtimeAudioSocket } from './services/realtime/volc-realtime.js'
 import { ANONYMOUS_OWNER_ID } from './services/session.js'
 import {
@@ -220,6 +223,7 @@ const server = serve(
       })
     })
     void performRegistration()
+    startPeriodicRegistration()
   }
 )
 

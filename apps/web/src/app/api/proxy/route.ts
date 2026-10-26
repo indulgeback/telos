@@ -23,8 +23,11 @@ export async function GET(request: NextRequest) {
     ]
 
     const urlObj = new URL(url)
-    const isAllowed = allowedDomains.some(domain =>
-      urlObj.hostname.includes(domain)
+    // 精确匹配或子域后缀匹配：includes 子串匹配会让
+    // evil.com?x=<域名> 或 <域名>.evil.com 这类绕过白名单
+    const isAllowed = allowedDomains.some(
+      domain =>
+        urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
     )
 
     if (!isAllowed) {
@@ -45,8 +48,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // 上限防护：避免一次请求把超大上游文件整个读进内存
+    const MAX_PROXY_BYTES = 25 * 1024 * 1024
+    const contentLength = Number(response.headers.get('content-length') || 0)
+    if (contentLength > MAX_PROXY_BYTES) {
+      return NextResponse.json({ error: '代理资源过大' }, { status: 413 })
+    }
     // 获取响应数据
     const data = await response.arrayBuffer()
+    if (data.byteLength > MAX_PROXY_BYTES) {
+      return NextResponse.json({ error: '代理资源过大' }, { status: 413 })
+    }
     const contentType =
       response.headers.get('content-type') || 'application/octet-stream'
 

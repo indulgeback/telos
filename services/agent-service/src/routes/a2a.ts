@@ -1,4 +1,5 @@
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
+import { timingSafeEqual } from 'node:crypto'
 import { prisma } from '../services/db.js'
 import { config } from '../config/index.js'
 import { logger } from '../config/logger.js'
@@ -29,7 +30,14 @@ a2aRouter.use('*', async (c, next) => {
     )
   }
   const header = c.req.header('Authorization') || ''
-  if (header !== `Bearer ${config.a2aApiKey}`) {
+  const expected = `Bearer ${config.a2aApiKey}`
+  // 公网长期凭据用常数时间比较，避免逐字节计时侧信道
+  const headerBuf = Buffer.from(header)
+  const expectedBuf = Buffer.from(expected)
+  if (
+    headerBuf.length !== expectedBuf.length ||
+    !timingSafeEqual(headerBuf, expectedBuf)
+  ) {
     return c.json(
       { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'Unauthorized' } },
       401
@@ -49,7 +57,7 @@ a2aRouter.get('/.well-known/agent-card.json', async c => {
       })
     : null
 
-  const baseUrl = config.a2aPublicBaseUrl || new URL(c.req.url).origin + '/a2a'
+  const baseUrl = config.a2aPublicBaseUrl || new URL(c.req.url).origin + '/api/a2a'
   return c.json({
     name: agent?.name || 'Telos Agent',
     description:
@@ -274,7 +282,9 @@ async function handleMessageSend(id: unknown, params: unknown) {
   return { jsonrpc: '2.0', id, result: buildTask(terminal) }
 }
 
-a2aRouter.post('/', async c => {
+// strict:false 并不覆盖挂载点本身的尾斜杠差异（/api/a2a 与 /api/a2a/
+// 在部分客户端/代理下都会出现），两个拼写都注册同一个处理器
+const handleJsonRpc = async (c: Context) => {
   let body: Record<string, unknown>
   try {
     body = (await c.req.json()) as Record<string, unknown>
@@ -296,4 +306,7 @@ a2aRouter.post('/', async c => {
     logger.error({ msg: 'A2A request failed', method, error })
     return c.json(jsonRpcError(rpcId, -32000, 'Internal error'))
   }
-})
+}
+
+a2aRouter.post('/', handleJsonRpc)
+a2aRouter.post('', handleJsonRpc)

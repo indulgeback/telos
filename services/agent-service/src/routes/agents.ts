@@ -1,4 +1,5 @@
 import { parseExplicitSkillTrigger } from '../services/skill-loader.js'
+import { normalizeReasoningEffort } from '../services/reasoning.js'
 import { Hono } from 'hono'
 import { prisma } from '../services/db.js'
 import { config, logger } from '../config/index.js'
@@ -67,17 +68,7 @@ function normalizeStatus(value: unknown): 'active' | 'archived' | 'disabled' {
   return 'active'
 }
 
-function normalizeReasoningEffort(value: unknown) {
-  if (
-    value === 'minimal' ||
-    value === 'low' ||
-    value === 'medium' ||
-    value === 'high'
-  ) {
-    return value
-  }
-  return null
-}
+
 
 function normalizeMaxTurns(value: unknown, fallback?: number) {
   if (value === undefined || value === null) return fallback

@@ -61,11 +61,22 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     })
 }
 
+// 生产环境缺 secret 必须直接启动失败：静默落到公开常量等于任何人可伪造 session
+function resolveAuthSecret() {
+  const secret = process.env.BETTER_AUTH_SECRET
+  if (secret) return secret
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'BETTER_AUTH_SECRET is required in production (refusing to fall back to the dev default)'
+    )
+  }
+  return 'dev-secret-only-change-in-production'
+}
+
 export const auth = betterAuth({
   baseURL: authBaseURL,
   basePath: '/api/auth',
-  secret:
-    process.env.BETTER_AUTH_SECRET || 'dev-secret-only-change-in-production',
+  secret: resolveAuthSecret(),
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),

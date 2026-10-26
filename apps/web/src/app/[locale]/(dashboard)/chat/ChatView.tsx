@@ -1333,6 +1333,7 @@ export function ChatView() {
   const handleAgentChange = useCallback(
     (agent: Agent) => {
       discardInFlightRun()
+      setSearchPanel(null)
       invalidateRequests()
       setSelectedAgent(agent)
       setCurrentThreadId(null)
@@ -2040,6 +2041,7 @@ export function ChatView() {
 
   const handleClear = () => {
     discardInFlightRun()
+    setSearchPanel(null)
     shouldAutoScrollRef.current = true
     setShowScrollToBottom(false)
     pendingImageBatchesRef.current = []
@@ -2086,6 +2088,7 @@ export function ChatView() {
 
   const handleNewThread = () => {
     discardInFlightRun()
+    setSearchPanel(null)
     setCurrentThreadId(null)
     setMessages([])
     pendingPlanRef.current = null
@@ -2627,12 +2630,25 @@ export function ChatView() {
             className='space-y-4'
             onSubmit={event => {
               event.preventDefault()
-              void handleConfirmRenameThread()
+              // 静默失败会留下永久转圈且产生 unhandled rejection
+              handleConfirmRenameThread().catch(error => {
+                console.error('rename thread failed:', error)
+              })
             }}
           >
             <Input
               value={renameThreadTitle}
               onChange={event => setRenameThreadTitle(event.target.value)}
+              onKeyDown={event => {
+                // Safari 候选词确认（数字键选词）走 keyCode 229，
+                // 不挡住会把候选词确认当成回车提交
+                if (
+                  event.key === 'Enter' &&
+                  isImeComposingKeyEvent(event.nativeEvent)
+                ) {
+                  event.preventDefault()
+                }
+              }}
               placeholder={t('threads.renamePlaceholder')}
               disabled={isRenamingThread}
               autoFocus

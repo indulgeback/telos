@@ -329,7 +329,8 @@ export async function handleVolcRealtimeAudioSocket(options: {
   let pendingInstructions: string | undefined
   let agentInstructions: string | undefined
   let voiceConfig: VolcRealtimeVoiceConfig | null = null
-  let initiallyMuted = false
+  // 跟踪当前静音态：上游重连重建会话后需要据此补发 mute.commit 保活
+  let muted = false
 
   // ---- 语音工具调用（Function Calling）状态 ----
   // 语音会话无法走审批交互，需审批的工具在解析阶段整类排除；
@@ -588,13 +589,14 @@ export async function handleVolcRealtimeAudioSocket(options: {
   }
 
   const sendVoiceToolOutputToVolc = (callId: string, text: string) => {
+    // 全双工协议：function_call_output 的结果放在 output 字段；
+    // content 仅对 message 型 item 生效，发错字段模型拿不到工具结果
     sendUpstreamJson({
       type: 'conversation.item.create',
       item: {
         type: 'function_call_output',
         call_id: callId,
-        role: 'tool',
-        content: [{ type: 'input_text', text }],
+        output: text,
       },
     })
   }
@@ -857,7 +859,7 @@ export async function handleVolcRealtimeAudioSocket(options: {
           safeSendClientJson(client, 'reconnected', {})
         }
         // 静音状态下没有音频帧，必须补发静音事件保活，否则会话超时无响应
-        if (initiallyMuted) {
+        if (muted) {
           sendUpstreamJson({ type: 'input_audio_mute.commit' })
         }
         flushPendingAudio()
@@ -1039,7 +1041,7 @@ export async function handleVolcRealtimeAudioSocket(options: {
           }
           if (payload.type === 'client.start' && !startRequested) {
             pendingInstructions = payload.instructions
-            initiallyMuted = payload.muted === true
+            muted = payload.muted === true
             await ensurePersistentThread({
               agentId: payload.agentId,
               threadId: payload.threadId,
@@ -1061,10 +1063,12 @@ export async function handleVolcRealtimeAudioSocket(options: {
           }
           // 浏览器静音后不再有音频帧，必须发静音事件给上游保活，否则会话超时
           if (payload.type === 'client.mute') {
+            muted = true
             sendUpstreamJson({ type: 'input_audio_mute.commit' })
             return
           }
           if (payload.type === 'client.unmute') {
+            muted = false
             sendUpstreamJson({ type: 'input_audio_unmute.commit' })
             return
           }

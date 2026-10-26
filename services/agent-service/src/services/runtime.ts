@@ -1,4 +1,9 @@
-import type { ReasoningEffort } from './reasoning.js'
+import {
+  isThinkingDisabled,
+  normalizeReasoningEffort,
+  toOpenAiReasoningEffort,
+  type ReasoningEffort,
+} from './reasoning.js'
 import {
   extractPromptFromBody,
   DEFAULT_AGENT_TURNS,
@@ -621,31 +626,30 @@ function buildProviderData(
   provider: RuntimeProvider,
   reasoningEffort?: RuntimeRunOptions['reasoningEffort']
 ) {
-  const effort = reasoningEffort ?? 'medium'
-  const isMinimal = effort === 'minimal'
-  if (provider === 'seed') {
-    return {
-      reasoning_effort: effort,
-      ...(isMinimal ? { thinking: { type: 'disabled' } } : {}),
-    }
-  }
-  if (provider === 'bailian') {
-    return {
-      enable_thinking: !isMinimal,
-    }
-  }
+  const effort = normalizeReasoningEffort(reasoningEffort)
   if (provider === 'gcloud') {
     return buildGeminiProviderData(effort)
   }
-  // OpenAI 兼容系（openai / shortapi）：o 系列等推理模型通过 reasoning_effort 控制强度，
-  // minimal 表示尽量关闭（SDK 会映射为最弱档；非推理模型会忽略该参数）。
+  // OpenAI 兼容系（openai / shortapi）：七档透传（off → none），非推理模型会忽略该参数。
   if (provider === 'openai' || provider === 'shortapi') {
-    return { reasoning_effort: effort }
+    return { reasoning_effort: toOpenAiReasoningEffort(effort) }
+  }
+  // 豆包 Seed 只认 thinking.type 开关，不发 OpenAI 风格的 reasoning_effort。
+  if (provider === 'seed') {
+    return {
+      thinking: {
+        type: isThinkingDisabled(effort) ? 'disabled' : 'enabled',
+      },
+    }
+  }
+  // 通义 bailian：enable_thinking 开关。
+  if (provider === 'bailian') {
+    return { enable_thinking: !isThinkingDisabled(effort) }
   }
   // DeepSeek 官方 API（V4 系列）：
   // - 关闭推理：thinking: { type: 'disabled' }
-  // - 开启推理：可附带 reasoning_effort 控制强度（'high' | 'max'）
-  if (isMinimal) {
+  // - 开启推理：可附带 reasoning_effort 控制强度
+  if (isThinkingDisabled(effort)) {
     return { thinking: { type: 'disabled' } }
   }
   return { reasoning_effort: effort }

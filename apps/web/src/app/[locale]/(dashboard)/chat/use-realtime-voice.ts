@@ -552,6 +552,16 @@ export function useRealtimeVoice({
             )
             return
           }
+          // 只把已知的助手流事件前缀交给渲染管线；上游新增的未知事件类型
+          // 直接忽略——兜底路径会调用 ensureRealtimeTurnMessages 凭空造出
+          // 空的用户/助手气泡
+          if (
+            !/^(text-|reasoning-|tool-|data-|agent\.|step-|response\.)/.test(
+              chunk.type ?? ''
+            )
+          ) {
+            return
+          }
           const { assistantId } = ensureRealtimeTurnMessages()
           applyAgentStreamChunk(assistantId, chunk)
         }

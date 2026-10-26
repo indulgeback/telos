@@ -12,7 +12,9 @@ import {
 } from './gemini-thought-signature-model.js'
 
 const RECENT_MESSAGE_LIMIT = 12
-const SUMMARY_THRESHOLD = 20
+// 与 thread-compaction 的触发条件保持一致（older > 24-12 即 count > 24）：
+// 21-24 条时两套阈值不一致会让朴素拼接悄悄覆盖/顶替模型摘要
+const SUMMARY_THRESHOLD = 24
 export const ANONYMOUS_OWNER_ID = 'anonymous'
 export {
   MAX_USER_IMAGE_PARTS,
@@ -443,7 +445,11 @@ export class AgentSessionService {
           content: toContent(message.content),
         }))
       )
-      const summary = compacted ?? summarizeMessages(thread?.summary, older)
+      // 模型压缩失败且尚无摘要时才用朴素拼接兜底；已有模型摘要时保持不动，
+      // 避免并发去重（generating 返回 null）或失败把好摘要降级覆盖
+      const summary =
+        compacted ??
+        (thread?.summary ? null : summarizeMessages(undefined, older))
       if (summary && summary !== thread?.summary) {
         await prisma.agentThread.update({
           where: { id: threadId },

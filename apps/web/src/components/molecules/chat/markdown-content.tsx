@@ -249,8 +249,10 @@ const CitationClickContext = React.createContext<
 
 const CITE_LINK_PATTERN = /#cite-(\d{1,2})$/
 // 仅转换前后是空白/标点/CJK 边界的 [n]，避开 arr[1] 这类代码下标
+// 后随字符不含冒号（半角/全角）：排除 markdown 链接定义 `[1]: url`，
+// 否则定义会被改写成 `[1](#cite-1): url` 而失效
 const CITATION_TEXT_PATTERN =
-  /(^|[\s(（【"'„「『。！？，；：、])\[(\d{1,2})\](?=$|[\s.,;:!?)】】"'」』。！？，；：、])/
+  /(^|[\s(（【"'„「『。！？，；：、])\[(\d{1,2})\](?=$|[\s.,;!?)】】"'」』。！？，、])/
 
 /** 把正文里的 [n] 引用标记改写成可拦截的内链（跳过代码块与行内代码） */
 function linkifyCitations(content: string): string {

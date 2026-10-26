@@ -66,7 +66,16 @@ export async function enqueueAgentRun(data: AgentRunJobData) {
   if (!run) throw new Error(`Agent run not found: ${data.runId}`)
   const jobId = queueJobId(data.runId, run.stateVersion)
   const existing = await q.getJob(jobId)
-  if (existing) return existing
+  if (existing) {
+    // removeOnComplete/removeOnFail 窗口内的终态 job 不能当作“已入队”返回，
+    // 否则 API 回 202 但永远没有 worker 会执行它
+    const state = await existing.getState()
+    if (state === 'completed' || state === 'failed') {
+      await existing.remove().catch(() => undefined)
+    } else {
+      return existing
+    }
+  }
   // Redis carries only an opaque execution identity. The worker reconstructs
   // every executable parameter from the durable, owner-bound DB snapshot.
   return q.add('run', { runId: data.runId } as AgentRunJobData, {

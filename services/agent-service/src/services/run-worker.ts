@@ -119,10 +119,18 @@ async function processAgentRun(job: Job<AgentRunJobData>) {
 
   // Cancellation may have committed after the claim but before the local
   // controller was registered. Re-read the DB truth before starting tools.
-  const claimedRun = await prisma.agentRun.findUnique({
-    where: { id: runId },
-    select: { status: true },
-  })
+  let claimedRun: { status: string } | null
+  try {
+    claimedRun = await prisma.agentRun.findUnique({
+      where: { id: runId },
+      select: { status: true },
+    })
+  } catch (error) {
+    // map 注册发生在 try/finally 之前，这里抛出必须先摘除，否则进程级泄漏
+    activeControllers.delete(runId)
+    activeLeases.delete(runId)
+    throw error
+  }
   if (claimedRun?.status !== 'running') {
     activeControllers.delete(runId)
     activeLeases.delete(runId)
