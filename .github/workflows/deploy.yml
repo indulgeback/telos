@@ -142,6 +142,14 @@ jobs:
           if [[ -f "$deploy_dir/docker-compose.prod.yml" ]]; then
             had_compose="true"
             cp "$deploy_dir/docker-compose.prod.yml" "$backup_dir/"
+            # 磁盘满时 cp 可能产出截断文件；残缺备份绝不能参与恢复，
+            # 否则会把好清单盖成 0/半截（历史事故同类路径）
+            if [[ ! -s "$backup_dir/docker-compose.prod.yml" ]]; then
+              echo "manifest backup is empty (disk full?) - aborting deploy" >&2
+              rm -f "$backup_dir/docker-compose.prod.yml"
+              had_compose="false"
+              exit 1
+            fi
           fi
           if [[ -f "$deploy_dir/deploy/deploy.sh" ]]; then
             had_deploy_script="true"
@@ -152,9 +160,11 @@ jobs:
             install_status="$?"
             trap - EXIT
             set +e
-            if [[ "$had_compose" == "true" ]]; then
+            if [[ "$had_compose" == "true" ]] && [[ -s "$backup_dir/docker-compose.prod.yml" ]]; then
               install -m 0644 "$backup_dir/docker-compose.prod.yml" \
                 "$deploy_dir/docker-compose.prod.yml"
+            elif [[ "$had_compose" == "true" ]]; then
+              echo "manifest backup empty - refusing to overwrite live manifest" >&2
             else
               rm -f "$deploy_dir/docker-compose.prod.yml"
             fi
