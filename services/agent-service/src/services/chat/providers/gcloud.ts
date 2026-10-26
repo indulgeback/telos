@@ -1,5 +1,6 @@
 import { ChatOpenAI } from '@langchain/openai'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from '../../gcloud.js'
+import { toGeminiReasoningEffort } from '../../reasoning.js'
 import type { ProviderModelRequest, ProviderModelResult } from './types.js'
 
 export async function createGcloudModel({
@@ -17,12 +18,7 @@ export async function createGcloudModel({
       apiKey,
       model,
       temperature: 0.7,
-      modelKwargs:
-        reasoningEffort === 'minimal'
-          ? {}
-          : {
-              reasoning_effort: reasoningEffort,
-            },
+      modelKwargs: { reasoning_effort: toGeminiReasoningEffort(reasoningEffort) },
       __includeRawResponse: true,
       configuration: {
         baseURL,

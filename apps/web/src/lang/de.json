@@ -144,10 +144,13 @@
       }
     },
     "reasoningEffort": {
-      "minimal": "Schließen",
-      "low": "niedrig",
-      "medium": "Mitte",
-      "high": "hoch"
+      "off": "Aus",
+      "minimal": "Minimal",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "xhigh": "Sehr hoch",
+      "max": "Max"
     },
     "reasoningSlider": {
       "title": "Denkintensität"

@@ -31,13 +31,6 @@ export interface ChatModelOption {
   supportReasoningControl: boolean
 }
 
-const REASONING_EFFORT_VALUES: ReasoningEffort[] = [
-  'minimal',
-  'low',
-  'medium',
-  'high',
-]
-
 let modelsInitialized = false
 
 async function ensureChatModelsInitialized() {

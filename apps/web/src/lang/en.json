@@ -144,10 +144,13 @@
       }
     },
     "reasoningEffort": {
-      "minimal": "Close",
+      "off": "Off",
+      "minimal": "Minimal",
       "low": "Low",
       "medium": "Medium",
-      "high": "Tall"
+      "high": "High",
+      "xhigh": "Extra High",
+      "max": "Max"
     },
     "reasoningSlider": {
       "title": "Thinking intensity"

@@ -20,7 +20,8 @@ export const isRenderableMessage = <T extends { role: string }>(
 
 export type ToolCallItem = NonNullable<Message['toolCalls']>[number]
 export type ContentPartItem = NonNullable<Message['contentParts']>[number]
-export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
+export type ReasoningEffort =
+  'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 export type AgentRunDataPart = {
   type: 'data-agent-run'
   data?: {

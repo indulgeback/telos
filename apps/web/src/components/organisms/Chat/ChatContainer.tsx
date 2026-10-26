@@ -17,9 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   SvgIcon,
   SuggestionPromptButton,
   type SuggestionPrompt,
@@ -51,8 +48,9 @@ import {
   type ChatCommand,
 } from '@/components/molecules/chat/command-palette'
 import {
-  ReasoningSliderPanel,
   type ReasoningEffortLevel,
+  REASONING_EFFORT_ORDER,
+  ReasoningSliderPanel,
 } from '@/components/molecules/chat/reasoning-slider'
 import type { WebSearchResultItem } from '@/app/[locale]/(dashboard)/chat/web-search-results'
 
@@ -108,7 +106,7 @@ export interface ChatModelOption {
 export interface ChatContainerProps {
   selectedModel: string
   modelOptions: ChatModelOption[]
-  reasoningEffort: 'minimal' | 'low' | 'medium' | 'high'
+  reasoningEffort: ReasoningEffortLevel
   // State
   messages: Message[]
   input: string
@@ -129,9 +127,7 @@ export interface ChatContainerProps {
   onClear: () => void
   onScrollToBottom: () => void
   onModelChange: (model: string) => void
-  onReasoningEffortChange: (
-    value: 'minimal' | 'low' | 'medium' | 'high'
-  ) => void
+  onReasoningEffortChange: (value: ReasoningEffortLevel) => void
   onPickImages?: (files: FileList | File[] | null) => void
   onRemoveImage?: (index: number) => void
   /** 打开搜索来源面板（web_search 引用胶囊与 [n] 角标触发） */
@@ -160,6 +156,9 @@ export interface ChatContainerProps {
   reasoningEffortLow: string
   reasoningEffortMedium: string
   reasoningEffortHigh: string
+  reasoningEffortXhigh: string
+  reasoningEffortOff: string
+  reasoningEffortMax: string
   // Plan 模式相关
   planMode: 'auto' | 'plan'
   onPlanModeChange: (value: 'auto' | 'plan') => void
@@ -260,6 +259,9 @@ export function ChatContainer({
   reasoningEffortLow,
   reasoningEffortMedium,
   reasoningEffortHigh,
+  reasoningEffortXhigh,
+  reasoningEffortOff,
+  reasoningEffortMax,
   planMode,
   onPlanModeChange,
   planTitle,
@@ -315,15 +317,17 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const t = useTranslations('Chat')
   const [suggestionSeed, setSuggestionSeed] = useState(0)
-  const [reasoningSliderOpen, setReasoningSliderOpen] = useState(false)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
 
   // `/` 指令面板的命令清单：收纳工具栏里的模式开关与低频操作
-  const reasoningLevelLabels: Record<string, string> = {
+  const reasoningLevelLabels: Record<ReasoningEffortLevel, string> = {
+    off: reasoningEffortOff,
     minimal: reasoningEffortMinimal,
     low: reasoningEffortLow,
     medium: reasoningEffortMedium,
     high: reasoningEffortHigh,
+    xhigh: reasoningEffortXhigh,
+    max: reasoningEffortMax,
   }
   const chatCommands = useMemo<ChatCommand[]>(
     () => [
@@ -389,6 +393,9 @@ export function ChatContainer({
       reasoningEffortLow,
       reasoningEffortMedium,
       reasoningEffortHigh,
+      reasoningEffortXhigh,
+      reasoningEffortOff,
+      reasoningEffortMax,
       messages.length,
     ]
   )
@@ -402,8 +409,11 @@ export function ChatContainer({
         onPlanModeChange(planMode === 'plan' ? 'auto' : 'plan')
         break
       case 'cmd-think': {
-        const order = ['minimal', 'low', 'medium', 'high'] as const
-        const next = order[(order.indexOf(reasoningEffort) + 1) % order.length]
+        const next =
+          REASONING_EFFORT_ORDER[
+            (REASONING_EFFORT_ORDER.indexOf(reasoningEffort) + 1) %
+              REASONING_EFFORT_ORDER.length
+          ]
         onReasoningEffortChange(next)
         break
       }
@@ -469,12 +479,7 @@ export function ChatContainer({
     setSuggestionSeed(prev => prev + 1)
   }
 
-  const reasoningEffortLabelMap: Record<ReasoningEffortLevel, string> = {
-    minimal: reasoningEffortMinimal,
-    low: reasoningEffortLow,
-    medium: reasoningEffortMedium,
-    high: reasoningEffortHigh,
-  }
+  const reasoningEffortLabelMap = reasoningLevelLabels
 
   const providerGroups: Array<{
     key: string
@@ -514,7 +519,7 @@ export function ChatContainer({
   ]
 
   // 合并后的「模型 + 推理强度」紧凑选择器（Codex 风格）
-  // - 模型项点击即选中并关闭菜单；推理强度走工具栏上的滑条入口
+  // - 模型项点击即选中；推理强度滑条内嵌在菜单底部，随模型一起调整
   const modelReasoningPicker = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -583,6 +588,16 @@ export function ChatContainer({
               )
           )}
         </div>
+        {showReasoningEffort && (
+          <div className='border-t border-border/60 p-2.5 pt-2'>
+            <ReasoningSliderPanel
+              value={reasoningEffort}
+              onChange={onReasoningEffortChange}
+              levelLabels={reasoningEffortLabelMap}
+              title={t('reasoningSlider.title')}
+            />
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -833,40 +848,6 @@ export function ChatContainer({
                   <Plus className='size-4' />
                 </Button>
                 {toolbarLeading}
-                {showReasoningEffort && (
-                  <Popover
-                    open={reasoningSliderOpen}
-                    onOpenChange={setReasoningSliderOpen}
-                  >
-                    <PopoverTrigger asChild>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='sm'
-                        disabled={disableReasoningEffort}
-                        className='h-8 gap-1.5 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground'
-                        aria-label={`${reasoningEffortLabel} ${reasoningEffortLabelMap[reasoningEffort]}`}
-                      >
-                        <BrainCircuit className='size-3.5' />
-                        <span>{reasoningEffortLabelMap[reasoningEffort]}</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      side='top'
-                      align='start'
-                      sideOffset={8}
-                      className='w-auto rounded-xl p-3'
-                      onOpenAutoFocus={e => e.preventDefault()}
-                    >
-                      <ReasoningSliderPanel
-                        value={reasoningEffort}
-                        onChange={onReasoningEffortChange}
-                        levelLabels={reasoningEffortLabelMap}
-                        title={t('reasoningSlider.title')}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
                 {modelReasoningPicker}
               </div>
             }

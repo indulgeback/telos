@@ -6,6 +6,7 @@ import { createAgentRun } from '../services/persistence.js'
 import { agentSessionService } from '../services/session.js'
 import { PlanStore } from '../services/plan-store.js'
 import { normalizeUserImageParts } from '../services/image-input.js'
+import { isReasoningEffort } from '../services/reasoning.js'
 import {
   decidePlan,
   markPlanExecutionStarted,
@@ -53,13 +54,9 @@ async function handleChat(c: Context) {
     if (!enabledModel) return fail(c, 400, 'Requested model is not enabled')
     modelOverride = enabledModel.model
   }
-  const reasoningEffort =
-    body.reasoningEffort === 'minimal' ||
-    body.reasoningEffort === 'low' ||
-    body.reasoningEffort === 'medium' ||
-    body.reasoningEffort === 'high'
-      ? body.reasoningEffort
-      : null
+  const reasoningEffort = isReasoningEffort(body.reasoningEffort)
+    ? body.reasoningEffort
+    : null
   const planMode =
     body.planMode === 'plan' || body.planMode === 'execute'
       ? body.planMode

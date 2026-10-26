@@ -144,10 +144,13 @@
       }
     },
     "reasoningEffort": {
-      "minimal": "닫기",
-      "low": "낮다",
-      "medium": "중",
-      "high": "높다"
+      "off": "끄기",
+      "minimal": "최소",
+      "low": "낮음",
+      "medium": "중간",
+      "high": "높음",
+      "xhigh": "매우 높음",
+      "max": "최대"
     },
     "reasoningSlider": {
       "title": "사고 강도"

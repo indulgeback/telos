@@ -1,4 +1,5 @@
 import { ChatOpenAI } from '@langchain/openai'
+import type { ReasoningEffort } from '../../reasoning.js'
 
 export type ChatProvider =
   | 'openai'
@@ -8,7 +9,7 @@ export type ChatProvider =
   | 'gcloud'
   | 'shortapi'
 
-export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high'
+export type { ReasoningEffort }
 
 export interface ProviderModelRequest {
   model: string

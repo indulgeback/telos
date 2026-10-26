@@ -3,9 +3,19 @@
 import { useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
-export type ReasoningEffortLevel = 'minimal' | 'low' | 'medium' | 'high'
+/** 与后端 services/reasoning.ts 的七档枚举一一对应 */
+export type ReasoningEffortLevel =
+  'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
-const LEVEL_ORDER: ReasoningEffortLevel[] = ['minimal', 'low', 'medium', 'high']
+export const REASONING_EFFORT_ORDER: ReasoningEffortLevel[] = [
+  'off',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max',
+]
 
 // 填充条内的闪烁粒子：位置/大小/延迟固定，渲染稳定且无需随机数
 const SPARKS = [
@@ -20,7 +30,7 @@ const SPARKS = [
 
 /**
  * DeepSeek 风格的思考强度滑条：绿→蓝渐变填充 + 闪烁粒子 + 大号白色圆钮，
- * 四个档位吸附（minimal/low/medium/high）。支持点击、拖拽与方向键。
+ * 七个档位吸附（off/minimal/low/medium/high/xhigh/max）。支持点击、拖拽与方向键。
  */
 export function ReasoningSliderPanel({
   value,
@@ -31,7 +41,7 @@ export function ReasoningSliderPanel({
 }: {
   value: ReasoningEffortLevel
   onChange: (value: ReasoningEffortLevel) => void
-  /** 四档的本地化标签，键为 minimal/low/medium/high */
+  /** 七档的本地化标签，键为 off/minimal/low/medium/high/xhigh/max */
   levelLabels: Record<ReasoningEffortLevel, string>
   title: string
   className?: string
@@ -39,21 +49,21 @@ export function ReasoningSliderPanel({
   const trackRef = useRef<HTMLDivElement | null>(null)
   const [dragging, setDragging] = useState(false)
 
-  const index = LEVEL_ORDER.indexOf(value)
-  const safeIndex = index >= 0 ? index : 2
-  const position = safeIndex / (LEVEL_ORDER.length - 1)
+  const index = REASONING_EFFORT_ORDER.indexOf(value)
+  const safeIndex = index >= 0 ? index : 3
+  const position = safeIndex / (REASONING_EFFORT_ORDER.length - 1)
 
   const setFromClientX = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect()
     if (!rect || rect.width === 0) return
     const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
-    const next = Math.round(ratio * (LEVEL_ORDER.length - 1))
-    onChange(LEVEL_ORDER[next])
+    const next = Math.round(ratio * (REASONING_EFFORT_ORDER.length - 1))
+    onChange(REASONING_EFFORT_ORDER[next])
   }
 
   return (
     <div
-      className={cn('w-64 select-none', className)}
+      className={cn('w-full select-none', className)}
       data-testid='reasoning-slider'
     >
       <style>{`
@@ -69,7 +79,7 @@ export function ReasoningSliderPanel({
       <div className='mb-2.5 flex items-center justify-between px-0.5'>
         <span className='text-xs text-muted-foreground'>{title}</span>
         <span className='text-xs font-medium text-foreground'>
-          {levelLabels[value]}
+          {levelLabels[value] ?? value}
         </span>
       </div>
 
@@ -79,9 +89,9 @@ export function ReasoningSliderPanel({
         tabIndex={0}
         aria-label={title}
         aria-valuemin={0}
-        aria-valuemax={LEVEL_ORDER.length - 1}
+        aria-valuemax={REASONING_EFFORT_ORDER.length - 1}
         aria-valuenow={safeIndex}
-        aria-valuetext={levelLabels[value]}
+        aria-valuetext={levelLabels[value] ?? value}
         onPointerDown={event => {
           event.currentTarget.setPointerCapture(event.pointerId)
           setDragging(true)
@@ -95,11 +105,13 @@ export function ReasoningSliderPanel({
         onKeyDown={event => {
           if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
             event.preventDefault()
-            onChange(LEVEL_ORDER[Math.max(0, safeIndex - 1)])
+            onChange(REASONING_EFFORT_ORDER[Math.max(0, safeIndex - 1)])
           } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
             event.preventDefault()
             onChange(
-              LEVEL_ORDER[Math.min(LEVEL_ORDER.length - 1, safeIndex + 1)]
+              REASONING_EFFORT_ORDER[
+                Math.min(REASONING_EFFORT_ORDER.length - 1, safeIndex + 1)
+              ]
             )
           }
         }}

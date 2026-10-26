@@ -1,4 +1,5 @@
 import { Queue } from 'bullmq'
+import type { ReasoningEffort } from './reasoning.js'
 import { prisma } from './db.js'
 import { config, logger } from '../config/index.js'
 import { markRunCancelled } from './run-events.js'
@@ -12,7 +13,7 @@ export interface AgentRunJobData {
   ownerId?: string | null
   input: string
   modelOverride?: string | null
-  reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
+  reasoningEffort?: ReasoningEffort | null
   planMode?: 'plan' | 'execute'
   approvedPlan?: StructuredPlan | null
   approvedPlanMessageId?: string

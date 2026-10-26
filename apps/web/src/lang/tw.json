@@ -144,10 +144,13 @@
       }
     },
     "reasoningEffort": {
-      "minimal": "關閉",
+      "off": "關閉",
+      "minimal": "極簡",
       "low": "低",
       "medium": "中",
-      "high": "高"
+      "high": "高",
+      "xhigh": "超高",
+      "max": "最大"
     },
     "reasoningSlider": {
       "title": "思考強度"

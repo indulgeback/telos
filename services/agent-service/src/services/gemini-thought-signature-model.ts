@@ -1,3 +1,4 @@
+import { normalizeReasoningEffort, toGeminiThinkingLevel } from './reasoning.js'
 import type {
   AgentInputItem,
   Model,
@@ -104,8 +105,8 @@ export function stripGeminiThoughtTags(value: string) {
 export function buildGeminiProviderData(
   reasoningEffort: string | null | undefined
 ) {
-  const effort = reasoningEffort ?? 'medium'
-  if (effort === 'minimal') return {}
+  const level = toGeminiThinkingLevel(normalizeReasoningEffort(reasoningEffort))
+  if (!level) return {}
 
   // Vertex rejects requests that combine reasoning_effort with Google's
   // thinking_config. thinking_level is the Gemini equivalent of the effort
@@ -114,7 +115,7 @@ export function buildGeminiProviderData(
     extra_body: {
       google: {
         thinking_config: {
-          thinking_level: effort,
+          thinking_level: level,
           include_thoughts: true,
         },
         thought_tag_marker: GEMINI_THOUGHT_TAG_MARKER,

@@ -1,10 +1,11 @@
 import { ChatOpenAI } from '@langchain/openai'
 import { config } from '../../../config/index.js'
+import { isThinkingDisabled } from '../../reasoning.js'
 import type { ProviderModelRequest, ProviderModelResult } from './types.js'
 
 function buildBailianModelKwargs(reasoningEffort: ProviderModelRequest['reasoningEffort']) {
   return {
-    enable_thinking: reasoningEffort !== 'minimal',
+    enable_thinking: !isThinkingDisabled(reasoningEffort),
   }
 }
 

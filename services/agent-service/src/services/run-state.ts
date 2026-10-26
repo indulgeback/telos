@@ -1,4 +1,5 @@
 import { parseApprovedPlan, type StructuredPlan } from './plan-tools.js'
+import { isReasoningEffort, type ReasoningEffort } from './reasoning.js'
 
 const TERMINAL_RUN_STATUSES = new Set(['completed', 'failed', 'cancelled'])
 
@@ -24,7 +25,7 @@ export interface CanonicalRunExecutionData {
   ownerId: string
   input: string
   modelOverride: string | null
-  reasoningEffort: 'minimal' | 'low' | 'medium' | 'high' | null
+  reasoningEffort: ReasoningEffort | null
   planMode?: 'plan' | 'execute'
   approvedPlan: StructuredPlan | null
   approvedPlanMessageId?: string
@@ -72,13 +73,9 @@ export function canonicalizeRunExecution(
         : ''
   if (!effectiveInput.trim()) return null
 
-  const reasoningEffort =
-    input.reasoningEffort === 'minimal' ||
-    input.reasoningEffort === 'low' ||
-    input.reasoningEffort === 'medium' ||
-    input.reasoningEffort === 'high'
-      ? input.reasoningEffort
-      : null
+  const reasoningEffort = isReasoningEffort(input.reasoningEffort)
+    ? input.reasoningEffort
+    : null
   const planMode =
     input.planMode === 'plan' || input.planMode === 'execute'
       ? input.planMode

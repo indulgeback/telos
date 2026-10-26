@@ -34,6 +34,7 @@ import {
 import { PlanPanel } from '@/components/molecules/chat/PlanPanel'
 import { PlanProgressStrip } from '@/components/molecules/chat/plan-progress'
 import { SearchResultsPanel } from '@/components/molecules/chat/search-results-panel'
+import type { ReasoningEffortLevel } from '@/components/molecules/chat/reasoning-slider'
 import type { WebSearchResultItem } from './web-search-results'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
@@ -67,7 +68,6 @@ import {
   ChatStatus,
   ChatUiMessage,
   ContentPartItem,
-  ReasoningEffort,
   RealtimeConfig,
   RealtimeMicState,
   RunStreamEnd,
@@ -189,7 +189,7 @@ export function ChatView() {
     setSearchPanel(null)
   }, [])
   const [reasoningEffort, setReasoningEffort] =
-    useState<ReasoningEffort>('medium')
+    useState<ReasoningEffortLevel>('medium')
   // plan 模式：'auto'=普通对话，'plan'=出计划模式
   const [planMode, setPlanMode] = useState<'auto' | 'plan'>('auto')
   // 待批准/执行中的计划：驱动输入框上方的 PlanPanel
@@ -2328,6 +2328,9 @@ export function ChatView() {
             reasoningEffortLow={t('reasoningEffort.low')}
             reasoningEffortMedium={t('reasoningEffort.medium')}
             reasoningEffortHigh={t('reasoningEffort.high')}
+            reasoningEffortXhigh={t('reasoningEffort.xhigh')}
+            reasoningEffortOff={t('reasoningEffort.off')}
+            reasoningEffortMax={t('reasoningEffort.max')}
             planMode={planMode}
             onPlanModeChange={setPlanMode}
             planTitle={t('plan.title')}

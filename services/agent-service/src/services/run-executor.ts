@@ -1,4 +1,5 @@
 import { agentSessionService } from './session.js'
+import type { ReasoningEffort } from './reasoning.js'
 import { agentRuntimeService } from './runtime.js'
 import { logger } from '../config/logger.js'
 import { PlanStore } from './plan-store.js'
@@ -40,7 +41,7 @@ export interface ExecuteAgentRunOptions {
   runtimeInput?: any
   memoryInstructions?: string
   modelOverride?: string | null
-  reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
+  reasoningEffort?: ReasoningEffort | null
   planMode?: 'plan' | 'execute'
   approvedPlan?: StructuredPlan | null
   approvedPlanMessageId?: string

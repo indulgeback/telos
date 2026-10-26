@@ -576,23 +576,26 @@ describe('Beautiful UI agent primitives', () => {
   it('renders the reasoning slider with gradient fill, sparks and aria state', () => {
     const html = renderWithIntl(
       <ReasoningSliderPanel
-        value='high'
+        value='xhigh'
         onChange={() => undefined}
         levelLabels={{
-          minimal: 'Close',
+          off: 'Off',
+          minimal: 'Minimal',
           low: 'Low',
           medium: 'Medium',
-          high: 'Tall',
+          high: 'High',
+          xhigh: 'Extra High',
+          max: 'Max',
         }}
         title='Thinking intensity'
       />
     )
     expect(html).toContain('Thinking intensity')
-    expect(html).toContain('Tall')
+    expect(html).toContain('Extra High')
     expect(html).toContain('data-reasoning-spark')
     expect(html).toContain('role="slider"')
-    expect(html).toContain('aria-valuenow="3"')
-    expect(html).toContain('aria-valuetext="Tall"')
+    expect(html).toContain('aria-valuenow="5"')
+    expect(html).toContain('aria-valuetext="Extra High"')
     expect(html).toContain('from-emerald-400')
   })
 })

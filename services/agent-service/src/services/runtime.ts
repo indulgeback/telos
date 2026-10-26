@@ -1,3 +1,4 @@
+import type { ReasoningEffort } from './reasoning.js'
 import {
   extractPromptFromBody,
   DEFAULT_AGENT_TURNS,
@@ -148,7 +149,7 @@ export interface RuntimeRunOptions {
   stream?: boolean
   signal?: AbortSignal
   modelOverride?: string | null
-  reasoningEffort?: 'minimal' | 'low' | 'medium' | 'high' | null
+  reasoningEffort?: ReasoningEffort | null
   /**
    * Server-owned output token budget for each model request.
    *

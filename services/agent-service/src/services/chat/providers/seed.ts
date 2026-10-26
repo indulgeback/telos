@@ -1,15 +1,15 @@
 import { ChatOpenAI } from '@langchain/openai'
 import { config } from '../../../config/index.js'
-import type {
-  ProviderModelRequest,
-  ProviderModelResult,
-  ReasoningEffort,
-} from './types.js'
+import { isThinkingDisabled } from '../../reasoning.js'
+import type { ProviderModelRequest, ProviderModelResult } from './types.js'
 
-function buildSeedModelKwargs(reasoningEffort: ReasoningEffort) {
+// 豆包 Seed 只认 thinking.type 开关（enabled/disabled），不发 OpenAI 风格的
+// reasoning_effort，避免上游严格校验枚举时 400。
+function buildSeedModelKwargs(reasoningEffort: ProviderModelRequest['reasoningEffort']) {
   return {
-    reasoning_effort: reasoningEffort,
-    ...(reasoningEffort === 'minimal' ? { thinking: { type: 'disabled' } } : {}),
+    thinking: {
+      type: isThinkingDisabled(reasoningEffort) ? 'disabled' : 'enabled',
+    },
   }
 }
 
