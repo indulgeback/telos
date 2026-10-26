@@ -60,16 +60,18 @@ func TestCORSMiddleware(t *testing.T) {
 		return req
 	}
 
-	t.Run("wildcard echoes origin with credentials", func(t *testing.T) {
+	t.Run("wildcard serves anonymous cors without reflecting origin or credentials", func(t *testing.T) {
 		handler := CORSMiddleware([]string{"*"})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, requestWithOrigin("https://app.example.com", http.MethodGet))
 
-		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "https://app.example.com" {
-			t.Fatalf("expected echoed origin, got %q", got)
+		// 通配符反射具体 Origin + credentials 等于允许任意网站带 cookie 跨源读取，
+		// 必须只下发匿名 ACAO；需要 credentials 的来源应走显式 CORS_ORIGINS 列表
+		if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "*" {
+			t.Fatalf("expected anonymous wildcard ACAO, got %q", got)
 		}
-		if rec.Header().Get("Access-Control-Allow-Credentials") != "true" {
-			t.Fatal("credentials must stay enabled for the wildcard config")
+		if rec.Header().Get("Access-Control-Allow-Credentials") != "" {
+			t.Fatal("credentials must not be enabled for the wildcard config")
 		}
 	})
 

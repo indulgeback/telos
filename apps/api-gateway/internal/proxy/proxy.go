@@ -71,17 +71,11 @@ func (pm *ProxyManager) EchoHandler(c echo.Context) error {
 	return nil
 }
 
-// isStreamPath 判断是否为流式响应路径
+// isStreamPath 判断是否为流式响应路径。
+// 只匹配 /api/agent 及其子路径；/api/agents（管理端点）是普通请求，
+// 前缀误伤会让它走无超时的 StreamProxy，路由表声明的 Timeout 形同虚设。
 func isStreamPath(path string) bool {
-	streamPaths := []string{
-		"/api/agent",
-	}
-	for _, sp := range streamPaths {
-		if strings.HasPrefix(path, sp) {
-			return true
-		}
-	}
-	return false
+	return path == "/api/agent" || strings.HasPrefix(path, "/api/agent/")
 }
 
 func isWebSocketUpgrade(r *http.Request) bool {

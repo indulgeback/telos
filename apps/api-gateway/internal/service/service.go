@@ -98,6 +98,17 @@ func (r *RegistryServiceDiscovery) refreshAllServices() {
 	for _, name := range serviceNames {
 		activeServices[name] = true
 		instances := r.FetchInstances(name)
+		if len(instances) == 0 {
+			// registry/consul 瞬断时一次空轮询不应清空缓存：
+			// 保留上次已知-good 快照，服务仍然健康就继续路由
+			r.cacheLock.RLock()
+			previous := append([]string(nil), r.cache[name]...)
+			r.cacheLock.RUnlock()
+			if len(previous) > 0 {
+				tlog.Warn("服务发现刷新为空，保留上次快照", "service", name, "previous", previous)
+				instances = previous
+			}
+		}
 		fresh[name] = instances
 		tlog.Info("服务发现刷新", "service", name, "instances", instances, "count", len(instances))
 	}
@@ -118,6 +129,15 @@ func (r *RegistryServiceDiscovery) refreshAllServices() {
 func (r *RegistryServiceDiscovery) InvalidateCache(serviceName string) {
 	tlog.Info("主动失效服务实例缓存并触发刷新", "service", serviceName)
 	instances := r.FetchInstances(serviceName)
+	if len(instances) == 0 {
+		r.cacheLock.RLock()
+		previous := append([]string(nil), r.cache[serviceName]...)
+		r.cacheLock.RUnlock()
+		if len(previous) > 0 {
+			tlog.Warn("失效刷新为空，保留上次快照", "service", serviceName, "previous", previous)
+			return
+		}
+	}
 	r.cacheLock.Lock()
 	r.cache[serviceName] = instances
 	r.cacheLock.Unlock()
@@ -162,6 +182,9 @@ func (r *RegistryServiceDiscovery) ListInstances(serviceName string) []string {
 	}
 	// 缓存没有则立即拉取一次
 	instances = r.FetchInstances(serviceName)
+	if len(instances) == 0 {
+		return instances
+	}
 	r.cacheLock.Lock()
 	r.cache[serviceName] = instances
 	r.cacheLock.Unlock()
