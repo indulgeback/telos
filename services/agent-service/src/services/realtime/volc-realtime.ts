@@ -109,7 +109,7 @@ function resolveVoice(rawSpeaker: string): string {
   ) {
     return 'zh_male_yunzhou_jupiter_bigtts'
   }
-  return 'zh_female_vv_jupiter_bigtts'
+  return 'zh_female_xiaohe_jupiter_bigtts'
 }
 
 // 与火山的 function 声明格式一致：标准 JSON schema 直传
@@ -184,7 +184,7 @@ function buildVoiceSession(params: {
   const speaker = resolveVoice(
     (isVoiceEnabled && voice.speaker) ||
       config.volcRealtimeSpeaker ||
-      'zh_female_vv_jupiter_bigtts'
+      'zh_female_xiaohe_jupiter_bigtts'
   )
 
   const session: Record<string, unknown> = {
