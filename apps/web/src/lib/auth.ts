@@ -65,7 +65,12 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
 function resolveAuthSecret() {
   const secret = process.env.BETTER_AUTH_SECRET
   if (secret) return secret
-  if (process.env.NODE_ENV === 'production') {
+  // next build 阶段没有运行时 env（NEXT_PHASE=phase-production-build），
+  // 只收集页面数据；真正对外服务时缺 secret 必须拒绝启动
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
+  ) {
     throw new Error(
       'BETTER_AUTH_SECRET is required in production (refusing to fall back to the dev default)'
     )
