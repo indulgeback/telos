@@ -30,7 +30,20 @@ test('builds a Vertex Gemini thought request without conflicting reasoning_effor
     providerData.extra_body.google.thought_tag_marker,
     GEMINI_THOUGHT_TAG_MARKER
   )
-  assert.deepEqual(buildGeminiProviderData('minimal'), {})
+  // minimal 不再是空映射：off/minimal 统一钳制到所有 Gemini 3 模型
+  // 都支持的 low（minimal 在 3.8-flash / 3.1-pro 上会 400）
+  assert.deepEqual(
+    buildGeminiProviderData('minimal').extra_body.google.thinking_config,
+    { thinking_level: 'low', include_thoughts: true }
+  )
+  assert.deepEqual(buildGeminiProviderData('off').extra_body.google.thinking_config, {
+    thinking_level: 'low',
+    include_thoughts: true,
+  })
+  assert.deepEqual(
+    buildGeminiProviderData('max').extra_body.google.thinking_config,
+    { thinking_level: 'high', include_thoughts: true }
+  )
 })
 
 function streamResponse(chunks) {
