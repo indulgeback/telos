@@ -23,6 +23,8 @@ interface CommandPaletteProps {
   input: string
   commands: ChatCommand[]
   onPick: (command: ChatCommand) => void
+  /** 点击面板外部或按 Esc 时回调（清空触发符以收起面板） */
+  onDismiss?: () => void
   registerControls?: (controls: {
     move: (direction: 'up' | 'down' | 'enter' | 'escape') => void
     isOpen: () => boolean
@@ -38,6 +40,7 @@ export function CommandPalette({
   input,
   commands,
   onPick,
+  onDismiss,
   registerControls,
 }: CommandPaletteProps) {
   // 存选中命令 id 而非索引：过滤集变化时 findIndex 落空自然回到 0（顶部），
@@ -108,7 +111,14 @@ export function CommandPalette({
   })
 
   return (
-    <Popover open>
+    <Popover
+      open
+      onOpenChange={next => {
+        // open 受控为 true：外部点击 / Esc 时 Radix 只会回调 onOpenChange(false)，
+        // 必须在这里清掉触发符面板才会真正收起
+        if (!next) onDismiss?.()
+      }}
+    >
       <PopoverAnchor asChild>
         <span className='invisible absolute' aria-hidden />
       </PopoverAnchor>

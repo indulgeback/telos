@@ -833,6 +833,7 @@ export function ChatContainer({
                   input={safeInput}
                   commands={chatCommands}
                   onPick={handleCommandPick}
+                  onDismiss={() => onInputChange('')}
                   registerControls={onRegisterCommandControls}
                 />
                 <Button
@@ -843,7 +844,7 @@ export function ChatContainer({
                   aria-label={t('commands.open')}
                   title={t('commands.open')}
                   disabled={isLoading}
-                  onClick={() => onInputChange('/')}
+                  onClick={() => onInputChange(safeInput === '/' ? '' : '/')}
                 >
                   <Plus className='size-4' />
                 </Button>

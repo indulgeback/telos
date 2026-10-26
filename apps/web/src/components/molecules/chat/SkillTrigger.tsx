@@ -14,6 +14,8 @@ interface SkillTriggerProps {
   agentId: string | null
   /** 选中技能后回填 input */
   onPick: (skillName: string) => void
+  /** 点击面板外部或按 Esc 时回调（清掉 $ 触发符以收起面板） */
+  onDismiss?: () => void
   /** 键盘导航回调:返回 true 表示已消费事件(阻止默认行为) */
   onNavigate?: (direction: 'up' | 'down' | 'enter' | 'escape') => boolean
   /** 注册查询函数,供父组件触发导航 */
@@ -34,6 +36,7 @@ export function SkillTrigger({
   input,
   agentId,
   onPick,
+  onDismiss,
   registerControls,
 }: SkillTriggerProps) {
   const t = useTranslations('Skill')
@@ -112,7 +115,12 @@ export function SkillTrigger({
   if (!isOpen || !loaded) return null
 
   return (
-    <Popover open={filtered.length > 0}>
+    <Popover
+      open={filtered.length > 0}
+      onOpenChange={next => {
+        if (!next) onDismiss?.()
+      }}
+    >
       <PopoverAnchor asChild>
         <span className='invisible absolute' aria-hidden />
       </PopoverAnchor>

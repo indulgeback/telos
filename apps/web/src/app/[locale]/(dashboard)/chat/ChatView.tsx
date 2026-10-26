@@ -2285,6 +2285,7 @@ export function ChatView() {
             input={input}
             agentId={selectedAgent?.id ?? null}
             onPick={handleSkillPick}
+            onDismiss={() => setInput(input.replace(/\$[a-z0-9-]*$/i, ''))}
             registerControls={controls => {
               skillTriggerControlsRef.current = controls
             }}
