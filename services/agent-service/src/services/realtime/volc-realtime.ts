@@ -935,12 +935,15 @@ export async function handleVolcRealtimeAudioSocket(options: {
         return
       }
       case 'response.output_audio.delta': {
-        const audio = typeof event.audio === 'string' ? event.audio : ''
+        // 全双工协议下行音频载荷在 delta 字段（base64 s16le PCM），不是 audio
+        const audio = typeof event.delta === 'string' ? event.delta : ''
         if (!audio) return
         ensureTurn()
-        safeSendClientJson(client, 'response.output_audio.delta', {
+        // 前端旧契约只认 response.audio.delta；如实声明格式由前端做
+        // Int16→Float32 播放转换
+        safeSendClientJson(client, 'response.audio.delta', {
           audio,
-          format: 'pcm_f32le',
+          format: 'pcm_s16le',
           sampleRate: 24000,
         })
         return
