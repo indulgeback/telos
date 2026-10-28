@@ -295,8 +295,8 @@
   },
   "Auth": {
     "signIn": {
-      "title": "Welcome back",
-      "subtitle": "Log in to the Telos Smart Workflow Platform",
+      "title": "Welcome to Telos",
+      "subtitle": "Log in or create an account",
       "noAccount": "Don't have an account yet?",
       "signUp": "Register now",
       "loginFailed": "Login failed",
@@ -306,7 +306,25 @@
       "magicLinkSent": "The login link has been sent to your email, please check it!",
       "orSocial": "or sign in with social accounts",
       "tryAgain": "Try again",
-      "backToHome": "Back to home"
+      "backToHome": "Back to home",
+      "continue": "Continue",
+      "continueWith": "Continue with {provider}",
+      "moreOptions": "More sign-in options",
+      "agreement": "By continuing, you agree to our <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.",
+      "changeEmail": "Use a different email",
+      "slideLabel": "Show slide {number}",
+      "pauseSlides": "Pause slideshow",
+      "resumeSlides": "Play slideshow",
+      "heroTitle": "Make room for your next idea.",
+      "heroSubtitle": "Think, create, and make it yours with T.",
+      "slides": {
+        "models": "Your ideas. A little help from T.",
+        "collect": "A place for every spark.",
+        "skills": "The right skills for your next move.",
+        "partner": "Think it through. Make it happen.",
+        "studio": "From a first thought to your own creation."
+      },
+      "or": "or"
     },
     "error": {
       "title": "Authentication errors",
@@ -708,14 +726,14 @@
     "skip": "Skip to content",
     "privacy": "Privacy",
     "terms": "Terms",
-    "portraitAlt": "T with navy mullet hair, green eyes and headphones, smiling with her cheek resting on her hand.",
+    "portraitAlt": "T, an adult woman with a charcoal bob and an ivory hood with a small green cursor patch, rests her cheek on her hand.",
     "scenes": {
       "build": {
         "label": "Build",
         "title": "Less stuck. More done.",
         "body": "From a stubborn bug to your next side project. Work through it with T.",
         "prompt": "Help me turn my side-project idea into a working prototype. Ask me what I want to build first.",
-        "alt": "T focuses on a laptop, her layered navy mullet and green eyes visible."
+        "alt": "T in her ivory hood works at a laptop in a sunlit studio."
       },
       "explore": {
         "label": "Explore",
@@ -738,7 +756,7 @@
       "send": "Let’s go",
       "recommended": "For you",
       "worldLabel": "A space for your ideas",
-      "heroAlt": "T sits in a sunlit studio above the clouds, surrounded by notebooks, models and floating pages.",
+      "heroAlt": "T in her ivory hood works at a laptop in a sunlit studio.",
       "worldCaption": "Room for whatever comes next.",
       "processTitle": "Bring your curiosity.",
       "processAccent": "See where it takes you.",
@@ -782,21 +800,21 @@
           "body": "Bring the question, the notes, the half-formed idea. Start with what you have, and find what’s worth exploring.",
           "prompt": "I have some scattered notes and ideas. Help me find a useful starting point. First ask me to share them.",
           "action": "Start with your notes",
-          "alt": "Loose pages drift toward a warmly lit archive on a lake beneath a crescent moon."
+          "alt": "T arranges notes on a pinboard while holding a book."
         },
         "think": {
           "title": "Find the connections",
           "body": "Compare perspectives, ask a better question, and work through the missing pieces with T. Clarity comes one conversation at a time.",
           "prompt": "Help me think through a difficult question. First ask what I am trying to decide and what I know so far.",
           "action": "Think through a question with T",
-          "alt": "T studies a model and notebook in a glass conservatory lit by a warm desk lamp."
+          "alt": "T sits among books and sketches, thinking with a pencil in hand."
         },
         "make": {
           "title": "Make it real",
           "body": "A first draft. A working prototype. A plan you can act on. Shape it, try it, and keep making it yours.",
           "prompt": "Help me turn an idea into a concrete first version. First ask what I want to make and what a useful first result would look like.",
           "action": "Make a first version with T",
-          "alt": "An illuminated thread connects a sketch to a small studio assembling above a meadow."
+          "alt": "T draws on a tablet beside an original green poster."
         }
       },
       "navExplore": "Explore"
@@ -804,6 +822,107 @@
     "motion": {
       "pause": "Pause page animations",
       "resume": "Play page animations"
+    },
+    "v5": {
+      "title": "Think freely. Make it yours.",
+      "intro": "Your ideas, a little help from T, and room to make them real.",
+      "placeholder": "What would you like to explore or create?",
+      "withT": "With T",
+      "start": "Start",
+      "exampleNote": "Original visual examples. Choose one to start with its prompt.",
+      "processTitle": "From a spark to something you can share",
+      "processIntro": "Bring a question, think it through, and give your idea a first form.",
+      "demoTitle": "Meet your new way of working",
+      "demoIntro": "See a question become a plan, a conversation, and a first draft with T.",
+      "watchDemo": "Watch the walkthrough",
+      "demoDisclosure": "Scripted product walkthrough with illustrative content. This is not a recording of a live task.",
+      "videoUnsupported": "Your browser does not support this video.",
+      "videoError": "The video could not load.",
+      "openVideo": "Open the video",
+      "galleryTitle": "A few places your ideas could go",
+      "galleryIntro": "Explore original examples, open the brief, and make it your own with T.",
+      "previewNamed": "Preview {name}",
+      "closePreview": "Close preview",
+      "exampleLabel": "Illustrative example",
+      "usePrompt": "Try this prompt",
+      "meetTitle": "A little laid-back. All in when it matters.",
+      "meetBody": "T lives in the terminal, likes a good shortcut, and occasionally has a smart remark. Bring her a messy idea or a stubborn problem. She will ask, explore, and work through it with you.",
+      "meetAction": "Say hello to T",
+      "finalTitle": "That idea you keep coming back to.",
+      "finalAction": "Give it a beginning",
+      "navDemo": "Walkthrough",
+      "navShowcase": "Examples",
+      "categories": {
+        "all": "For you",
+        "research": "Research",
+        "write": "Writing",
+        "image": "Images",
+        "web": "Websites",
+        "code": "Code",
+        "plan": "Planning"
+      },
+      "steps": {
+        "gather": {
+          "title": "Bring what is on your mind",
+          "body": "A question, a rough note, or an image. Start with what you have, even when the idea is not quite formed."
+        },
+        "think": {
+          "title": "Find a clearer way through",
+          "body": "Ask questions, compare possibilities, and break down the problem. Think with T, one useful conversation at a time."
+        },
+        "make": {
+          "title": "Make a first version",
+          "body": "An article, an image, a small website, or a working plan. Make something you can review, refine, and share."
+        }
+      },
+      "faq": {
+        "start": {
+          "question": "Do I need a finished idea?",
+          "answer": "No. Start with a question or a few notes. T can help you clarify the goal and choose a useful next step."
+        },
+        "control": {
+          "question": "Can I stay in control of the work?",
+          "answer": "You can review plans, respond to approval requests, and stop a running task. Available actions depend on the task and enabled tools."
+        },
+        "skills": {
+          "question": "What do skills add?",
+          "answer": "Skills give an agent reusable instructions for particular kinds of work. Explore the skill library and choose what fits your task."
+        }
+      },
+      "examples": {
+        "editorial": {
+          "title": "An editorial cover with a point of view",
+          "prompt": "Help me develop an editorial cover about a topic I care about. Ask about the subject and audience, then propose a headline, visual direction, and layout."
+        },
+        "website": {
+          "title": "A home for your next project",
+          "prompt": "Help me design a personal project website. Ask what the project does and who it is for, then create a clear page outline and a first implementation."
+        },
+        "botanical": {
+          "title": "A botanical print, your way",
+          "prompt": "Help me create an illustrated botanical poster. Ask which plants and mood I want, then develop a composition and an image prompt."
+        },
+        "research": {
+          "title": "Make sense of a big question",
+          "prompt": "Help me research a question and compare the evidence. Ask about the topic, distinguish verified facts from assumptions, and summarize the sources."
+        },
+        "travel": {
+          "title": "A trip worth looking forward to",
+          "prompt": "Help me plan a thoughtful trip. Ask where I want to go, the dates, budget, and interests before suggesting a practical itinerary."
+        },
+        "architecture": {
+          "title": "Explore an architectural idea",
+          "prompt": "Help me develop a visual direction for a small architectural project. Ask about the setting and purpose, then suggest materials, forms, and an illustration brief."
+        },
+        "story": {
+          "title": "Turn a spark into a story",
+          "prompt": "Help me turn a small idea into a story. Ask about the premise and the feeling I want to leave with readers, then outline a first draft."
+        },
+        "code": {
+          "title": "Untangle that stubborn bug",
+          "prompt": "Help me diagnose a code problem. Ask for the error, relevant code, and expected behavior, then work toward a testable fix."
+        }
+      }
     }
   }
 }

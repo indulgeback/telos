@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-28",
+  "tool": "image_gen.imagegen",
+  "generationBrief": "Regenerate the reference collage with Telos branding: warm cream paper pinboard, upper-left landscape video tile, upper-right Polaroid with approved B-version T, central wooden Telos mark above a cream-sleeved hand, neutral project notes. Preserve T black bob, cream hoodie, sage patch and relaxed expression. Remove YouMind branding and source person. No marketing slogan baked in; retain quiet lower space for localized HTML text.",
+  "references": [
+    "../source-images/05-ai-studio.webp",
+    "../../../../apps/web/public/brand/t-v4/portrait.png",
+    "../../../../apps/web/public/brand/telos-01/mark-512.png"
+  ],
+  "sourceGeneration": "/Users/a1234/.codex/generated_images/01a18073-a891-7480-92ed-07329b46085e/exec-a2c49a31-1cbd-4916-9a91-4a7c3a2d93a6.png",
+  "original": "05-ai-studio.png",
+  "optimized": "apps/web/public/auth/telos-v1/05-ai-studio.webp",
+  "optimization": {
+    "format": "webp",
+    "maxWidth": 1200,
+    "withoutEnlargement": true,
+    "quality": 88
+  },
+  "sha256": {
+    "png": "f10159a994d188f6c65f618bf6de22abe80d30083aadd266b9e8682be061d7e4",
+    "webp": "2bd68514f86d4fa42ded27226bd75b0180c733ca1bb3aaf62d79085dfc76023f"
+  },
+  "visualQA": "Approved T and Telos mark present; no YouMind wordmark or source person; no baked-in marketing slogan. Image inspected directly; live page rendering not verified."
+}

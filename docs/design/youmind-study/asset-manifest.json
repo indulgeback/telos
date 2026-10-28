@@ -1,0 +1,53 @@
+{
+  "purpose": "Illustrative creative examples, not customer testimonials or verified Telos generations",
+  "assets": [
+    {
+      "file": "apps/web/public/landing/showcase/architecture.webp",
+      "bytes": 176216,
+      "sha256": "07e4e6af8bdb0942e68f56183463584b86e531f49cb399f634170fe3d730a924",
+      "source": "generated original artwork; source PNG archived in docs/design/youmind-study/assets"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/botanical.webp",
+      "bytes": 77528,
+      "sha256": "06e3a06088ccb204d63dfc4a852467a92ed20c6261cd039b34b7e40181445f90",
+      "source": "generated original artwork; source PNG archived in docs/design/youmind-study/assets"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/code.svg",
+      "bytes": 1434,
+      "sha256": "634ffe95e57d12c580deda51bbc35b7986e2e99ce4ae50c9cbc30bafbeb4461e",
+      "source": "original SVG composition"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/editorial.webp",
+      "bytes": 255232,
+      "sha256": "8abc02f16f91299b43feb955d8d84bc7a6f4171ad4ad30481d03237e72c9a405",
+      "source": "generated original artwork; source PNG archived in docs/design/youmind-study/assets"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/research.svg",
+      "bytes": 2401,
+      "sha256": "d5b97ff7e3678d26068a393e71131230f2b751baa16d83d9685fea2a128cef55",
+      "source": "original SVG composition"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/story.svg",
+      "bytes": 1065,
+      "sha256": "57248de1cf10a159c0d3ac111aa8b79bbe5b2b69a8b8fdc1d77021ca41c30efa",
+      "source": "original SVG composition"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/travel.webp",
+      "bytes": 324618,
+      "sha256": "c96411bf263da2fab1c1cfb578fb003bfe5102a78e4bf190d1de132c7164613e",
+      "source": "generated original artwork; source PNG archived in docs/design/youmind-study/assets"
+    },
+    {
+      "file": "apps/web/public/landing/showcase/website.svg",
+      "bytes": 1383,
+      "sha256": "1cc9e32721bdb3eccc5f14214b006f37a775a91922009359e5ee39492eb1bf79",
+      "source": "original SVG composition"
+    }
+  ]
+}

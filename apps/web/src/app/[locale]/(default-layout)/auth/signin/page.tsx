@@ -1,21 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { AlertCircle, Loader2, MailCheck } from 'lucide-react'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-} from '@/components/atoms'
-import { CustomLink } from '@/components/molecules'
+import { Link, useRouter } from '@/i18n/navigation'
+import { TelosMark } from '@/components/atoms/telos-logo'
+import { LocaleToggle } from '@/components/molecules/LocaleToggle'
 import { authClient } from '@/lib/auth-client'
+import { SignInShowcase } from './signin-showcase'
+import { getSignInCallback } from './signin-utils'
+import s from './signin.module.css'
 
 type SocialProvider = 'github' | 'google' | 'discord' | 'slack'
 
@@ -97,176 +92,210 @@ export default function SignInPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session, isPending } = authClient.useSession()
-  const error = searchParams.get('error')
+  const callbackUrl = getSignInCallback(searchParams.get('callbackUrl'))
+  const queryError = searchParams.get('error')
   const t = useTranslations('Auth.signIn')
   const tError = useTranslations('Auth.error')
-
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
+  const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(
+    null
+  )
   const [email, setEmail] = useState('')
   const [isSendingLink, setIsSendingLink] = useState(false)
   const [isLinkSent, setIsLinkSent] = useState(false)
-
-  const callbackUrl = searchParams.get('callbackUrl') || '/chat'
+  const [requestError, setRequestError] = useState<string | null>(null)
+  const [dismissedQueryError, setDismissedQueryError] = useState<string | null>(
+    null
+  )
+  const isLoading = Boolean(loadingProvider) || isSendingLink
   const providers: ProviderOption[] = [
-    { id: 'github', label: 'GitHub', icon: <GithubLogo /> },
     { id: 'google', label: 'Google', icon: <GoogleLogo /> },
+    { id: 'github', label: 'GitHub', icon: <GithubLogo /> },
     { id: 'discord', label: 'Discord', icon: <DiscordLogo /> },
     { id: 'slack', label: 'Slack', icon: <SlackLogo /> },
   ]
+  const queryErrorMessages: Record<string, string> = {
+    OAuthSignin: tError('oauthSignin'),
+    OAuthCallback: tError('oauthCallback'),
+    OAuthCreateAccount: tError('oauthCreateAccount'),
+    AccessDenied: tError('accessDenied'),
+    Verification: tError('verification'),
+    OAuthAccountNotLinked: tError('oauthAccountNotLinked'),
+  }
+  const errorMessage =
+    requestError ||
+    (queryError && queryError !== dismissedQueryError
+      ? queryErrorMessages[queryError] || tError('unknownError')
+      : null)
 
   useEffect(() => {
-    if (session && !isPending) {
-      router.push(callbackUrl)
-    }
+    if (session && !isPending) router.push(callbackUrl)
   }, [session, isPending, callbackUrl, router])
 
-  const handleSignIn = async (provider: SocialProvider) => {
-    setIsLoading(true)
+  async function handleSignIn(provider: SocialProvider) {
+    setDismissedQueryError(queryError)
+    setRequestError(null)
     setLoadingProvider(provider)
     try {
-      await authClient.signIn.social({
+      const result = await authClient.signIn.social({
         provider,
         callbackURL: callbackUrl,
       })
+      if (result.error) throw new Error(result.error.message)
     } catch (error) {
-      console.error(`${provider} 登录失败:`, error)
-      setIsLoading(false)
+      setRequestError(
+        error instanceof Error && error.message
+          ? error.message
+          : tError('unknownError')
+      )
       setLoadingProvider(null)
     }
   }
 
-  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email.trim()) return
-
-    setIsLoading(true)
+  async function handleMagicLinkSignIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!email.trim() || isLoading) return
+    setDismissedQueryError(queryError)
+    setRequestError(null)
     setIsSendingLink(true)
     try {
-      await authClient.signIn.magicLink({
+      const result = await authClient.signIn.magicLink({
         email: email.trim(),
         callbackURL: callbackUrl,
       })
+      if (result.error) throw new Error(result.error.message)
       setIsLinkSent(true)
-      setIsLoading(false)
-      setIsSendingLink(false)
-    } catch (err) {
-      console.error('发送 Magic Link 失败:', err)
-      setIsLoading(false)
+    } catch (error) {
+      setRequestError(
+        error instanceof Error && error.message
+          ? error.message
+          : tError('unknownError')
+      )
+    } finally {
       setIsSendingLink(false)
     }
   }
 
   return (
-    <main className='flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground'>
-      <Card className='w-full max-w-[420px] border-border/80 bg-card shadow-lg'>
-        <CardHeader className='space-y-2 text-center'>
-          <CardTitle className='text-2xl font-semibold tracking-normal'>
-            {t('title')}
-          </CardTitle>
-          <CardDescription>{t('subtitle')}</CardDescription>
-        </CardHeader>
-
-        <CardContent className='space-y-5'>
-          {error && (
-            <div className='flex gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'>
-              <AlertCircle className='mt-0.5 size-4 shrink-0' />
-              <div className='space-y-1'>
-                <p className='font-medium'>{t('loginFailed')}</p>
-                <p className='text-xs leading-5 text-destructive/90'>
-                  {error === 'OAuthSignin' && tError('oauthSignin')}
-                  {error === 'OAuthCallback' && tError('oauthCallback')}
-                  {error === 'OAuthCreateAccount' &&
-                    tError('oauthCreateAccount')}
-                  {error === 'AccessDenied' && tError('accessDenied')}
-                  {error === 'Verification' && tError('verification')}
-                  {error === 'OAuthAccountNotLinked' &&
-                    tError('oauthAccountNotLinked')}
-                  {![
-                    'OAuthSignin',
-                    'OAuthCallback',
-                    'OAuthCreateAccount',
-                    'AccessDenied',
-                    'Verification',
-                    'OAuthAccountNotLinked',
-                  ].includes(error) && tError('unknownError')}
-                </p>
-              </div>
+    <main className={s.page}>
+      <section className={s.login} aria-labelledby='signin-title'>
+        <div className={s.content}>
+          <div className={s.brandRow}>
+            <Link href='/' className={s.brand} aria-label={t('backToHome')}>
+              <TelosMark />
+            </Link>
+            <div className={s.locale}>
+              <LocaleToggle />
             </div>
-          )}
-
-          {isLinkSent ? (
-            <div className='flex flex-col items-center gap-3 rounded-md border border-success/30 bg-success/10 p-5 text-center text-success'>
-              <div className='flex size-10 items-center justify-center rounded-md bg-success/15'>
-                <MailCheck className='size-5' />
+          </div>
+          <div className={s.intro}>
+            <h1 id='signin-title'>{t('title')}</h1>
+            <p>{t('subtitle')}</p>
+          </div>
+          <div className={s.authMethods}>
+            {errorMessage && (
+              <div id='signin-error-help' className={s.error} role='alert'>
+                <AlertCircle size={16} aria-hidden='true' />
+                <div>
+                  <strong>{t('loginFailed')}</strong>
+                  <p>{errorMessage}</p>
+                </div>
               </div>
-              <p className='text-sm font-medium leading-6'>
-                {t('magicLinkSent')}
-              </p>
+            )}
+            <div className={s.providers}>
+              {providers.slice(0, 2).map(provider => (
+                <button
+                  key={provider.id}
+                  type='button'
+                  className={s.provider}
+                  onClick={() => handleSignIn(provider.id)}
+                  disabled={isLoading}
+                >
+                  {loadingProvider === provider.id ? (
+                    <Loader2 className={s.spinner} aria-hidden='true' />
+                  ) : (
+                    provider.icon
+                  )}
+                  <span>{t('continueWith', { provider: provider.label })}</span>
+                </button>
+              ))}
             </div>
-          ) : (
-            <form onSubmit={handleMagicLinkSignIn} className='space-y-3'>
-              <label
-                htmlFor='email'
-                className='block text-sm font-medium text-foreground'
-              >
-                {t('emailLabel')}
-              </label>
-              <Input
-                id='email'
-                type='email'
-                required
-                placeholder={t('emailPlaceholder')}
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-              <Button type='submit' className='w-full' disabled={isLoading}>
-                {isSendingLink && <Loader2 className='size-4 animate-spin' />}
-                {t('sendMagicLink')}
-              </Button>
-            </form>
-          )}
-
-          <div className='relative flex items-center justify-center'>
-            <span className='h-px flex-1 bg-border' />
-            <span className='bg-card px-3 text-xs text-muted-foreground'>
-              {t('orSocial')}
-            </span>
-            <span className='h-px flex-1 bg-border' />
-          </div>
-
-          <div className='grid grid-cols-2 gap-3'>
-            {providers.map(provider => (
-              <Button
-                key={provider.id}
-                type='button'
-                variant='outline'
-                className='h-10 justify-start px-3'
-                onClick={() => handleSignIn(provider.id)}
-                disabled={isLoading}
-              >
-                {isLoading && loadingProvider === provider.id ? (
-                  <Loader2 className='size-4 animate-spin' />
-                ) : (
-                  provider.icon
-                )}
-                <span>{provider.label}</span>
-              </Button>
-            ))}
-          </div>
-
-          <p className='text-center text-sm text-muted-foreground'>
-            {t('noAccount')}{' '}
-            <CustomLink
-              href='/auth/signup'
-              className='font-medium text-foreground underline underline-offset-4 hover:text-primary'
+            <div className={s.divider} aria-hidden='true'>
+              <span />
+              {t('or')}
+              <span />
+            </div>
+            {isLinkSent ? (
+              <div className={s.success} role='status'>
+                <MailCheck size={24} aria-hidden='true' />
+                <p>{t('magicLinkSent')}</p>
+                <button type='button' onClick={() => setIsLinkSent(false)}>
+                  {t('changeEmail')}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleMagicLinkSignIn} className={s.emailForm}>
+                <label htmlFor='email' className={s.srOnly}>
+                  {t('emailLabel')}
+                </label>
+                <input
+                  id='email'
+                  name='email'
+                  type='email'
+                  autoComplete='email'
+                  inputMode='email'
+                  required
+                  placeholder={t('emailPlaceholder')}
+                  value={email}
+                  onChange={event => setEmail(event.target.value)}
+                  disabled={isLoading}
+                  aria-describedby={
+                    errorMessage ? 'signin-error-help' : undefined
+                  }
+                />
+                <button
+                  type='submit'
+                  className={s.continueButton}
+                  disabled={isLoading}
+                >
+                  {isSendingLink && (
+                    <Loader2 className={s.spinner} aria-hidden='true' />
+                  )}
+                  {t('continue')}
+                </button>
+              </form>
+            )}
+            <p className={s.agreement}>
+              {t.rich('agreement', {
+                terms: chunks => <Link href='/terms-of-service'>{chunks}</Link>,
+                privacy: chunks => <Link href='/privacy-policy'>{chunks}</Link>,
+              })}
+            </p>
+            <div
+              className={s.secondaryProviders}
+              role='group'
+              aria-label={t('moreOptions')}
             >
-              {t('signUp')}
-            </CustomLink>
-          </p>
-        </CardContent>
-      </Card>
+              {providers.slice(2).map(provider => (
+                <button
+                  key={provider.id}
+                  type='button'
+                  aria-label={t('continueWith', { provider: provider.label })}
+                  title={t('continueWith', { provider: provider.label })}
+                  onClick={() => handleSignIn(provider.id)}
+                  disabled={isLoading}
+                >
+                  {loadingProvider === provider.id ? (
+                    <Loader2 className={s.spinner} aria-hidden='true' />
+                  ) : (
+                    provider.icon
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      <SignInShowcase />
     </main>
   )
 }

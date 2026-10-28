@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "duration": 40,
+  "samples": [
+    3,
+    8,
+    14,
+    21,
+    27,
+    33,
+    38
+  ],
+  "tolerance": 2,
+  "strict": false,
+  "collapseStatic": true,
+  "ok": true,
+  "errorCount": 0,
+  "warningCount": 0,
+  "infoCount": 0,
+  "issueCount": 0,
+  "totalIssueCount": 0,
+  "truncated": false,
+  "issues": [],
+  "_meta": {
+    "version": "0.8.210",
+    "latestVersion": "0.8.210",
+    "updateAvailable": false,
+    "deprecated": true
+  }
+}

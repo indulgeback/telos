@@ -1,0 +1,72 @@
+{
+  "generated_at": "2026-10-28",
+  "tool": "image_gen.imagegen",
+  "transparent_background": false,
+  "brief": "Original Telos sign-in carousel illustrations based on reference composition. All characters replaced with approved B-version T. No marketing copy baked in; captions belong in HTML.",
+  "assets": [
+    {
+      "key": "03-skills",
+      "source": "/Users/a1234/.codex/generated_images/01a180bc-8cae-7aa2-ae08-d0f7eb8c3fe4/exec-f7adae3d-5a85-4bc4-b5bd-0b66dd20efc8.png",
+      "original": "docs/design/signin-reference/generated/03-skills.png",
+      "webp": "apps/web/public/auth/telos-v1/03-skills.webp",
+      "prompt": "Create one finished premium editorial mixed-media image for Telos sign-in carousel. Use reference image 1 ONLY as composition and lighting reference. Use reference image 2 as the strict identity reference for every person/character. Reference image 3 is the Telos symbol, if a subtle brand symbol is useful. Output a complete opaque rectangular portrait image, approximately 1506 x 1666 pixels (aspect 0.904), NO rounded corners, NO transparent border.\n\nPreserve reference 1's close composition: lush photographic grassy park filling entire frame, soft bright daylight and bokeh greenery at top; full-body protagonist occupying the right half, facing left and stepping toward a small coral-and-teal football near lower middle. Replace the original person entirely with the approved B-version T: adult woman with tousled charcoal short bob and asymmetrical bangs, relaxed half-lidded gray eyes and lightly mischievous friendly expression, oversized cream hood UP, a small sage square patch on upper hood, charcoal cuffs, black inner shirt with simple white >_ terminal mark, loose dark trousers and simple light sneakers. She is a recognizable hand-drawn character naturally composited into the photographed park with dimensional texture and realistic soft contact shadows; not a generic anime girl, not a child, no added animal mascot. Calm natural posture rather than exaggerated action.\n\nAt upper-left/mid-left preserve the big playful die-cut WHITE border sticker collage occupying roughly half the frame: a miniature knitted/crocheted version of the SAME cream-hood T in a tiny mossy tree garden diorama, with coral/teal ball and moss. No embroidered writing or other text anywhere on this sticker. Maintain real crochet/moss texture. Add a delicate warm-ivory curved hand-drawn arrow above/around sticker plus restrained pastel lavender, coral and sage flat dots on grass. Keep original warm high quality photography + tactile scrapbook aesthetic.\n\nRemove ALL original text, including bottom headline and any embroidered wording. No YouMind text, no original wavy branding, no watermark, no invented marketing copy. Bottom 25 percent should remain an uncluttered darker green grass area suitable for white HTML captions added later; don't draw caption panels. Do not add large logo. Preserve legibility of T at small scale. This is original Telos branded artwork, not a photograph of the original reference person.",
+      "references": [
+        "/Users/a1234/Desktop/project/telos/apps/web/public/auth/youmind-reference/03-skills.webp",
+        "/Users/a1234/Desktop/project/telos/apps/web/public/brand/t-v4/portrait.png",
+        "/Users/a1234/Desktop/project/telos/apps/web/public/brand/telos-01/mark-512.png"
+      ],
+      "visual_qa": {
+        "identity": "Approved cream hood, charcoal bob, sage patch, black >_ shirt maintained",
+        "original_branding": "No YouMind lettering, wavy mark, old black mascot or original marketing text visible",
+        "composition": "Warm grassy field, full-body T on right, crochet T sticker on left, soft daylight",
+        "opacity": "Opaque rectangular image; no intentional border or corner mask"
+      },
+      "source_dimensions": {
+        "width": 1192,
+        "height": 1319
+      },
+      "output": {
+        "width": 1192,
+        "height": 1319,
+        "bytes": 310294,
+        "format": "webp",
+        "alpha": false,
+        "max_width": 1200,
+        "withoutEnlargement": true,
+        "quality": 88
+      }
+    },
+    {
+      "key": "04-creative-partner",
+      "source": "/Users/a1234/.codex/generated_images/01a180bc-8cae-7aa2-ae08-d0f7eb8c3fe4/exec-c5e36e61-8c11-43c9-a060-329098e79583.png",
+      "original": "docs/design/signin-reference/generated/04-creative-partner.png",
+      "webp": "apps/web/public/auth/telos-v1/04-creative-partner.webp",
+      "prompt": "Create one finished premium editorial mixed-media image for Telos sign-in carousel. Reference image 1 supplies ONLY visual composition, cafe setting, lighting and collage arrangement. Reference image 2 supplies the strict identity of all human/character figures. Reference image 3 is the exact Telos symbol for the laptop. Output an opaque full rectangular portrait image approximately 1506 x 1666 pixels (aspect 0.904), no transparency, no rounded corners.\n\nPreserve reference 1's cozy warm daylight cafe scene: tall bright structural window across upper background, honey wood table across lower portion, gold/bronze open laptop left-center, adult protagonist on right sitting behind laptop holding a plain cream ceramic mug and looking down with gentle engaged smile. Replace original woman ENTIRELY with approved B-version T, an adult woman with tousled charcoal short bob, asymmetrical bangs, soft half-lidded gray eyes, oversized ivory/cream hood UP, sage green square patch on upper hood, charcoal cuffs, black shirt with white >_ terminal symbol. Use a sophisticated 2.5D hand-drawn character with subtle paper texture, integrated into the warm photographic cafe through matching light and contact shadows; retain T reference identity rather than original woman's face/hair. Modest loose clothing, personable rather than overly cute.\n\nRemove original black horned mascots entirely. In their compositional positions use playful small die-cut T stickers of the same approved cream-hood adult character: a small upper-left sticker partly behind the laptop casually peeking, and a foreground lower-left miniature T sticker reading an unlettered coral-red book. No black round mascot, no horns, no lookalike YouMind character. Keep delicate blue-purple paper-cut flowers on sage stems near upper-left, right edge and lower-left, plus tiny cream flowers with coral centers and fine decorative doodle lines. Style is warm thoughtful photographic scrapbook, balanced and intentional.\n\nReplace any laptop logo with the exact dark angular Telos mark and sage curved leaf from reference 3, a small clean centered device decal, no wordmark. Remove all original marketing text, all YouMind words and wavy marks, Apple symbol, watermark and any invented lettering. Apart from T's small >_ shirt symbol, no text anywhere. Leave bottom 25 percent of wooden tabletop uncluttered and gently darker, suitable for white HTML caption overlay added later. No caption box. Preserve a polished full-bleed composition and calm warm ivory/charcoal/sage palette.",
+      "references": [
+        "/Users/a1234/Desktop/project/telos/apps/web/public/auth/youmind-reference/04-creative-partner.webp",
+        "/Users/a1234/Desktop/project/telos/apps/web/public/brand/t-v4/portrait.png",
+        "/Users/a1234/Desktop/project/telos/apps/web/public/brand/telos-01/mark-512.png"
+      ],
+      "visual_qa": {
+        "identity": "Approved cream hood, charcoal bob, sage patch, black >_ shirt maintained",
+        "original_branding": "No YouMind lettering, wavy mark, old black mascot or original marketing text visible",
+        "composition": "Warm cafe window, T holding mug, Telos laptop logo, two T stickers and paper flowers",
+        "opacity": "Opaque rectangular image; no intentional border or corner mask"
+      },
+      "source_dimensions": {
+        "width": 1192,
+        "height": 1319
+      },
+      "output": {
+        "width": 1192,
+        "height": 1319,
+        "bytes": 210436,
+        "format": "webp",
+        "alpha": false,
+        "max_width": 1200,
+        "withoutEnlargement": true,
+        "quality": 88
+      }
+    }
+  ]
+}

@@ -37,6 +37,7 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  if (pathname.replace(/\/+$/, '') === '/auth/signin') return null
   if (pathname === '/') return <LandingNav />
 
   const navLinks: { href: string; label: string }[] = [

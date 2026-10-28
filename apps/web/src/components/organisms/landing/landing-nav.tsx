@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { TelosLogo } from '@/components/atoms/telos-logo'
@@ -10,16 +10,22 @@ import s from './landing-world.module.css'
 export function LandingNav() {
   const t = useTranslations('LandingStudio')
   const [open, setOpen] = useState(false)
+  const menuButton = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (!open) return
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        setOpen(false)
+        menuButton.current?.focus()
+      }
     }
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [open])
   const links = [
     ['/#possibilities', 'v3.navExplore'],
+    ['/#demo', 'v5.navDemo'],
+    ['/#showcase', 'v5.navShowcase'],
     ['/#meet-t', 'navPossibilities'],
     ['/skills', 'navSkills'],
   ]
@@ -47,6 +53,7 @@ export function LandingNav() {
             {t('navStart')}
           </Link>
           <button
+            ref={menuButton}
             className={s.menuButton}
             onClick={() => setOpen(!open)}
             aria-label={t(open ? 'closeMenu' : 'openMenu')}
@@ -68,6 +75,9 @@ export function LandingNav() {
               {t(key)}
             </Link>
           ))}
+          <div className={s.mobileLocale}>
+            <LocaleToggle />
+          </div>
         </nav>
       )}
     </header>

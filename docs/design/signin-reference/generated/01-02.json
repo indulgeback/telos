@@ -1,0 +1,71 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-10-28",
+  "owner": "asset_cleanup",
+  "intent": "Original Telos login carousel illustrations inspired by YouMind composition; B-version T identity and supplied Telos mark.",
+  "sharedIdentityReference": "/Users/a1234/Desktop/project/telos/apps/web/public/brand/t-v4/portrait.png",
+  "sharedLogoReference": "/Users/a1234/Desktop/project/telos/apps/web/public/brand/telos-01/mark-512.png",
+  "webOptimization": {
+    "tool": "sharp",
+    "format": "webp",
+    "quality": 85,
+    "effort": 6,
+    "resize": false
+  },
+  "assets": [
+    {
+      "name": "01-world-models",
+      "source": "/Users/a1234/.codex/generated_images/01a180cd-216d-7692-a3c4-13644b46723b/exec-54305db8-d371-4736-bdbc-752776b8f886.png",
+      "original": "/Users/a1234/Desktop/project/telos/docs/design/signin-reference/generated/01-world-models.png",
+      "web": "/Users/a1234/Desktop/project/telos/apps/web/public/auth/telos-v1/01-world-models.webp",
+      "width": 1193,
+      "height": 1319,
+      "hasAlpha": false,
+      "originalBytes": 2088029,
+      "webBytes": 150750,
+      "originalSha256": "23393d0ca040bc4bba74bf275910517bd76577ede31eac9b9d9979ebf102f55e",
+      "compositionReference": "/Users/a1234/Desktop/project/telos/apps/web/public/auth/youmind-reference/01-world-models.webp",
+      "generationPrompt": "Use case: compositing.\nAsset type: original Telos login carousel illustration, portrait approximately 1506 x 1666 (0.904 width/height), full rectangular bleed.\nInput image 1 is COMPOSITION/MOOD REFERENCE ONLY: warm photographic creative studio with shelves, seated person at a laptop, playful editorial collage. Do not reproduce its brands or text.\nInput image 2 is the EXACT T CHARACTER IDENTITY reference: an adult woman with a charcoal black short bob with wispy side bangs, relaxed knowing eyes and gentle slightly wry smile, oversized ivory cream hoodie with black trim and a black square patch containing a small sage green square, black shirt with a minimal >_ symbol. Preserve this recognizable design, adult proportions, haircut, palette and facial character. Render T as a beautifully drawn warm editorial illustration naturally integrated into the photographic scene, not a different red-haired woman.\nInput image 3 is the EXACT TELOS MARK reference. Reproduce its dark charcoal slanted crossbar, curved vertical stem, and sage green leaf-shaped inner piece accurately. A single clear Telos mark appears as an elegant paper-cut emblem in the open central area, with a cream die-cut border. No other brand logo.\nScene: softly lit beige plaster studio wall with three pale shelves and neutral ceramics, blank-spine books, a brass mushroom lamp, framed abstract paper art. Replace ALL third-party model symbols with original neutral objects: a little ceramic magnifier, a folded paper plane, plain geometric blocks, an unbranded notebook. T sits in the lower-left half using a laptop, turned enough to reveal her recognizable relaxed face in profile/three-quarter view; her ivory hood is up with sage square patch visible. Desk and laptop sit lower-center. On the screen only abstract small interface blocks, no readable text.\nLook: sophisticated tactile photo-and-paper collage; warm ivory and sandstone, charcoal, muted sage, small restrained pastel cutout dots and starbursts. Natural soft daylight, real material texture, analog editorial charm. Clear subject and depth, polished and calm.\nLayout: keep visual weight above 75% of height; lower 20% should be visually quiet, medium-dark neutral/charcoal desk shadow suitable for white HTML captions later, with a soft natural falloff rather than a graphic banner. NO caption, NO headline, NO marketing copy.\nStrict exclusions: zero YouMind lettering, zero original wavy YouMind emblem, zero recognizable third-party AI/model logos or names, no book-cover words, no watermark, no app/browser chrome, no border, no rounded corners, no transparent corner pixels. Only the brand mark and T's tiny shirt >_ are permitted symbols; no other readable words. This must be an original Telos scene inspired by the reference layout, not a copy with a relabel.",
+      "targetedEditPrompt": "Use case: precise-object-edit. Input is the current Telos studio artwork. Preserve the entire image exactly: T's face/black short bob/ivory hoodie and green patch, pose, laptop, room, lighting, central accurate Telos T mark, decorative paper stars, layout, full rectangular dimensions and bottom dark quiet area. Make ONLY these corrections on the TOP shelf: remove the wooden orange radial asterisk sculpture and replace it with a plain small terracotta cylindrical pencil cup holding three unbranded wooden pencils; remove the pale ring pierced by a diagonal slash and replace it with a simple smooth cream ceramic bowl on top of two small blank-spine books; remove the dark whale-shaped figurine and replace it with a matte charcoal faceted rectangular storage box. These must be ordinary recognizable desk/household objects, never logos, never whales, never interlocking loops, never a starburst sculpture, never an orbit or crossed ring. Keep the paper plane and brass lamp. Also replace the top-left framed dark symbol with a simple abstract landscape painting of two rolling sandstone hills, not a letter or logo. Do not change T or the central Telos logo at all. No words, no captions, no marketing copy, no third-party brand traces.",
+      "initialGenerationSource": "/Users/a1234/.codex/generated_images/01a180cd-216d-7692-a3c4-13644b46723b/exec-69d6c304-4ecd-4a42-9219-7e5e28b48c0a.png",
+      "visualQa": {
+        "passed": true,
+        "tIdentity": "Adult T with charcoal bob, ivory cream hoodie, black trim and sage-square patch; facial design preserved.",
+        "telosLogo": "Accurate charcoal slanted T and sage inset mark.",
+        "youmindResiduals": false,
+        "thirdPartyBrandResiduals": false,
+        "bakedMarketingCopy": false,
+        "opaqueRectangular": true,
+        "captionSafeLowerArea": true
+      },
+      "notes": "Removed all reference-inspired model statuettes in targeted edit; replaced with pencil cup, ceramic bowl, box and landscape art."
+    },
+    {
+      "name": "02-save-anything",
+      "source": "/Users/a1234/.codex/generated_images/01a180cd-216d-7692-a3c4-13644b46723b/exec-6345a061-8771-4e48-a9cb-e25920b1b2d5.png",
+      "original": "/Users/a1234/Desktop/project/telos/docs/design/signin-reference/generated/02-save-anything.png",
+      "web": "/Users/a1234/Desktop/project/telos/apps/web/public/auth/telos-v1/02-save-anything.webp",
+      "width": 1192,
+      "height": 1319,
+      "hasAlpha": false,
+      "originalBytes": 2130612,
+      "webBytes": 146168,
+      "originalSha256": "23d418535a0fa6e383cc8ec41de9fb3e754946f1d93c378fa0c177c738d81ab6",
+      "compositionReference": "/Users/a1234/Desktop/project/telos/apps/web/public/auth/youmind-reference/02-save-anything.webp",
+      "generationPrompt": "Use case: compositing.\nAsset type: original Telos login carousel illustration, portrait approximately 1506 x 1666 (0.904 width/height), full rectangular bleed.\nInput image 1 is COMPOSITION/MOOD REFERENCE ONLY: overhead creative desk with paper scraps and a large blue folder collecting many kinds of notes. Replace all original brand elements and the person.\nInput image 2 is the EXACT T CHARACTER IDENTITY reference: an adult woman with charcoal short bob and wispy side bangs, relaxed knowing eyes, oversized ivory cream hoodie with black trim, black square patch containing a small sage green square, black >_ shirt. Maintain T's recognizable character design in an elegant warm hand-drawn editorial style integrated into real textured desk photography.\nInput image 3 is the EXACT TELOS MARK reference: dark charcoal slanted upper crossbar, curved vertical stem, sage green leaf-shaped inner piece. Reproduce this recognizable two-color mark faithfully on a cream label fixed to the center of the folder. No other logo.\nScene: overhead diagonal view of a warm cream paper-covered desk; a large muted cornflower-blue folder occupies the center-lower area. Adult T, seen from above at the lower-left edge, has visible charcoal bob, ivory hood and sage patch, a hint of the relaxed facial profile; her two natural hands in cream sleeves collect a paper note into the folder. Surround the folder with original cut-paper cards for generic video (plain triangle, no red brand tile), audio (simple wave), web (simple globe), an article (lines and rectangle), and a quote (quotation marks). Keep cards pictorial only, no text or labels. Add a pencil, binder clip, small sketchbook with abstract botanical drawings, restrained lilac/pink/sage paper accents and two curved hand-painted blue arrows suggesting gathering into the folder.\nLook: precise tactile paper collage mixed with natural photographic desk surfaces and the illustrated T; soft window daylight, authentic fibers and shadows, restrained colors, playful but refined.\nLayout: coherent top-down anatomy and folder depth. Keep bottom 20% quiet and darker, with T's charcoal inner garment/shadow blending into the desk, so white HTML captions can be added later. Do not print any marketing headline.\nStrict exclusions: no YouMind text, no YouMind wave logo, no YouTube/Apple or third-party service/model logo, no readable handwriting, no caption, no headline, no watermark, no UI/browser chrome, no rounded corners, no borders, no transparent corners. Do not copy the reference's black-sleeved person; use B-version T with her cream hoodie. The only distinct brand graphic is the supplied Telos mark.",
+      "targetedEditPrompt": "Use case: lighting-weather. Edit this exact finished Telos folder collage. Keep the entire scene, accurate Telos brand mark on the blue folder, all paper cards, T's face and charcoal bob, ivory hoodie and green-square patch, hands, proportions and layout EXACTLY unchanged. Only improve the caption-safe lighting in the lower 20 percent: add a very soft photographic neutral charcoal shadow vignette rising from the bottom edge, darkest at the bottom and fully faded out above 75 percent image height. This should subtly dim the cream sleeve and lower foreground without altering their hue or details, leaving enough contrast for white HTML typography to be placed later. The Telos mark in the middle of the blue folder must stay completely bright, crisp and unaffected. No text, no caption, no marketing words, no logos added, no hard-edged gradient band, no rounded corners. Full rectangular image.",
+      "initialGenerationSource": "/Users/a1234/.codex/generated_images/01a180cd-216d-7692-a3c4-13644b46723b/exec-624dcfc9-1152-4cf6-8642-2d08acdc1441.png",
+      "visualQa": {
+        "passed": true,
+        "tIdentity": "Adult T with charcoal bob, ivory cream hoodie, black trim and sage-square patch; facial design preserved.",
+        "telosLogo": "Accurate charcoal slanted T and sage inset mark.",
+        "youmindResiduals": false,
+        "thirdPartyBrandResiduals": false,
+        "bakedMarketingCopy": false,
+        "opaqueRectangular": true,
+        "captionSafeLowerArea": true
+      },
+      "notes": "Targeted lighting edit darkened the bottom foreground for future white HTML captions while preserving the folder mark."
+    }
+  ]
+}

@@ -21,8 +21,8 @@ export function SkillHeroBanner({
       title={t('hero.title')}
       subtitle={t('hero.subtitle', { count: totalCount })}
       ctaLabel={t('hero.cta')}
-      imageSrc='/skills-hero-t.png'
-      imagePosition='object-[72%_center] md:object-center'
+      imageSrc='/brand/t-v4/gather.webp'
+      imagePosition='!left-auto !w-[80%] object-[58%_20%] md:!w-[70%] md:object-[center_20%]'
       onAction={onExplore}
     />
   )

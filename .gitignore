@@ -453,3 +453,9 @@ services/agent-service/test-*.ts
 .claude/
 .zcode/
 .v2c/
+
+# Local Finesse design build history
+.finesse/
+
+# Local HyperFrames render/history cache
+docs/design/telos-demo/composition/.hyperframes/

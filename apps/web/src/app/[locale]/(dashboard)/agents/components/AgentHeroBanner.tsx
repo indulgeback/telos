@@ -15,8 +15,8 @@ export function AgentHeroBanner({ onCreate }: AgentHeroBannerProps) {
       title={t('hero.title')}
       subtitle={t('hero.subtitle')}
       ctaLabel={t('hero.cta')}
-      imageSrc='/agents-hero-t.png'
-      imagePosition='object-[70%_center] md:object-center'
+      imageSrc='/brand/t-v4/hero.webp'
+      imagePosition='!left-auto !w-[80%] object-[58%_20%] md:!w-[70%] md:object-[center_20%]'
       onAction={onCreate}
     />
   )

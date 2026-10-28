@@ -34,6 +34,7 @@ const footerGroups = [
 
 export function FooterSection() {
   const pathname = usePathname()
+  if (pathname.replace(/\/+$/, '') === '/auth/signin') return null
   if (pathname === '/') return null
 
   return (

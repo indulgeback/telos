@@ -295,8 +295,8 @@
   },
   "Auth": {
     "signIn": {
-      "title": "Willkommen zurück",
-      "subtitle": "Melden Sie sich bei der Telos Smart Workflow Platform an",
+      "title": "Willkommen bei Telos",
+      "subtitle": "Anmelden oder ein Konto erstellen",
       "noAccount": "Sie haben noch kein Konto?",
       "signUp": "Jetzt anmelden",
       "loginFailed": "Anmeldung fehlgeschlagen",
@@ -306,7 +306,25 @@
       "magicLinkSent": "Der Login-Link wurde an Ihre E-Mail gesendet, bitte überprüfen Sie Ihr Postfach!",
       "orSocial": "oder mit sozialen Konten anmelden",
       "tryAgain": "Erneut versuchen",
-      "backToHome": "Zur Startseite"
+      "backToHome": "Zur Startseite",
+      "continue": "Weiter",
+      "continueWith": "Mit {provider} fortfahren",
+      "moreOptions": "Weitere Anmeldeoptionen",
+      "agreement": "Wenn du fortfährst, stimmst du unseren <terms>Nutzungsbedingungen</terms> und unserer <privacy>Datenschutzerklärung</privacy> zu.",
+      "changeEmail": "Andere E-Mail-Adresse verwenden",
+      "slideLabel": "Folie {number} anzeigen",
+      "pauseSlides": "Diashow pausieren",
+      "resumeSlides": "Diashow abspielen",
+      "heroTitle": "Platz für deine nächste Idee.",
+      "heroSubtitle": "Mit T denken, gestalten und deinen Ideen eine eigene Form geben.",
+      "slides": {
+        "models": "Deine Ideen. Ein wenig Hilfe von T.",
+        "collect": "Ein Platz für jeden Geistesblitz.",
+        "skills": "Die passenden Skills für deinen nächsten Schritt.",
+        "partner": "Gemeinsam durchdenken. Gemeinsam umsetzen.",
+        "studio": "Vom ersten Gedanken zu deinem eigenen Werk."
+      },
+      "or": "oder"
     },
     "error": {
       "title": "Fehler bei der Authentifizierung",
@@ -708,14 +726,14 @@
     "skip": "Zum Inhalt springen",
     "privacy": "Privatsphäre",
     "terms": "Bedingungen",
-    "portraitAlt": "T mit marineblauem Vokuhila, grünen Augen und Kopfhörern, lächelnd mit der Wange auf ihrer Hand ruhend.",
+    "portraitAlt": "T mit dunklem Bob und elfenbeinfarbener Kapuze mit grünem Cursor-Zeichen stützt lächelnd die Wange auf die Hand.",
     "scenes": {
       "build": {
         "label": "Bauen",
         "title": "Weniger festgefahren. Mehr erledigt.",
         "body": "Von einem hartnäckigen Fehler zu deinem nächsten Nebenprojekt. Arbeite es mit T durch.",
         "prompt": "Hilf mir, meine Idee für ein Nebenprojekt in einen funktionierenden Prototyp umzusetzen. Frag mich zuerst, was ich bauen möchte.",
-        "alt": "T konzentriert sich auf einen Laptop, ihr gestufter navyblauer Vokuhila und ihre grünen Augen sind sichtbar."
+        "alt": "T arbeitet mit heller Kapuze am Laptop in einem sonnigen Atelier."
       },
       "explore": {
         "label": "Erkunden",
@@ -738,7 +756,7 @@
       "send": "Lass uns gehen",
       "recommended": "Für dich",
       "worldLabel": "Ein Raum für Ihre Ideen",
-      "heroAlt": "T sitzt in einem sonnenbeschienenen Atelier über den Wolken, umgeben von Notizbüchern, Modellen und schwebenden Seiten.",
+      "heroAlt": "T arbeitet mit heller Kapuze am Laptop in einem sonnigen Atelier.",
       "worldCaption": "Platz für alles, was als Nächstes kommt.",
       "processTitle": "Bring deine Neugier mit.",
       "processAccent": "Sieh, wohin es dich führt.",
@@ -782,21 +800,21 @@
           "body": "Bringe die Frage, die Notizen, die halb entwickelte Idee. Fang mit dem an, was du hast, und finde, was es wert ist, erforscht zu werden.",
           "prompt": "Ich habe einige verstreute Notizen und Ideen. Hilf mir, einen nützlichen Ausgangspunkt zu finden. Bitte frage mich zuerst, sie zu teilen.",
           "action": "Beginnen Sie mit Ihren Notizen",
-          "alt": "Lose Seiten treiben auf ein warm beleuchtetes Archiv an einem See unter einem zunehmenden Mond zu."
+          "alt": "T hält ein Buch und ordnet Notizen an einer Pinnwand."
         },
         "think": {
           "title": "Finde die Verbindungen",
           "body": "Vergleiche Perspektiven, stelle eine bessere Frage und arbeite die fehlenden Teile mit T durch. Klarheit kommt ein Gespräch nach dem anderen.",
           "prompt": "Hilf mir, über eine schwierige Frage nachzudenken. Frag zuerst, was ich zu entscheiden versuche und was ich bisher weiß.",
           "action": "Denke über eine Frage mit T nach",
-          "alt": "T untersucht ein Modell und ein Notizbuch in einem gläsernen Wintergarten, der von einer warmen Schreibtischlampe beleuchtet wird."
+          "alt": "T denkt zwischen Büchern und Skizzen mit einem Stift in der Hand nach."
         },
         "make": {
           "title": "Mach es real",
           "body": "Ein erster Entwurf. Ein funktionierender Prototyp. Ein Plan, auf den Sie handeln können. Formen Sie ihn, probieren Sie ihn aus und machen Sie ihn weiterhin zu Ihrem eigenen.",
           "prompt": "Hilf mir, eine Idee in eine konkrete erste Version umzusetzen. Frag zuerst, was ich machen möchte und wie ein nützliches erstes Ergebnis aussehen würde.",
           "action": "Erstelle eine erste Version mit T",
-          "alt": "Ein beleuchteter Faden verbindet eine Skizze mit einem kleinen Atelier, das über einer Wiese aufgebaut ist."
+          "alt": "T zeichnet auf einem Tablet neben einem eigenen grünen Poster."
         }
       },
       "navExplore": "Erkunden"
@@ -804,6 +822,107 @@
     "motion": {
       "pause": "Seitenanimationen pausieren",
       "resume": "Seitenanimationen abspielen"
+    },
+    "v5": {
+      "title": "Folge deiner Neugier. Mach etwas Eigenes.",
+      "intro": "Entdecke, denke und gestalte mit T, bis aus deiner Idee etwas wird.",
+      "placeholder": "Was möchtest du erforschen oder gestalten?",
+      "withT": "Mit T",
+      "start": "Starten",
+      "exampleNote": "Eigene visuelle Beispiele. Wähle eines und starte mit seinem Prompt.",
+      "processTitle": "Vom ersten Funken zum vorzeigbaren Ergebnis",
+      "processIntro": "Bring eine Frage mit, denke sie durch und erstelle eine erste Fassung.",
+      "demoTitle": "So arbeitest du mit T",
+      "demoIntro": "Aus einer Frage werden ein Plan, ein Gespräch und ein erster Entwurf.",
+      "watchDemo": "Demo ansehen",
+      "demoDisclosure": "Inszenierter Produktablauf mit Beispielinhalten, keine Live-Aufzeichnung einer echten Aufgabe.",
+      "videoUnsupported": "Dein Browser unterstützt dieses Video nicht.",
+      "videoError": "Das Video konnte nicht geladen werden.",
+      "openVideo": "Video öffnen",
+      "galleryTitle": "Wohin deine Ideen führen können",
+      "galleryIntro": "Öffne ein Beispiel und seine Aufgabenstellung und gestalte mit T deine eigene Version.",
+      "previewNamed": "Vorschau: {name}",
+      "closePreview": "Vorschau schließen",
+      "exampleLabel": "Gestaltungsbeispiel",
+      "usePrompt": "Diesen Prompt verwenden",
+      "meetTitle": "Entspannt im Alltag. Ernsthaft bei der Sache.",
+      "meetBody": "T lebt im Terminal, mag clevere Abkürzungen und hat gelegentlich einen frechen Spruch parat. Mit deinen Ideen und kniffligen Fragen kommt ihr gemeinsam weiter.",
+      "meetAction": "Sag T Hallo",
+      "finalTitle": "Die Idee, die dir nicht aus dem Kopf geht.",
+      "finalAction": "Gib ihr einen Anfang",
+      "navDemo": "Produktdemo",
+      "navShowcase": "Beispiele",
+      "categories": {
+        "all": "Für dich",
+        "research": "Recherche",
+        "write": "Schreiben",
+        "image": "Bilder",
+        "web": "Websites",
+        "code": "Code",
+        "plan": "Planung"
+      },
+      "steps": {
+        "gather": {
+          "title": "Bring mit, was du hast",
+          "body": "Eine Frage, Notizen oder ein Bild. Auch eine unfertige Idee ist ein guter Anfang."
+        },
+        "think": {
+          "title": "Gemeinsam Klarheit finden",
+          "body": "Stelle Fragen, vergleiche Möglichkeiten und zerlege Probleme. Mit T findest du den nächsten Schritt."
+        },
+        "make": {
+          "title": "Eine erste Version machen",
+          "body": "Ein Text, ein Bild, eine kleine Website oder ein Plan. Erst erstellen, dann prüfen, verfeinern und teilen."
+        }
+      },
+      "faq": {
+        "start": {
+          "question": "Brauche ich eine fertige Idee?",
+          "answer": "Nein. Eine Frage oder ein paar Notizen reichen. T hilft dir, Ziel und nächsten Schritt zu klären."
+        },
+        "control": {
+          "question": "Behalte ich die Kontrolle?",
+          "answer": "Du kannst Pläne prüfen, Freigaben beantworten und laufende Aufgaben stoppen. Die Aktionen hängen von Aufgabe und aktivierten Werkzeugen ab."
+        },
+        "skills": {
+          "question": "Was bringen Skills?",
+          "answer": "Skills liefern wiederverwendbare Anleitungen für bestimmte Aufgaben. Wähle in der Bibliothek passende Skills aus."
+        }
+      },
+      "examples": {
+        "editorial": {
+          "title": "Ein Cover mit Haltung",
+          "prompt": "Hilf mir bei einem Magazincover. Frage nach Thema und Leserschaft und entwickle dann Titel, Bildidee und Layout."
+        },
+        "website": {
+          "title": "Eine Website für dein Projekt",
+          "prompt": "Hilf mir, eine Projektwebsite zu entwerfen. Kläre Zweck und Zielgruppe, bevor du Seitenstruktur und erste Umsetzung erstellst."
+        },
+        "botanical": {
+          "title": "Dein botanisches Poster",
+          "prompt": "Hilf mir mit einem botanischen Poster. Frage nach Pflanzen und Stimmung und entwirf Komposition und Bildprompt."
+        },
+        "research": {
+          "title": "Eine große Frage verstehen",
+          "prompt": "Recherchiere mit mir eine Frage. Kläre das Thema, vergleiche Belege, trenne Fakten von Annahmen und nenne Quellen."
+        },
+        "travel": {
+          "title": "Eine Reise zum Vorfreuen",
+          "prompt": "Plane mit mir eine Reise. Frage zuerst nach Ziel, Daten, Budget und Interessen und schlage einen machbaren Reiseplan vor."
+        },
+        "architecture": {
+          "title": "Eine Architekturidee erkunden",
+          "prompt": "Hilf mir bei der Bildidee für ein kleines Bauprojekt. Kläre Ort und Zweck und schlage Materialien, Formen und eine Illustration vor."
+        },
+        "story": {
+          "title": "Aus einer Idee wird eine Geschichte",
+          "prompt": "Hilf mir, eine Idee zu einer Geschichte auszubauen. Kläre Ausgangspunkt und gewünschte Wirkung und entwirf Gliederung und Rohfassung."
+        },
+        "code": {
+          "title": "Einen hartnäckigen Bug lösen",
+          "prompt": "Hilf mir bei einem Codeproblem. Frage nach Fehler, relevantem Code und erwartetem Verhalten und entwickle eine überprüfbare Lösung."
+        }
+      }
     }
   }
 }
