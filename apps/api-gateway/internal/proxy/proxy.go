@@ -406,7 +406,10 @@ func (pm *ProxyManager) findRoute(path string) *RouteConfig {
 
 // getProxy 获取或创建代理
 func (pm *ProxyManager) getProxy(target string, route *RouteConfig) (*httputil.ReverseProxy, error) {
-	key := fmt.Sprintf("%s:%s", target, route.ServiceName)
+	// key 必须含 route.Path：同一 target 的不同路由超时配置不同
+	// （如 /api/a2a 阻塞 120s 而 /api/agents 只给 10s），
+	// 共享代理会让先到的路由把超时强加给后面的
+	key := fmt.Sprintf("%s:%s:%s", target, route.ServiceName, route.Path)
 
 	// 两个并发请求同时命中未缓存的 target 时,map 的并发读写会触发
 	// fatal error(concurrent map read and map write),进程直接崩溃且无法 recover
