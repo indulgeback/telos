@@ -11,7 +11,6 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "test": "pnpm build && node --test test/*.test.mjs",
-    "smoke:volc-realtime": "pnpm build && node scripts/volc-realtime-smoke.mjs",
     "start": "node dist/index.js",
     "db:seed-skills": "node scripts/seed-skills.mjs",
     "db:seed-skills:dry": "node scripts/seed-skills.mjs --dry-run",
