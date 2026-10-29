@@ -255,6 +255,16 @@
       "renamePlaceholder": "Введите название сеанса",
       "deleteTitle": "Удалить разговор",
       "deleteConfirm": "Are you sure you want to delete “{title}”? After deletion, it will no longer appear in the conversation list."
+    },
+    "imageCanvas": {
+      "title": "Холст изображений",
+      "open": "Открыть холст изображений",
+      "empty": "Сгенерированных изображений пока нет",
+      "emptyHint": "Попросите T нарисовать — работы появятся здесь",
+      "editFromHere": "Продолжить правку с этого изображения",
+      "copyLink": "Копировать ссылку",
+      "copied": "Скопировано",
+      "openOriginal": "Открыть оригинал"
     }
   },
   "Common": {

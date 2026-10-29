@@ -38,6 +38,10 @@ import type { ReasoningEffortLevel } from '@/components/molecules/chat/reasoning
 import type { WebSearchResultItem } from './web-search-results'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
+import {
+  ImageCanvasPanel,
+  extractGeneratedImageUrls,
+} from '@/components/molecules/chat/image-canvas-panel'
 import { isImeComposingKeyEvent } from '@/components/molecules/chat/ime'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
@@ -161,6 +165,7 @@ export function ChatView() {
   const [threadSearch, setThreadSearch] = useState('')
   // DeepSeek 风格搜索来源面板：web_search 胶囊/[n] 角标点击后展示。
   // ≥lg 渲染内嵌右列；<lg 用 Sheet 浮层（mobileOpen 在点击时判定视口）。
+  const [imageCanvasOpen, setImageCanvasOpen] = useState(false)
   const [searchPanel, setSearchPanel] = useState<{
     results: WebSearchResultItem[]
     title: string
@@ -2196,6 +2201,34 @@ export function ChatView() {
     return title.toLowerCase().includes(threadSearch.trim().toLowerCase())
   })
 
+  // 图片画布：当前会话里所有生成图（markdown 图链接按序去重）
+  const canvasImages = useMemo(
+    () => extractGeneratedImageUrls(displayMessages),
+    [displayMessages]
+  )
+  const handleEditCanvasImage = useCallback(
+    (url: string) => {
+      if (!supportsImageUpload) return
+      setUploadedImageUrls(prev => {
+        if (prev.includes(url)) return prev
+        if (prev.length >= MAX_IMAGE_ATTACHMENTS) {
+          toast.error(
+            t('imageUploadLimitError', { count: MAX_IMAGE_ATTACHMENTS })
+          )
+          return prev
+        }
+        return [...prev, url]
+      })
+      setImagePreviews(prev => {
+        if (prev.includes(url)) return prev
+        return [...prev, url]
+      })
+      setImageCanvasOpen(false)
+      textareaRef.current?.focus()
+    },
+    [supportsImageUpload, textareaRef, t]
+  )
+
   return (
     <>
       <div className='agent-workbench flex h-full min-h-0 w-full overflow-hidden text-foreground'>
@@ -2316,6 +2349,9 @@ export function ChatView() {
             onClear={handleClear}
             onScrollToBottom={handleScrollToBottom}
             onModelChange={setSelectedModel}
+            canvasCount={canvasImages.length}
+            imageCanvasOpen={imageCanvasOpen}
+            onToggleImageCanvas={() => setImageCanvasOpen(v => !v)}
             reasoningEffort={reasoningEffort}
             onReasoningEffortChange={setReasoningEffort}
             modelLabel={t('model.label')}
@@ -2468,6 +2504,40 @@ export function ChatView() {
               onClose={closeSearchPanel}
             />
           </aside>
+        )}
+        {imageCanvasOpen && (
+          <aside className='hidden w-[340px] shrink-0 border-l border-border bg-background/60 lg:flex'>
+            <ImageCanvasPanel
+              className='w-full'
+              images={canvasImages}
+              title={t('imageCanvas.title')}
+              emptyTitle={t('imageCanvas.empty')}
+              emptyHint={t('imageCanvas.emptyHint')}
+              editLabel={t('imageCanvas.editFromHere')}
+              copyLinkLabel={t('imageCanvas.copyLink')}
+              copiedLabel={t('imageCanvas.copied')}
+              openOriginalLabel={t('imageCanvas.openOriginal')}
+              onClose={() => setImageCanvasOpen(false)}
+              onEditImage={handleEditCanvasImage}
+            />
+          </aside>
+        )}
+        {imageCanvasOpen && (
+          <div className='fixed inset-0 z-40 bg-background lg:hidden'>
+            <ImageCanvasPanel
+              className='h-full'
+              images={canvasImages}
+              title={t('imageCanvas.title')}
+              emptyTitle={t('imageCanvas.empty')}
+              emptyHint={t('imageCanvas.emptyHint')}
+              editLabel={t('imageCanvas.editFromHere')}
+              copyLinkLabel={t('imageCanvas.copyLink')}
+              copiedLabel={t('imageCanvas.copied')}
+              openOriginalLabel={t('imageCanvas.openOriginal')}
+              onClose={() => setImageCanvasOpen(false)}
+              onEditImage={handleEditCanvasImage}
+            />
+          </div>
         )}
       </div>
       <Sheet

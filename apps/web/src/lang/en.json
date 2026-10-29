@@ -255,6 +255,16 @@
       "renamePlaceholder": "Enter session title",
       "deleteTitle": "Delete conversation",
       "deleteConfirm": "Are you sure you want to delete \"{title}\"? It will no longer appear in the conversation list after deletion."
+    },
+    "imageCanvas": {
+      "title": "Image canvas",
+      "open": "Open image canvas",
+      "empty": "No generated images yet",
+      "emptyHint": "Ask T to draw something — results land here",
+      "editFromHere": "Continue editing from here",
+      "copyLink": "Copy link",
+      "copied": "Copied",
+      "openOriginal": "Open original"
     }
   },
   "Common": {

@@ -127,6 +127,10 @@ export interface ChatContainerProps {
   onClear: () => void
   onScrollToBottom: () => void
   onModelChange: (model: string) => void
+  /** 当前会话已生成的图片数（画布角标） */
+  canvasCount?: number
+  imageCanvasOpen?: boolean
+  onToggleImageCanvas?: () => void
   onReasoningEffortChange: (value: ReasoningEffortLevel) => void
   onPickImages?: (files: FileList | File[] | null) => void
   onRemoveImage?: (index: number) => void
@@ -240,6 +244,9 @@ export function ChatContainer({
   onClear,
   onScrollToBottom,
   onModelChange,
+  canvasCount = 0,
+  imageCanvasOpen = false,
+  onToggleImageCanvas,
   onReasoningEffortChange,
   onPickImages,
   onRemoveImage,
@@ -851,6 +858,26 @@ export function ChatContainer({
                 >
                   <Plus className='size-4' />
                 </Button>
+                {onToggleImageCanvas && (
+                  <button
+                    type='button'
+                    onClick={onToggleImageCanvas}
+                    disabled={canvasCount === 0}
+                    aria-label={t('imageCanvas.open')}
+                    title={t('imageCanvas.open')}
+                    className={cn(
+                      'relative inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40',
+                      imageCanvasOpen && 'bg-muted text-foreground'
+                    )}
+                  >
+                    <ImageIcon className='size-4' />
+                    {canvasCount > 0 && (
+                      <span className='absolute -right-0.5 -top-0.5 grid min-w-4 place-items-center rounded-full bg-ink px-1 text-[9px] font-semibold leading-4 text-white'>
+                        {canvasCount > 9 ? '9+' : canvasCount}
+                      </span>
+                    )}
+                  </button>
+                )}
                 {toolbarLeading}
                 {modelReasoningPicker}
               </div>

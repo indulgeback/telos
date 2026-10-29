@@ -255,6 +255,16 @@
       "renamePlaceholder": "輸入會話標題",
       "deleteTitle": "刪除會話",
       "deleteConfirm": "Are you sure you want to delete “{title}”? It will no longer appear in the conversation list after deletion."
+    },
+    "imageCanvas": {
+      "title": "圖片畫布",
+      "open": "打開圖片畫布",
+      "empty": "還沒有生成的圖片",
+      "emptyHint": "讓 T 畫一張圖，作品會自動出現在這裡",
+      "editFromHere": "以此圖繼續編輯",
+      "copyLink": "複製連結",
+      "copied": "已複製",
+      "openOriginal": "查看原圖"
     }
   },
   "Common": {

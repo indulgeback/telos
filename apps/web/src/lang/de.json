@@ -255,6 +255,16 @@
       "renamePlaceholder": "Geben Sie den Sitzungstitel ein",
       "deleteTitle": "Konversation löschen",
       "deleteConfirm": "Möchten Sie „{title}“ wirklich löschen? Nach dem Löschen wird es nicht mehr in der Gesprächsliste angezeigt."
+    },
+    "imageCanvas": {
+      "title": "Bild-Leinwand",
+      "open": "Bild-Leinwand öffnen",
+      "empty": "Noch keine generierten Bilder",
+      "emptyHint": "Bitte T etwas zu zeichnen — Ergebnisse erscheinen hier",
+      "editFromHere": "Mit diesem Bild weiterbearbeiten",
+      "copyLink": "Link kopieren",
+      "copied": "Kopiert",
+      "openOriginal": "Original öffnen"
     }
   },
   "Common": {

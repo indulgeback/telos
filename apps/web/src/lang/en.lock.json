@@ -899,5 +899,13 @@
   "Auth.signIn.slides.skills": "The right skills for your next move.",
   "Auth.signIn.slides.partner": "Think it through. Make it happen.",
   "Auth.signIn.slides.studio": "From a first thought to your own creation.",
-  "Auth.signIn.or": "or"
+  "Auth.signIn.or": "or",
+  "Chat.imageCanvas.title": "Image canvas",
+  "Chat.imageCanvas.open": "Open image canvas",
+  "Chat.imageCanvas.empty": "No generated images yet",
+  "Chat.imageCanvas.emptyHint": "Ask T to draw something — results land here",
+  "Chat.imageCanvas.editFromHere": "Continue editing from here",
+  "Chat.imageCanvas.copyLink": "Copy link",
+  "Chat.imageCanvas.copied": "Copied",
+  "Chat.imageCanvas.openOriginal": "Open original"
 }

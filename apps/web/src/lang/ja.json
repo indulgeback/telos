@@ -255,6 +255,16 @@
       "renamePlaceholder": "会話のタイトルを入力",
       "deleteTitle": "会話を削除",
       "deleteConfirm": "「{title}」を削除してもよろしいですか？削除すると、会話一覧に表示されなくなります。"
+    },
+    "imageCanvas": {
+      "title": "画像キャンバス",
+      "open": "画像キャンバスを開く",
+      "empty": "生成された画像はまだありません",
+      "emptyHint": "T に描いてもらうと、ここに追加されます",
+      "editFromHere": "この画像から編集",
+      "copyLink": "リンクをコピー",
+      "copied": "コピーしました",
+      "openOriginal": "原文を開く"
     }
   },
   "Common": {

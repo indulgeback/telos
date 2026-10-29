@@ -255,6 +255,16 @@
       "renamePlaceholder": "대화 제목 입력",
       "deleteTitle": "대화 삭제",
       "deleteConfirm": "‘{title}’을(를) 삭제하시겠습니까? 삭제하면 대화 목록에서 더 이상 나타나지 않습니다."
+    },
+    "imageCanvas": {
+      "title": "이미지 캔버스",
+      "open": "이미지 캔버스 열기",
+      "empty": "생성된 이미지가 없습니다",
+      "emptyHint": "T 에게 그림을 요청하면 여기에 모입니다",
+      "editFromHere": "이 이미지로 이어서 편집",
+      "copyLink": "링크 복사",
+      "copied": "복사됨",
+      "openOriginal": "원본 열기"
     }
   },
   "Common": {

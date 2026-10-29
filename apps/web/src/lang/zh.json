@@ -255,6 +255,16 @@
       "renamePlaceholder": "输入会话标题",
       "deleteTitle": "删除会话",
       "deleteConfirm": "确定删除“{title}”吗？删除后不会再出现在会话列表中。"
+    },
+    "imageCanvas": {
+      "title": "图片画布",
+      "open": "打开图片画布",
+      "empty": "还没有生成的图片",
+      "emptyHint": "让 T 画一张图，作品会自动出现在这里",
+      "editFromHere": "以此图继续编辑",
+      "copyLink": "复制链接",
+      "copied": "已复制",
+      "openOriginal": "查看原图"
     }
   },
   "Common": {
