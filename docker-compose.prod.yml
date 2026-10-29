@@ -239,6 +239,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - SHORTAPI_API_KEY=${SHORTAPI_API_KEY:-}
+      - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
+      - ZHIPU_BASE_URL=${ZHIPU_BASE_URL:-https://open.bigmodel.cn/api/paas/v4}
       - SHORTAPI_BASE_URL=${SHORTAPI_BASE_URL:-https://api.shortapi.ai/v1}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       # 网页搜索 (Tavily) — agent 的 web_search 内置工具依赖此 key
