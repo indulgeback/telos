@@ -264,7 +264,12 @@
       "editFromHere": "Продолжить правку с этого изображения",
       "copyLink": "Копировать ссылку",
       "copied": "Скопировано",
-      "openOriginal": "Открыть оригинал"
+      "openOriginal": "Открыть оригинал",
+      "comment": "Комментировать",
+      "commentPlaceholder": "Добавить комментарий…",
+      "generate": "Сгенерировать",
+      "setAsInput": "Использовать как ввод",
+      "groupLive": "Текущая сессия"
     },
     "versionToast": {
       "available": "Вышла новая версия",

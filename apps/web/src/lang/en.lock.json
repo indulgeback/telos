@@ -910,5 +910,10 @@
   "Chat.imageCanvas.openOriginal": "Open original",
   "Chat.versionToast.available": "A new version has been released",
   "Chat.versionToast.refresh": "Refresh",
-  "Chat.versionToast.mustRefresh": "The page was updated and must be refreshed to keep working"
+  "Chat.versionToast.mustRefresh": "The page was updated and must be refreshed to keep working",
+  "Chat.imageCanvas.comment": "Comment",
+  "Chat.imageCanvas.commentPlaceholder": "Add a comment…",
+  "Chat.imageCanvas.generate": "Generate",
+  "Chat.imageCanvas.setAsInput": "Use as input",
+  "Chat.imageCanvas.groupLive": "This session"
 }

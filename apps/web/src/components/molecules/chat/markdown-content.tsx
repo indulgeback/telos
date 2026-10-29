@@ -9,13 +9,15 @@ import type { Components } from 'react-markdown'
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
 import { useTranslations } from 'next-intl'
-import { Download } from 'lucide-react'
+import { Download, ImageIcon } from 'lucide-react'
 import { ArtifactPreviewLink } from './artifact-preview-link'
 
 interface MarkdownContentProps {
   content: string
   /** 传入后，正文中的 [n] 引用标记会渲染为可点击的上标按钮 */
   onCitationClick?: (index: number) => void
+  /** 传入后，正文中的生成图会悬浮显示「画布」入口 */
+  onOpenInCanvas?: (src: string) => void
 }
 
 const CustomZoomContent = ({
@@ -74,17 +76,40 @@ const CustomZoomContent = ({
   )
 }
 
+function CanvasHoverButton({ src }: { src: string | undefined }) {
+  const t = useTranslations('Chat')
+  const onOpenInCanvas = React.useContext(ImageCanvasContext)
+  if (!onOpenInCanvas || !src) return null
+  return (
+    <button
+      type='button'
+      onClick={event => {
+        event.stopPropagation()
+        event.preventDefault()
+        onOpenInCanvas(src)
+      }}
+      className='absolute bottom-8 right-3 z-10 hidden items-center gap-1.5 rounded-full bg-black/65 px-3 py-1.5 text-[12px] text-white backdrop-blur-sm transition-colors hover:bg-black/85 group-hover/img-canvas:inline-flex'
+    >
+      <ImageIcon className='size-3.5' />
+      {t('imageCanvas.open')}
+    </button>
+  )
+}
+
 const MARKDOWN_COMPONENTS: Components = {
   img: ({ src, alt, ...props }) => (
-    <Zoom ZoomContent={CustomZoomContent}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- COS 签名 URL 有时效且每次变化,next/image 优化与缓存均不适用 */}
-      <img
-        src={src}
-        alt={alt}
-        className='my-3 h-auto w-full max-w-[320px] cursor-zoom-in rounded-2xl border border-border/70 shadow-sm transition-all hover:shadow-md sm:max-w-[420px]'
-        {...props}
-      />
-    </Zoom>
+    <span className='relative block w-fit max-w-full group/img-canvas'>
+      <Zoom ZoomContent={CustomZoomContent}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- COS 签名 URL 有时效且每次变化,next/image 优化与缓存均不适用 */}
+        <img
+          src={src}
+          alt={alt}
+          className='my-3 h-auto w-full max-w-[320px] cursor-zoom-in rounded-2xl border border-border/70 shadow-sm transition-all hover:shadow-md sm:max-w-[420px]'
+          {...props}
+        />
+      </Zoom>
+      <CanvasHoverButton src={typeof src === 'string' ? src : undefined} />
+    </span>
   ),
   pre: ({ children, className, ...props }) => (
     <pre
@@ -243,6 +268,10 @@ const REMARK_PLUGINS = [remarkGfm]
 const REHYPE_PLUGINS = [rehypeHighlight]
 
 /** [n] 引用角标点击回调，由有搜索结果的消息通过 Provider 提供 */
+export const ImageCanvasContext = React.createContext<
+  ((src: string) => void) | null
+>(null)
+
 const CitationClickContext = React.createContext<
   ((index: number) => void) | null
 >(null)
@@ -295,19 +324,22 @@ const CitationSuperscript = ({
 export const MarkdownContent = memo(function MarkdownContent({
   content,
   onCitationClick,
+  onOpenInCanvas,
 }: MarkdownContentProps) {
   const citationEnabled = typeof onCitationClick === 'function'
   const renderContent = citationEnabled ? linkifyCitations(content) : content
   return (
-    <CitationClickContext.Provider value={onCitationClick ?? null}>
-      <ReactMarkdown
-        remarkPlugins={REMARK_PLUGINS}
-        rehypePlugins={REHYPE_PLUGINS}
-        components={MARKDOWN_COMPONENTS}
-      >
-        {renderContent}
-      </ReactMarkdown>
-    </CitationClickContext.Provider>
+    <ImageCanvasContext.Provider value={onOpenInCanvas ?? null}>
+      <CitationClickContext.Provider value={onCitationClick ?? null}>
+        <ReactMarkdown
+          remarkPlugins={REMARK_PLUGINS}
+          rehypePlugins={REHYPE_PLUGINS}
+          components={MARKDOWN_COMPONENTS}
+        >
+          {renderContent}
+        </ReactMarkdown>
+      </CitationClickContext.Provider>
+    </ImageCanvasContext.Provider>
   )
 })
 MarkdownContent.displayName = 'MarkdownContent'

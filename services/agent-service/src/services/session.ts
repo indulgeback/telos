@@ -1,5 +1,6 @@
 import type { AgentInputItem } from '@openai/agents'
 import { prisma } from './db.js'
+import { randomUUID } from 'node:crypto'
 import { safeJsonStringify } from '../utils/json.js'
 import { retrieveMemories, extractAndSynthesizeMemories } from './memory.js'
 import { resolveMessageModelKey } from './message-model.js'
@@ -582,6 +583,53 @@ export class AgentSessionService {
       where: { id: threadId },
       data: update as any,
     })
+  }
+
+  /**
+   * 图片画布评论：向线程 images 清单里指定图片追加一条评论。
+   * 旧数据是纯字符串数组，写入时归一化为对象形状。
+   */
+  async addThreadImageComment(
+    threadId: string,
+    imageUrl: string,
+    text: string,
+    ownerId?: string
+  ) {
+    if (ownerId) {
+      const existing = await prisma.agentThread.findFirst({
+        where: {
+          id: threadId,
+          ownerId: normalizeOwnerId(ownerId),
+          status: { not: 'deleted' },
+        },
+        select: { id: true },
+      })
+      if (!existing) throw new Error('Thread not found')
+    }
+    const thread = await prisma.agentThread.findUnique({
+      where: { id: threadId },
+      select: { images: true },
+    })
+    const raw = Array.isArray(thread?.images) ? thread!.images : []
+    const normalized = raw.map(item =>
+      typeof item === 'string'
+        ? { url: item }
+        : (item as Record<string, unknown>)
+    )
+    const target = normalized.find(item => item.url === imageUrl)
+    if (!target) throw new Error('Image not found in thread canvas')
+    const comments = Array.isArray(target.comments) ? target.comments : []
+    comments.push({
+      id: crypto.randomUUID(),
+      text: text.trim(),
+      createdAt: new Date().toISOString(),
+    })
+    target.comments = comments
+    await prisma.agentThread.update({
+      where: { id: threadId },
+      data: { images: normalized as any },
+    })
+    return normalized
   }
 
   async deleteThread(threadId: string, ownerId?: string) {

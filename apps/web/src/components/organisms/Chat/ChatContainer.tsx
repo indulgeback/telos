@@ -52,6 +52,7 @@ import {
   REASONING_EFFORT_ORDER,
   ReasoningSliderPanel,
 } from '@/components/molecules/chat/reasoning-slider'
+import { ImageCanvasContext } from '@/components/molecules/chat/image-canvas-panel'
 import type { WebSearchResultItem } from '@/app/[locale]/(dashboard)/chat/web-search-results'
 
 const SUGGESTION_BATCH_SIZE = 4
@@ -131,6 +132,8 @@ export interface ChatContainerProps {
   canvasCount?: number
   imageCanvasOpen?: boolean
   onToggleImageCanvas?: () => void
+  /** 打开画布并定位到指定生成图（聊天图上的画布入口） */
+  onOpenInCanvas?: (src: string) => void
   onReasoningEffortChange: (value: ReasoningEffortLevel) => void
   onPickImages?: (files: FileList | File[] | null) => void
   onRemoveImage?: (index: number) => void
@@ -247,6 +250,7 @@ export function ChatContainer({
   canvasCount = 0,
   imageCanvasOpen = false,
   onToggleImageCanvas,
+  onOpenInCanvas,
   onReasoningEffortChange,
   onPickImages,
   onRemoveImage,
@@ -613,130 +617,132 @@ export function ChatContainer({
     <div className='relative flex h-full w-full flex-col overflow-hidden bg-transparent'>
       {/* Messages Area */}
       <div className='relative z-20 flex-1 min-h-0'>
-        <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
-          <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10'>
-            {messages.length === 0 ? (
-              <div className='mx-auto flex min-h-[56vh] max-w-2xl flex-col items-center justify-center py-10'>
-                <div className='mb-10 flex flex-col items-center text-center'>
-                  <div className='mb-5'>
-                    <LiquidOrbIcon className='size-14' />
+        <ImageCanvasContext.Provider value={onOpenInCanvas ?? null}>
+          <div className='h-full min-h-0 overflow-y-auto' ref={scrollRef}>
+            <div className='mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10'>
+              {messages.length === 0 ? (
+                <div className='mx-auto flex min-h-[56vh] max-w-2xl flex-col items-center justify-center py-10'>
+                  <div className='mb-10 flex flex-col items-center text-center'>
+                    <div className='mb-5'>
+                      <LiquidOrbIcon className='size-14' />
+                    </div>
+                    <h2 className='text-balance text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl'>
+                      {emptyStateTitle}
+                    </h2>
+                    <p className='mt-2.5 max-w-md text-pretty text-[13.5px] leading-6 text-muted-foreground'>
+                      {emptyStateDescription}
+                    </p>
                   </div>
-                  <h2 className='text-balance text-2xl font-semibold leading-tight tracking-[-0.03em] text-foreground sm:text-3xl'>
-                    {emptyStateTitle}
-                  </h2>
-                  <p className='mt-2.5 max-w-md text-pretty text-[13.5px] leading-6 text-muted-foreground'>
-                    {emptyStateDescription}
-                  </p>
-                </div>
 
-                <div className='w-full'>
-                  <div className='grid gap-2 sm:grid-cols-2'>
-                    {visibleSuggestions.map(suggestion => (
-                      <SuggestionPromptButton
-                        key={`${suggestion.label}-${suggestionSeed}`}
-                        suggestion={suggestion}
-                        onClick={onSend}
-                        className='animate-in fade-in slide-in-from-bottom-1 duration-300'
-                      />
-                    ))}
+                  <div className='w-full'>
+                    <div className='grid gap-2 sm:grid-cols-2'>
+                      {visibleSuggestions.map(suggestion => (
+                        <SuggestionPromptButton
+                          key={`${suggestion.label}-${suggestionSeed}`}
+                          suggestion={suggestion}
+                          onClick={onSend}
+                          className='animate-in fade-in slide-in-from-bottom-1 duration-300'
+                        />
+                      ))}
+                    </div>
+                    {suggestionPrompts.length > SUGGESTION_BATCH_SIZE && (
+                      <div className='mt-3 flex justify-center'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={handleShuffle}
+                          className='h-8 gap-1.5 rounded-full px-3 font-mono text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground'
+                        >
+                          <RefreshCw className='mr-1 size-3' />
+                          {refreshSuggestionsLabel}
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  {suggestionPrompts.length > SUGGESTION_BATCH_SIZE && (
-                    <div className='mt-3 flex justify-center'>
+                </div>
+              ) : (
+                <div className='space-y-10 pb-4'>
+                  {messages.map(message => {
+                    const lastAssistantMessage = [...messages]
+                      .reverse()
+                      .find(m => m.role === 'assistant')
+                    const isLastAssistantMessage =
+                      message.role === 'assistant' &&
+                      message.id === lastAssistantMessage?.id &&
+                      message.id === messages[messages.length - 1]?.id
+                    const isCurrentGenerating =
+                      message.id === activeAssistantId ||
+                      message.id === 'pending-assistant'
+                    const showRetry =
+                      isLastAssistantMessage &&
+                      lastUserMessage &&
+                      Boolean(message.runId) &&
+                      message.id !== activeAssistantId
+
+                    return (
+                      <ChatMessage
+                        key={message.id}
+                        id={message.id}
+                        role={message.role}
+                        content={message.content}
+                        images={message.images}
+                        contentParts={message.contentParts}
+                        toolCalls={message.toolCalls}
+                        copiedId={copiedId}
+                        onCopy={onCopy}
+                        copyLabel={copyLabel}
+                        copiedLabel={copiedLabel}
+                        isLoading={isCurrentGenerating}
+                        onRetry={
+                          showRetry && message.runId
+                            ? () => onRetry(message.runId!)
+                            : undefined
+                        }
+                        retryLabel={retryLabel}
+                        assistantModelLabel={message.modelLabel}
+                        usedModelLabel={usedModelLabel}
+                        liveTranscriptLabel={liveTranscriptLabel}
+                        reasoningTitle={reasoningTitle}
+                        reasoningThinkingLabel={reasoningThinkingLabel}
+                        reasoningDoneLabel={reasoningDoneLabel}
+                        imagePreviewLabel={imagePreviewLabel}
+                        imagePrevLabel={imagePrevLabel}
+                        imageNextLabel={imageNextLabel}
+                        userAvatarUrl={userAvatarUrl}
+                        userInitials={userInitials}
+                        isVoiceTranscript={message.isVoiceTranscript}
+                        planTitle={planTitle}
+                        planApproveLabel={planApproveLabel}
+                        planRejectLabel={planRejectLabel}
+                        planApprovedLabel={planApprovedLabel}
+                        planRejectedLabel={planRejectedLabel}
+                        planPendingLabel={planPendingLabel}
+                        planCompletedLabel={planCompletedLabel}
+                        planFailedLabel={planFailedLabel}
+                        isPendingPlan={message.id === pendingPlanMessageId}
+                        onApprovePlan={onApprovePlan}
+                        onRejectPlan={onRejectPlan}
+                        onOpenSearchResults={onOpenSearchResults}
+                      />
+                    )
+                  })}
+                  {!isLoading && (
+                    <div className='flex justify-center pt-2'>
                       <Button
                         variant='ghost'
                         size='sm'
-                        onClick={handleShuffle}
-                        className='h-8 gap-1.5 rounded-full px-3 font-mono text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground'
+                        onClick={onClear}
+                        className='text-[11px] text-muted-foreground hover:text-foreground'
                       >
-                        <RefreshCw className='mr-1 size-3' />
-                        {refreshSuggestionsLabel}
+                        {clearConversationLabel}
                       </Button>
                     </div>
                   )}
                 </div>
-              </div>
-            ) : (
-              <div className='space-y-10 pb-4'>
-                {messages.map(message => {
-                  const lastAssistantMessage = [...messages]
-                    .reverse()
-                    .find(m => m.role === 'assistant')
-                  const isLastAssistantMessage =
-                    message.role === 'assistant' &&
-                    message.id === lastAssistantMessage?.id &&
-                    message.id === messages[messages.length - 1]?.id
-                  const isCurrentGenerating =
-                    message.id === activeAssistantId ||
-                    message.id === 'pending-assistant'
-                  const showRetry =
-                    isLastAssistantMessage &&
-                    lastUserMessage &&
-                    Boolean(message.runId) &&
-                    message.id !== activeAssistantId
-
-                  return (
-                    <ChatMessage
-                      key={message.id}
-                      id={message.id}
-                      role={message.role}
-                      content={message.content}
-                      images={message.images}
-                      contentParts={message.contentParts}
-                      toolCalls={message.toolCalls}
-                      copiedId={copiedId}
-                      onCopy={onCopy}
-                      copyLabel={copyLabel}
-                      copiedLabel={copiedLabel}
-                      isLoading={isCurrentGenerating}
-                      onRetry={
-                        showRetry && message.runId
-                          ? () => onRetry(message.runId!)
-                          : undefined
-                      }
-                      retryLabel={retryLabel}
-                      assistantModelLabel={message.modelLabel}
-                      usedModelLabel={usedModelLabel}
-                      liveTranscriptLabel={liveTranscriptLabel}
-                      reasoningTitle={reasoningTitle}
-                      reasoningThinkingLabel={reasoningThinkingLabel}
-                      reasoningDoneLabel={reasoningDoneLabel}
-                      imagePreviewLabel={imagePreviewLabel}
-                      imagePrevLabel={imagePrevLabel}
-                      imageNextLabel={imageNextLabel}
-                      userAvatarUrl={userAvatarUrl}
-                      userInitials={userInitials}
-                      isVoiceTranscript={message.isVoiceTranscript}
-                      planTitle={planTitle}
-                      planApproveLabel={planApproveLabel}
-                      planRejectLabel={planRejectLabel}
-                      planApprovedLabel={planApprovedLabel}
-                      planRejectedLabel={planRejectedLabel}
-                      planPendingLabel={planPendingLabel}
-                      planCompletedLabel={planCompletedLabel}
-                      planFailedLabel={planFailedLabel}
-                      isPendingPlan={message.id === pendingPlanMessageId}
-                      onApprovePlan={onApprovePlan}
-                      onRejectPlan={onRejectPlan}
-                      onOpenSearchResults={onOpenSearchResults}
-                    />
-                  )
-                })}
-                {!isLoading && (
-                  <div className='flex justify-center pt-2'>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={onClear}
-                      className='text-[11px] text-muted-foreground hover:text-foreground'
-                    >
-                      {clearConversationLabel}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </ImageCanvasContext.Provider>
 
         <div
           className={cn(

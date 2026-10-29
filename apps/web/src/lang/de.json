@@ -264,7 +264,12 @@
       "editFromHere": "Mit diesem Bild weiterbearbeiten",
       "copyLink": "Link kopieren",
       "copied": "Kopiert",
-      "openOriginal": "Original öffnen"
+      "openOriginal": "Original öffnen",
+      "comment": "Kommentieren",
+      "commentPlaceholder": "Kommentar hinzufügen…",
+      "generate": "Generieren",
+      "setAsInput": "Als Eingabe verwenden",
+      "groupLive": "Diese Sitzung"
     },
     "versionToast": {
       "available": "Eine neue Version wurde veröffentlicht",

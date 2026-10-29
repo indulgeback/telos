@@ -177,6 +177,18 @@ export interface AgentRunApproval {
   decided_at?: string | null
 }
 
+export interface ThreadImageComment {
+  id: string
+  text: string
+  created_at?: string | null
+}
+
+export interface ThreadImage {
+  url: string
+  created_at?: string | null
+  comments?: ThreadImageComment[] | null
+}
+
 export interface AgentThread {
   id: string
   agent_id: string
@@ -185,7 +197,8 @@ export interface AgentThread {
   status: 'active' | 'archived' | 'deleted'
   summary?: string | null
   metadata?: Record<string, unknown>
-  images?: string[] | null
+  /** 图片画布：generate_image 成功落库的图片清单（旧数据可能是纯字符串） */
+  images?: Array<ThreadImage | string> | null
   last_message_at?: string | null
   created_at: string
   updated_at: string
@@ -446,6 +459,20 @@ export class AgentService {
       method: 'PATCH',
       body: JSON.stringify(data),
     })
+  }
+
+  addThreadImageComment(
+    threadId: string,
+    imageUrl: string,
+    text: string
+  ): Promise<ThreadImage[]> {
+    return this.request<ThreadImage[]>(
+      `/api/agent/threads/${threadId}/images/comments`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ url: imageUrl, text }),
+      }
+    )
   }
 
   async deleteThread(threadId: string): Promise<void> {

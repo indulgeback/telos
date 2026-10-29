@@ -264,7 +264,12 @@
       "editFromHere": "Continue editing from here",
       "copyLink": "Copy link",
       "copied": "Copied",
-      "openOriginal": "Open original"
+      "openOriginal": "Open original",
+      "comment": "Comment",
+      "commentPlaceholder": "Add a comment…",
+      "generate": "Generate",
+      "setAsInput": "Use as input",
+      "groupLive": "This session"
     },
     "versionToast": {
       "available": "A new version has been released",

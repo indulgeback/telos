@@ -264,7 +264,12 @@
       "editFromHere": "以此圖繼續編輯",
       "copyLink": "複製連結",
       "copied": "已複製",
-      "openOriginal": "查看原圖"
+      "openOriginal": "查看原圖",
+      "comment": "評論",
+      "commentPlaceholder": "添加評論…",
+      "generate": "生成",
+      "setAsInput": "設為輸入",
+      "groupLive": "本次會話"
     },
     "versionToast": {
       "available": "新版本已發布",

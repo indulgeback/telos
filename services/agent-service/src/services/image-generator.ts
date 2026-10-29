@@ -278,7 +278,9 @@ export async function executeGenerateImage(
     // 图片画布：生成成功即登记到线程的 images 清单（结构化，画布直接读）
     try {
       await prisma.$executeRaw`UPDATE agent_threads
-        SET images = COALESCE(images, '[]'::jsonb) || ${JSON.stringify([imageUrl])}::jsonb
+        SET images = COALESCE(images, '[]'::jsonb) || ${JSON.stringify([
+          { url: imageUrl, createdAt: new Date().toISOString() },
+        ])}::jsonb
         WHERE id = ${threadId}`
     } catch (persistError) {
       logger.warn({

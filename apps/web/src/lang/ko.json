@@ -264,7 +264,12 @@
       "editFromHere": "이 이미지로 이어서 편집",
       "copyLink": "링크 복사",
       "copied": "복사됨",
-      "openOriginal": "원본 열기"
+      "openOriginal": "원본 열기",
+      "comment": "댓글",
+      "commentPlaceholder": "댓글 추가…",
+      "generate": "생성",
+      "setAsInput": "입력으로 설정",
+      "groupLive": "이 세션"
     },
     "versionToast": {
       "available": "새 버전이 출시되었습니다",

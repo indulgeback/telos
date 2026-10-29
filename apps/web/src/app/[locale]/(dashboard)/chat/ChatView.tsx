@@ -1322,6 +1322,7 @@ export function ChatView() {
   const supportsReasoningControl =
     selectedModelOption?.supportReasoningControl ?? false
   const supportsImageUpload = supportsVision(selectedModelOption)
+
   // 新版本发布检测：流式/语音进行中挂起提示，空闲再弹
   useBuildVersion({
     defer: isLoading || realtimeEnabled,
@@ -1730,6 +1731,14 @@ export function ChatView() {
     await loadThreads()
     textareaRef.current?.focus()
   }
+
+  // 画布「生成」：图片先落到输入参数，状态就绪后自动发送评论内容
+  useEffect(() => {
+    const text = pendingAutoSendRef.current
+    if (!text || !uploadedImageUrls.length) return
+    pendingAutoSendRef.current = null
+    void handleSend(text)
+  }, [uploadedImageUrls, handleSend])
 
   /**
    * 批准计划：切换到 approved 状态，发 execute 请求让 Agent 真正执行。
@@ -2254,9 +2263,50 @@ export function ChatView() {
     return urls
   }, [messages])
   const canvasImages = useMemo(() => {
-    const stored = currentThreadForCanvas?.images ?? []
-    return [...stored, ...liveCanvasImages.filter(url => !stored.includes(url))]
+    const stored = (currentThreadForCanvas?.images ?? []).map(item =>
+      typeof item === 'string'
+        ? { url: item }
+        : {
+            url: item.url,
+            created_at: item.created_at ?? null,
+            comments: item.comments ?? null,
+          }
+    )
+    return [
+      ...stored,
+      ...liveCanvasImages
+        .filter(url => !stored.some(s => s.url === url))
+        .map(url => ({ url })),
+    ]
   }, [currentThreadForCanvas, liveCanvasImages])
+  const [selectedCanvasUrl, setSelectedCanvasUrl] = useState<string | null>(
+    null
+  )
+  const [canvasWidth, setCanvasWidth] = useState(340)
+  const pendingAutoSendRef = useRef<string | null>(null)
+
+  const handleAddComment = useCallback(
+    async (url: string, text: string) => {
+      if (!currentThreadId) return
+      const images = await agentService.addThreadImageComment(
+        currentThreadId,
+        url,
+        text
+      )
+      setThreads(prev =>
+        prev.map(thread =>
+          thread.id === currentThreadId ? { ...thread, images } : thread
+        )
+      )
+      const thread = threads.find(item => item.id === currentThreadId)
+      if (thread) {
+        // 触发 threads 引用更新，画布合并结果即时可见
+        setThreads(prev => [...prev])
+      }
+    },
+    [currentThreadId, setThreads, threads]
+  )
+
   const handleEditCanvasImage = useCallback(
     (url: string) => {
       if (!supportsImageUpload) return
@@ -2278,6 +2328,14 @@ export function ChatView() {
       textareaRef.current?.focus()
     },
     [supportsImageUpload, textareaRef, t]
+  )
+
+  const handleGenerateFromComments = useCallback(
+    (url: string, promptText: string) => {
+      handleEditCanvasImage(url)
+      pendingAutoSendRef.current = promptText
+    },
+    [handleEditCanvasImage]
   )
 
   return (
@@ -2557,19 +2615,44 @@ export function ChatView() {
           </aside>
         )}
         {imageCanvasOpen && (
-          <aside className='hidden w-[340px] shrink-0 border-l border-border bg-background/60 lg:flex'>
+          <aside
+            style={{ width: canvasWidth }}
+            className='relative hidden shrink-0 border-l border-border bg-background/60 lg:flex'
+          >
+            <div
+              role='separator'
+              aria-orientation='vertical'
+              onPointerDown={event => {
+                event.currentTarget.setPointerCapture(event.pointerId)
+                const startX = event.clientX
+                const startWidth = canvasWidth
+                const onMove = (moveEvent: PointerEvent) => {
+                  const delta = startX - moveEvent.clientX
+                  setCanvasWidth(
+                    Math.max(
+                      320,
+                      Math.min(window.innerWidth * 0.6, startWidth + delta)
+                    )
+                  )
+                }
+                const onUp = () => {
+                  window.removeEventListener('pointermove', onMove)
+                  window.removeEventListener('pointerup', onUp)
+                }
+                window.addEventListener('pointermove', onMove)
+                window.addEventListener('pointerup', onUp)
+              }}
+              className='absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize'
+            />
             <ImageCanvasPanel
               className='w-full'
               images={canvasImages}
-              title={t('imageCanvas.title')}
-              emptyTitle={t('imageCanvas.empty')}
-              emptyHint={t('imageCanvas.emptyHint')}
-              editLabel={t('imageCanvas.editFromHere')}
-              copyLinkLabel={t('imageCanvas.copyLink')}
-              copiedLabel={t('imageCanvas.copied')}
-              openOriginalLabel={t('imageCanvas.openOriginal')}
+              selectedUrl={selectedCanvasUrl}
+              onSelect={setSelectedCanvasUrl}
               onClose={() => setImageCanvasOpen(false)}
-              onEditImage={handleEditCanvasImage}
+              onUseAsInput={handleEditCanvasImage}
+              onAddComment={handleAddComment}
+              onGenerateFromComments={handleGenerateFromComments}
             />
           </aside>
         )}
@@ -2578,15 +2661,12 @@ export function ChatView() {
             <ImageCanvasPanel
               className='h-full'
               images={canvasImages}
-              title={t('imageCanvas.title')}
-              emptyTitle={t('imageCanvas.empty')}
-              emptyHint={t('imageCanvas.emptyHint')}
-              editLabel={t('imageCanvas.editFromHere')}
-              copyLinkLabel={t('imageCanvas.copyLink')}
-              copiedLabel={t('imageCanvas.copied')}
-              openOriginalLabel={t('imageCanvas.openOriginal')}
+              selectedUrl={selectedCanvasUrl}
+              onSelect={setSelectedCanvasUrl}
               onClose={() => setImageCanvasOpen(false)}
-              onEditImage={handleEditCanvasImage}
+              onUseAsInput={handleEditCanvasImage}
+              onAddComment={handleAddComment}
+              onGenerateFromComments={handleGenerateFromComments}
             />
           </div>
         )}

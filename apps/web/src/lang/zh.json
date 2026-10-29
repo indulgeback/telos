@@ -264,7 +264,12 @@
       "editFromHere": "以此图继续编辑",
       "copyLink": "复制链接",
       "copied": "已复制",
-      "openOriginal": "查看原图"
+      "openOriginal": "查看原图",
+      "comment": "评论",
+      "commentPlaceholder": "添加评论…",
+      "generate": "生成",
+      "setAsInput": "设为输入",
+      "groupLive": "本次会话"
     },
     "versionToast": {
       "available": "新版本已发布",

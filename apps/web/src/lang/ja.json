@@ -264,7 +264,12 @@
       "editFromHere": "この画像から編集",
       "copyLink": "リンクをコピー",
       "copied": "コピーしました",
-      "openOriginal": "原文を開く"
+      "openOriginal": "原文を開く",
+      "comment": "コメント",
+      "commentPlaceholder": "コメントを追加…",
+      "generate": "生成",
+      "setAsInput": "入力にする",
+      "groupLive": "このセッション"
     },
     "versionToast": {
       "available": "新しいバージョンがリリースされました",

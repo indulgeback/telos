@@ -400,6 +400,24 @@ chatRouter.get('/threads/:id/runs', async c => {
   return ok(c, toSnakeCase(runs))
 })
 
+// 图片画布评论：向指定图片追加评论（线程归属校验在 service 层）
+chatRouter.post('/threads/:id/images/comments', async c => {
+  const body = await parseJson(c)
+  const url = typeof body.url === 'string' ? body.url.trim() : ''
+  const text = typeof body.text === 'string' ? body.text.trim() : ''
+  if (!url.startsWith('http')) return fail(c, 400, 'Invalid image url')
+  if (!text) return fail(c, 400, 'Comment text is required')
+  if (text.length > 2000) return fail(c, 400, 'Comment too long')
+  const ownerId = getCurrentUserId(c)
+  const images = await agentSessionService.addThreadImageComment(
+    c.req.param('id'),
+    url,
+    text,
+    ownerId
+  )
+  return ok(c, toSnakeCase(images))
+})
+
 chatRouter.patch('/threads/:id', async c => {
   const body = await parseJson(c)
   return ok(
