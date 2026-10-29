@@ -47,8 +47,10 @@ ENV NODE_ENV production
 # 这些都是 public 变量 (会暴露到浏览器), 不含敏感信息, 写进镜像安全
 ARG NEXT_PUBLIC_API_URL=http://localhost:8890
 ARG NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:8800
+ARG NEXT_PUBLIC_BUILD_ID=
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_BETTER_AUTH_URL=${NEXT_PUBLIC_BETTER_AUTH_URL}
+ENV NEXT_PUBLIC_BUILD_ID=${NEXT_PUBLIC_BUILD_ID}
 
 # 构建应用
 WORKDIR /app/apps/web
@@ -57,6 +59,10 @@ RUN pnpm build
 # 运行阶段
 FROM node:20-alpine AS runner
 WORKDIR /app
+
+# 版本检测接口 (/api/build-id) 运行时读取
+ARG NEXT_PUBLIC_BUILD_ID=
+ENV NEXT_PUBLIC_BUILD_ID=${NEXT_PUBLIC_BUILD_ID}
 
 # 创建非 root 用户
 RUN addgroup --system --gid 1001 nodejs

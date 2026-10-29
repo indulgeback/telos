@@ -265,6 +265,11 @@
       "copyLink": "Copy link",
       "copied": "Copied",
       "openOriginal": "Open original"
+    },
+    "versionToast": {
+      "available": "A new version has been released",
+      "refresh": "Refresh",
+      "mustRefresh": "The page was updated and must be refreshed to keep working"
     }
   },
   "Common": {

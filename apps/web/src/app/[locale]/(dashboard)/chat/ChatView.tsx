@@ -39,6 +39,7 @@ import type { WebSearchResultItem } from './web-search-results'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
 import { ImageCanvasPanel } from '@/components/molecules/chat/image-canvas-panel'
+import { useBuildVersion } from './use-build-version'
 import { isImeComposingKeyEvent } from '@/components/molecules/chat/ime'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
@@ -1321,6 +1322,27 @@ export function ChatView() {
   const supportsReasoningControl =
     selectedModelOption?.supportReasoningControl ?? false
   const supportsImageUpload = supportsVision(selectedModelOption)
+  // 新版本发布检测：流式/语音进行中挂起提示，空闲再弹
+  useBuildVersion({
+    defer: isLoading || realtimeEnabled,
+    onNotify: ({ mandatory }) => {
+      if (mandatory) {
+        toast.error(t('versionToast.mustRefresh'), {
+          id: 'build-version',
+          duration: Infinity,
+        })
+        return
+      }
+      toast(t('versionToast.available'), {
+        id: 'build-version',
+        duration: Infinity,
+        action: {
+          label: t('versionToast.refresh'),
+          onClick: () => window.location.reload(),
+        },
+      })
+    },
+  })
 
   // 中止在途请求并丢弃当前 run:切换 agent 后旧流的事件会把 UI 拽回旧线程,
   // 并让 composer 卡在 submitted/streaming 状态

@@ -907,5 +907,8 @@
   "Chat.imageCanvas.editFromHere": "Continue editing from here",
   "Chat.imageCanvas.copyLink": "Copy link",
   "Chat.imageCanvas.copied": "Copied",
-  "Chat.imageCanvas.openOriginal": "Open original"
+  "Chat.imageCanvas.openOriginal": "Open original",
+  "Chat.versionToast.available": "A new version has been released",
+  "Chat.versionToast.refresh": "Refresh",
+  "Chat.versionToast.mustRefresh": "The page was updated and must be refreshed to keep working"
 }

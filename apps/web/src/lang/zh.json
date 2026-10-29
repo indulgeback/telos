@@ -265,6 +265,11 @@
       "copyLink": "复制链接",
       "copied": "已复制",
       "openOriginal": "查看原图"
+    },
+    "versionToast": {
+      "available": "新版本已发布",
+      "refresh": "刷新",
+      "mustRefresh": "页面版本已过期，刷新后才能继续正常使用"
     }
   },
   "Common": {

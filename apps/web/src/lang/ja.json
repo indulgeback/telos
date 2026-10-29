@@ -265,6 +265,11 @@
       "copyLink": "リンクをコピー",
       "copied": "コピーしました",
       "openOriginal": "原文を開く"
+    },
+    "versionToast": {
+      "available": "新しいバージョンがリリースされました",
+      "refresh": "更新",
+      "mustRefresh": "ページのバージョンが古いため、更新が必要です"
     }
   },
   "Common": {

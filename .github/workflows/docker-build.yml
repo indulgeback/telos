@@ -143,6 +143,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://api.telos.indulgeback.icu' }}
             NEXT_PUBLIC_BETTER_AUTH_URL=${{ vars.NEXT_PUBLIC_BETTER_AUTH_URL || 'https://telos.indulgeback.icu' }}
+            NEXT_PUBLIC_BUILD_ID=${{ github.sha }}
 
       - name: 📝 输出镜像 digest
         run: |

@@ -265,6 +265,11 @@
       "copyLink": "링크 복사",
       "copied": "복사됨",
       "openOriginal": "원본 열기"
+    },
+    "versionToast": {
+      "available": "새 버전이 출시되었습니다",
+      "refresh": "새로고침",
+      "mustRefresh": "페이지 버전이 오래되어 새로고침이 필요합니다"
     }
   },
   "Common": {

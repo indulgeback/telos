@@ -265,6 +265,11 @@
       "copyLink": "複製連結",
       "copied": "已複製",
       "openOriginal": "查看原圖"
+    },
+    "versionToast": {
+      "available": "新版本已發布",
+      "refresh": "重新整理",
+      "mustRefresh": "頁面版本已過期，重新整理後才能繼續正常使用"
     }
   },
   "Common": {
