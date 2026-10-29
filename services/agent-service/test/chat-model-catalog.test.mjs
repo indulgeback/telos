@@ -11,18 +11,7 @@ describe('chat model catalog', () => {
     const modelKeys = DEFAULT_CHAT_MODELS.map(model => model.modelKey)
 
     assert.equal(new Set(modelKeys).size, modelKeys.length)
-    assert.equal(modelKeys.length, 10)
-  })
-
-  it('keeps the ShortAPI model unchanged', () => {
-    const shortApiModels = DEFAULT_CHAT_MODELS.filter(
-      model => model.provider === 'shortapi'
-    )
-
-    assert.deepEqual(
-      shortApiModels.map(model => model.modelKey),
-      ['openai/gpt-5.5']
-    )
+    assert.equal(modelKeys.length, 9)
   })
 
   it('replaces deprecated catalog entries with verified successors', () => {

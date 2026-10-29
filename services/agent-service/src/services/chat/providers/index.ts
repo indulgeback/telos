@@ -3,7 +3,6 @@ import { createDeepseekModel } from './deepseek.js'
 import { createGcloudModel } from './gcloud.js'
 import { createOpenAIModel } from './openai.js'
 import { createSeedModel } from './seed.js'
-import { createShortapiModel } from './shortapi.js'
 import type {
   ChatProvider,
   ProviderModelRequest,
@@ -20,7 +19,6 @@ const PROVIDER_HANDLERS: Record<ChatProvider, ProviderHandler> = {
   seed: createSeedModel,
   bailian: createBailianModel,
   gcloud: createGcloudModel,
-  shortapi: createShortapiModel,
 }
 
 export async function createModelByProvider(

@@ -29,7 +29,7 @@ export function normalizeReasoningEffort(
   return isReasoningEffort(value) ? value : fallback
 }
 
-/** OpenAI 系（openai/shortapi 等 Chat Completions 兼容端点）：原样透传，off → none。 */
+/** OpenAI 系 Chat Completions 兼容端点：原样透传，off → none。 */
 export function toOpenAiReasoningEffort(effort: ReasoningEffort): string {
   return effort === 'off' ? 'none' : effort
 }

@@ -2326,7 +2326,6 @@ export function ChatView() {
             modelGroupBailianLabel={t('model.group.bailian')}
             modelGroupGcloudLabel={t('model.group.gcloud')}
             modelGroupOpenAILabel={t('model.group.openai')}
-            modelGroupShortApiLabel={t('model.group.shortapi')}
             reasoningEffortLabel={t('toolbar.reasoning')}
             reasoningEffortMinimal={t('reasoningEffort.minimal')}
             reasoningEffortLow={t('reasoningEffort.low')}

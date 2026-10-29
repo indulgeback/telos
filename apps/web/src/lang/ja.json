@@ -139,8 +139,7 @@
         "seed": "火山の方舟",
         "bailian": "アリババ百錬",
         "gcloud": "Google Gemini",
-        "openai": "オープンAI",
-        "shortapi": "ショートAPI"
+        "openai": "オープンAI"
       }
     },
     "reasoningEffort": {

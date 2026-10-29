@@ -139,8 +139,7 @@
         "seed": "Вулканический ковчег",
         "bailian": "Али Байлянь",
         "gcloud": "Google Gemini",
-        "openai": "OpenAI",
-        "shortapi": "ShortAPI"
+        "openai": "OpenAI"
       }
     },
     "reasoningEffort": {

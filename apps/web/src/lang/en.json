@@ -139,8 +139,7 @@
         "seed": "Volcano Ark",
         "bailian": "Alibaba Bailing",
         "gcloud": "Google Gemini",
-        "openai": "OpenAI",
-        "shortapi": "ShortAPI"
+        "openai": "OpenAI"
       }
     },
     "reasoningEffort": {

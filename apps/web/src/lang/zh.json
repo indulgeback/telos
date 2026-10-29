@@ -139,8 +139,7 @@
         "seed": "火山方舟",
         "bailian": "阿里百炼",
         "gcloud": "Google Gemini",
-        "openai": "OpenAI",
-        "shortapi": "ShortAPI"
+        "openai": "OpenAI"
       }
     },
     "reasoningEffort": {

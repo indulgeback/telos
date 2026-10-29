@@ -139,8 +139,7 @@
         "seed": "Vulkan-Arche",
         "bailian": "Ali Bai Lian",
         "gcloud": "Google Gemini",
-        "openai": "OpenAI",
-        "shortapi": "KurzeAPI"
+        "openai": "OpenAI"
       }
     },
     "reasoningEffort": {

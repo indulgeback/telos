@@ -139,8 +139,7 @@
         "seed": "화산 방주",
         "bailian": "알리바이렌",
         "gcloud": "Google Gemini",
-        "openai": "오픈AI",
-        "shortapi": "쇼트API"
+        "openai": "오픈AI"
       }
     },
     "reasoningEffort": {

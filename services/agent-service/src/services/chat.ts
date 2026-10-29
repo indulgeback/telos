@@ -114,7 +114,6 @@ function toChatModelOption(raw: {
 }): ChatModelOption {
   const provider: ChatProvider =
     raw.provider === 'openai' ||
-    raw.provider === 'shortapi' ||
     raw.provider === 'seed' ||
     raw.provider === 'gcloud' ||
     raw.provider === 'bailian'

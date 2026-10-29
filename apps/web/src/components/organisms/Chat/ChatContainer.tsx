@@ -97,7 +97,7 @@ export interface Message {
 export interface ChatModelOption {
   model: string
   label: string
-  provider: 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'openai' | 'shortapi'
+  provider: 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'openai'
   isReasoning: boolean
   supportVision?: boolean
   supportReasoningControl?: boolean
@@ -150,7 +150,6 @@ export interface ChatContainerProps {
   modelGroupBailianLabel?: string
   modelGroupGcloudLabel?: string
   modelGroupOpenAILabel?: string
-  modelGroupShortApiLabel?: string
   reasoningEffortLabel: string
   reasoningEffortMinimal: string
   reasoningEffortLow: string
@@ -253,7 +252,6 @@ export function ChatContainer({
   modelGroupBailianLabel = 'Bailian',
   modelGroupGcloudLabel = 'Google Gemini',
   modelGroupOpenAILabel = 'OpenAI',
-  modelGroupShortApiLabel = 'ShortAPI',
   reasoningEffortLabel,
   reasoningEffortMinimal,
   reasoningEffortLow,
@@ -470,7 +468,6 @@ export function ChatContainer({
       bailian: modelOptions.filter(option => option.provider === 'bailian'),
       gcloud: modelOptions.filter(option => option.provider === 'gcloud'),
       openai: modelOptions.filter(option => option.provider === 'openai'),
-      shortapi: modelOptions.filter(option => option.provider === 'shortapi'),
     }),
     [modelOptions]
   )
@@ -510,11 +507,6 @@ export function ChatContainer({
       key: 'openai',
       label: modelGroupOpenAILabel,
       options: groupedModelOptions.openai,
-    },
-    {
-      key: 'shortapi',
-      label: modelGroupShortApiLabel,
-      options: groupedModelOptions.shortapi,
     },
   ]
 

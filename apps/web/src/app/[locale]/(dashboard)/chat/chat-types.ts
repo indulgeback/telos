@@ -127,7 +127,6 @@ export const normalizeModelProvider = (
   if (provider === 'bailian') return 'bailian'
   if (provider === 'gcloud') return 'gcloud'
   if (provider === 'openai') return 'openai'
-  if (provider === 'shortapi') return 'shortapi'
   return 'deepseek'
 }
 

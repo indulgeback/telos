@@ -7,7 +7,6 @@ export type ChatProvider =
   | 'seed'
   | 'bailian'
   | 'gcloud'
-  | 'shortapi'
 
 export type { ReasoningEffort }
 

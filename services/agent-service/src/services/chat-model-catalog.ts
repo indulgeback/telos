@@ -36,15 +36,6 @@ export const DEFAULT_CHAT_MODELS = [
     supportReasoningControl: false,
   },
   {
-    modelKey: 'openai/gpt-5.5',
-    displayName: 'GPT-5.5',
-    provider: 'shortapi',
-    isReasoning: true,
-    sortOrder: 5,
-    supportVision: false,
-    supportReasoningControl: false,
-  },
-  {
     modelKey: 'google/gemini-3.8-flash',
     displayName: 'Gemini 3.8 Flash',
     provider: 'gcloud',

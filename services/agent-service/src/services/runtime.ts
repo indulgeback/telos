@@ -217,8 +217,7 @@ const PLAN_MODE_INSTRUCTIONS = `你正处于「计划模式」（Plan Mode）。
 - 不要在文本回复中写计划，计划必须通过 create_plan 工具提交。
 - 调用 create_plan 前不需要额外的文本输出（可以简短说一句"我来制定计划"）。`
 
-type RuntimeProvider =
-  'openai' | 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'shortapi'
+type RuntimeProvider = 'openai' | 'deepseek' | 'seed' | 'bailian' | 'gcloud'
 
 interface RuntimeModelResolution {
   model: Model
@@ -525,8 +524,7 @@ function normalizeRuntimeProvider(value: unknown): RuntimeProvider {
     value === 'deepseek' ||
     value === 'seed' ||
     value === 'bailian' ||
-    value === 'gcloud' ||
-    value === 'shortapi'
+    value === 'gcloud'
   ) {
     return value
   }
@@ -552,12 +550,6 @@ async function providerConfig(provider: RuntimeProvider) {
         apiKey: config.bailianApiKey,
         baseURL: config.bailianBaseUrl,
         missingMessage: 'BAILIAN_API_KEY is required for Bailian agent runs',
-      }
-    case 'shortapi':
-      return {
-        apiKey: config.shortapiApiKey,
-        baseURL: config.shortapiBaseUrl,
-        missingMessage: 'SHORTAPI_API_KEY is required for ShortAPI agent runs',
       }
     case 'gcloud': {
       const [apiKey, baseURL] = await Promise.all([
@@ -630,8 +622,8 @@ function buildProviderData(
   if (provider === 'gcloud') {
     return buildGeminiProviderData(effort)
   }
-  // OpenAI 兼容系（openai / shortapi）：七档透传（off → none），非推理模型会忽略该参数。
-  if (provider === 'openai' || provider === 'shortapi') {
+  // OpenAI 兼容系：七档透传（off → none），非推理模型会忽略该参数。
+  if (provider === 'openai') {
     return { reasoning_effort: toOpenAiReasoningEffort(effort) }
   }
   // 豆包 Seed 只认 thinking.type 开关，不发 OpenAI 风格的 reasoning_effort。
