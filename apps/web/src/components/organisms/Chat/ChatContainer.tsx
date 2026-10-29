@@ -97,7 +97,7 @@ export interface Message {
 export interface ChatModelOption {
   model: string
   label: string
-  provider: 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'openai'
+  provider: 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'openai' | 'zhipu'
   isReasoning: boolean
   supportVision?: boolean
   supportReasoningControl?: boolean
@@ -149,6 +149,7 @@ export interface ChatContainerProps {
   modelGroupSeedLabel?: string
   modelGroupBailianLabel?: string
   modelGroupGcloudLabel?: string
+  modelGroupZhipuLabel?: string
   modelGroupOpenAILabel?: string
   reasoningEffortLabel: string
   reasoningEffortMinimal: string
@@ -251,6 +252,7 @@ export function ChatContainer({
   modelGroupSeedLabel = 'Seed',
   modelGroupBailianLabel = 'Bailian',
   modelGroupGcloudLabel = 'Google Gemini',
+  modelGroupZhipuLabel = 'Z.ai GLM',
   modelGroupOpenAILabel = 'OpenAI',
   reasoningEffortLabel,
   reasoningEffortMinimal,
@@ -467,6 +469,7 @@ export function ChatContainer({
       seed: modelOptions.filter(option => option.provider === 'seed'),
       bailian: modelOptions.filter(option => option.provider === 'bailian'),
       gcloud: modelOptions.filter(option => option.provider === 'gcloud'),
+      zhipu: modelOptions.filter(option => option.provider === 'zhipu'),
       openai: modelOptions.filter(option => option.provider === 'openai'),
     }),
     [modelOptions]
@@ -502,6 +505,11 @@ export function ChatContainer({
       key: 'gcloud',
       label: modelGroupGcloudLabel,
       options: groupedModelOptions.gcloud,
+    },
+    {
+      key: 'zhipu',
+      label: modelGroupZhipuLabel,
+      options: groupedModelOptions.zhipu,
     },
     {
       key: 'openai',

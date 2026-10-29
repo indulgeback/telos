@@ -217,7 +217,7 @@ const PLAN_MODE_INSTRUCTIONS = `你正处于「计划模式」（Plan Mode）。
 - 不要在文本回复中写计划，计划必须通过 create_plan 工具提交。
 - 调用 create_plan 前不需要额外的文本输出（可以简短说一句"我来制定计划"）。`
 
-type RuntimeProvider = 'openai' | 'deepseek' | 'seed' | 'bailian' | 'gcloud'
+type RuntimeProvider = 'openai' | 'deepseek' | 'seed' | 'bailian' | 'gcloud' | 'zhipu'
 
 interface RuntimeModelResolution {
   model: Model
@@ -524,7 +524,8 @@ function normalizeRuntimeProvider(value: unknown): RuntimeProvider {
     value === 'deepseek' ||
     value === 'seed' ||
     value === 'bailian' ||
-    value === 'gcloud'
+    value === 'gcloud' ||
+    value === 'zhipu'
   ) {
     return value
   }
@@ -550,6 +551,12 @@ async function providerConfig(provider: RuntimeProvider) {
         apiKey: config.bailianApiKey,
         baseURL: config.bailianBaseUrl,
         missingMessage: 'BAILIAN_API_KEY is required for Bailian agent runs',
+      }
+    case 'zhipu':
+      return {
+        apiKey: config.zhipuApiKey,
+        baseURL: config.zhipuBaseUrl,
+        missingMessage: 'ZHIPU_API_KEY is required for GLM agent runs',
       }
     case 'gcloud': {
       const [apiKey, baseURL] = await Promise.all([

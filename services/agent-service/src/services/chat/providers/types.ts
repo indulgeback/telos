@@ -7,6 +7,7 @@ export type ChatProvider =
   | 'seed'
   | 'bailian'
   | 'gcloud'
+  | 'zhipu'
 
 export type { ReasoningEffort }
 

@@ -139,6 +139,7 @@
         "seed": "Вулканический ковчег",
         "bailian": "Али Байлянь",
         "gcloud": "Google Gemini",
+        "zhipu": "Z.ai GLM",
         "openai": "OpenAI"
       }
     },

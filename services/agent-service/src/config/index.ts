@@ -74,6 +74,8 @@ export const config = {
     process.env.SHORTAPI_API_KEY || process.env.SHORTAPI_KEY || '',
   shortapiBaseUrl:
     process.env.SHORTAPI_BASE_URL || 'https://api.shortapi.ai/v1',
+  zhipuApiKey: process.env.ZHIPU_API_KEY || '',
+  zhipuBaseUrl: process.env.ZHIPU_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4',
 
   // Google Cloud Vertex AI OpenAI-compatible endpoint.
   gcloudProjectId:

@@ -139,6 +139,7 @@
         "seed": "Volcano Ark",
         "bailian": "Alibaba Bailing",
         "gcloud": "Google Gemini",
+        "zhipu": "Z.ai GLM",
         "openai": "OpenAI"
       }
     },

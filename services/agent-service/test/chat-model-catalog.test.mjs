@@ -11,7 +11,7 @@ describe('chat model catalog', () => {
     const modelKeys = DEFAULT_CHAT_MODELS.map(model => model.modelKey)
 
     assert.equal(new Set(modelKeys).size, modelKeys.length)
-    assert.equal(modelKeys.length, 9)
+    assert.equal(modelKeys.length, 11)
   })
 
   it('replaces deprecated catalog entries with verified successors', () => {

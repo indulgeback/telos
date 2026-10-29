@@ -114,6 +114,7 @@ function toChatModelOption(raw: {
 }): ChatModelOption {
   const provider: ChatProvider =
     raw.provider === 'openai' ||
+    raw.provider === 'zhipu' ||
     raw.provider === 'seed' ||
     raw.provider === 'gcloud' ||
     raw.provider === 'bailian'
