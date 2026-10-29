@@ -38,10 +38,7 @@ import type { ReasoningEffortLevel } from '@/components/molecules/chat/reasoning
 import type { WebSearchResultItem } from './web-search-results'
 import { ClarifyPanel } from '@/components/molecules/chat/ClarifyPanel'
 import { SkillTrigger } from '@/components/molecules/chat/SkillTrigger'
-import {
-  ImageCanvasPanel,
-  extractGeneratedImageUrls,
-} from '@/components/molecules/chat/image-canvas-panel'
+import { ImageCanvasPanel } from '@/components/molecules/chat/image-canvas-panel'
 import { isImeComposingKeyEvent } from '@/components/molecules/chat/ime'
 import { cn } from '@/lib/utils'
 import { authClient } from '@/lib/auth-client'
@@ -2201,11 +2198,43 @@ export function ChatView() {
     return title.toLowerCase().includes(threadSearch.trim().toLowerCase())
   })
 
-  // 图片画布：当前会话里所有生成图（markdown 图链接按序去重）
-  const canvasImages = useMemo(
-    () => extractGeneratedImageUrls(displayMessages),
-    [displayMessages]
+  // 图片画布：结构化 thread.images 为权威来源，叠加本轮会话实时完成的
+  // generate_image 工具结果（切线程/刷新后以落库字段为准）
+  const currentThreadForCanvas = useMemo(
+    () => threads.find(thread => thread.id === currentThreadId),
+    [threads, currentThreadId]
   )
+  const liveCanvasImages = useMemo(() => {
+    const urls: string[] = []
+    for (const message of messages) {
+      if (!Array.isArray(message.parts)) continue
+      for (const part of message.parts) {
+        const toolPart = part as {
+          type?: unknown
+          toolName?: unknown
+          state?: unknown
+          output?: unknown
+        }
+        if (
+          toolPart.type !== 'tool' ||
+          toolPart.toolName !== 'generate_image' ||
+          toolPart.state !== 'output-available'
+        ) {
+          continue
+        }
+        const match =
+          typeof toolPart.output === 'string'
+            ? toolPart.output.match(/https?:\/\/[^\s)]+/)
+            : null
+        if (match && !urls.includes(match[0])) urls.push(match[0])
+      }
+    }
+    return urls
+  }, [messages])
+  const canvasImages = useMemo(() => {
+    const stored = currentThreadForCanvas?.images ?? []
+    return [...stored, ...liveCanvasImages.filter(url => !stored.includes(url))]
+  }, [currentThreadForCanvas, liveCanvasImages])
   const handleEditCanvasImage = useCallback(
     (url: string) => {
       if (!supportsImageUpload) return

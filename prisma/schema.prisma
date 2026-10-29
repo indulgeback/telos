@@ -256,6 +256,7 @@ model AgentThread {
   status        AgentThreadStatus @default(active)
   summary       String?
   metadata      Json              @default("{}")
+  images        Json?
   lastMessageAt DateTime?         @map("last_message_at")
   createdAt     DateTime          @default(now()) @map("created_at")
   updatedAt     DateTime          @updatedAt @map("updated_at")

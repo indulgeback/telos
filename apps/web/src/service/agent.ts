@@ -185,6 +185,7 @@ export interface AgentThread {
   status: 'active' | 'archived' | 'deleted'
   summary?: string | null
   metadata?: Record<string, unknown>
+  images?: string[] | null
   last_message_at?: string | null
   created_at: string
   updated_at: string

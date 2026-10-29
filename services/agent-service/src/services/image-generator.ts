@@ -7,6 +7,7 @@ import { logger } from '../config/logger.js'
 import { getGcloudProjectId } from './gcloud.js'
 import { config } from '../config/index.js'
 import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
+import { prisma } from './db.js'
 
 const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-nano-banana-2.1'
 
@@ -273,6 +274,20 @@ export async function executeGenerateImage(
       generated.mimeType,
       threadId
     )
+
+    // 图片画布：生成成功即登记到线程的 images 清单（结构化，画布直接读）
+    try {
+      await prisma.$executeRaw`UPDATE agent_threads
+        SET images = COALESCE(images, '[]'::jsonb) || ${JSON.stringify([imageUrl])}::jsonb
+        WHERE id = ${threadId}`
+    } catch (persistError) {
+      logger.warn({
+        msg: 'Failed to persist generated image to thread canvas',
+        threadId,
+        err: persistError,
+      })
+    }
+
     return {
       success: true,
       image_url: imageUrl,

@@ -4,45 +4,8 @@ import { useMemo, useState } from 'react'
 import { Copy, ExternalLink, ImageIcon, PenLine, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export interface ImageCanvasItem {
-  url: string
-  /** 来源消息 id，用于滚动定位与去重提示 */
-  messageId?: string
-}
-
-/**
- * 从助手消息 parts 里提取生成图 URL。
- * generate_image 的产物按工具约定以 markdown 图片（![...](url)）渲染在
- * 文本 part 中；input/file/image 类 part 复用既有图片提取。
- */
-export function extractGeneratedImageUrls(
-  messages: Array<{ id: string; role: string; parts?: unknown }>
-): ImageCanvasItem[] {
-  const items: ImageCanvasItem[] = []
-  const seen = new Set<string>()
-  const mdImage = /!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/g
-
-  for (const message of messages) {
-    if (message.role !== 'assistant' || !Array.isArray(message.parts)) continue
-    for (const part of message.parts) {
-      if (!part || typeof part !== 'object') continue
-      const candidate = part as { type?: unknown; text?: unknown }
-      if (candidate.type !== 'text' || typeof candidate.text !== 'string') {
-        continue
-      }
-      for (const match of candidate.text.matchAll(mdImage)) {
-        const url = match[1]
-        if (seen.has(url)) continue
-        seen.add(url)
-        items.push({ url, messageId: message.id })
-      }
-    }
-  }
-  return items
-}
-
 interface ImageCanvasPanelProps {
-  images: ImageCanvasItem[]
+  images: string[]
   onClose: () => void
   /** 以选中的图继续编辑：把图回传到输入框，进入图生图迭代 */
   onEditImage?: (url: string) => void
@@ -82,8 +45,8 @@ export function ImageCanvasPanel({
 
   const previewList = useMemo(
     () =>
-      images.map((image, index) => ({
-        ...image,
+      images.map((url, index) => ({
+        url,
         index,
         active: index === activeIndex,
       })),
@@ -93,7 +56,7 @@ export function ImageCanvasPanel({
   const copyLink = async () => {
     if (!current) return
     try {
-      await navigator.clipboard.writeText(current.url)
+      await navigator.clipboard.writeText(current)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     } catch {}
@@ -137,8 +100,8 @@ export function ImageCanvasPanel({
           <div className='relative bg-ink/90'>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              key={current.url}
-              src={current.url}
+              key={current}
+              src={current}
               alt={title}
               className='mx-auto max-h-[46%] min-h-[180px] w-full object-contain'
             />
@@ -148,7 +111,7 @@ export function ImageCanvasPanel({
             {onEditImage && (
               <button
                 type='button'
-                onClick={() => onEditImage(current.url)}
+                onClick={() => onEditImage(current)}
                 className='inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-[12px] font-medium text-white transition-transform hover:-translate-y-px'
               >
                 <PenLine className='size-3.5' />
@@ -164,7 +127,7 @@ export function ImageCanvasPanel({
               {copied ? copiedLabel : copyLinkLabel}
             </button>
             <a
-              href={current.url}
+              href={current}
               target='_blank'
               rel='noreferrer'
               aria-label={openOriginalLabel}
