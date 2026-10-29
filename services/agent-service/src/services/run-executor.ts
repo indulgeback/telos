@@ -124,6 +124,21 @@ function parseToolArguments(value: unknown) {
   }
 }
 
+// tool_end 归因专用：只提取真实 id。toolCallIdFromPayload 在缺失时会合成新 id，
+// 那会让结果旁路成一个新 part（start 的 part 永远等不到结果）。
+function realToolCallIdFromPayload(payload: Record<string, unknown>) {
+  const toolCall = payload.toolCall
+  if (toolCall && typeof toolCall === 'object') {
+    const raw = toolCall as Record<string, unknown>
+    if (typeof raw.callId === 'string' && raw.callId.trim()) return raw.callId
+    if (typeof raw.id === 'string' && raw.id.trim()) return raw.id
+  }
+  if (typeof payload.toolCallId === 'string' && payload.toolCallId.trim()) {
+    return payload.toolCallId
+  }
+  return null
+}
+
 function toolCallIdFromPayload(payload: Record<string, unknown>) {
   const toolCall = payload.toolCall
   if (toolCall && typeof toolCall === 'object') {
@@ -251,13 +266,31 @@ function appendReasoningPart(parts: PersistedAssistantPart[], text: string) {
   parts.push({ type: 'reasoning', text, state: 'done' })
 }
 
-function upsertToolPart(
+export function upsertToolPart(
   parts: PersistedAssistantPart[],
   tool: Extract<PersistedAssistantPart, { type: 'tool' }>
 ) {
-  const index = parts.findIndex(
+  let index = parts.findIndex(
     part => part.type === 'tool' && part.toolCallId === tool.toolCallId
   )
+  // 结果归因兜底：end 事件 id 对不上时，认领同名且仍在等结果的 part，
+  // 保留 start 时的 callId，避免同一调用在 UI 里裂成"调用/结果"两行
+  if (
+    index === -1 &&
+    tool.state === 'output-available' &&
+    typeof tool.toolName === 'string'
+  ) {
+    const started = parts.find(
+      (part): part is Extract<PersistedAssistantPart, { type: 'tool' }> =>
+        part.type === 'tool' &&
+        part.toolName === tool.toolName &&
+        part.state === 'input-available'
+    )
+    if (started) {
+      tool = { ...tool, toolCallId: started.toolCallId }
+      index = parts.indexOf(started)
+    }
+  }
   if (index === -1) {
     parts.push(tool)
     return
@@ -509,12 +542,14 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
 
           if (event.type === 'tool_end') {
             const toolName = toolNameFromPayload(event.payload)
-            // 同名工具并发时 map 会互相覆盖，事件自带的 callId 才是权威归属
-            const toolCallId =
-              toolCallIdFromPayload(event.payload) ||
-              activeToolCalls.get(toolName) ||
-              toolName
-            if (activeToolCalls.get(toolName) === toolCallId) {
+            // 同名工具并发时 map 会互相覆盖，事件自带的 callId 才是权威归属；
+            // 上游不回传 callId 时（部分模型/SDK 路径）必须回退到 start 记录的
+            // id —— 现场合成新 id 会让结果旁路成第二个 part，原 part 永久挂
+            // "ended without a result"
+            const payloadCallId = realToolCallIdFromPayload(event.payload)
+            const startedId = activeToolCalls.get(toolName)
+            const toolCallId = payloadCallId ?? startedId ?? toolName
+            if (startedId && (!payloadCallId || payloadCallId === startedId)) {
               activeToolCalls.delete(toolName)
             }
             emit('agent.tool_call.output', {
