@@ -1,0 +1,35 @@
+name: Relay Image via Artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: '完整镜像引用（ghcr.io/owner/name:tag）'
+        required: true
+
+concurrency:
+  group: relay-image-${{ github.event.inputs.image }}
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取镜像并打包
+        env:
+          IMAGE: ${{ github.event.inputs.image }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker pull "$IMAGE"
+          name=$(echo "$IMAGE" | sed 's|.*/||; s/:/-/')
+          docker save "$IMAGE" | gzip > "/tmp/${name}.tar.gz"
+          ls -lh "/tmp/${name}.tar.gz"
+      - name: 上传为 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tarball
+          path: /tmp/*.tar.gz
+          retention-days: 1
+          compression-level: 0
