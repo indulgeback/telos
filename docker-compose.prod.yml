@@ -241,6 +241,9 @@ services:
       - SHORTAPI_API_KEY=${SHORTAPI_API_KEY:-}
       - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
       - ZHIPU_BASE_URL=${ZHIPU_BASE_URL:-https://open.bigmodel.cn/api/paas/v4}
+      # 生图 fallback 通道模型（可选，默认火山 Seedream 5.0 flash / 百炼 wanx2.1-turbo）
+      - ARK_IMAGE_MODEL=${ARK_IMAGE_MODEL:-}
+      - WANX_IMAGE_MODEL=${WANX_IMAGE_MODEL:-}
       - SHORTAPI_BASE_URL=${SHORTAPI_BASE_URL:-https://api.shortapi.ai/v1}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       # 网页搜索 (Tavily) — agent 的 web_search 内置工具依赖此 key

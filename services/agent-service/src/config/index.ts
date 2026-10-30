@@ -76,6 +76,9 @@ export const config = {
     process.env.SHORTAPI_BASE_URL || 'https://api.shortapi.ai/v1',
   zhipuApiKey: process.env.ZHIPU_API_KEY || '',
   zhipuBaseUrl: process.env.ZHIPU_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4',
+  // 生图 fallback 通道模型（火山 Seedream / 百炼通义万相）
+  arkImageModel: process.env.ARK_IMAGE_MODEL || 'doubao-seedream-5-0-flash-260915',
+  wanxImageModel: process.env.WANX_IMAGE_MODEL || 'wanx2.1-t2i-turbo',
 
   // Google Cloud Vertex AI OpenAI-compatible endpoint.
   gcloudProjectId:

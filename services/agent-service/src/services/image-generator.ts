@@ -9,6 +9,158 @@ import { config } from '../config/index.js'
 import { decodeImageDataUrl, safeFetchImage } from './safe-fetch.js'
 import { prisma } from './db.js'
 
+
+// ============ 国内 fallback 生图通道（火山 Seedream / 百炼通义万相）============
+
+const ARK_IMAGE_BASE_URL = 'https://ark.cn-beijing.volces.com/api/v3'
+const WANX_TASK_BASE_URL = 'https://dashscope.aliyuncs.com/api/v1/tasks'
+const WANX_SUBMIT_URL =
+  'https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis'
+
+/** Seedream 的 size 参数映射（宽x高，512-4096 任意比例） */
+export function mapArkSize(aspectRatio?: string): string {
+  switch (aspectRatio) {
+    case '9:16':
+      return '1152x2048'
+    case '16:9':
+      return '2048x1152'
+    case '4:3':
+      return '2048x1536'
+    case '3:4':
+      return '1536x2048'
+    default:
+      return '2048x2048'
+  }
+}
+
+/** 通义万相的 size 参数映射（宽*高） */
+export function mapWanxSize(aspectRatio?: string): string {
+  switch (aspectRatio) {
+    case '9:16':
+      return '720*1280'
+    case '16:9':
+      return '1280*720'
+    case '4:3':
+      return '1024*768'
+    case '3:4':
+      return '768*1024'
+    default:
+      return '1024*1024'
+  }
+}
+
+async function generateViaArk(options: {
+  model: string
+  prompt: string
+  aspectRatio?: string
+  inputImageUrl?: string
+  referenceImageUrls?: string[]
+}): Promise<string> {
+  if (!config.seedApiKey) {
+    throw new Error('SEED_API_KEY is not configured')
+  }
+  const image = [
+    ...(options.inputImageUrl ? [options.inputImageUrl] : []),
+    ...(options.referenceImageUrls ?? []),
+  ]
+  const response = await fetch(
+    `${ARK_IMAGE_BASE_URL}/images/generations`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.seedApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: options.model,
+        prompt: options.prompt,
+        response_format: 'url',
+        size: mapArkSize(options.aspectRatio),
+        watermark: false,
+        ...(image.length > 0 ? { image } : {}),
+      }),
+    }
+  )
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    throw new Error(`HTTP ${response.status}: ${text.slice(0, 200)}`)
+  }
+  const data = (await response.json()) as {
+    data?: Array<{ url?: string }>
+  }
+  const url = data.data?.[0]?.url
+  if (!url) throw new Error('Ark response missing image url')
+  return url
+}
+
+async function generateViaWanx(options: {
+  model: string
+  prompt: string
+  aspectRatio?: string
+}): Promise<string> {
+  if (!config.bailianApiKey) {
+    throw new Error('BAILIAN_API_KEY is not configured')
+  }
+  const submit = await fetch(WANX_SUBMIT_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.bailianApiKey}`,
+      'Content-Type': 'application/json',
+      'X-DashScope-Async': 'enable',
+    },
+    body: JSON.stringify({
+      model: options.model,
+      input: { prompt: options.prompt },
+      parameters: { size: mapWanxSize(options.aspectRatio), n: 1 },
+    }),
+  })
+  if (!submit.ok) {
+    const text = await submit.text().catch(() => '')
+    throw new Error(`HTTP ${submit.status}: ${text.slice(0, 200)}`)
+  }
+  const submitData = (await submit.json()) as {
+    output?: { task_id?: string }
+  }
+  const taskId = submitData.output?.task_id
+  if (!taskId) throw new Error('Wanx submit missing task id')
+
+  const deadline = Date.now() + 90_000
+  while (Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    const poll = await fetch(`${WANX_TASK_BASE_URL}/${taskId}`, {
+      headers: { Authorization: `Bearer ${config.bailianApiKey}` },
+    })
+    if (!poll.ok) continue
+    const data = (await poll.json()) as {
+      output?: {
+        task_status?: string
+        results?: Array<{ url?: string }>
+      }
+    }
+    const status = data.output?.task_status
+    if (status === 'SUCCEEDED') {
+      const url = data.output?.results?.[0]?.url
+      if (!url) throw new Error('Wanx task succeeded without image url')
+      return url
+    }
+    if (status === 'FAILED' || status === 'CANCELED') {
+      throw new Error(`Wanx task ${status}`)
+    }
+  }
+  throw new Error('Wanx task polling timed out')
+}
+
+/** 把 fallback 通道返回的临时 URL 转成本地 base64（随后统一转存自有 COS） */
+async function importRemoteImage(url: string): Promise<{
+  base64Data: string
+  mimeType: string
+}> {
+  const fetched = await safeFetchImage(url, { maxBytes: 15 * 1024 * 1024 })
+  const base64Data = Buffer.from(fetched.bytes).toString('base64')
+  return { base64Data, mimeType: fetched.mimeType }
+}
+
+
 const DEFAULT_VERTEX_IMAGE_MODEL = 'gemini-nano-banana-2.1'
 
 const STYLE_SUFFIX_MAP: Record<string, string> = {
@@ -236,6 +388,7 @@ export async function executeGenerateImage(
   threadId: string
 ): Promise<GenerateImageOutput> {
   const startTime = Date.now()
+  const fallbackErrors: string[] = []
 
   const { prompt: enhancedPrompt, negativePrompt } = enhancePrompt(
     input.prompt,
@@ -243,9 +396,34 @@ export async function executeGenerateImage(
     input.negative_prompt
   )
 
-  // Vertex AI (via local ADC) —— 当前唯一启用的生图通道。
-  // Gemini 开发者 API 因预付费余额耗尽移除(402);ShortAPI 因服务器
-  // 无法直连 api.shortapi.ai 移除。恢复任一通道时参考 git 历史。
+  const finish = async (imageUrl: string, model: string) => {
+    // 图片画布：生成成功即登记到线程的 images 清单（结构化，画布直接读）
+    try {
+      await prisma.$executeRaw`UPDATE agent_threads
+        SET images = COALESCE(images, '[]'::jsonb) || ${JSON.stringify([
+          { url: imageUrl, createdAt: new Date().toISOString() },
+        ])}::jsonb
+        WHERE id = ${threadId}`
+    } catch (persistError) {
+      logger.warn({
+        msg: 'Failed to persist generated image to thread canvas',
+        threadId,
+        err: persistError,
+      })
+    }
+    return {
+      success: true,
+      image_url: imageUrl,
+      metadata: {
+        model,
+        prompt_used: enhancedPrompt,
+        aspect_ratio: input.aspect_ratio || '1:1',
+        latency_ms: Date.now() - startTime,
+      },
+    }
+  }
+
+  // ===== 通道 1（主）：Vertex AI (via local ADC) =====
   try {
     const vertexModel =
       process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL
@@ -274,42 +452,84 @@ export async function executeGenerateImage(
       generated.mimeType,
       threadId
     )
-
-    // 图片画布：生成成功即登记到线程的 images 清单（结构化，画布直接读）
-    try {
-      await prisma.$executeRaw`UPDATE agent_threads
-        SET images = COALESCE(images, '[]'::jsonb) || ${JSON.stringify([
-          { url: imageUrl, createdAt: new Date().toISOString() },
-        ])}::jsonb
-        WHERE id = ${threadId}`
-    } catch (persistError) {
-      logger.warn({
-        msg: 'Failed to persist generated image to thread canvas',
-        threadId,
-        err: persistError,
-      })
-    }
-
-    return {
-      success: true,
-      image_url: imageUrl,
-      metadata: {
-        model: vertexModel,
-        prompt_used: enhancedPrompt,
-        aspect_ratio: input.aspect_ratio || '1:1',
-        latency_ms: Date.now() - startTime,
-      },
-    }
+    return finish(imageUrl, vertexModel)
   } catch (err: any) {
-    return {
-      success: false,
-      error: `Vertex AI generation failed: ${describeProviderError(err)}`,
-      metadata: {
-        model: process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL,
-        prompt_used: enhancedPrompt,
-        aspect_ratio: input.aspect_ratio || '1:1',
-        latency_ms: Date.now() - startTime,
-      },
+    logger.warn({
+      msg: 'Vertex image generation failed, trying fallback channels',
+      threadId,
+      err: err instanceof Error ? err.message : String(err),
+    })
+    fallbackErrors.push(`Vertex: ${describeProviderError(err)}`)
+  }
+
+  // ===== 通道 2（fallback）：火山 Seedream（同步 API，支持参考图/图生图）=====
+  try {
+    const remote = await generateViaArk({
+      model: config.arkImageModel,
+      prompt: enhancedPrompt,
+      aspectRatio: input.aspect_ratio,
+      inputImageUrl: input.input_image_url,
+      referenceImageUrls: input.reference_image_urls,
+    })
+    const imported = await importRemoteImage(remote)
+    const imageUrl = await uploadToCDN(
+      imported.base64Data,
+      imported.mimeType,
+      threadId
+    )
+    logger.info({
+      msg: 'Image generated via Ark fallback channel',
+      threadId,
+      model: config.arkImageModel,
+    })
+    return finish(imageUrl, config.arkImageModel)
+  } catch (err: any) {
+    logger.warn({
+      msg: 'Ark image generation failed',
+      threadId,
+      err: err instanceof Error ? err.message : String(err),
+    })
+    fallbackErrors.push(`Ark(${config.arkImageModel}): ${err instanceof Error ? err.message : String(err)}`)
+  }
+
+  // ===== 通道 3（fallback）：百炼通义万相（异步任务，仅纯文生图）=====
+  if (!input.input_image_url) {
+    try {
+      const remote = await generateViaWanx({
+        model: config.wanxImageModel,
+        prompt: enhancedPrompt,
+        aspectRatio: input.aspect_ratio,
+      })
+      const imported = await importRemoteImage(remote)
+      const imageUrl = await uploadToCDN(
+        imported.base64Data,
+        imported.mimeType,
+        threadId
+      )
+      logger.info({
+        msg: 'Image generated via Wanx fallback channel',
+        threadId,
+        model: config.wanxImageModel,
+      })
+      return finish(imageUrl, config.wanxImageModel)
+    } catch (err: any) {
+      logger.warn({
+        msg: 'Wanx image generation failed',
+        threadId,
+        err: err instanceof Error ? err.message : String(err),
+      })
+      fallbackErrors.push(`Wanx(${config.wanxImageModel}): ${err instanceof Error ? err.message : String(err)}`)
     }
+  }
+
+  return {
+    success: false,
+    error: `所有生图通道均失败 —— ${fallbackErrors.join('；')}`,
+    metadata: {
+      model: process.env.VERTEX_IMAGE_MODEL || DEFAULT_VERTEX_IMAGE_MODEL,
+      prompt_used: enhancedPrompt,
+      aspect_ratio: input.aspect_ratio || '1:1',
+      latency_ms: Date.now() - startTime,
+    },
   }
 }
