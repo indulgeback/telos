@@ -27,10 +27,7 @@ describe('chat model catalog', () => {
   })
 
   it('does not rewrite current or unknown model IDs', () => {
-    assert.equal(
-      normalizeChatModelKey('deepseek-v4-flash'),
-      'deepseek-v4-flash'
-    )
+    assert.equal(normalizeChatModelKey('deepseek-flash'), 'deepseek-flash')
     assert.equal(normalizeChatModelKey('custom-model'), 'custom-model')
   })
 })

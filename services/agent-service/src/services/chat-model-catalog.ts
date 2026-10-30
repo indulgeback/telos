@@ -18,12 +18,12 @@ export const DEFAULT_CHAT_MODEL_KEY = 'deepseek-v4-flash'
  */
 export const DEFAULT_CHAT_MODELS = [
   {
-    modelKey: 'deepseek-v4-flash',
-    displayName: 'DeepSeek V4 Flash',
+    modelKey: 'deepseek-flash',
+    displayName: 'DeepSeek V4.1 Flash',
     provider: 'deepseek',
     isReasoning: true,
     sortOrder: 1,
-    supportVision: false,
+    supportVision: true,
     supportReasoningControl: false,
   },
   {
@@ -121,6 +121,7 @@ export const DEFAULT_CHAT_MODELS = [
 /** Existing Agent rows are migrated before obsolete catalog rows are deleted. */
 export const CHAT_MODEL_MIGRATIONS: Readonly<Record<string, string>> = {
   // 目标一律直指最终模型，避免链式迁移依赖遍历顺序
+  'deepseek-v4-flash': 'deepseek-flash',
   'google/gemini-3.5-flash': 'google/gemini-3.8-flash',
   'google/gemini-3.7-flash': 'google/gemini-3.8-flash',
   'google/gemini-3.1-flash-lite': 'google/gemini-3.5-flash-lite',

@@ -47,7 +47,7 @@ export function CreateAgentModal({
   const { models: modelOptions, loading: modelsLoading } = useAgentModels()
   const [modelKey, setModelKey] = useState('')
   useEffect(() => {
-    // 目录就绪后默认选中第一个启用模型,替代写死的 deepseek-v4-flash
+    // 目录就绪后默认选中第一个启用模型,替代写死的 deepseek-flash
     if (!modelKey && modelOptions.length > 0) {
       setModelKey(modelOptions[0].model)
     }
@@ -80,7 +80,7 @@ export function CreateAgentModal({
       toast.success(t('messages.createSuccess'))
       setName('')
       setDescription('')
-      setModelKey('deepseek-v4-flash')
+      setModelKey('deepseek-flash')
       setMaxTurns(DEFAULT_AGENT_TURNS)
       setLoopMode('auto')
       setType('private')
