@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { v4 as uuidv4 } from 'uuid'
 import { GoogleGenAI } from '@google/genai'
+import { Agent as UndiciAgent, fetch as undiciFetch } from 'undici'
 import { WorkspaceManager } from './workspace.js'
 import { logger } from '../config/logger.js'
 import { getGcloudProjectId } from './gcloud.js'
@@ -63,9 +64,11 @@ async function generateViaArk(options: {
     ...(options.inputImageUrl ? [options.inputImageUrl] : []),
     ...(options.referenceImageUrls ?? []),
   ]
-  const response = await fetch(
+  const response = await undiciFetch(
     `${ARK_IMAGE_BASE_URL}/images/generations`,
     {
+      // 国内端点显式直连：容器全局 dispatcher 走 mihomo 代理，抖动时会连坐国内 API
+      dispatcher: new UndiciAgent(),
       method: 'POST',
       headers: {
         Authorization: `Bearer ${config.seedApiKey}`,
@@ -101,7 +104,9 @@ async function generateViaWanx(options: {
   if (!config.bailianApiKey) {
     throw new Error('BAILIAN_API_KEY is not configured')
   }
-  const submit = await fetch(WANX_SUBMIT_URL, {
+  const submit = await undiciFetch(WANX_SUBMIT_URL, {
+    // 国内端点显式直连（同上）
+    dispatcher: new UndiciAgent(),
     method: 'POST',
     headers: {
       Authorization: `Bearer ${config.bailianApiKey}`,
@@ -127,7 +132,8 @@ async function generateViaWanx(options: {
   const deadline = Date.now() + 90_000
   while (Date.now() < deadline) {
     await new Promise(resolve => setTimeout(resolve, 3000))
-    const poll = await fetch(`${WANX_TASK_BASE_URL}/${taskId}`, {
+    const poll = await undiciFetch(`${WANX_TASK_BASE_URL}/${taskId}`, {
+      dispatcher: new UndiciAgent(),
       headers: { Authorization: `Bearer ${config.bailianApiKey}` },
     })
     if (!poll.ok) continue
