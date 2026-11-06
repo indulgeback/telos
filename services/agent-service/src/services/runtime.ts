@@ -1350,14 +1350,12 @@ export class AgentRuntimeService {
           content: dynamicContext,
         }
         if (Array.isArray(runnerInput)) {
-          let insertAt = runnerInput.length
-          for (let i = runnerInput.length - 1; i >= 0; i -= 1) {
-            const item = runnerInput[i] as { role?: unknown }
-            if (item?.role === 'user') {
-              insertAt = i
-              break
-            }
-          }
+          // 固定插在静态 system 之后：位置跨请求稳定，前缀缓存才能
+          // 随对话增长持续命中（放“最后一条 user 之前”会随历史增长
+          // 每轮移位，导致动态块自身每轮重新 miss）
+          let insertAt = 1
+          const first = runnerInput[0] as { role?: unknown }
+          if (first?.role !== 'system') insertAt = 0
           const next = [...runnerInput]
           next.splice(insertAt, 0, dynamicItem)
           runnerInput = next
