@@ -717,6 +717,27 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       : undefined
     let usageCostUsd: number | null = null
     if (usage) {
+      // 缓存覆盖率观测：SDK 的 inputTokensDetails 按请求记录明细，
+      // DeepSeek 兼容端点的 cached_tokens 即前缀缓存命中 token 数
+      const cachedTokens = (
+        (rawUsage?.inputTokensDetails ?? []) as Array<Record<string, unknown>>
+      ).reduce<number>(
+        (sum, entry) =>
+          sum +
+          Number(entry.cached_tokens ?? entry.cachedTokens ?? 0),
+        0
+      )
+      const inputTokens = usage.inputTokens
+      logger.info({
+        msg: 'LLM prompt cache coverage',
+        runId: options.runId,
+        inputTokens,
+        cachedTokens,
+        hitRate:
+          inputTokens > 0
+            ? `${Math.round((cachedTokens / inputTokens) * 100)}%`
+            : 'n/a',
+      })
       try {
         usageCostUsd = calculateUsageCost({
           modelKey,

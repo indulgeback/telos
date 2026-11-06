@@ -136,6 +136,8 @@ export interface RuntimeBuildResult {
   mcpServers: MCPServer[]
   /** MCP servers whose tools are converted manually to attach approval policy. */
   mcpApprovalBindings: RuntimeMcpApprovalBinding[]
+  /** 缓存优化：易变上下文块（记忆/摘要/计划模式/强制技能），注入到对话尾部 */
+  dynamicContext?: string
 }
 
 interface RuntimeMcpApprovalBinding {
@@ -815,19 +817,27 @@ export class AgentRuntimeService {
         ? `\n# Cloud Share Link Guidelines\nWhen a workspace tool returns a ready-to-use cloud sharing URL, copy that exact URL into your response. Do not construct, rewrite, or guess a URL from a file path. If no ready-to-use URL was returned, do not invent one.\n`
         : ''
 
-    const instructions = [
+    // 缓存优化：稳定块前置（system-0 跨请求长期命中 DeepSeek 前缀缓存），
+    // 易变块（记忆/摘要/计划模式/强制技能）拆为独立 system 注入到对话尾部，
+    // 变化时只作废自身位置之后的内容，历史轮次的缓存得以保留。
+    const staticInstructions = [
       source.instructions || source.description,
-      shareUrlRule,
       skillIndexBlock,
-      activatedSkillBlock,
       relationDescriptions.length && planMode !== 'plan'
         ? `# Available Subagents\n${relationDescriptions.join('\n')}`
         : '',
-      depth === 0 ? options?.memoryInstructions : '',
-      depth === 0 && planMode === 'plan' ? PLAN_MODE_INSTRUCTIONS : '',
     ]
       .filter(Boolean)
       .join('\n\n')
+    const dynamicContext = [
+      depth === 0 ? options?.memoryInstructions : '',
+      depth === 0 && planMode === 'plan' ? PLAN_MODE_INSTRUCTIONS : '',
+      shareUrlRule,
+      activatedSkillBlock,
+    ]
+      .filter(Boolean)
+      .join('\n\n')
+    const instructions = staticInstructions
 
     // 提取启用的常规工具和 MCP 服务器
     // plan 模式：只保留只读工具（builtin + HTTP GET），让模型能探索上下文
@@ -1056,6 +1066,7 @@ export class AgentRuntimeService {
       supportVision: resolvedModel.supportVision,
       mcpServers: lifecycleMcpServers,
       mcpApprovalBindings: lifecycleMcpApprovalBindings,
+      dynamicContext,
     }
   }
 
@@ -1116,6 +1127,7 @@ export class AgentRuntimeService {
       supportVision,
       mcpServers,
       mcpApprovalBindings,
+      dynamicContext,
     } = await this.buildAgent(agentId, {
       persistence,
       modelOverride: options.modelOverride,
@@ -1327,6 +1339,32 @@ export class AgentRuntimeService {
       // RunState. Keep this opt-in so existing runs retain their current input
       // behavior until the durable run kernel starts persisting this snapshot.
       let runnerInput: string | AgentInputItem[] | RunState<any, any> = runInput
+
+      // 缓存优化：动态上下文（记忆/摘要/计划模式/强制技能）作为独立的
+      // system 消息插到对话尾部——静态 system-0 的前缀缓存跨请求长期
+      // 保留，动态块变化只作废自身之后的内容
+      if (dynamicContext && !options.resumeState) {
+        const dynamicItem: AgentInputItem = {
+          type: 'message',
+          role: 'system',
+          content: dynamicContext,
+        }
+        if (Array.isArray(runnerInput)) {
+          let insertAt = runnerInput.length
+          for (let i = runnerInput.length - 1; i >= 0; i -= 1) {
+            const item = runnerInput[i] as { role?: unknown }
+            if (item?.role === 'user') {
+              insertAt = i
+              break
+            }
+          }
+          const next = [...runnerInput]
+          next.splice(insertAt, 0, dynamicItem)
+          runnerInput = next
+        } else if (typeof runnerInput === 'string' && runnerInput.trim()) {
+          runnerInput = `${dynamicContext}\n\n${runnerInput}`
+        }
+      }
       if (options.resumeState) {
         if (!options.lease) {
           throw new Error('A durable run lease is required to resume SDK state')
