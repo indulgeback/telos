@@ -13,6 +13,14 @@ import {
   prepareToolCall,
 } from './tool-checkpoint.js'
 
+export interface RunAudit {
+  inputTokens?: number
+  outputTokens?: number
+  cachedTokens?: number
+  ttftMs?: number
+  durationMs?: number
+}
+
 interface CompleteWithAssistantOptions {
   threadId: string
   finalOutput: string
@@ -22,6 +30,7 @@ interface CompleteWithAssistantOptions {
   replaceAssistantMessageId?: string | null
   lastAgentName?: string
   lastResponseId?: string
+  audit?: RunAudit
 }
 
 export class AgentRunPersistence {
@@ -133,7 +142,8 @@ export class AgentRunPersistence {
   async complete(
     finalOutput: string,
     lastAgentName?: string,
-    lastResponseId?: string
+    lastResponseId?: string,
+    audit?: RunAudit
   ) {
     const committed = this.lease
       ? await prisma.$transaction(async tx => {
@@ -150,6 +160,11 @@ export class AgentRunPersistence {
               sdkStateHash: null,
               partialOutput: null,
               partialParts: [],
+              inputTokens: audit?.inputTokens,
+              outputTokens: audit?.outputTokens,
+              cachedTokens: audit?.cachedTokens,
+              ttftMs: audit?.ttftMs,
+              durationMs: audit?.durationMs,
               completedAt: new Date(),
             },
           })
@@ -166,16 +181,21 @@ export class AgentRunPersistence {
             const updated = await tx.agentRun.updateMany({
               where: { id: this.runId, status: 'running' },
               data: {
-                status: 'completed',
-                finalOutput,
-                lastAgentName,
-                lastResponseId,
-                sdkState: null,
-                sdkStateHash: null,
-                partialOutput: null,
-                partialParts: [],
-                completedAt: new Date(),
-              },
+              status: 'completed',
+              finalOutput,
+              lastAgentName,
+              lastResponseId,
+              sdkState: null,
+              sdkStateHash: null,
+              partialOutput: null,
+              partialParts: [],
+              inputTokens: audit?.inputTokens,
+              outputTokens: audit?.outputTokens,
+              cachedTokens: audit?.cachedTokens,
+              ttftMs: audit?.ttftMs,
+              durationMs: audit?.durationMs,
+              completedAt: new Date(),
+            },
             })
             if (updated.count === 1) {
               await this.enqueueTerminalOutbox(tx, 'completed', {
@@ -217,6 +237,11 @@ export class AgentRunPersistence {
           sdkStateHash: null,
           partialOutput: null,
           partialParts: [],
+          inputTokens: options.audit?.inputTokens,
+          outputTokens: options.audit?.outputTokens,
+          cachedTokens: options.audit?.cachedTokens,
+          ttftMs: options.audit?.ttftMs,
+          durationMs: options.audit?.durationMs,
           completedAt: new Date(),
         },
       })

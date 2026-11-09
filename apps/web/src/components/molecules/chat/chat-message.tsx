@@ -118,7 +118,33 @@ function collectGroupSearchResults(
   return aggregated.length > 0 ? aggregated : null
 }
 
-export interface ChatMessageProps {
+export /** Harness 审计 chip 文案：首字延迟 · 缓存命中率 · 输出速度 */
+function formatRunAudit(audit: {
+  ttftMs?: number
+  durationMs?: number
+  outputTokens?: number
+  inputTokens?: number
+  cachedTokens?: number
+}): string {
+  const parts: string[] = []
+  if (audit.ttftMs != null)
+    parts.push(`首字 ${(audit.ttftMs / 1000).toFixed(1)}s`)
+  if (audit.inputTokens != null && audit.cachedTokens != null) {
+    parts.push(
+      `缓存 ${Math.round((audit.cachedTokens / audit.inputTokens) * 100)}%`
+    )
+  }
+  const genSec =
+    audit.durationMs != null
+      ? (audit.durationMs - (audit.ttftMs ?? 0)) / 1000
+      : null
+  if (audit.outputTokens != null && genSec && genSec > 0.5) {
+    parts.push(`${Math.round(audit.outputTokens / genSec)} tok/s`)
+  }
+  return parts.join(' · ')
+}
+
+interface ChatMessageProps {
   id: string
   role: 'user' | 'assistant'
   content: string
@@ -134,6 +160,14 @@ export interface ChatMessageProps {
   retryLabel?: string
   assistantModelLabel?: string
   usedModelLabel?: string
+  /** Harness 审计：首 token 延迟/速度/缓存命中率/token 用量 */
+  runAudit?: {
+    ttftMs?: number
+    durationMs?: number
+    outputTokens?: number
+    inputTokens?: number
+    cachedTokens?: number
+  }
   reasoningTitle?: string
   reasoningThinkingLabel?: string
   reasoningDoneLabel?: string
@@ -288,6 +322,7 @@ function ChatMessageInner({
   retryLabel = 'Retry',
   assistantModelLabel,
   usedModelLabel = 'Model',
+  runAudit,
   reasoningTitle = 'Reasoning',
   reasoningThinkingLabel = 'Thinking',
   reasoningDoneLabel = 'Done',
@@ -663,6 +698,14 @@ function ChatMessageInner({
                 {assistantModelLabel ? (
                   <span className='ml-1 inline-flex h-7 items-center rounded-lg bg-muted px-2 font-mono text-[9px] text-muted-foreground'>
                     {usedModelLabel}: {assistantModelLabel}
+                  </span>
+                ) : null}
+                {runAudit?.ttftMs != null || runAudit?.cachedTokens != null ? (
+                  <span
+                    className='ml-1 inline-flex h-7 items-center rounded-lg bg-muted px-2 font-mono text-[9px] text-muted-foreground'
+                    title={formatRunAudit(runAudit)}
+                  >
+                    {formatRunAudit(runAudit)}
                   </span>
                 ) : null}
               </>

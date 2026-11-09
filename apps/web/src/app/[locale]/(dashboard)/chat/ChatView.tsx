@@ -756,6 +756,34 @@ export function ChatView() {
         return
       }
 
+      if (chunk.type === 'response.audit') {
+        // Harness 审计：TTFT/时长/token 用量与缓存命中，随消息持久展示
+        const audit = chunk as {
+          inputTokens?: number
+          outputTokens?: number
+          cachedTokens?: number
+          ttftMs?: number
+          durationMs?: number
+        }
+        setMessages(prev =>
+          prev.map(message =>
+            message.id === assistantId && message.role === 'assistant'
+              ? {
+                  ...message,
+                  runAudit: {
+                    ttftMs: audit.ttftMs,
+                    durationMs: audit.durationMs,
+                    inputTokens: audit.inputTokens,
+                    outputTokens: audit.outputTokens,
+                    cachedTokens: audit.cachedTokens,
+                  },
+                }
+              : message
+          )
+        )
+        return
+      }
+
       if (
         chunk.type === 'reasoning-end' ||
         chunk.type === 'response.reasoning.done'

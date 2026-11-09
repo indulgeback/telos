@@ -93,6 +93,14 @@ export interface Message {
   modelLabel?: string
   createdAt?: Date
   isVoiceTranscript?: boolean
+  /** Harness 审计：run 结束时下发的性能/用量指标 */
+  runAudit?: {
+    ttftMs?: number
+    durationMs?: number
+    inputTokens?: number
+    outputTokens?: number
+    cachedTokens?: number
+  }
 }
 
 export interface ChatModelOption {
@@ -700,6 +708,7 @@ export function ChatContainer({
                         }
                         retryLabel={retryLabel}
                         assistantModelLabel={message.modelLabel}
+                        runAudit={message.runAudit}
                         usedModelLabel={usedModelLabel}
                         liveTranscriptLabel={liveTranscriptLabel}
                         reasoningTitle={reasoningTitle}

@@ -322,6 +322,11 @@ model AgentRun {
   stateVersion   Int            @default(0) @map("state_version")
   partialOutput  String?        @map("partial_output") @db.Text
   partialParts   Json           @default("[]") @map("partial_parts")
+  inputTokens    Int?           @map("input_tokens")
+  outputTokens   Int?           @map("output_tokens")
+  cachedTokens   Int?           @map("cached_tokens")
+  ttftMs         Int?           @map("ttft_ms")
+  durationMs     Int?           @map("duration_ms")
   startedAt      DateTime       @default(now()) @map("started_at")
   completedAt    DateTime?      @map("completed_at")
   createdAt      DateTime       @default(now()) @map("created_at")

@@ -354,6 +354,9 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       await closeRunEventFence(options.lease).catch(() => false)
     }
   }
+  // 首个 delta 锚定 TTFT；runStartedAt 为整轮起点
+  const runStartedAt = Date.now()
+  let firstDeltaAt: number | null = null
   const emit = (
     type: string,
     event: Record<string, unknown> = {},
@@ -368,6 +371,16 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         : options.lease && requireActiveLease
           ? appendRunEventForLease(options.lease, type, payload)
           : appendRunUiEvent(options.runId, type, payload)
+
+    // 首个 delta 锚定 TTFT（reasoning/text 首个增量即"首 token"口径）
+    if (
+      firstDeltaAt === null &&
+      (type === 'response.reasoning.delta' ||
+        type === 'response.output_text.delta' ||
+        type === 'response.output_text.done')
+    ) {
+      firstDeltaAt = Date.now()
+    }
 
     if (result && typeof (result as Promise<void>).then === 'function') {
       // 必须就地挂上 rejection 处理器：worker 监听 unhandledRejection 会直接
@@ -715,29 +728,33 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
           totalTokens: Number(rawUsage.totalTokens || 0),
         }
       : undefined
+    // 缓存命中：SDK 的 inputTokensDetails 按请求记录明细，DeepSeek 兼容
+    // 端点的 cached_tokens 即前缀缓存命中 token 数
+    const cachedTokens = (
+      (rawUsage?.inputTokensDetails ?? []) as Array<Record<string, unknown>>
+    ).reduce<number>(
+      (sum, entry) => sum + Number(entry.cached_tokens ?? entry.cachedTokens ?? 0),
+      0
+    )
+    const audit = {
+      inputTokens: usage?.inputTokens,
+      outputTokens: usage?.outputTokens,
+      cachedTokens,
+      ttftMs: firstDeltaAt !== null ? firstDeltaAt - runStartedAt : undefined,
+      durationMs: Date.now() - runStartedAt,
+    }
+    logger.info({
+      msg: 'LLM prompt cache coverage',
+      runId: options.runId,
+      inputTokens: usage?.inputTokens,
+      cachedTokens,
+      hitRate:
+        usage && usage.inputTokens > 0
+          ? `${Math.round((cachedTokens / usage.inputTokens) * 100)}%`
+          : 'n/a',
+    })
     let usageCostUsd: number | null = null
     if (usage) {
-      // 缓存覆盖率观测：SDK 的 inputTokensDetails 按请求记录明细，
-      // DeepSeek 兼容端点的 cached_tokens 即前缀缓存命中 token 数
-      const cachedTokens = (
-        (rawUsage?.inputTokensDetails ?? []) as Array<Record<string, unknown>>
-      ).reduce<number>(
-        (sum, entry) =>
-          sum +
-          Number(entry.cached_tokens ?? entry.cachedTokens ?? 0),
-        0
-      )
-      const inputTokens = usage.inputTokens
-      logger.info({
-        msg: 'LLM prompt cache coverage',
-        runId: options.runId,
-        inputTokens,
-        cachedTokens,
-        hitRate:
-          inputTokens > 0
-            ? `${Math.round((cachedTokens / inputTokens) * 100)}%`
-            : 'n/a',
-      })
       try {
         usageCostUsd = calculateUsageCost({
           modelKey,
@@ -765,6 +782,14 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
         id: reasoningId,
       })
     }
+    emit('response.audit', {
+      response_id: options.runId,
+      inputTokens: audit.inputTokens,
+      outputTokens: audit.outputTokens,
+      cachedTokens: audit.cachedTokens,
+      ttftMs: audit.ttftMs,
+      durationMs: audit.durationMs,
+    })
 
     const rawSdkFinalOutput = String(streamedResult.finalOutput ?? '')
     const sdkFinalOutput = usesGeminiThoughtTags
@@ -845,6 +870,7 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
     if (options.threadId) {
       const completion = await persistence.completeWithAssistant({
         threadId: options.threadId,
+        audit,
         finalOutput,
         // 结构化交互命中时，工具返回的内部信号不作为正文落库。
         persistedOutput: structuredClarify || structuredPlan ? '' : finalOutput,
@@ -872,7 +898,8 @@ export async function executeAgentRun(options: ExecuteAgentRunOptions) {
       completed = await persistence.complete(
         finalOutput,
         streamedResult.lastAgent?.name,
-        streamedResult.lastResponseId
+        streamedResult.lastResponseId,
+        audit
       )
     }
     if (!completed) {
