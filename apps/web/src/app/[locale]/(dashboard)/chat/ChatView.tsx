@@ -2371,7 +2371,7 @@ export function ChatView() {
       <div className='agent-workbench flex h-full min-h-0 w-full overflow-hidden text-foreground'>
         <aside
           className={cn(
-            'hidden shrink-0 transition-[width] duration-300 ease-out md:block',
+            'hidden shrink-0 overflow-hidden transition-[width] duration-300 ease-out md:block',
             sidebarCollapsed ? 'w-[52px]' : 'w-56'
           )}
         >
