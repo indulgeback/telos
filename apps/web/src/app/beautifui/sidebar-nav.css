@@ -6,6 +6,8 @@
  * ══════════════════════════════════════════════════════════ */
 .sidebar-row {
   width: 208px;
+  /* 容器因缩放/DPR 取整略窄于 224 时行宽跟随收缩，避免行尾按钮被裁 */
+  max-width: 100%;
   transition-duration: var(--sidebar-copy-duration);
   transition-timing-function: var(--sidebar-easing);
 }
