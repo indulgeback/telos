@@ -58,8 +58,8 @@ it(
       PORT: String(apiPort),
       WORKER_HEALTH_PORT: String(workerPort),
       WORKER_SHUTDOWN_TIMEOUT_MS: '10000',
-      SHORTAPI_API_KEY: 'local-test-only',
-      SHORTAPI_BASE_URL: modelUrl,
+      DEEPSEEK_API_KEY: 'local-test-only',
+      DEEPSEEK_BASE_URL: modelUrl,
       REGISTRY_URL: 'http://127.0.0.1:1',
       OPENAI_AGENTS_DISABLE_TRACING: '1',
     }
@@ -98,7 +98,7 @@ it(
           [{}, 'stop'],
         ]) {
           res.write(
-            `data: ${JSON.stringify({ id: 'chatcmpl-fixture', object: 'chat.completion.chunk', created: 1, model: 'openai/gpt-5.5', choices: [{ index: 0, delta, finish_reason }] })}\n\n`
+            `data: ${JSON.stringify({ id: 'chatcmpl-fixture', object: 'chat.completion.chunk', created: 1, model: 'deepseek-v4-pro', choices: [{ index: 0, delta, finish_reason }] })}\n\n`
           )
         }
         res.end('data: [DONE]\n\n')
@@ -122,7 +122,7 @@ it(
         data: {
           name: `runtime-${randomUUID()}`,
           description: 'fixture',
-          modelKey: 'openai/gpt-5.5',
+          modelKey: 'deepseek-v4-pro',
           instructions: 'Reply with a short sentence.',
           ownerId: user.id,
         },
@@ -134,7 +134,7 @@ it(
         data: {
           agentId: agent.id,
           threadId: thread.id,
-          input: { input: 'hello', model: 'openai/gpt-5.5' },
+          input: { input: 'hello', model: 'deepseek-v4-pro' },
         },
       })
       await enqueueAgentRun({ runId: run.id })
@@ -211,7 +211,7 @@ it(
         data: {
           agentId: agent.id,
           threadId: thread.id,
-          input: { input: 'cancel me', model: 'openai/gpt-5.5' },
+          input: { input: 'cancel me', model: 'deepseek-v4-pro' },
         },
       })
       await enqueueAgentRun({ runId: cancelledRun.id })
