@@ -143,6 +143,3 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 - 回滚 = DNSPod 把 A 记录改回旧 IP（TTL 已是 60s，生效 <2 分钟）+ `05-rollback.sh` 核对旧机服务状态
 - 观察期内新机产生的新数据（如果有少量会话）以新机为准做一次增量 pg_dump 回灌旧机（可选，通常观察期流量极小可忽略）
 
-__zcode_status=$?
-if [ "$__zcode_status" -eq 0 ]; then pwd -P > '/var/folders/s8/8vpdgc094s7dp9z0vj4l2n640000gn/T/zcode-03e12525-9784-43bf-a08e-b01b4bfcb4a4-cwd'; fi
-exit "$__zcode_status"
