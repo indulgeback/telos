@@ -13,6 +13,20 @@
 05-rollback.sh           # 任一步失败：DNS 切回旧机（旧机保持运行 ≥7 天）
 ```
 
+## 执行方式（重要）
+
+01 脚本会短暂停 6 个 Telos 服务 + SafeLine 再导出。**必须脱离终端执行**，否则 ssh 断连
+会杀掉脚本，服务停着没人拉起（脚本内已有 `trap EXIT` 兜底，但别依赖它当常规路径）：
+
+```bash
+# 旧机上（把脚本 scp 过去后）：
+setsid nohup sudo bash /tmp/01-export-from-old.sh > /tmp/export.log 2>&1 < /dev/null &
+tail -f /tmp/export.log    # 观察进度，完成标志：✅ 导出完成
+```
+
+另：compose 清单里有 `:?` 强制变量（如 `WORKSPACE_SHARE_BASE_URL`），服务器 `.env`
+必须包含全部 8 个强制变量，否则任何 `docker compose` 命令都会在插值阶段失败。
+
 ## 需要人工准备
 
 - 新机公网 IP / SSH 密钥

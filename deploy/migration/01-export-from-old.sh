@@ -15,6 +15,16 @@ RUSTDESK_DATA="${RUSTDESK_DATA:-/opt/rustdesk/data}"
 STAMP="$(date -u +%Y%m%d%H%M%S)"
 OUT_DIR="${EXPORT_ROOT}/migration-${STAMP}"
 
+# ---- 兜底：无论脚本从哪一步退出（含被 SIGHUP 杀死前的正常路径），都恢复旧机服务 ----
+# 教训：ssh 断连会杀掉本脚本，若死在 stop 之后，6 个服务会一直停着。
+# 因此执行本脚本应脱离终端：setsid nohup bash 01-export-from-old.sh > log 2>&1 &
+restore_services() {
+  cd "$TELOS_DIR"
+  docker compose -f docker-compose.prod.yml start api-gateway web admin admin-service agent-service agent-worker >/dev/null 2>&1 || true
+  docker compose -f "$SAFELINE_DIR/docker-compose.yaml" --project-directory "$SAFELINE_DIR" start >/dev/null 2>&1 || true
+}
+trap restore_services EXIT
+
 [[ -d "$TELOS_DIR" ]] || err "Telos 目录不存在: $TELOS_DIR"
 [[ -f "$TELOS_DIR/docker-compose.prod.yml" ]] || err "compose 清单缺失"
 [[ -f "$TELOS_DIR/.env" ]] || err ".env 缺失"
