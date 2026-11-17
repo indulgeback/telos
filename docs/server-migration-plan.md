@@ -154,4 +154,8 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 5. **雷池快速 stop/start 后新容器解析不到 `safeline-pg`**（Docker 内嵌 DNS 注册失效，报 "server misbehaving"，跑了很久没重启过的 pg 最易踩）：重启 `safeline-pg` 即修复。旧机演练时 mgt/luigi 曾因此崩溃循环 ~3 分钟。
 6. **雷池里还有第三个站点 `ollama.indulgeback.icu`**（反代 127.0.0.1:11434 的本地 Ollama，本机并无该服务，一直 502）——随 safeline.tgz 一起迁移；新机上同样无后端，属预期。另外机器上有宝塔面板（nginx 只守 888 面板口，不承载业务流量），迁移不必带上宝塔。
 7. SafeLine 内部网络 192.168.0.x 的容器 IP（detector .5:8000 / mgt .4 / chaos .10）写死在 tengine 容器 env 与 safeline.conf 里，整套随包迁移后自洽；勿单独重建其中某个容器导致 IP 漂移。
+8. **旧机 telos `.env` 里残留 `IMAGE_TAG=main`**（历史部署遗留）：脚本 03 `source` 该 .env 后若不覆盖，会连带把 SafeLine compose 的 IMAGE_TAG 也毒化成 main（SWR 上不存在，恢复即失败）。03 已改为 source 后无条件覆盖 + SafeLine 段读它自己 .env 的版本锁（当前 9.4.2）。正式切换时用 `TELOS_IMAGE_TAG=sha-<旧机当前tag>` 传入。
+9. **01 脚本的 RUSTDESK_DATA 曾指向 `/opt/rustdesk/data` 子目录**：basename 后只打包了 data、丢掉了 compose 文件（与注释"整目录"不符），已修为 `RUSTDESK_DIR=/opt/rustdesk` 整目录。演练包缺 compose，已从旧机补传——正式切换跑 01 时已是修好的版本。
+
+**演练终态**：新机 19 容器全部 healthy（10 Telos + 7 SafeLine + 2 rustdesk），`04-verify-all.sh` 本地模式全绿（含 A2A 聊天端到端冒烟，DeepSeek 真实调用走通）；内存 1.8G/3.6G（swap 未动用）、磁盘 19G/59G；雷池 80/443 反代链路 200。镜像 tag 演练用 main（与 bd82a36 代码等价），正式切换时钉 TELOS_IMAGE_TAG。
 

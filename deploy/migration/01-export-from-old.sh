@@ -11,7 +11,7 @@ EXPORT_ROOT="/opt/migration-export"
 TELOS_DIR="${TELOS_DIR:-/opt/telos}"
 SAFELINE_DIR="${SAFELINE_DIR:-/data/safeline}"
 MIHOMO_DIR="${MIHOMO_DIR:-/opt/mihomo}"
-RUSTDESK_DATA="${RUSTDESK_DATA:-/opt/rustdesk/data}"
+RUSTDESK_DIR="${RUSTDESK_DIR:-/opt/rustdesk}"
 STAMP="$(date -u +%Y%m%d%H%M%S)"
 OUT_DIR="${EXPORT_ROOT}/migration-${STAMP}"
 
@@ -81,9 +81,9 @@ tar -C "$(dirname "$MIHOMO_DIR")" -czf "$OUT_DIR/mihomo.tgz" "$(basename "$MIHOM
 systemctl cat mihomo > "$OUT_DIR/mihomo.service" 2>/dev/null || true
 
 # ---- 6) rustdesk ----
-if [[ -d "$RUSTDESK_DATA" ]]; then
+if [[ -d "$RUSTDESK_DIR" ]]; then
   log "打包 rustdesk（整目录：compose + data）..."
-  tar -C "$(dirname "$RUSTDESK_DATA")" -czf "$OUT_DIR/rustdesk.tgz" "$(basename "$RUSTDESK_DATA")"
+  tar -C "$(dirname "$RUSTDESK_DIR")" -czf "$OUT_DIR/rustdesk.tgz" "$(basename "$RUSTDESK_DIR")"
 fi
 
 # ---- 7) 恢复流量：立即拉起（切换窗口前旧机要保持服务）----

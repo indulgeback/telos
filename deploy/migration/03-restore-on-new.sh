@@ -48,8 +48,10 @@ source /opt/telos/.env
 # compose 里 WORKSPACE_SHARE_BASE_URL 是 :? 必填插值；旧 .env 若未含则从
 # NEXT_PUBLIC_API_URL 兜底（与 deploy.sh 行为一致）
 export WORKSPACE_SHARE_BASE_URL="${WORKSPACE_SHARE_BASE_URL:-${NEXT_PUBLIC_API_URL:-}}"
-# 镜像 tag 以旧机当前运行为准（docker ps 确认后用 IMAGE_TAG=sha-xxx 覆盖本默认值）
-IMAGE_TAG="${IMAGE_TAG:-sha-bd82a36}"
+# 旧 .env 可能残留 IMAGE_TAG=main（历史部署遗留，会毒化 compose 插值）——
+# source 之后无条件覆盖；实际 tag 以旧机 docker ps 为准，可用 TELOS_IMAGE_TAG 外部指定
+IMAGE_TAG="${TELOS_IMAGE_TAG:-sha-bd82a36}"
+export IMAGE_TAG
 SERVICES=(web agent-service api-gateway registry admin admin-service)
 log "拉取镜像 (tag: $IMAGE_TAG)..."
 PULL_OK=true
@@ -111,7 +113,10 @@ wait_healthy telos-admin 60
 if [[ -f "$INNER/safeline.tgz" ]]; then
   log "恢复 SafeLine..."
   tar -xzf "$INNER/safeline.tgz" -C /data/
-  docker compose -f /data/safeline/docker-compose.yaml --project-directory /data/safeline up -d
+  # SafeLine 版本锁在它自己的 .env（如 9.4.2）；必须覆盖外层 IMAGE_TAG（可能被
+  # 上面 source 的 telos .env 毒化成 main——SWR 上不存在该 tag）
+  SAFELINE_TAG="$(grep -E '^IMAGE_TAG=' /data/safeline/.env | cut -d= -f2- | tr -d '"' | tr -d "'" || true)"
+  IMAGE_TAG="${SAFELINE_TAG:-9.4.2}" docker compose -f /data/safeline/docker-compose.yaml --project-directory /data/safeline up -d
   log "SafeLine 已启动（tengine 监听 80/443）"
 fi
 
