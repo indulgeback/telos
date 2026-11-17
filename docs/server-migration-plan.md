@@ -152,7 +152,7 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 3. **镜像 tag 跟随旧机当前运行版本**：push main 会自动触发 Build & Push → Deploy，旧机 tag 随每次推送前移（演练时为 `sha-bd82a36`）。正式切换前用 `docker ps --format "{{.Names}}\t{{.Image}}"` 确认当前 tag，再以 `IMAGE_TAG=sha-xxx` 跑 03 脚本。
 4. **雷池对 HTTPS 上的 curl 类 TLS 指纹（JA3）按 Bot 拦截**：返回"访问已被拦截/请求存在恶意行为"403 页面；80 端口无 TLS 指纹不受影响（SQL 注入探针仍正常拦截）。**curl 403 ≠ 站点故障**——判定存活必须用真实浏览器（演练时为此空查了 40 分钟）。04 脚本的 `--public` 模式已加此警告。
 5. **雷池快速 stop/start 后新容器解析不到 `safeline-pg`**（Docker 内嵌 DNS 注册失效，报 "server misbehaving"，跑了很久没重启过的 pg 最易踩）：重启 `safeline-pg` 即修复。旧机演练时 mgt/luigi 曾因此崩溃循环 ~3 分钟。
-6. **雷池里还有第三个站点 `ollama.indulgeback.icu`**（反代 127.0.0.1:11434 的本地 Ollama，本机并无该服务，一直 502）——随 safeline.tgz 一起迁移；新机上同样无后端，属预期。另外机器上有宝塔面板（nginx 只守 888 面板口，不承载业务流量），迁移不必带上宝塔。
+6. **雷池里还有第三个站点 `ollama.indulgeback.icu`**（反代 127.0.0.1:11434 的本地 Ollama，本机并无该服务，一直 502）——随 safeline.tgz 一起迁移；新机上同样无后端，属预期。宝塔面板按用户要求**原样迁移**（新装面板 + 拷 panel data，见 §10.0）。
 7. SafeLine 内部网络 192.168.0.x 的容器 IP（detector .5:8000 / mgt .4 / chaos .10）写死在 tengine 容器 env 与 safeline.conf 里，整套随包迁移后自洽；勿单独重建其中某个容器导致 IP 漂移。
 8. **旧机 telos `.env` 里残留 `IMAGE_TAG=main`**（历史部署遗留）：脚本 03 `source` 该 .env 后若不覆盖，会连带把 SafeLine compose 的 IMAGE_TAG 也毒化成 main（SWR 上不存在，恢复即失败）。03 已改为 source 后无条件覆盖 + SafeLine 段读它自己 .env 的版本锁（当前 9.4.2）。正式切换时用 `TELOS_IMAGE_TAG=sha-<旧机当前tag>` 传入。
 9. **01 脚本的 RUSTDESK_DATA 曾指向 `/opt/rustdesk/data` 子目录**：basename 后只打包了 data、丢掉了 compose 文件（与注释"整目录"不符），已修为 `RUSTDESK_DIR=/opt/rustdesk` 整目录。演练包缺 compose，已从旧机补传——正式切换跑 01 时已是修好的版本。
@@ -162,27 +162,45 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 
 ## 10. 域名切换方案（2026-11-17 增补：新购 `indulgeback.org`）
 
-用户已购新域名并指往新机——**切换形态从"停机切 A 记录"升级为零停机**：新域名直接指向新机（旧域名继续在旧机服务至到期）。采用 **apex 做主站**：`indulgeback.org`（站点）/ `api.indulgeback.org`（网关）/ `admin.indulgeback.org`（管理台，可选）。新机公网 IP `43.166.132.158`。
+用户已购新域名并指往新机——**切换形态从"停机切 A 记录"升级为零停机**：新域名直接指向新机（旧域名继续在旧机服务至到期）。**子域规划：原结构镜像，不重设计**——`telos.indulgeback.org`（主站）/ `api.telos.indulgeback.org`（网关）/ `ollama.indulgeback.org`（原样保留的遗留站）。新机公网 IP `43.166.132.158`，位于**腾讯云美东（na-ashburn-2）——无需 ICP 备案**；注意境外机对国内用户延迟 ~150-250ms RTT。
+
+### 10.0 全量服务清单（2026-11-17 全盘盘点，逐项对账）
+
+| 服务 | 旧机形态 | 迁移状态 |
+|---|---|---|
+| Telos 19 容器组 | compose + volumes | ✅ 已迁（04 验证全绿） |
+| SafeLine 全套（3 站点+证书+数据） | /data/safeline | ✅ 已迁（镜像 9.4.2） |
+| mihomo + systemd + docker 代理 | /opt/mihomo | ✅ 已迁 |
+| rustdesk | /opt/rustdesk | ✅ 已迁 |
+| **frps**（FRP 服务端，7100 客户端 / 7102 面板） | /usr/local/frp + systemd | ✅ 已迁（active） |
+| **hermes**（用户 agent 网关，6.1G，gateway run + 9119 dashboard） | /home/ubuntu/.hermes | 🔄 6.1G 流式中转 |
+| **宝塔面板 11.7**（:29505，无挂站，仅证书续期 cron ×2） | /www/server | 🔄 新装中，装完拷 panel data |
+| 腾讯云平台代理（tat_agent/stargate/yunjing） | 平台自带 | 不迁（新机有自己的） |
+
+**新机轻量防火墙需放行**：22 / 80 / 443 / 9443（雷池）/ 7100、7102（frps）/ 21115-21119（rustdesk）/ 29505（宝塔）/ 9119（hermes dashboard）。
+
+> DNS 实测：旧域名 6 条 A 记录全指旧机（apex/www/telos/api.telos/ollama/mail），无 MX/TXT（无邮件栈）；apex 与 mail 无对应站点（404/死记录），`admin.telos` 无解析（CORS 里的 admin 域名处于休眠）。COS 用默认 `*.myqcloud.com` 域名，与 .icu 无关，存量图片 URL 不受换域名影响。
 
 ### 10.1 域名触点清单（改域名要动的全部位置）
 
 | 位置 | 现值 | 新值 | 谁动 |
 |---|---|---|---|
-| DNS 记录 | — | `@`/`api`/`admin` A → 43.166.132.158 | 用户（DNSPod/注册商） |
-| GitHub OAuth App 回调 | `...icu/api/auth/callback/github` | `https://indulgeback.org/api/auth/callback/github` | 用户（GitHub 控制台） |
-| SafeLine 站点 ×2-3 | — | apex→127.0.0.1:8800、api→8890、admin→8082 | 用户控制台（9443）或给密码 |
-| TLS 证书 | cert_1 只含 *.icu | 控制台对两个新站一键申请 Let's Encrypt（HTTP-01，DNS 生效后） | 同上 |
+| DNS 记录 | — | `telos`/`api.telos`/`ollama` A → 43.166.132.158（与旧域名实际使用的解析一一镜像） | 用户 |
+| GitHub OAuth App 回调 | `...icu/api/auth/callback/github` | `https://telos.indulgeback.org/api/auth/callback/github` | 用户（GitHub 控制台） |
+| SafeLine 站点 ×2-3 | — | telos.→127.0.0.1:8800、api.telos.→8890、ollama.→11434（原样） | 用户控制台（9443）或给密码 |
+| TLS 证书 | cert_1 只含 *.icu | 控制台对新站一键申请 Let's Encrypt（HTTP-01，DNS 生效后） | 同上 |
 | web 镜像构建变量 | `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL`（**构建时烘焙进 bundle**） | 改 GitHub repo variables → 重跑 Build & Push | 我（gh variable set） |
-| 新机 `/opt/telos/.env` | `BETTER_AUTH_URL`/`WORKSPACE_SHARE_BASE_URL`/`CORS_ORIGINS`/`BETTER_AUTH_COOKIE_DOMAIN`/`ADMIN_CORS_ORIGINS` | `.org` 对应值，`docker compose up -d` 重建相关容器 | 我 |
+| 新机 `/opt/telos/.env` | `BETTER_AUTH_URL`/`WORKSPACE_SHARE_BASE_URL`/`CORS_ORIGINS`/`BETTER_AUTH_COOKIE_DOMAIN`/`ADMIN_CORS_ORIGINS` | `.org` 镜像值（`BETTER_AUTH_COOKIE_DOMAIN=indulgeback.org`），`docker compose up -d` 重建相关容器 | 我 |
+| hermes 启动参数 | `--host hermes.indulgeback.icu` | 先在 /etc/hosts 镜像原条目原样跑，域名定后再改 `.org` | 我 |
 | deploy CI 目标机 | SSH 211.159.161.34（旧机） | 切换后部署目标改新机（secret 换 host + 新机装 Actions 公钥） | 我 |
 | COS / 数据库图片 URL | 自有 COS 域名 | **不受影响** | — |
 
 ### 10.2 执行顺序（DNS 生效为分界）
 
-1. 用户：加 DNS 记录（TTL 直接 60s）+ GitHub OAuth 回调改新域名
-2. DNS 生效后：SafeLine 控制台建站点 → 申请证书（雷池一键，HTTP-01 验证需 80 可达——新机 tengine 已在）
-3. 我：`gh variable set` 两个构建变量 → 重跑 Build & Push（新 web 镜像带新域名 bundle）
+1. 用户：加 DNS 记录（`telos`/`api.telos`/`ollama`，TTL 60s）+ GitHub OAuth 回调改新域名 + 轻量防火墙放行端口清单（见 10.0）
+2. DNS 生效后：SafeLine 控制台建镜像站点 → 申请证书（雷池一键，HTTP-01 验证需 80 可达——新机 tengine 已在）
+3. 我：`gh variable set` 两个构建变量（镜像 .org 值）→ 重跑 Build & Push（新 web 镜像带新域名 bundle）
 4. 我：新机 .env 五项改 `.org` → `up -d` 重建 web/gateway/agent-service/admin
 5. 验收：浏览器走通 注册/登录/GitHub 登录/聊天流式/生图/语音；`04-verify-all.sh --public`（域名改新值后）
-6. 旧域名若续费：旧机雷池加 301 `telos.indulgeback.icu → indulgeback.org`（保 SEO 权重）；不续费则明日到期自然失效
+6. 旧域名若续费：旧机雷池加 301 `telos.indulgeback.icu → telos.indulgeback.org`（保 SEO 权重）；不续费则到期自然失效
 7. 收尾：deploy CI 目标机切新机，旧机进入 ≥7 天只读观察期
