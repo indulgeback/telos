@@ -174,10 +174,10 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 | rustdesk | /opt/rustdesk | ✅ 已迁 |
 | **frps**（FRP 服务端，7100 客户端 / 7102 面板） | /usr/local/frp + systemd | ✅ 已迁（active） |
 | **hermes**（用户 agent 网关，6.1G，gateway run + 9119 dashboard） | /home/ubuntu/.hermes | 🔄 6.1G 流式中转 |
-| **宝塔面板 11.7**（:29505，无挂站，仅证书续期 cron ×2） | /www/server | 🔄 新装中，装完拷 panel data |
+| **宝塔面板 11.7**（:29505，无挂站，仅证书续期 cron ×2） | /www/server | ❌ **不迁移**（2026-11-17 用户拍板"干脆别整"：官方安装器在境外机反复异常，且核实面板内零业务数据——wwwroot 仅模板、备份空、项目目录全空；两个 cron 是面板自身的证书续期任务） |
 | 腾讯云平台代理（tat_agent/stargate/yunjing） | 平台自带 | 不迁（新机有自己的） |
 
-**新机轻量防火墙需放行**：22 / 80 / 443 / 9443（雷池）/ 7100、7102（frps）/ 21115-21119（rustdesk）/ 29505（宝塔）/ 9119（hermes dashboard）。
+**新机轻量防火墙需放行**：22 / 80 / 443 / 9443（雷池）/ 7100、7102（frps）/ 21115-21119（rustdesk）/ 9119（hermes dashboard）。
 
 > DNS 实测：旧域名 6 条 A 记录全指旧机（apex/www/telos/api.telos/ollama/mail），无 MX/TXT（无邮件栈）；apex 与 mail 无对应站点（404/死记录），`admin.telos` 无解析（CORS 里的 admin 域名处于休眠）。COS 用默认 `*.myqcloud.com` 域名，与 .icu 无关，存量图片 URL 不受换域名影响。
 
