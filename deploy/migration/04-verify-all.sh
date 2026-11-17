@@ -54,8 +54,11 @@ fi
 
 if [[ "$MODE" == "public" ]]; then
   log "===== 公网验证（DNS 已切）====="
-  check "公网 https 站点" curl -sf -o /dev/null https://telos.indulgeback.icu/zh
-  check "公网 /api/build-id" curl -sf https://telos.indulgeback.icu/api/build-id
+  # ⚠ 已知行为：雷池对 HTTPS 上的 curl 类 TLS 指纹（JA3）会按 Bot 拦截，返回
+  # "访问已被拦截/请求存在恶意行为" 403 页面（80 端口无 TLS 指纹不受影响）。
+  # 因此下面 curl 403 ≠ 故障；判定站点存活以真实浏览器为准，脚本输出仅作参考。
+  check "公网 https 站点（curl 可能被 WAF Bot 拦截，403 请用浏览器复核）" curl -sf -o /dev/null https://telos.indulgeback.icu/zh
+  check "公网 /api/build-id（同上，403 可能是 WAF 拦截）" curl -sf https://telos.indulgeback.icu/api/build-id
   cert_cn=$(echo | openssl s_client -connect telos.indulgeback.icu:443 -servername telos.indulgeback.icu 2>/dev/null | openssl x509 -noout -subject 2>/dev/null || true)
   log "TLS 证书: $cert_cn"
 fi

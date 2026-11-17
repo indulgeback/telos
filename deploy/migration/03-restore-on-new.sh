@@ -48,7 +48,8 @@ source /opt/telos/.env
 # compose 里 WORKSPACE_SHARE_BASE_URL 是 :? 必填插值；旧 .env 若未含则从
 # NEXT_PUBLIC_API_URL 兜底（与 deploy.sh 行为一致）
 export WORKSPACE_SHARE_BASE_URL="${WORKSPACE_SHARE_BASE_URL:-${NEXT_PUBLIC_API_URL:-}}"
-IMAGE_TAG="${IMAGE_TAG:-sha-c382928}"
+# 镜像 tag 以旧机当前运行为准（docker ps 确认后用 IMAGE_TAG=sha-xxx 覆盖本默认值）
+IMAGE_TAG="${IMAGE_TAG:-sha-bd82a36}"
 SERVICES=(web agent-service api-gateway registry admin admin-service)
 log "拉取镜像 (tag: $IMAGE_TAG)..."
 PULL_OK=true

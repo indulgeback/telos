@@ -143,3 +143,15 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 - 回滚 = DNSPod 把 A 记录改回旧 IP（TTL 已是 60s，生效 <2 分钟）+ `05-rollback.sh` 核对旧机服务状态
 - 观察期内新机产生的新数据（如果有少量会话）以新机为准做一次增量 pg_dump 回灌旧机（可选，通常观察期流量极小可忽略）
 
+## 9. 演练实录与踩坑（2026-11-17，新机已就绪并完成初始化+演练）
+
+新机（SSH alias `tencent-new`，2C/4G/60G，Ubuntu 26.04 LTS）已完成：02 初始化（Docker 29.10、6G swap、swappiness=10）、mihomo 迁移部署（含 docker daemon 代理 drop-in）、导出演练、47M 迁移包传输（sha256 全程校验通过）。演练中踩到的坑，正式切换前必读：
+
+1. **`.env` 必含 compose 全部 `:?` 强制变量**：`WORKSPACE_SHARE_BASE_URL=https://api.telos.indulgeback.icu` 曾只在 CI 部署时注入、没落进服务器 .env，导致任何手动 `docker compose` 命令在插值阶段直接失败（stop 都执行不了）。已补进旧机 .env 并随迁移包带到新机；其余 7 个强制变量核对无缺。
+2. **01 脚本必须脱离终端执行**（`setsid nohup ... &`）：ssh 断开会连带杀掉脚本，曾把 6 个 Telos 服务停在半路无人拉起。脚本已加 `trap EXIT` 兜底恢复，但别依赖兜底当常规路径。
+3. **镜像 tag 跟随旧机当前运行版本**：push main 会自动触发 Build & Push → Deploy，旧机 tag 随每次推送前移（演练时为 `sha-bd82a36`）。正式切换前用 `docker ps --format "{{.Names}}\t{{.Image}}"` 确认当前 tag，再以 `IMAGE_TAG=sha-xxx` 跑 03 脚本。
+4. **雷池对 HTTPS 上的 curl 类 TLS 指纹（JA3）按 Bot 拦截**：返回"访问已被拦截/请求存在恶意行为"403 页面；80 端口无 TLS 指纹不受影响（SQL 注入探针仍正常拦截）。**curl 403 ≠ 站点故障**——判定存活必须用真实浏览器（演练时为此空查了 40 分钟）。04 脚本的 `--public` 模式已加此警告。
+5. **雷池快速 stop/start 后新容器解析不到 `safeline-pg`**（Docker 内嵌 DNS 注册失效，报 "server misbehaving"，跑了很久没重启过的 pg 最易踩）：重启 `safeline-pg` 即修复。旧机演练时 mgt/luigi 曾因此崩溃循环 ~3 分钟。
+6. **雷池里还有第三个站点 `ollama.indulgeback.icu`**（反代 127.0.0.1:11434 的本地 Ollama，本机并无该服务，一直 502）——随 safeline.tgz 一起迁移；新机上同样无后端，属预期。另外机器上有宝塔面板（nginx 只守 888 面板口，不承载业务流量），迁移不必带上宝塔。
+7. SafeLine 内部网络 192.168.0.x 的容器 IP（detector .5:8000 / mgt .4 / chaos .10）写死在 tengine 容器 env 与 safeline.conf 里，整套随包迁移后自洽；勿单独重建其中某个容器导致 IP 漂移。
+
