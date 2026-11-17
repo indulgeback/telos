@@ -159,3 +159,30 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 
 **演练终态**：新机 19 容器全部 healthy（10 Telos + 7 SafeLine + 2 rustdesk），`04-verify-all.sh` 本地模式全绿（含 A2A 聊天端到端冒烟，DeepSeek 真实调用走通）；内存 1.8G/3.6G（swap 未动用）、磁盘 19G/59G；雷池 80/443 反代链路 200。镜像 tag 演练用 main（与 bd82a36 代码等价），正式切换时钉 TELOS_IMAGE_TAG。
 
+
+## 10. 域名切换方案（2026-11-17 增补：新购 `indulgeback.org`）
+
+用户已购新域名并指往新机——**切换形态从"停机切 A 记录"升级为零停机**：新域名直接指向新机（旧域名继续在旧机服务至到期）。采用 **apex 做主站**：`indulgeback.org`（站点）/ `api.indulgeback.org`（网关）/ `admin.indulgeback.org`（管理台，可选）。新机公网 IP `43.166.132.158`。
+
+### 10.1 域名触点清单（改域名要动的全部位置）
+
+| 位置 | 现值 | 新值 | 谁动 |
+|---|---|---|---|
+| DNS 记录 | — | `@`/`api`/`admin` A → 43.166.132.158 | 用户（DNSPod/注册商） |
+| GitHub OAuth App 回调 | `...icu/api/auth/callback/github` | `https://indulgeback.org/api/auth/callback/github` | 用户（GitHub 控制台） |
+| SafeLine 站点 ×2-3 | — | apex→127.0.0.1:8800、api→8890、admin→8082 | 用户控制台（9443）或给密码 |
+| TLS 证书 | cert_1 只含 *.icu | 控制台对两个新站一键申请 Let's Encrypt（HTTP-01，DNS 生效后） | 同上 |
+| web 镜像构建变量 | `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL`（**构建时烘焙进 bundle**） | 改 GitHub repo variables → 重跑 Build & Push | 我（gh variable set） |
+| 新机 `/opt/telos/.env` | `BETTER_AUTH_URL`/`WORKSPACE_SHARE_BASE_URL`/`CORS_ORIGINS`/`BETTER_AUTH_COOKIE_DOMAIN`/`ADMIN_CORS_ORIGINS` | `.org` 对应值，`docker compose up -d` 重建相关容器 | 我 |
+| deploy CI 目标机 | SSH 211.159.161.34（旧机） | 切换后部署目标改新机（secret 换 host + 新机装 Actions 公钥） | 我 |
+| COS / 数据库图片 URL | 自有 COS 域名 | **不受影响** | — |
+
+### 10.2 执行顺序（DNS 生效为分界）
+
+1. 用户：加 DNS 记录（TTL 直接 60s）+ GitHub OAuth 回调改新域名
+2. DNS 生效后：SafeLine 控制台建站点 → 申请证书（雷池一键，HTTP-01 验证需 80 可达——新机 tengine 已在）
+3. 我：`gh variable set` 两个构建变量 → 重跑 Build & Push（新 web 镜像带新域名 bundle）
+4. 我：新机 .env 五项改 `.org` → `up -d` 重建 web/gateway/agent-service/admin
+5. 验收：浏览器走通 注册/登录/GitHub 登录/聊天流式/生图/语音；`04-verify-all.sh --public`（域名改新值后）
+6. 旧域名若续费：旧机雷池加 301 `telos.indulgeback.icu → indulgeback.org`（保 SEO 权重）；不续费则明日到期自然失效
+7. 收尾：deploy CI 目标机切新机，旧机进入 ≥7 天只读观察期
