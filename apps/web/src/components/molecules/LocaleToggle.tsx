@@ -47,7 +47,7 @@ function LocaleToggle() {
           aria-label={t('toggleLanguage')}
           variant='outline'
           size='icon'
-          className='relative w-full border-transparent bg-transparent shadow-none hover:bg-muted/60 md:size-10'
+          className='relative w-full border-transparent bg-transparent shadow-none hover:bg-muted/60 dark:bg-transparent dark:border-transparent dark:shadow-none dark:hover:bg-muted/60 md:size-10'
         >
           <Globe className='h-4 w-4' />
           <span className='md:hidden block'>{t('toggleLanguage')}</span>
