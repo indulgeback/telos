@@ -204,3 +204,26 @@ mihomo 在最前（新机出网依赖，web 构建/ghcr 拉取/Google ADC 都要
 5. 验收：浏览器走通 注册/登录/GitHub 登录/聊天流式/生图/语音；`04-verify-all.sh --public`（域名改新值后）
 6. 旧域名若续费：旧机雷池加 301 `telos.indulgeback.icu → telos.indulgeback.org`（保 SEO 权重）；不续费则到期自然失效
 7. 收尾：deploy CI 目标机切新机，旧机进入 ≥7 天只读观察期
+
+### 10.3 迁移完成态（2026-11-18 实际执行记录，与 10.2 规划的差异点）
+
+实际落地结构（用户拍板）：**Cloudflare 橙云代理 + Automatic SSL（运行 Full）**，域名三条：
+`telos.indulgeback.org`（web）/ `api-telos.indulgeback.org`（网关）/ `ollama.indulgeback.org`（frp 隧道，frp 客户端连上即活）。
+
+- **证书**：绕过雷池控制台，手工 `certbot certonly --standalone`（短暂 stop tengine）签出三域名一证
+  （`/etc/letsencrypt/live/telos.indulgeback.org/`，至 2027-02-16），复制到 `resources/nginx/certs/telos-org.*`。
+  ⚠️ **续期需挂 cron**：standalone 续期须再停/起 tengine（`prehook stop` + `posthook start`），90 天内务必配置。
+- **站点**：手写 `resources/nginx/sites-enabled/IF_backend_10/11/12`（从 IF_backend_8 模板 sed 派生，
+  + 空文件 `custom_params/backend_10/11/12`），`nginx -s reload` 生效。控制台 DB 里没有这三个站（mgt 重新生成站点时可能覆盖手写文件——届时在控制台补建同名站点即可）。
+- **部署链路**：`SSH_HOST` secret 已切 `43.166.132.158`，CI 专用密钥对已换（公钥在新机 ubuntu authorized_keys），
+  `/opt/telos` 属主 chown ubuntu。**push main → Build & Push → 自动 Deploy → 新机**。
+- **新机 `.env` 域名相关已全部 .org**：CORS_ORIGINS / TRUSTED_ORIGINS（含 api-telos）/ BETTER_AUTH_URL /
+  BETTER_AUTH_COOKIE_DOMAIN=indulgeback.org / WORKSPACE_SHARE_BASE_URL / A2A_PUBLIC_BASE_URL / NEXT_PUBLIC_*。
+  CORS 预检经 CF 实测返回 `access-control-allow-origin: https://telos.indulgeback.org` ✓。
+- **hermes**：6.7G 全量迁毕；在新机以 **systemd user units**（`hermes-gateway`/`hermes-dashboard`）常驻，
+  Telegram polling 已连。⚠️ venv 基础解释器在 uv 目录（`~/.local/share/uv/python/cpython-3.11-*`），不在 .hermes 内，已补传。
+- **宝塔**：不迁（用户拍板）。**frps**：新机 active（7100/7102），用户设备 frpc 需改 serverAddr。
+- **雷池控制台密码**：DB 已置 admin/admin（md5+空盐 legacy 路径）；若登不进，在腾讯 OrcaTerm 跑
+  `docker exec -it safeline-mgt /app/mgt-cli reset-admin --once`（交互式，SSH 管道喂不进）。
+- **老机**：`.icu` 已到期；老机 compose manifest 曾被失败部署截断为 0 字节（**老机不能再跑 compose 变更**），
+  只读观察期，数据冷备留在旧机。
