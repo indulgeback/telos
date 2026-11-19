@@ -39,6 +39,7 @@ runsRouter.get('/:id', async c => {
       id: true,
       agentId: true,
       threadId: true,
+      parentRunId: true,
       status: true,
       input: true,
       finalOutput: true,

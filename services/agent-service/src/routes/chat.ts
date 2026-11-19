@@ -390,6 +390,7 @@ chatRouter.get('/threads/:id/runs', async c => {
       id: true,
       agentId: true,
       threadId: true,
+      parentRunId: true,
       status: true,
       startedAt: true,
       completedAt: true,
