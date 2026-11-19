@@ -207,6 +207,13 @@ async function dispatchOutboxEvent(event: ClaimedOutboxEvent) {
     event.eventType === 'agent_run.failed' ||
     event.eventType === 'agent_run.cancelled'
   ) {
+    // Settlement first: 交付失败会让事件整体重试，此时终态 UI 投影尚未追加，
+    // 不会产生重复终态事件；deliverSettlement 有 SETNX 幂等，重放安全。
+    // 动态 import 与下方 approval-persistence 同理，避免静态循环依赖。
+    const { deliverSettlement, maybeTriggerFollowUpForChildren } =
+      await import('./settlement.js')
+    await deliverSettlement(event.aggregateId)
+    await maybeTriggerFollowUpForChildren(event.aggregateId)
     const payload =
       event.payload && typeof event.payload === 'object'
         ? (event.payload as Record<string, unknown>)
