@@ -310,6 +310,7 @@ model AgentRun {
   id             String         @id @default(uuid())
   agentId        String         @map("agent_id")
   threadId       String?        @map("thread_id")
+  parentRunId    String?        @map("parent_run_id")
   status         AgentRunStatus @default(queued)
   input          Json
   finalOutput    String?        @map("final_output")
@@ -334,6 +335,8 @@ model AgentRun {
 
   agent     Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
   thread    AgentThread?        @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  parentRun AgentRun?           @relation("AgentRunParentChild", fields: [parentRunId], references: [id], onDelete: SetNull)
+  childRuns AgentRun[]          @relation("AgentRunParentChild")
   messages  AgentMessage[]
   steps     AgentRunStep[]
   events    AgentRunEvent[]
@@ -344,6 +347,7 @@ model AgentRun {
   @@index([agentId, createdAt])
   @@index([threadId, createdAt])
   @@index([status, createdAt])
+  @@index([parentRunId])
   @@map("agent_runs")
 }
 

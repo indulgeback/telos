@@ -480,11 +480,13 @@ export async function createAgentRun(data: {
   input: unknown
   metadata?: unknown
   status?: 'queued' | 'running'
+  parentRunId?: string | null
 }) {
   return prisma.agentRun.create({
     data: {
       agentId: data.agentId,
       threadId: data.threadId ?? null,
+      parentRunId: data.parentRunId ?? null,
       input: data.input as any,
       metadata: (data.metadata ?? {}) as any,
       status: data.status ?? 'queued',
