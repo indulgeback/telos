@@ -41,6 +41,9 @@ export const config = {
     64
   ),
 
+  // 异步子任务派生（spawn_run）总开关
+  agentSpawnRunEnabled: process.env.AGENT_SPAWN_RUN_ENABLED !== 'false',
+
   workerHealthPort: boundedInteger(
     process.env.WORKER_HEALTH_PORT,
     8896,
