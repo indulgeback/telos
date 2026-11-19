@@ -105,9 +105,8 @@ model AgentRun {
 
 ### 注入条件与注册
 
-- 工具注入点：`buildAgent` 工具装配区（`runtime.ts:957-1016` 附近），条件 `depth === 0 && !isPlanMode`（`buildAgent` options 已有 `runId`/`userId`/`persistence`，closure 捕获）。`depth===0` 保证 in-run `as_tool` 子 agent（depth≥1）不会拿到 spawn 能力。
-- 定义注册：`BuiltinToolKey` 加 `'spawn_run' | 'list_subagent_runs'`；`BUILTIN_TOOL_DEFINITIONS` 加两条定义；`builtinKeyFromRaw` 加映射；`buildBuiltinTool` 分发到新构造器。实现放**新文件 `services/spawn-run-tool.ts`**（`buildSpawnRunTool` / `buildListSubagentRunsTool`），不在 builtin-tools.ts 巨型 if-else 里膨胀。
-- 自动附加：沿用 `ensureBuiltinTools({attachToExistingAgents:true})` 现有机制，部署后所有 agent 自动获得；用户可在工具绑定 UI 按 agent 关闭（`isToolUserAssignable` 对二者放行，不像 run_command 排除）。
+- **注入方式：buildAgent 运行时直接注入**（与 `buildSkillLoaderTool`/`buildClarifyQuestionTool` 同模式，`runtime.ts:985-1016`），条件 `depth === 0 && !isPlanMode && agentSpawnRunEnabled`（`buildAgent` options 已有 `runId`/`userId`/`persistence`，closure 捕获）。`depth===0` 保证 in-run `as_tool` 子 agent（depth≥1）不会拿到 spawn 能力。
+- **不走 builtin 工具绑定表**：`buildBuiltinTool` 的闭包缺少 userId/depth 上下文（现有 builtin 靠 `(persistence as any).runId` 反查），且双路径会造成同名工具双重注册。UI 按 agent 开关留二期（届时再转 builtin 绑定 + `isToolUserAssignable`）。
 - 审批：默认免审批（创建动作本身成本低、有上限防护）。
 
 ## 6. 执行流
@@ -196,7 +195,7 @@ model AgentRun {
 
 - `spawn-run-tool.test.mjs`：参数校验 / env 开关 / 深度拒绝 / autoTurnDepth 拒绝 / 活跃子上限 / 鉴权 404 语义 / 成功路径落库与入队断言
 - `settlement.test.mjs`：非子 run 快速返回 / SETNX 幂等 / 三种终态文案与截断 / 父活跃不触发 / 父终态触发 follow-up 且 metadata 正确 / maybeTriggerFollowUpForChildren 零子负担
-- `builtin-tools.test.mjs` 补：新工具定义注册、`isToolUserAssignable` 放行、plan 模式注入排除
+- `plan-mode.test.mjs` 回归：plan 模式构建产物中不出现 spawn 工具（注入条件 `!isPlanMode`）
 
 集成验证（手工，dev 环境）：
 
@@ -210,9 +209,8 @@ model AgentRun {
 | 文件 | 改动 |
 |---|---|
 | `prisma/schema.prisma` | `AgentRun.parentRunId` + 索引；`prisma migrate dev` |
-| `services/agent-service/src/services/spawn-run-tool.ts` | **新增**：两个工具构造器 |
+| `services/agent-service/src/services/spawn-run-tool.ts` | **新增**：两个工具构造器（运行时注入，不走 builtin 绑定表） |
 | `services/agent-service/src/services/settlement.ts` | **新增**：交付器 + follow-up 触发 |
-| `services/agent-service/src/services/builtin-tools.ts` | Key/定义/映射/分发四处小改 |
 | `services/agent-service/src/services/runtime.ts` | buildAgent 注入（depth===0 && !isPlanMode）；PLAN_MODE_INSTRUCTIONS 补句 |
 | `services/agent-service/src/services/outbox.ts` | 终态三分支追加两个 settlement 调用 |
 | `services/agent-service/src/config/index.ts` | `AGENT_SPAWN_RUN_ENABLED` |
