@@ -58,6 +58,10 @@ import {
   buildSkillIndexBlock,
   buildSkillActivatedBlock,
 } from './skill-loader.js'
+import {
+  buildListSubagentRunsTool,
+  buildSpawnRunTool,
+} from './spawn-run-tool.js'
 import { getGcloudAccessToken, getGcloudOpenAIBaseUrl } from './gcloud.js'
 import { DeepSeekReasoningModel } from './deepseek-reasoning-model.js'
 import {
@@ -215,6 +219,7 @@ const PLAN_MODE_INSTRUCTIONS = `你正处于「计划模式」（Plan Mode）。
 
 注意：
 - 不要尝试调用任何写入/修改类的工具（如果有此类工具，它们在计划模式下已被禁用）。
+- 计划模式下无法派生子任务（spawn_run 已禁用），请把派生步骤写进计划交给执行阶段。
 - 计划要具体、可执行，通常 3-8 步。
 - 不要在文本回复中写计划，计划必须通过 create_plan 工具提交。
 - 调用 create_plan 前不需要额外的文本输出（可以简短说一句"我来制定计划"）。`
@@ -996,6 +1001,22 @@ export class AgentRuntimeService {
           options?.persistence,
           options?.userId
         )
+      )
+    }
+
+    // 异步子任务派生工具注入：仅顶层 run（depth===0）、非计划模式、开关开启。
+    // in-run as_tool 子 agent（depth>=1）不注入，保证委派深度=1。
+    if (
+      !isPlanMode &&
+      depth === 0 &&
+      options?.runId &&
+      config.agentSpawnRunEnabled
+    ) {
+      tools.push(
+        buildSpawnRunTool({ runId: options.runId, persistence: options.persistence })
+      )
+      tools.push(
+        buildListSubagentRunsTool({ runId: options.runId, persistence: options.persistence })
       )
     }
 
